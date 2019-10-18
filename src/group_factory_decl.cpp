@@ -27,6 +27,7 @@ namespace xios
   macro(CInverseAxisGroup)
   macro(CZoomAxisGroup)
   macro(CInterpolateAxisGroup)
+  macro(CExtractAxisGroup)
   macro(CZoomDomainGroup)
   macro(CInterpolateDomainGroup)
   macro(CGenerateRectilinearDomainGroup)
@@ -43,4 +44,5 @@ namespace xios
   macro(CDuplicateScalarToAxisGroup)
   macro(CReduceScalarToScalarGroup)
   macro(CReorderDomainGroup)
+  macro(CExtractDomainGroup)
 }

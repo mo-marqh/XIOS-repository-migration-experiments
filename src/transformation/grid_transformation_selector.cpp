@@ -27,6 +27,7 @@ void CGridTransformationSelector::registerTransformations()
   CAxisAlgorithmZoom::registerTrans();
   CAxisAlgorithmExtractDomain::registerTrans();
   CAxisAlgorithmInterpolate::registerTrans();
+  CAxisAlgorithmExtract::registerTrans();
   CAxisAlgorithmInverse::registerTrans();
   CAxisAlgorithmReduceDomain::registerTrans();
   CAxisAlgorithmReduceAxis::registerTrans();
@@ -39,11 +40,13 @@ void CGridTransformationSelector::registerTransformations()
   CDomainAlgorithmZoom::registerTrans();
   CDomainAlgorithmExpand::registerTrans();
   CDomainAlgorithmReorder::registerTrans();
+  CDomainAlgorithmExtract::registerTrans();
 }
 
 CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGrid* source, TransformationType type)
  : gridSource_(source), gridDestination_(destination), isSameGrid_(false),
   listAlgos_(), algoTypes_(), nbNormalAlgos_(0), nbSpecialAlgos_(0), auxInputs_()
+TRY
 {
   if (0 == source)
   {  gridSource_ = gridDestination_; }
@@ -59,6 +62,7 @@ CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGr
   registerTransformations();
   initializeTransformations(type);
 }
+CATCH
 
 /*!
   Initialize the mapping between the first grid source and the original one
@@ -67,6 +71,7 @@ Because at the end of the series, we need to know about the index mapping betwee
 for each transformation, we need to make sure that the current "temporary source" maps its global index correctly to the original one.
 */
 void CGridTransformationSelector::initializeTransformations(TransformationType type)
+TRY
 {
   // Initialize algorithms
   initializeAlgorithms();
@@ -97,18 +102,22 @@ void CGridTransformationSelector::initializeTransformations(TransformationType t
 
   }
 }
+CATCH
 
 CGridTransformationSelector::~CGridTransformationSelector()
+TRY
 {
   std::vector<CGenericAlgorithmTransformation*>::const_iterator itb = algoTransformation_.begin(), it,
                                                                 ite = algoTransformation_.end();
   for (it = itb; it != ite; ++it) delete (*it);
 }
+CATCH
 
 /*!
   Update position of elements in grid source and grid destination as well as their positions in element list
 */
 void CGridTransformationSelector::updateElementPosition()
+TRY
 {
   int idxScalar = 0, idxAxis = 0, idxDomain = 0;
   CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
@@ -160,11 +169,13 @@ void CGridTransformationSelector::updateElementPosition()
     }
   }
 }
+CATCH
 
 /*!
   Initialize the algorithms (transformations)
 */
 void CGridTransformationSelector::initializeAlgorithms()
+TRY
 {
   updateElementPosition();
   CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
@@ -185,6 +196,7 @@ void CGridTransformationSelector::initializeAlgorithms()
     }
   }
 }
+CATCH
 
 /*!
   Initialize the algorithms corresponding to transformation info contained in each scalar.
@@ -194,6 +206,7 @@ For now, one approach is to do these combinely but maybe this needs changing.
 \param [in] axisPositionInGrid position of an axis in grid. (for example: a grid with one domain and one scalar, position of domain is 0, position of axis is 1)
 */
 void CGridTransformationSelector::initializeScalarAlgorithms(int scalarPositionInGrid)
+TRY
 {
   std::vector<CScalar*> scalarListDestP = gridDestination_->getScalars();
   std::vector<CScalar*> scalarListSrcP = gridSource_->getScalars();
@@ -226,6 +239,7 @@ void CGridTransformationSelector::initializeScalarAlgorithms(int scalarPositionI
     }
   }
 }
+CATCH
 
 /*!
   Initialize the algorithms corresponding to transformation info contained in each axis.
@@ -235,6 +249,7 @@ For now, one approach is to do these combinely but maybe this needs changing.
 \param [in] axisPositionInGrid position of an axis in grid. (for example: a grid with one domain and one axis, position of domain is 1, position of axis is 2)
 */
 void CGridTransformationSelector::initializeAxisAlgorithms(int axisPositionInGrid)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
   std::vector<CAxis*> axisListSrcP = gridSource_->getAxis();
@@ -267,6 +282,7 @@ void CGridTransformationSelector::initializeAxisAlgorithms(int axisPositionInGri
     }
   }
 }
+CATCH
 
 /*!
   Initialize the algorithms corresponding to transformation info contained in each domain.
@@ -275,6 +291,7 @@ In general, each domain can have several transformations performed on itself.
 \param [in] domPositionInGrid position of a domain in grid. (for example: a grid with one domain and one axis, position of domain is 1, position of axis is 2)
 */
 void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGrid)
+TRY
 {
   std::vector<CDomain*> domListDestP = gridDestination_->getDomains();
   std::vector<CDomain*> domListSrcP = gridSource_->getDomains();
@@ -306,8 +323,8 @@ void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGr
       }
     }
   }
-
 }
+CATCH
 
 /*!
   Select algorithm correspoding to its transformation type and its position in each element
@@ -318,6 +335,7 @@ void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGr
   \param [in] algoType flag to specify type of algorithm (2 for domain, 1 for axis and 0 for scalar) 
 */
 void CGridTransformationSelector::selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, int algoType)
+TRY
 {
   updateElementPosition();
   switch (algoType)
@@ -335,8 +353,10 @@ void CGridTransformationSelector::selectAlgo(int elementPositionInGrid, ETranfor
     break;
   }
 }
+CATCH
 
 bool CGridTransformationSelector::isSpecialTransformation(ETranformationType transType)
+TRY
 {
   bool res = false;
   switch (transType)
@@ -350,5 +370,6 @@ bool CGridTransformationSelector::isSpecialTransformation(ETranformationType tra
 
   return res;
 }
+CATCH
 
 }

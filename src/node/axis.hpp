@@ -28,7 +28,6 @@ namespace xios {
    // Declare/Define CAxisAttribute
    BEGIN_DECLARE_ATTRIBUTE_MAP(CAxis)
 #  include "axis_attribute.conf"
-#  include "axis_attribute_private.conf"
    END_DECLARE_ATTRIBUTE_MAP(CAxis)
 
    ///--------------------------------------------------------------
@@ -120,16 +119,17 @@ namespace xios {
          void duplicateTransformation(CAxis*);
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
          bool isEqual(CAxis* axis);
-         bool zoomByIndex();
 
       public: 
         bool hasValue;        
-        CArray<size_t,1> localIndexToWriteOnServer;        
+        bool hasBounds;
+        bool hasLabel;
+
+        CArray<int,1> localIndexToWriteOnServer;
 
       private:
          void checkData();
          void checkMask();
-         void checkZoom();
          void checkBounds();
          void checkLabel();
          void sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
@@ -172,8 +172,6 @@ namespace xios {
          std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;
          std::map<int, std::vector<int> > connectedServerRank_;
-         bool hasBounds;
-         bool hasLabel;         
          bool computedWrittenIndex_;                  
 
        private:

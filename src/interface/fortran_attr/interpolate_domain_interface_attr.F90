@@ -87,14 +87,16 @@ MODULE interpolate_domain_interface_attr
     END FUNCTION cxios_is_defined_interpolate_domain_quantity
 
 
-    SUBROUTINE cxios_set_interpolate_domain_read_write_convention(interpolate_domain_hdl, read_write_convention, read_write_convention_size) BIND(C)
+    SUBROUTINE cxios_set_interpolate_domain_read_write_convention(interpolate_domain_hdl, read_write_convention, read_write_conven&
+&tion_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
       CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: read_write_convention
       INTEGER  (kind = C_INT)     , VALUE        :: read_write_convention_size
     END SUBROUTINE cxios_set_interpolate_domain_read_write_convention
 
-    SUBROUTINE cxios_get_interpolate_domain_read_write_convention(interpolate_domain_hdl, read_write_convention, read_write_convention_size) BIND(C)
+    SUBROUTINE cxios_get_interpolate_domain_read_write_convention(interpolate_domain_hdl, read_write_convention, read_write_conven&
+&tion_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
       CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: read_write_convention
@@ -125,6 +127,25 @@ MODULE interpolate_domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_renormalize
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
     END FUNCTION cxios_is_defined_interpolate_domain_renormalize
+
+
+    SUBROUTINE cxios_set_interpolate_domain_use_area(interpolate_domain_hdl, use_area) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: use_area
+    END SUBROUTINE cxios_set_interpolate_domain_use_area
+
+    SUBROUTINE cxios_get_interpolate_domain_use_area(interpolate_domain_hdl, use_area) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)             :: use_area
+    END SUBROUTINE cxios_get_interpolate_domain_use_area
+
+    FUNCTION cxios_is_defined_interpolate_domain_use_area(interpolate_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_use_area
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+    END FUNCTION cxios_is_defined_interpolate_domain_use_area
 
 
     SUBROUTINE cxios_set_interpolate_domain_weight_filename(interpolate_domain_hdl, weight_filename, weight_filename_size) BIND(C)

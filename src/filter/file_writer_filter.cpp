@@ -16,9 +16,9 @@ namespace xios
 
   void CFileWriterFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
-    const bool detectMissingValue = (!field->detect_missing_value.isEmpty()
-                                      && !field->default_value.isEmpty()
-                                      && field->detect_missing_value == true);
+    const bool detectMissingValue = ( !field->default_value.isEmpty() &&
+                               ( (!field->detect_missing_value.isEmpty() || field->detect_missing_value == true)
+                                 || field->hasGridMask()) );
 
     CArray<double, 1> dataArray = (detectMissingValue) ? data[0]->data.copy() : data[0]->data;
 

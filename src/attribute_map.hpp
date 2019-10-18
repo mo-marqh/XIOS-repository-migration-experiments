@@ -37,6 +37,7 @@ namespace xios
             void setAttributes(const CAttributeMap * const _parent, bool apply=true);
             void duplicateAttributes(const CAttributeMap* const _parent);
             void clearAllAttributes(void);
+            StdString dumpXiosAttributes(void) const;
 
             void clearAttribute(const StdString& key);
             bool isEqual(const CAttributeMap& another, const vector<StdString>& excludedAttrs);

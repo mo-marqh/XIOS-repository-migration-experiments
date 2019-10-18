@@ -30,6 +30,7 @@
 
 /// boost headers ///
 #include <boost/cast.hpp>
+#include <boost/current_function.hpp>
 /// Map ///
 #define xios_map std::map
 

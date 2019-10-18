@@ -91,6 +91,8 @@ namespace xios {
          void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
          bool isInitialized(void);
 
+         StdString dumpClassAttributes(void);
+
          // Put sever or client into loop state
          bool checkBuffersAndListen(bool enableEventsProcessing=true);
 
@@ -142,7 +144,6 @@ namespace xios {
          void distributeFileOverBandwith() ;
          void distributeFileOverMemoryBandwith() ;
          
-
          // Send context close definition
          void sendCloseDefinition(void);
          // There are something to send on closing context defintion

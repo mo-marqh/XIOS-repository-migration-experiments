@@ -39,6 +39,7 @@ namespace xios
     inline virtual CBaseType* clone(void) const   { return _clone(); }
     virtual void fromString(const string& str)   { _fromString(str); }
     virtual string toString(void) const { return _toString(); }
+    virtual string dump(void) const { return _toString(); }
     virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer) ; }
     virtual bool toBuffer(CBufferOut& buffer) const { return _toBuffer(buffer); }
     virtual void reset(void) { _reset(); }

@@ -4050,12 +4050,174 @@ field_B
 \begin_inset Quotes erd
 \end_inset
 
-, field_A)
+, field_B)
 \end_layout
 
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Standard
+XIOS also provides the means to define an expression in a Fortran code via
+ the field attribute 
+\begin_inset Quotes eld
+\end_inset
+
+expr
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The example above can rewritten as
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<?xml version="1.0"?>
+\end_layout
+
+\begin_layout Plain Layout
+
+<simulation>
+\end_layout
+
+\begin_layout Plain Layout
+
+	<context id="test">
+\end_layout
+
+\begin_layout Plain Layout
+
+		<calendar type="Gregorian" timestep="1h" />
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+		<grid_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+			<grid id="grid_A"><!-- Definition ommited --></grid>
+\end_layout
+
+\begin_layout Plain Layout
+
+		</grid_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+		<file_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+			<file name="output" output_freq="1d">
+\end_layout
+
+\begin_layout Plain Layout
+
+        		<field id="field_B" grid_ref="grid_A" operation="average">
+\end_layout
+
+\begin_layout Plain Layout
+
+        		<field id="field_C" field_ref="field_B">
+\end_layout
+
+\begin_layout Plain Layout
+
+			</file>
+\end_layout
+
+\begin_layout Plain Layout
+
+		</file_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+	</context>
+\end_layout
+
+\begin_layout Plain Layout
+
+</simulation>
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+while the two expressions can be specified with the following calls: 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_set_field_attr(
+\begin_inset Quotes eld
+\end_inset
+
+field_B
+\begin_inset Quotes erd
+\end_inset
+
+, expr=
+\begin_inset Quotes erd
+\end_inset
+
+@this + 273.15
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ and 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_set_field_attr(
+\begin_inset Quotes eld
+\end_inset
+
+field_C
+\begin_inset Quotes erd
+\end_inset
+
+, expr=
+\begin_inset Quotes erd
+\end_inset
+
+log10(field_B)
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+ 
 \end_layout
 
 \begin_layout Section
@@ -5005,7 +5167,7 @@ XIOS parameterization
 
 \begin_layout Standard
 Some of XIOS behaviors can be configured using options.
- Those options must be expressed as variables in a specific context whose
+ Those options must be exprhessed as variables in a specific context whose
  
 \series bold
 id
@@ -5099,38 +5261,16 @@ name "sec:Launching-secondary-server"
 \end_layout
 
 \begin_layout Standard
-To improve I/O performance and to be able to use HDF5 compression with the
- 
-\series bold
-\emph on
-
-\begin_inset Quotes eld
-\end_inset
-
-multiple_file
-\begin_inset Quotes erd
-\end_inset
-
-
-\series default
-\emph default
- mode, it is possible to separate servers into two levels: intermediaries
- (level one) and writers (level two).
- A single MPI communicator will be created for the intermediaries, while
- multiple communicators will be created for the writers according to the
- number of 
-\begin_inset Quotes eld
-\end_inset
-
-pools
-\begin_inset Quotes erd
-\end_inset
-
- which can be set by a user.
+To improve I/O performance, it is possible to separate servers into two
+ levels: intermediaries (level one) and writers (level two).
  Level-one servers will receive data from clients and will redistribute
- it to be sent to pools of level-two servers whilst level-two servers will
- do the I/O (important: for now level-two servers only do writing data).
- Secondary servers can be launched by means of three parameters:
+ and send the data to subsets of level-two servers (called “pools”), whilst
+ level-two servers will do the I/O.
+ Each file is written by only one pool.
+ If one process is assigned per pool (which is the default option), the
+ I/O is sequential and HDF5 compression can be used even in the “multiple_file”
+ mode.
+ Level-two servers can be launched and controlled by means of three parameters:
 \end_layout
 
 \begin_layout Itemize
@@ -5279,12 +5419,6 @@ name "Fig:server2"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-Note that with one server per pool, the I/O is actually sequential and thus
- the use of HDF5 compression is possible.
- 
 \end_layout
 
 \begin_layout Standard
@@ -5437,7 +5571,7 @@ int
  For each allocated buffers, the used size is defined as 
 \begin_inset Formula 
 \[
-{\scriptstyle used\_size\;=\;\min\left(minimum\_buffer\_size,\; detected\_size\;\times\; buffer\_size\_factor\right)}
+{\scriptstyle used\_size\;=\;\min\left(minimum\_buffer\_size,\;detected\_size\;\times\;buffer\_size\_factor\right)}
 \]
 
 \end_inset

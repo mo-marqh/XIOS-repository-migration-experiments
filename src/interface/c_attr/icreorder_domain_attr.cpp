@@ -3,7 +3,6 @@
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
-#include <memory>
 #include "xios.hpp"
 #include "attribute_template.hpp"
 #include "object_template.hpp"

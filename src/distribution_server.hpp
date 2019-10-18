@@ -23,27 +23,24 @@ class CDistributionServer : public CDistribution
   public:
     /** Default constructor */
     CDistributionServer(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
-    CDistributionServer(int rank, const std::vector<int>& nZoomBeginServer,
-                        const std::vector<int>& nZoomSizeServer, const std::vector<int>& nGlobal);
-    CDistributionServer(int rank, const std::vector<int>& nZoomBeginServer,
-                        const std::vector<int>& nZoomSizeServer,
-                        const std::vector<int>& nZoomBeginGlobal,
+    CDistributionServer(int rank, const std::vector<int>& nBeginServer,
+                        const std::vector<int>& nSizeServer, const std::vector<int>& nGlobal);
+    CDistributionServer(int rank, const std::vector<int>& nBeginServer,
+                        const std::vector<int>& nSizeServer,
+                        const std::vector<int>& nBeginGlobal,
                         const std::vector<int>& nGlobal);
 
-    CDistributionServer(int rank, 
+    CDistributionServer(int rank,
                         const std::vector<CArray<int,1> >& globalIndexElements,
                         const CArray<int,1>& elementOrder,
-                        const std::vector<int>& nZoomBeginServer,
-                        const std::vector<int>& nZoomSizeServer,
-                        const std::vector<int>& nZoomBeginGlobal,
+                        const std::vector<int>& nBeginServer,
+                        const std::vector<int>& nSizeServer,
+                        const std::vector<int>& nBeginGlobal,
                         const std::vector<int>& nGlobal);
 
     /** Default destructor */
     virtual ~CDistributionServer();
 
-    const std::vector<int>& getZoomBeginGlobal() const;
-    const std::vector<int>& getZoomBeginServer() const;
-    const std::vector<int>& getZoomSizeServer() const;
     const GlobalLocalMap& getGlobalLocalIndex() const { return globalLocalIndexMap_; }    
     int getGridSize() const;
     
@@ -61,9 +58,9 @@ class CDistributionServer : public CDistribution
 
   private:
     std::vector<int> nGlobal_;
-    std::vector<int> nZoomBeginGlobal_;
-    std::vector<int> nZoomSize_;
-    std::vector<int> nZoomBegin_;
+    std::vector<int> nBeginGlobal_;
+    std::vector<int> nSize_;
+    std::vector<int> nBegin_;
 
 };
 

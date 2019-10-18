@@ -19,6 +19,7 @@ CDomainAlgorithmGenerateRectilinear::CDomainAlgorithmGenerateRectilinear(CDomain
                                                                          CGrid* gridDest, CGrid* gridSource,
                                                                          CGenerateRectilinearDomain* genRectDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource), nbDomainDistributedPart_(0)
+TRY
 {
   type_ = ELEMENT_GENERATION;
   genRectDomain->checkValid(domainDestination);
@@ -29,6 +30,7 @@ CDomainAlgorithmGenerateRectilinear::CDomainAlgorithmGenerateRectilinear(CDomain
   }
   fillInAttributesDomainDestination();
 }
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
@@ -42,6 +44,7 @@ void CDomainAlgorithmGenerateRectilinear::computeIndexSourceMapping_(const std::
   Calculate the number of distributed parts on domain source
 */
 void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource(CGrid* gridSrc)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client = context->client;
@@ -93,11 +96,13 @@ void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource(CGrid* g
     }
   }
 }
+CATCH
 
 /*!
   Compute the distribution of the domain destination by using available information provided by user such as n_distributed_partition of axis
 */
 void CDomainAlgorithmGenerateRectilinear::computeDistributionGridDestination(CGrid* gridDest)
+TRY
 {
   // For now, just suppose that the grid contains only one domain
   std::vector<CAxis*> axisListDestP = gridDest->getAxis();
@@ -120,15 +125,17 @@ void CDomainAlgorithmGenerateRectilinear::computeDistributionGridDestination(CGr
   nbDomainDistributedPart_ = client->clientSize/nbPartition;
 
 }
+CATCH
 
 /*!
   Fill in all necessary attributes of domain destination and their values
 */
 void CDomainAlgorithmGenerateRectilinear::fillInAttributesDomainDestination()
+TRY
 {
   if (!domainDest_->distributionAttributesHaveValue())
     domainDest_->redistribute(nbDomainDistributedPart_);
   domainDest_->fillInLonLat();
 }
-
+CATCH
 }

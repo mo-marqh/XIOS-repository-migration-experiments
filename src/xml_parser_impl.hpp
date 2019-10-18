@@ -38,8 +38,8 @@ namespace xios
             ERROR("CXMLParser::ParseStream(StdIStream & stream)", << endl
                   << "Error is occuring when parsing XML flux from <"<<fluxId<<"> at character "<< pos<<" line "<<lineNumber<<" column "<< columnNumber<< endl
                   << strLine<<endl
-                  << string(columnNumber-1,'x')<<'^'<<endl
-                  <<" Error : " << exc.what() )
+                  << string(columnNumber-1,'x')<<'^'<<endl)
+//                  <<" Error : " << exc.what() )
          }
       }
 

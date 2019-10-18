@@ -15,6 +15,7 @@ namespace xios
   template class CObjectTemplate<CInverseAxis>;
   template class CObjectTemplate<CZoomAxis>;
   template class CObjectTemplate<CInterpolateAxis>;
+  template class CObjectTemplate<CExtractAxis>;
   template class CObjectTemplate<CZoomDomain>;
   template class CObjectTemplate<CInterpolateDomain>;
   template class CObjectTemplate<CGenerateRectilinearDomain>;
@@ -31,6 +32,7 @@ namespace xios
   template class CObjectTemplate<CDuplicateScalarToAxis>;
   template class CObjectTemplate<CReduceScalarToScalar>;
   template class CObjectTemplate<CReorderDomain>;
+  template class CObjectTemplate<CExtractDomain>;
   
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -42,6 +44,7 @@ namespace xios
   template class CObjectTemplate<CInverseAxisGroup>;
   template class CObjectTemplate<CZoomAxisGroup>;
   template class CObjectTemplate<CInterpolateAxisGroup>;
+  template class CObjectTemplate<CExtractAxisGroup>;
   template class CObjectTemplate<CZoomDomainGroup>;
   template class CObjectTemplate<CInterpolateDomainGroup>;
   template class CObjectTemplate<CGenerateRectilinearDomainGroup>;
@@ -58,4 +61,5 @@ namespace xios
   template class CObjectTemplate<CDuplicateScalarToAxisGroup>;
   template class CObjectTemplate<CReduceScalarToScalarGroup>;
   template class CObjectTemplate<CReorderDomainGroup>;
+  template class CObjectTemplate<CExtractDomainGroup>;
 }

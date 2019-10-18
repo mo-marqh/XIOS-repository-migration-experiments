@@ -4,6 +4,7 @@
 /// XIOS headers ///
 #include "xios_spl.hpp"
 #include "exception.hpp"
+#include "cxios.hpp"
 #include "xml_node.hpp"
 
 

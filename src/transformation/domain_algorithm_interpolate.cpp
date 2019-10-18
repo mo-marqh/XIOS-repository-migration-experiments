@@ -30,6 +30,7 @@ CGenericAlgorithmTransformation* CDomainAlgorithmInterpolate::create(CGrid* grid
                                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
@@ -40,14 +41,18 @@ CGenericAlgorithmTransformation* CDomainAlgorithmInterpolate::create(CGrid* grid
 
   return (new CDomainAlgorithmInterpolate(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], interpolateDomain));
 }
+CATCH
 
 bool CDomainAlgorithmInterpolate::registerTrans()
+TRY
 {
   CGridTransformationFactory<CDomain>::registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
 }
+CATCH
 
 CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false)
+TRY
 {
   CContext* context = CContext::getCurrent();
   interpDomain_->checkValid(domainSource);
@@ -92,11 +97,13 @@ CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestinat
   writeToFile_ = interpDomain_->write_weight;  
     
 }
+CATCH
 
 /*!
   Compute remap with integrated remap calculation module
 */
 void CDomainAlgorithmInterpolate::computeRemap()
+TRY
 {
   using namespace sphereRemap;
 
@@ -303,9 +310,15 @@ void CDomainAlgorithmInterpolate::computeRemap()
 
   CArray<double,2> boundsLonSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
   CArray<double,2> boundsLatSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
+  CArray<double,1> areaSrcUnmasked(nSrcLocalUnmasked);
+  
   long int * globalSrcUnmasked = new long int [nSrcLocalUnmasked];
 
   nSrcLocalUnmasked=0 ;
+  bool hasSrcArea=domainSrc_->hasArea && !domainSrc_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true  ;
+  double srcAreaFactor ;
+  if (hasSrcArea) srcAreaFactor=1./(domainSrc_->radius*domainSrc_->radius) ;
+  
   for (int idx=0 ; idx < nSrcLocal; idx++)
   {
     if (domainSrc_->localMask(idx))
@@ -315,20 +328,26 @@ void CDomainAlgorithmInterpolate::computeRemap()
         boundsLonSrcUnmasked(n,nSrcLocalUnmasked) = boundsLonSrc(n,idx) ;
         boundsLatSrcUnmasked(n,nSrcLocalUnmasked) = boundsLatSrc(n,idx) ;
       }
+      if (hasSrcArea) areaSrcUnmasked(nSrcLocalUnmasked) = domainSrc_->areavalue(idx)*srcAreaFactor ;
       globalSrcUnmasked[nSrcLocalUnmasked]=globalSrc[idx] ;
       ++nSrcLocalUnmasked ;
     }
   }
-
+ 
 
   int nDstLocalUnmasked = 0 ;
   for (int idx=0 ; idx < nDstLocal; idx++) if (domainDest_->localMask(idx)) ++nDstLocalUnmasked ;
 
   CArray<double,2> boundsLonDestUnmasked(nVertexDest,nDstLocalUnmasked);
   CArray<double,2> boundsLatDestUnmasked(nVertexDest,nDstLocalUnmasked);
+  CArray<double,1>   areaDstUnmasked(nDstLocalUnmasked);
+
   long int * globalDstUnmasked = new long int [nDstLocalUnmasked];
 
   nDstLocalUnmasked=0 ;
+  bool hasDstArea=domainDest_->hasArea && !domainDest_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true ;
+  double dstAreaFactor ;
+  if (hasDstArea) dstAreaFactor=1./(domainDest_->radius*domainDest_->radius) ;
   for (int idx=0 ; idx < nDstLocal; idx++)
   {
     if (domainDest_->localMask(idx))
@@ -338,13 +357,20 @@ void CDomainAlgorithmInterpolate::computeRemap()
         boundsLonDestUnmasked(n,nDstLocalUnmasked) = boundsLonDest(n,idx) ;
         boundsLatDestUnmasked(n,nDstLocalUnmasked) = boundsLatDest(n,idx) ;
       }
+      if (hasDstArea) areaDstUnmasked(nDstLocalUnmasked) = domainDest_->areavalue(idx)*dstAreaFactor ;
       globalDstUnmasked[nDstLocalUnmasked]=globalDst[idx] ;
       ++nDstLocalUnmasked ;
     }
   }
 
-  mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
-  mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
+  double* ptAreaSrcUnmasked = NULL ;
+  if (hasSrcArea) ptAreaSrcUnmasked=areaSrcUnmasked.dataFirst() ;
+
+  double* ptAreaDstUnmasked = NULL ;
+  if (hasDstArea) ptAreaDstUnmasked=areaDstUnmasked.dataFirst() ;
+
+  mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), ptAreaSrcUnmasked, nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
+  mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), ptAreaDstUnmasked, nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
 
   std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize,quantity);
 
@@ -398,9 +424,11 @@ void CDomainAlgorithmInterpolate::computeRemap()
   delete [] globalDstUnmasked;
 
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair<int,double> > >& interMapValuePole,
                                               int nbGlobalPointOnPole)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -467,11 +495,13 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
   }
 
 }
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
 */
 void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   if (readFromFile_)  
     readRemapInfo();
@@ -480,21 +510,27 @@ void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<C
     computeRemap(); 
   }
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::writeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+TRY
 {  
   writeInterpolationInfo(fileToReadWrite_, interpMapValue);
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::readRemapInfo()
+TRY
 {  
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   readInterpolationInfo(fileToReadWrite_, interpMapValue);
 
   exchangeRemapInfo(interpMapValue);
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::convertRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -519,11 +555,13 @@ void CDomainAlgorithmInterpolate::convertRemapInfo(std::map<int,std::vector<std:
     }      
   }      
 }
+CATCH
 
 /*!
   Read remap information from file then distribute it among clients
 */
 void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -703,42 +741,53 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std
   delete [] sendBuff;
   delete [] recvBuff;
 }
+CATCH
  
 /*! Redefined some functions of CONetCDF4 to make use of them */
 CDomainAlgorithmInterpolate::WriteNetCdf::WriteNetCdf(const StdString& filename, const MPI_Comm comm)
   : CNc4DataOutput(NULL, filename, false, false, true, comm, false, true) {}
 int CDomainAlgorithmInterpolate::WriteNetCdf::addDimensionWrite(const StdString& name, 
                                                                 const StdSize size)
+TRY
 {
   return CONetCDF4::addDimension(name, size);  
 }
+CATCH
 
 int CDomainAlgorithmInterpolate::WriteNetCdf::addVariableWrite(const StdString& name, nc_type type,
                                                                const std::vector<StdString>& dim)
+TRY
 {
   return CONetCDF4::addVariable(name, type, dim);
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::WriteNetCdf::endDefinition()
+TRY
 {
   CONetCDF4::definition_end();
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::WriteNetCdf::writeDataIndex(const CArray<int,1>& data, const StdString& name,
                                                               bool collective, StdSize record,
                                                               const std::vector<StdSize>* start,
                                                               const std::vector<StdSize>* count)
+TRY
 {
   CONetCDF4::writeData<int,1>(data, name, collective, record, start, count);
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::WriteNetCdf::writeDataIndex(const CArray<double,1>& data, const StdString& name,
                                                               bool collective, StdSize record,
                                                               const std::vector<StdSize>* start,
                                                               const std::vector<StdSize>* count)
+TRY
 {
   CONetCDF4::writeData<double,1>(data, name, collective, record, start, count);
 }
+CATCH
 
 /*
    Write interpolation weights into a file
@@ -747,6 +796,7 @@ void CDomainAlgorithmInterpolate::WriteNetCdf::writeDataIndex(const CArray<doubl
 */
 void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
                                                          std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -826,6 +876,7 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
 
   netCdfWriter.closeFile();
 }
+CATCH
 
 /*!
   Read interpolation information from a file
@@ -835,6 +886,7 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
 */
 void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
                                                         std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+TRY
 {
   int ncid ;
   int weightDimId ;
@@ -893,12 +945,14 @@ void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
     for(size_t ind=0; ind<nbWeight;++ind)
       interpMapValue[dstIndex[ind]-indexOffset].push_back(make_pair(srcIndex[ind]-indexOffset,weight[ind]));
  }
+CATCH
 
 void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> >& localIndex,
                                             const double* dataInput,
                                             CArray<double,1>& dataOut,
                                             std::vector<bool>& flagInitial,
                                             bool ignoreMissingValue, bool firstPass  )
+TRY
 {
   int nbLocalIndex = localIndex.size();   
   double defaultValue = std::numeric_limits<double>::quiet_NaN();
@@ -940,17 +994,22 @@ void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> 
     }
   }
 }
+CATCH
 
 void CDomainAlgorithmInterpolate::updateData(CArray<double,1>& dataOut)
+TRY
 {
   if (detectMissingValue)
   {
     double defaultValue = std::numeric_limits<double>::quiet_NaN();
     size_t nbIndex=dataOut.numElements() ; 
 
-    for (int idx = 0; idx < nbIndex; ++idx)
+    if (allMissing.numElements()>0)
     {
-      if (allMissing(idx)) dataOut(idx) = defaultValue; // If all data source are nan then data destination must be nan
+      for (int idx = 0; idx < nbIndex; ++idx)
+      {
+        if (allMissing(idx)) dataOut(idx) = defaultValue; // If all data source are nan then data destination must be nan
+      }
     }
     
     if (renormalize)
@@ -960,5 +1019,6 @@ void CDomainAlgorithmInterpolate::updateData(CArray<double,1>& dataOut)
     }
   }
 }
+CATCH
 
 }

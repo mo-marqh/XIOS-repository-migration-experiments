@@ -29,10 +29,11 @@ namespace xios {
       , isChecked(false), relFiles(), isClientChecked(false), nbSenders(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
-      , isRedistributed_(false), hasPole(false), doZoomByIndex_(false)
+      , isRedistributed_(false), hasPole(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
-	  , clients()
+      , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
+      , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
    {
    }
 
@@ -41,10 +42,11 @@ namespace xios {
       , isChecked(false), relFiles(), isClientChecked(false), nbSenders(), indSrv_(), connectedServerRank_() 
       , hasBounds(false), hasArea(false), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
-      , isRedistributed_(false), hasPole(false), doZoomByIndex_(false)
+      , isRedistributed_(false), hasPole(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
-	  , clients()
+      , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
+      , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
    {
     }
 
@@ -55,20 +57,25 @@ namespace xios {
    ///---------------------------------------------------------------
 
    void CDomain::assignMesh(const StdString meshName, const int nvertex)
+   TRY
    {
      mesh = CMesh::getMesh(meshName, nvertex);
    }
+   CATCH_DUMP_ATTR
 
    CDomain* CDomain::createDomain()
+   TRY
    {
      CDomain* domain = CDomainGroup::get("domain_definition")->createChild();
      return domain;
    }
+   CATCH
 
    std::map<StdString, ETranformationType> CDomain::transformationMapList_ = std::map<StdString, ETranformationType>();
    bool CDomain::_dummyTransformationMapList = CDomain::initializeTransformationMap(CDomain::transformationMapList_);
 
    bool CDomain::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
+   TRY
    {
      m["zoom_domain"] = TRANS_ZOOM_DOMAIN;
      m["interpolate_domain"] = TRANS_INTERPOLATE_DOMAIN;
@@ -76,53 +83,64 @@ namespace xios {
      m["compute_connectivity_domain"] = TRANS_COMPUTE_CONNECTIVITY_DOMAIN;
      m["expand_domain"] = TRANS_EXPAND_DOMAIN;
      m["reorder_domain"] = TRANS_REORDER_DOMAIN;
+     m["extract_domain"] = TRANS_EXTRACT_DOMAIN;
    }
+   CATCH
 
    const std::set<StdString> & CDomain::getRelFiles(void) const
+   TRY
    {
       return (this->relFiles);
    }
-
+   CATCH
 
    /*!
      Returns the number of indexes written by each server.
      \return the number of indexes written by each server
    */
    int CDomain::getNumberWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return numberWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Returns the total number of indexes written by the servers.
      \return the total number of indexes written by the servers
    */
    int CDomain::getTotalNumberWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return totalNumberWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Returns the offset of indexes written by each server.
      \return the offset of indexes written by each server
    */
    int CDomain::getOffsetWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return offsetWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    CArray<int, 1>& CDomain::getCompressedIndexToWriteOnServer(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return compressedIndexToWriteOnServer[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -132,6 +150,7 @@ namespace xios {
     * \return A map associating the server rank with its minimum buffer size.
     */
    std::map<int, StdSize> CDomain::getAttributesBufferSize(CContextClient* client, bool bufferForWriting /*= false*/)
+   TRY
    {
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes(client);
@@ -159,12 +178,6 @@ namespace xios {
 
        // size estimation for sendIndex (and sendArea which is always smaller or equal)
        size_t sizeIndexEvent = 2 * sizeof(size_t) + 2 * CArray<int,1>::size(idxCount);
-       // if (isCompressible_)
-       // {
-       //   std::map<int, std::vector<int> >::const_iterator itWritten = indWrittenSrv_.find(rank);
-       //   size_t writtenIdxCount = (itWritten != itWrittenIndexEnd) ? itWritten->second.size() : 0;
-       //   sizeIndexEvent += CArray<int,1>::size(writtenIdxCount);
-       // }
 
        // size estimation for sendLonLat
        size_t sizeLonLatEvent = CArray<double,1>::size(idxCount);
@@ -178,30 +191,37 @@ namespace xios {
 
      return attributesSizes;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    bool CDomain::isEmpty(void) const
+   TRY
    {
-      return ((this->zoom_i_index.isEmpty()) || (0 == this->zoom_i_index.numElements()));
-
+     return ((this->i_index.isEmpty()) || (0 == this->i_index.numElements()));
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    bool CDomain::IsWritten(const StdString & filename) const
+   TRY
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
    }
+   CATCH
 
    bool CDomain::isWrittenCompressed(const StdString& filename) const
+   TRY
    {
       return (this->relFilesCompressed.find(filename) != this->relFilesCompressed.end());
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    bool CDomain::isDistributed(void) const
+   TRY
    {
       bool distributed =  !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
               (!i_index.isEmpty() && i_index.numElements() == ni_glo*nj_glo));
@@ -209,6 +229,7 @@ namespace xios {
 
       return distributed;
    }
+   CATCH
 
    //----------------------------------------------------------------
 
@@ -218,19 +239,25 @@ namespace xios {
     * \return true if and only if a mask was defined for this domain
     */
    bool CDomain::isCompressible(void) const
+   TRY
    {
       return isCompressible_;
    }
+   CATCH
 
    void CDomain::addRelFile(const StdString & filename)
+   TRY
    {
       this->relFiles.insert(filename);
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::addRelFileCompressed(const StdString& filename)
+   TRY
    {
       this->relFilesCompressed.insert(filename);
    }
+   CATCH_DUMP_ATTR
 
    StdString CDomain::GetName(void)   { return (StdString("domain")); }
    StdString CDomain::GetDefName(void){ return (CDomain::GetName()); }
@@ -243,6 +270,7 @@ namespace xios {
       This checking verifies the definition of distribution attributes (ni, nj, ibegin, jbegin)
    */
    bool CDomain::distributionAttributesHaveValue() const
+   TRY
    {
       bool hasValues = true;
 
@@ -254,6 +282,7 @@ namespace xios {
 
       return hasValues;
    }
+   CATCH
 
    /*!
      Redistribute RECTILINEAR or CURVILINEAR domain with a number of local domains.
@@ -263,6 +292,7 @@ namespace xios {
     \param [in] nbLocalDomain number of local domain on the domain destination
    */
    void CDomain::redistribute(int nbLocalDomain)
+   TRY
    {
      if (this->isRedistributed_) return;
 
@@ -425,11 +455,13 @@ namespace xios {
 
      checkDomain();
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Fill in longitude and latitude whose values are read from file
    */
    void CDomain::fillInLonLat()
+   TRY
    {
      switch (type)
      {
@@ -447,8 +479,8 @@ namespace xios {
       break;
      }
      completeLonLatClient() ;
-
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Fill in the values for lonvalue_1d and latvalue_1d of rectilinear domain
@@ -456,8 +488,9 @@ namespace xios {
      Range of latitude value from -90 - +90
    */
    void CDomain::fillInRectilinearLonLat()
+   TRY
    {
-     if (!lonvalue_rectilinear_read_from_file.isEmpty())
+     if (!lonvalue_rectilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty())
      {
        lonvalue_1d.resize(ni);
        for (int idx = 0; idx < ni; ++idx)
@@ -465,7 +498,7 @@ namespace xios {
        lon_start.setValue(lonvalue_rectilinear_read_from_file(0));
        lon_end.setValue(lonvalue_rectilinear_read_from_file(ni_glo-1));
      }
-     else
+     else if (!hasLonInReadFile_)
      {
        if (!lonvalue_2d.isEmpty()) lonvalue_2d.free();
        lonvalue_1d.resize(ni);
@@ -491,7 +524,7 @@ namespace xios {
      }
 
 
-     if (!latvalue_rectilinear_read_from_file.isEmpty())
+     if (!latvalue_rectilinear_read_from_file.isEmpty() && latvalue_2d.isEmpty() && latvalue_1d.isEmpty())
      {
        latvalue_1d.resize(nj);
        for (int idx = 0; idx < nj; ++idx)
@@ -499,7 +532,7 @@ namespace xios {
        lat_start.setValue(latvalue_rectilinear_read_from_file(0));
        lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1));
      }
-     else
+     else if (!hasLatInReadFile_)
      {
        if (!latvalue_2d.isEmpty()) latvalue_1d.free();
        latvalue_1d.resize(nj);
@@ -524,14 +557,16 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
     /*
-      Fill in longitude and latitude of curvilinear domain read from a file
-      If there are already longitude and latitude defined by model. We just igonore reading value.
+      Fill in 2D longitude and latitude of curvilinear domain read from a file.
+      If there are already longitude and latitude defined by model. We just ignore read value.
     */
    void CDomain::fillInCurvilinearLonLat()
+   TRY
    {
-     if (!lonvalue_curvilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty())
+     if (!lonvalue_curvilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty())
      {
        lonvalue_2d.resize(ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -541,7 +576,7 @@ namespace xios {
        lonvalue_curvilinear_read_from_file.free();
      }
 
-     if (!latvalue_curvilinear_read_from_file.isEmpty() && latvalue_2d.isEmpty())
+     if (!latvalue_curvilinear_read_from_file.isEmpty() && latvalue_2d.isEmpty() && latvalue_1d.isEmpty())
      {
        latvalue_2d.resize(ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -551,7 +586,7 @@ namespace xios {
        latvalue_curvilinear_read_from_file.free();
      }
 
-     if (!bounds_lonvalue_curvilinear_read_from_file.isEmpty() && bounds_lon_2d.isEmpty())
+     if (!bounds_lonvalue_curvilinear_read_from_file.isEmpty() && bounds_lon_2d.isEmpty() && bounds_lon_1d.isEmpty())
      {
        bounds_lon_2d.resize(nvertex,ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -562,7 +597,7 @@ namespace xios {
        bounds_lonvalue_curvilinear_read_from_file.free();
      }
 
-     if (!bounds_latvalue_curvilinear_read_from_file.isEmpty() && bounds_lat_2d.isEmpty())
+     if (!bounds_latvalue_curvilinear_read_from_file.isEmpty() && bounds_lat_2d.isEmpty() && bounds_lat_1d.isEmpty())
      {
        bounds_lat_2d.resize(nvertex,ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -572,14 +607,15 @@ namespace xios {
 
        bounds_latvalue_curvilinear_read_from_file.free();
      }
-
    }
+   CATCH_DUMP_ATTR
 
     /*
       Fill in longitude and latitude of unstructured domain read from a file
       If there are already longitude and latitude defined by model. We just igonore reading value.
     */
    void CDomain::fillInUnstructuredLonLat()
+   TRY
    {
      if (i_index.isEmpty())
      {
@@ -631,11 +667,13 @@ namespace xios {
         bounds_latvalue_unstructured_read_from_file.free();
      }
    }
+   CATCH_DUMP_ATTR
 
   /*
     Get global longitude and latitude of rectilinear domain.
   */
    void CDomain::AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat, CArray<double,1>& lon_g, CArray<double,1>& lat_g)
+   TRY
    {
      CContext* context = CContext::getCurrent();
     // For now the assumption is that secondary server pools consist of the same number of procs.
@@ -667,10 +705,12 @@ namespace xios {
       delete[] ni_g ;
       delete[] nj_g ;
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::fillInRectilinearBoundLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                               CArray<double,2>& boundsLon, CArray<double,2>& boundsLat)
-   {
+   TRY
+  {
      int i,j,k;
 
      const int nvertexValue = 4;
@@ -769,11 +809,13 @@ namespace xios {
                                                                       : (lat(jbegin + j + 1)+lat(jbegin + j))/2;
       }
    }
+   CATCH_DUMP_ATTR
 
    /*
      General check of the domain to verify its mandatory attributes
    */
    void CDomain::checkDomain(void)
+   TRY
    {
      if (type.isEmpty())
      {
@@ -864,38 +906,18 @@ namespace xios {
        for (int j = 0; j < nj; ++j)
          for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
      }
-     
-     checkZoom();
    }
-
-   // Check global zoom of a domain
-   // If there is no zoom defined for the domain, zoom will have value of global doamin
-   void CDomain::checkZoom(void)
-   {
-     if (global_zoom_ibegin.isEmpty())
-      global_zoom_ibegin.setValue(0);
-     if (global_zoom_ni.isEmpty())
-      global_zoom_ni.setValue(ni_glo);
-     if (global_zoom_jbegin.isEmpty())
-      global_zoom_jbegin.setValue(0);
-     if (global_zoom_nj.isEmpty())
-      global_zoom_nj.setValue(nj_glo);
-    if (zoom_i_index.isEmpty()) zoom_i_index.setValue(i_index.getValue());
-    if (zoom_j_index.isEmpty()) zoom_j_index.setValue(j_index.getValue());
-    if (zoom_ibegin.isEmpty()) zoom_ibegin.setValue(ibegin);
-    if (zoom_ni.isEmpty()) zoom_ni.setValue(ni);
-    if (zoom_jbegin.isEmpty()) zoom_jbegin.setValue(jbegin);
-    if (zoom_nj.isEmpty()) zoom_nj.setValue(nj);
-   }
+   CATCH_DUMP_ATTR
 
    size_t CDomain::getGlobalWrittenSize(void)
    {
-      return global_zoom_ni*global_zoom_nj ;
+     return ni_glo*nj_glo ;
    }
    //----------------------------------------------------------------
 
    // Check validity of local domain on using the combination of 3 parameters: ibegin, ni and i_index
    void CDomain::checkLocalIDomain(void)
+   TRY
    {
       // If ibegin and ni are provided then we use them to check the validity of local domain
       if (i_index.isEmpty() && !ibegin.isEmpty() && !ni.isEmpty())
@@ -954,9 +976,11 @@ namespace xios {
               << " check the attributes 'ni_glo' (" << ni_glo.getValue() << "), 'ni' (" << ni.getValue() << ") and 'ibegin' (" << ibegin.getValue() << ")");
       }
    }
+   CATCH_DUMP_ATTR
 
    // Check validity of local domain on using the combination of 3 parameters: jbegin, nj and j_index
    void CDomain::checkLocalJDomain(void)
+   TRY
    {
     // If jbegin and nj are provided then we use them to check the validity of local domain
      if (j_index.isEmpty() && !jbegin.isEmpty() && !nj.isEmpty())
@@ -1005,10 +1029,12 @@ namespace xios {
               << " check the attributes 'nj_glo' (" << nj_glo.getValue() << "), 'nj' (" << nj.getValue() << ") and 'jbegin' (" << jbegin.getValue() << ")");
      }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CDomain::checkMask(void)
+   TRY
    {
       if (!mask_1d.isEmpty() && !mask_2d.isEmpty())
         ERROR("CDomain::checkMask(void)",
@@ -1054,10 +1080,12 @@ namespace xios {
       domainMask=mask_1d ;
      }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CDomain::checkDomainData(void)
+   TRY
    {
       if (data_dim.isEmpty())
       {
@@ -1097,11 +1125,14 @@ namespace xios {
               << "The data size cannot be negative ('data_nj' = " << data_nj.getValue() << ").");
       }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CDomain::checkCompression(void)
+   TRY
    {
+     int i,j,ind;
       if (!data_i_index.isEmpty())
       {
         if (!data_j_index.isEmpty() &&
@@ -1122,13 +1153,44 @@ namespace xios {
                    << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                    << "'data_j_index' must be defined when 'data_i_index' is set and 'data_dim' is 2.");
           }
+          for (int k=0; k<data_i_index.numElements(); ++k)
+          {
+            i = data_i_index(k)+data_ibegin ;
+            j = data_j_index(k)+data_jbegin ;
+            if (i>=0 && i<ni && j>=0 && j<nj)
+            {
+              ind=j*ni+i ;
+              if (!domainMask(ind))
+              {
+                data_i_index(k) = -1;
+                data_j_index(k) = -1;
+              }
+            }
+            else
+            {
+              data_i_index(k) = -1;
+              data_j_index(k) = -1;
+            }
+          }
         }
         else // (1 == data_dim)
         {
           if (data_j_index.isEmpty())
           {
             data_j_index.resize(data_ni);
-            for (int j = 0; j < data_ni; ++j) data_j_index(j) = 0;
+            data_j_index = 0;
+          }
+          for (int k=0; k<data_i_index.numElements(); ++k)
+          {
+            i=data_i_index(k)+data_ibegin ;
+            if (i>=0 && i < domainMask.size())
+            {
+              if (!domainMask(i)) data_i_index(k) = -1;
+            }
+            else
+              data_i_index(k) = -1;
+
+            if (!domainMask(i)) data_i_index(k) = -1;
           }
         }
       }
@@ -1143,11 +1205,20 @@ namespace xios {
         {
           data_i_index.resize(data_ni);
           data_j_index.resize(data_ni);
+          data_j_index = 0;
 
-          for (int i = 0; i < data_ni; ++i)
+          for (int k = 0; k < data_ni; ++k)
           {
-            data_i_index(i) = i;
-            data_j_index(i) = 0;
+            i=k+data_ibegin ;
+            if (i>=0 && i < domainMask.size())
+            {
+              if (domainMask(i))
+                data_i_index(k) = k;
+              else
+                data_i_index(k) = -1;
+            }
+            else
+              data_i_index(k) = -1;
           }
         }
         else // (data_dim == 2)
@@ -1156,20 +1227,41 @@ namespace xios {
           data_i_index.resize(dsize);
           data_j_index.resize(dsize);
 
-          for(int count = 0, j = 0; j < data_nj; ++j)
+          for(int count = 0, kj = 0; kj < data_nj; ++kj)
           {
-            for(int i = 0; i < data_ni; ++i, ++count)
+            for(int ki = 0; ki < data_ni; ++ki, ++count)
             {
-              data_i_index(count) = i;
-              data_j_index(count) = j;
+              i = ki + data_ibegin;
+              j = kj + data_jbegin;
+              ind=j*ni+i ;
+              if (i>=0 && i<ni && j>=0 && j<nj)
+              {
+                if (domainMask(ind))
+                {
+                  data_i_index(count) = ki;
+                  data_j_index(count) = kj;
+                }
+                else
+                {
+                  data_i_index(count) = -1;
+                  data_j_index(count) = -1;
+                }
+              }
+              else
+              {
+                data_i_index(count) = -1;
+                data_j_index(count) = -1;
+              }
             }
           }
         }
       }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    void CDomain::computeLocalMask(void)
+   TRY
    {
      localMask.resize(i_index.numElements()) ;
      localMask=false ;
@@ -1201,23 +1293,29 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkEligibilityForCompressedOutput(void)
+   TRY
    {
      // We don't check if the mask or the indexes are valid here, just if they have been defined at this point.
      isCompressible_ = !mask_1d.isEmpty() || !mask_2d.isEmpty() || !data_i_index.isEmpty();
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    /*
-     Fill in longitude and latitude value from clients (or models) into internal values lonvalue, latvalue which
-     will be used by XIOS.
+     Fill in longitude, latitude, bounds, and area into internal values (lonvalue, latvalue, bounds_lonvalue, bounds_latvalue, areavalue)
+     which will be used by XIOS.
    */
    void CDomain::completeLonLatClient(void)
+   TRY
    {
      bool lonlatValueExisted = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
      checkBounds() ;
+     checkArea() ;
+
      if (!lonvalue_2d.isEmpty() && !lonlatValueExisted)
      {
        lonvalue.resize(ni * nj);
@@ -1312,12 +1410,27 @@ namespace xios {
          }
        }
      }
+
+     if (!area.isEmpty() && areavalue.isEmpty())
+     {
+        areavalue.resize(ni*nj);
+       for (int j = 0; j < nj; ++j)
+       {
+         for (int i = 0; i < ni; ++i)
+         {
+           int k = j * ni + i;
+           areavalue(k) = area(i,j);
+         }
+       }
+     }
    }
+   CATCH_DUMP_ATTR
 
    /*
      Convert internal longitude latitude value used by XIOS to "lonvalue_*" which can be retrieved with Fortran interface
    */
    void CDomain::convertLonLatValue(void)
+   TRY
    {
      bool lonlatValueExisted = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
      if (!lonvalue_2d.isEmpty() && lonlatValueExisted)
@@ -1415,9 +1528,10 @@ namespace xios {
        }
      }
    }
-
+   CATCH_DUMP_ATTR
 
    void CDomain::checkBounds(void)
+   TRY
    {
      bool hasBoundValues = (0 != bounds_lonvalue.numElements()) || (0 != bounds_latvalue.numElements());
      if (!nvertex.isEmpty() && nvertex > 0 && !hasBoundValues)
@@ -1454,14 +1568,14 @@ namespace xios {
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lon_1d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(1)
+               << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lon_2d.isEmpty() && nvertex.getValue() != bounds_lon_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lon_2d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lon_2d' dimension is " << bounds_lon_2d.extent(2)
+               << "'bounds_lon_2d' dimension is " << bounds_lon_2d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lon_1d.isEmpty() && lonvalue_1d.isEmpty())
@@ -1478,14 +1592,14 @@ namespace xios {
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lat_1d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(1)
+               << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lat_2d.isEmpty() && nvertex.getValue() != bounds_lat_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lat_2d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lat_2d' dimension is " << bounds_lat_2d.extent(2)
+               << "'bounds_lat_2d' dimension is " << bounds_lat_2d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lat_1d.isEmpty() && latvalue_1d.isEmpty())
@@ -1509,8 +1623,10 @@ namespace xios {
        hasBounds = false;
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkArea(void)
+   TRY
    {
      bool hasAreaValue = (!areavalue.isEmpty() && 0 != areavalue.numElements());
      hasArea = !area.isEmpty();
@@ -1524,22 +1640,24 @@ namespace xios {
                << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
                << "Area size is " << area.extent(0) << " x " << area.extent(1) << ".");
        }
-       if (areavalue.isEmpty())
-       {
-          areavalue.resize(ni*nj);
-         for (int j = 0; j < nj; ++j)
-         {
-           for (int i = 0; i < ni; ++i)
-           {
-             int k = j * ni + i;
-             areavalue(k) = area(i,j);
-           }
-         }
-       }
+//       if (areavalue.isEmpty())
+//       {
+//          areavalue.resize(ni*nj);
+//         for (int j = 0; j < nj; ++j)
+//         {
+//           for (int i = 0; i < ni; ++i)
+//           {
+//             int k = j * ni + i;
+//             areavalue(k) = area(i,j);
+//           }
+//         }
+//       }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkLonLat()
+   TRY
    {
      if (!hasLonLat) hasLonLat = (!latvalue_1d.isEmpty() && !lonvalue_1d.isEmpty()) ||
                                  (!latvalue_2d.isEmpty() && !lonvalue_2d.isEmpty());
@@ -1599,8 +1717,10 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkAttributesOnClientAfterTransformation()
+   TRY
    {
      CContext* context=CContext::getCurrent() ;
 
@@ -1615,11 +1735,13 @@ namespace xios {
 
      this->isClientAfterTransformationChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    // Divide function checkAttributes into 2 seperate ones
    // This function only checks all attributes of current domain
    void CDomain::checkAttributesOnClient()
+   TRY
    {
      if (this->isClientChecked) return;
      CContext* context=CContext::getCurrent();
@@ -1645,9 +1767,11 @@ namespace xios {
 
       this->isClientChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    // Send all checked attributes to server
    void CDomain::sendCheckedAttributes()
+   TRY
    {
      if (!this->isClientChecked) checkAttributesOnClient();
      if (!this->isClientAfterTransformationChecked) checkAttributesOnClientAfterTransformation();
@@ -1660,8 +1784,10 @@ namespace xios {
      }
      this->isChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkAttributes(void)
+   TRY
    {
       if (this->isChecked) return;
       CContext* context=CContext::getCurrent() ;
@@ -1691,6 +1817,7 @@ namespace xios {
 
       this->isChecked = true;
    }
+   CATCH_DUMP_ATTR
 
   /*!
      Compute the connection of a client to other clients to determine which clients to send attributes to.
@@ -1699,6 +1826,7 @@ namespace xios {
      A client connects to other clients which holds the same global index as it.     
   */
   void CDomain::computeConnectedClients()
+  TRY
   {
     CContext* context=CContext::getCurrent() ;
     
@@ -1721,157 +1849,112 @@ namespace xios {
 
         if (indSrv_.find(nbServer) == indSrv_.end())
         {
-          int i,j,i_ind,j_ind, nbIndex, nbIndexZoom;
-          int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1;
-          int global_zoom_jend=global_zoom_jbegin+global_zoom_nj-1;
+          int i,j,i_ind,j_ind, nbIndex=i_index.numElements();
+          int globalIndexCount = i_index.numElements();
+          // Fill in index
+          CArray<size_t,1> globalIndexDomain(nbIndex);
+          size_t globalIndex;
 
-           // Precompute number of index
-           int globalIndexCountZoom = 0;
-           nbIndex = i_index.numElements();
+          for (i = 0; i < nbIndex; ++i)
+          {
+            i_ind=i_index(i);
+            j_ind=j_index(i);
+            globalIndex = i_ind + j_ind * ni_glo;
+            globalIndexDomain(i) = globalIndex;
+          }
 
-           if (doZoomByIndex_)
-           {
-             globalIndexCountZoom = zoom_i_index.numElements();
-           }
-           else
-           {
-             for (i = 0; i < nbIndex; ++i)
-             {
-               i_ind=i_index(i);
-               j_ind=j_index(i);
+          if (globalLocalIndexMap_.empty())
+          {
+            for (i = 0; i < nbIndex; ++i)
+              globalLocalIndexMap_[globalIndexDomain(i)] = i;
+          }
 
-               if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-               {
-                  ++globalIndexCountZoom;
-               }
-             }
-           }
+          size_t globalSizeIndex = 1, indexBegin, indexEnd;
+          int range, clientSize = client->clientSize;
+          std::vector<int> nGlobDomain(2);
+          nGlobDomain[0] = this->ni_glo;
+          nGlobDomain[1] = this->nj_glo;
+          for (int i = 0; i < nGlobDomain.size(); ++i) globalSizeIndex *= nGlobDomain[i];
+          indexBegin = 0;
+          if (globalSizeIndex <= clientSize)
+          {
+            indexBegin = rank%globalSizeIndex;
+            indexEnd = indexBegin;
+          }
+          else
+          {
+            for (int i = 0; i < clientSize; ++i)
+            {
+              range = globalSizeIndex / clientSize;
+              if (i < (globalSizeIndex%clientSize)) ++range;
+              if (i == client->clientRank) break;
+              indexBegin += range;
+            }
+            indexEnd = indexBegin + range - 1;
+          }
 
-           // Fill in index
-           CArray<size_t,1> globalIndexDomainZoom(globalIndexCountZoom);
-           CArray<size_t,1> localIndexDomainZoom(globalIndexCountZoom);
-           CArray<size_t,1> globalIndexDomain(nbIndex);
-           size_t globalIndex;
-           int globalIndexCount = 0;
+          // Even if servers have no index, they must received something from client
+          // We only use several client to send "empty" message to these servers
+          CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
+          std::vector<int> serverZeroIndex;
+          if (isUnstructed_) serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
+          else serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 1);
 
-           for (i = 0; i < nbIndex; ++i)
-           {
-             i_ind=i_index(i);
-             j_ind=j_index(i);
-             globalIndex = i_ind + j_ind * ni_glo;
-             globalIndexDomain(i) = globalIndex;
-           }
+          std::list<int> serverZeroIndexLeader;
+          std::list<int> serverZeroIndexNotLeader;
+          CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
+          for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+            *it = serverZeroIndex[*it];
 
-           if (globalLocalIndexMap_.empty())
-           {
-             for (i = 0; i < nbIndex; ++i)
-               globalLocalIndexMap_[globalIndexDomain(i)] = i;
-           }
+          CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
+          clientServerMap->computeServerIndexMapping(globalIndexDomain, nbServer);
+          CClientServerMapping::GlobalIndexMap& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
 
-           globalIndexCountZoom = 0;
-           if (doZoomByIndex_)
-           {
-             int nbIndexZoom = zoom_i_index.numElements();
-
-             for (i = 0; i < nbIndexZoom; ++i)
-             {
-               i_ind=zoom_i_index(i);
-               j_ind=zoom_j_index(i);
-               globalIndex = i_ind + j_ind * ni_glo;
-               globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
-               ++globalIndexCountZoom;
-             }
-           }
-           else
-           {
-             int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1;
-             int global_zoom_jend=global_zoom_jbegin+global_zoom_nj-1;
-             for (i = 0; i < nbIndex; ++i)
-             {
-               i_ind=i_index(i);
-               j_ind=j_index(i);
-               globalIndex = i_ind + j_ind * ni_glo;
-               if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-               {
-                  globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
-                  ++globalIndexCountZoom;
-               }
-             }
-
-             int iend = ibegin + ni -1;
-             int jend = jbegin + nj -1;
-             zoom_ibegin = global_zoom_ibegin > ibegin ? global_zoom_ibegin.getValue() : ibegin;
-             int zoom_iend  = global_zoom_iend < iend ? zoom_iend : iend ;
-             zoom_ni     = zoom_iend-zoom_ibegin+1 ;
-
-             zoom_jbegin = global_zoom_jbegin > jbegin ? global_zoom_jbegin.getValue() : jbegin ;
-             int zoom_jend   = global_zoom_jend < jend ? zoom_jend : jend;
-             zoom_nj     = zoom_jend-zoom_jbegin+1;
-           }
-
-           size_t globalSizeIndex = 1, indexBegin, indexEnd;
-           int range, clientSize = client->clientSize;
-           std::vector<int> nGlobDomain(2);
-           nGlobDomain[0] = this->ni_glo;
-           nGlobDomain[1] = this->nj_glo;
-           for (int i = 0; i < nGlobDomain.size(); ++i) globalSizeIndex *= nGlobDomain[i];
-           indexBegin = 0;
-           if (globalSizeIndex <= clientSize)
-           {
-             indexBegin = rank%globalSizeIndex;
-             indexEnd = indexBegin;
-           }
-           else
-           {
-             for (int i = 0; i < clientSize; ++i)
-             {
-               range = globalSizeIndex / clientSize;
-               if (i < (globalSizeIndex%clientSize)) ++range;
-               if (i == client->clientRank) break;
-               indexBegin += range;
-             }
-             indexEnd = indexBegin + range - 1;
-           }
-
-           // Even if servers have no index, they must received something from client
-           // We only use several client to send "empty" message to these servers
-           CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
-           std::vector<int> serverZeroIndex;
-           if (isUnstructed_) serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
-           else serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 1);
-
-           std::list<int> serverZeroIndexLeader;
-           std::list<int> serverZeroIndexNotLeader;
-           CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
-           for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-              *it = serverZeroIndex[*it];
-
-           CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(),
-                 client->intraComm);
-           clientServerMap->computeServerIndexMapping(globalIndexDomain, nbServer);
-           CClientServerMapping::GlobalIndexMap& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
-
-           CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(),
+          CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(),
                  ite = globalIndexDomainOnServer.end();
-           indSrv_[nbServer].swap(globalIndexDomainOnServer);
-           connectedServerRank_[nbServer].clear();
-           for (it = indSrv_[nbServer].begin(); it != ite; ++it)
-             connectedServerRank_[nbServer].push_back(it->first);
+          indSrv_[nbServer].swap(globalIndexDomainOnServer);
+          connectedServerRank_[nbServer].clear();
+          for (it = indSrv_[nbServer].begin(); it != ite; ++it)
+            connectedServerRank_[nbServer].push_back(it->first);
 
-           for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-              connectedServerRank_[nbServer].push_back(*it);
+          for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+            connectedServerRank_[nbServer].push_back(*it);
 
-           // Even if a client has no index, it must connect to at least one server and
-           // send an "empty" data to this server
-           if (connectedServerRank_[nbServer].empty())
-              connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
+          // Even if a client has no index, it must connect to at least one server and
+          // send an "empty" data to this server
+          if (connectedServerRank_[nbServer].empty())
+            connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
 
-           nbSenders[nbServer] = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
-           delete clientServerMap;
+          // Now check if all servers have data to receive. If not, master client will send empty data.
+          // This ensures that all servers will participate in collective calls upon receiving even if they have no date to receive.
+          std::vector<int> counts (clientSize);
+          std::vector<int> displs (clientSize);
+          displs[0] = 0;
+          int localCount = connectedServerRank_[nbServer].size() ;
+          MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
+          for (int i = 0; i < clientSize-1; ++i)
+          {
+            displs[i+1] = displs[i] + counts[i];
+          }
+          std::vector<int> allConnectedServers(displs[clientSize-1]+counts[clientSize-1]);
+          MPI_Gatherv(&(connectedServerRank_[nbServer])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
+
+          if ((allConnectedServers.size() != nbServer) && (rank == 0))
+          {
+            std::vector<bool> isSrvConnected (nbServer, false);
+            for (int i = 0; i < allConnectedServers.size(); ++i) isSrvConnected[allConnectedServers[i]] = true;
+            for (int i = 0; i < nbServer; ++i)
+            {
+              if (!isSrvConnected[i]) connectedServerRank_[nbServer].push_back(i);
+            }
+          }
+          nbSenders[nbServer] = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
+          delete clientServerMap;
         }
       }
     }
   }
+  CATCH_DUMP_ATTR
 
    /*!
      Compute index to write data. We only write data on the zoomed region, therefore, there should
@@ -1879,6 +1962,7 @@ namespace xios {
      By using global index we can easily create this kind of mapping.
    */
    void CDomain::computeWrittenIndex()
+   TRY
    {  
       if (computedWrittenIndex_) return;
       computedWrittenIndex_ = true;
@@ -1887,8 +1971,8 @@ namespace xios {
       CContextServer* server = context->server;  
 
       std::vector<int> nBegin(2), nSize(2), nBeginGlobal(2), nGlob(2);
-      nBegin[0]       = zoom_ibegin;  nBegin[1] = zoom_jbegin;
-      nSize[0]        = zoom_ni;      nSize[1]  = zoom_nj;
+      nBegin[0]       = ibegin;  nBegin[1] = jbegin;
+      nSize[0]        = ni;      nSize[1]  = nj;
       nBeginGlobal[0] = 0; nBeginGlobal[1] = 0;
       nGlob[0]        = ni_glo;   nGlob[1] = nj_glo;
       CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
@@ -1900,18 +1984,7 @@ namespace xios {
       CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
                                        itSrve = writtenGlobalIndex.end(), itSrv;
 
-//      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-//      {
-//        indGlo = *itSrv;
-//        if (ite != globalLocalIndexMap_.find(indGlo))
-//        {
-//          ++nbWritten;
-//        }
-//      }
-
-//      localIndexToWriteOnServer.resize(nbWritten);
       localIndexToWriteOnServer.resize(writtenGlobalIndex.numElements());
-
       nbWritten = 0;
       for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
       {
@@ -1919,62 +1992,18 @@ namespace xios {
         if (ite != globalLocalIndexMap_.find(indGlo))
         {
           localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
-          ++nbWritten;
         }
         else
         {
-          localIndexToWriteOnServer(nbWritten) = 0;
-          ++nbWritten;
+          localIndexToWriteOnServer(nbWritten) = -1;
         }
+        ++nbWritten;
       }
-      
-      // if (isCompressible())
-      // {
-      //   nbWritten = 0;
-      //   std::unordered_map<size_t,size_t> localGlobalIndexMap;
-      //   for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-      //   {
-      //     indGlo = *itSrv;
-      //     if (ite != globalLocalIndexMap_.find(indGlo))
-      //     {
-      //       localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
-      //       ++nbWritten;
-      //     }                 
-      //   }
-
-      //   nbWritten = 0;
-      //   for (int idx = 0; idx < data_i_index.numElements(); ++idx)
-      //   {
-      //     if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
-      //     {
-      //       ++nbWritten;
-      //     }
-      //   }
-
-      //   compressedIndexToWriteOnServer.resize(nbWritten);
-      //   nbWritten = 0;
-      //   for (int idx = 0; idx < data_i_index.numElements(); ++idx)
-      //   {
-      //     if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
-      //     {
-      //       compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_i_index(idx)];
-      //       ++nbWritten;
-      //     }
-      //   }
-
-      //   numberWrittenIndexes_ = nbWritten;
-      //   if (isDistributed())
-      //   {            
-      //     MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-      //     MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-      //     offsetWrittenIndexes_ -= numberWrittenIndexes_;
-      //   }
-      //   else
-      //     totalNumberWrittenIndexes_ = numberWrittenIndexes_;
-      // }      
    }
+   CATCH_DUMP_ATTR
 
   void CDomain::computeWrittenCompressedIndex(MPI_Comm writtenComm)
+  TRY
   {
     int writtenCommSize;
     MPI_Comm_size(writtenComm, &writtenCommSize);
@@ -1988,8 +2017,8 @@ namespace xios {
       CContextServer* server = context->server;  
 
       std::vector<int> nBegin(2), nSize(2), nBeginGlobal(2), nGlob(2);
-      nBegin[0]       = zoom_ibegin;  nBegin[1] = zoom_jbegin;
-      nSize[0]        = zoom_ni;      nSize[1]  = zoom_nj;
+      nBegin[0]       = ibegin;  nBegin[1] = jbegin;
+      nSize[0]        = ni;      nSize[1]  = nj;
       nBeginGlobal[0] = 0; nBeginGlobal[1] = 0;
       nGlob[0]        = ni_glo;   nGlob[1] = nj_glo;
       CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
@@ -2042,26 +2071,27 @@ namespace xios {
         totalNumberWrittenIndexes_[writtenCommSize] = numberWrittenIndexes_[writtenCommSize];
       }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send all attributes from client to connected clients
     The attributes will be rebuilt on receiving side
   */
   void CDomain::sendAttributes()
+  TRY
   {
     sendDistributionAttributes();
     sendIndex();       
-    sendMask();
     sendLonLat();
     sendArea();    
     sendDataIndex();
   }
-
+  CATCH
   /*!
-    Send global index and zoom index from client to connected client(s)
-    zoom index can be smaller than global index
+    Send global index from client to connected client(s)
   */
   void CDomain::sendIndex()
+  TRY
   {
     int ns, n, i, j, ind, nv, idx;
     std::list<CContextClient*>::iterator it;
@@ -2073,7 +2103,7 @@ namespace xios {
       CEventClient eventIndex(getType(), EVENT_ID_INDEX);
 
       list<CMessage> list_msgsIndex;
-      list<CArray<int,1> > list_indZoom, list_writtenInd, list_indGlob;
+      list<CArray<int,1> > list_indGlob;
 
       std::unordered_map<int, vector<size_t> >::const_iterator itIndex, iteIndex;
       iteIndex = indSrv_[serverSize].end();
@@ -2104,6 +2134,7 @@ namespace xios {
       client->sendEvent(eventIndex);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send distribution from client to other clients
@@ -2111,6 +2142,7 @@ namespace xios {
     it calculates this distribution then sends it to the corresponding clients on the next level
   */
   void CDomain::sendDistributionAttributes(void)
+  TRY
   {
     std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
@@ -2147,7 +2179,7 @@ namespace xios {
           msg << this->getId() ;
           msg << isUnstructed_;
           msg << ni_srv << ibegin_srv << nj_srv << jbegin_srv;
-          msg << global_zoom_ni.getValue() << global_zoom_ibegin.getValue() << global_zoom_nj.getValue() << global_zoom_jbegin.getValue();        
+          msg << ni_glo.getValue() << nj_glo.getValue();
           msg << isCompressible_;
 
           event.push(*itRank,1,msg);
@@ -2157,55 +2189,13 @@ namespace xios {
       else client->sendEvent(event);
     }
   }
-
-  /*!
-    Send mask index from client to connected(s) clients    
-  */
-  void CDomain::sendMask()
-  {
-    int ns, n, i, j, ind, nv, idx;
-    std::list<CContextClient*>::iterator it;
-    for (it=clients.begin(); it!=clients.end(); ++it)
-    {
-      CContextClient* client = *it;
-      int serverSize = client->serverSize;
-
-      // send area for each connected server
-      CEventClient eventMask(getType(), EVENT_ID_MASK);
-
-      list<CMessage> list_msgsMask;
-      list<CArray<bool,1> > list_mask;
-
-      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_[serverSize].end();
-      for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
-      {
-        int nbData = 0;
-        int rank = connectedServerRank_[serverSize][k];
-        it = indSrv_[serverSize].find(rank);
-        if (iteMap != it)
-          nbData = it->second.size();
-        list_mask.push_back(CArray<bool,1>(nbData));
-
-        const std::vector<size_t>& temp = it->second;
-        for (n = 0; n < nbData; ++n)
-        {
-          idx = static_cast<int>(it->second[n]);
-          list_mask.back()(n) = domainMask(globalLocalIndexMap_[idx]);
-        }
-
-        list_msgsMask.push_back(CMessage());
-        list_msgsMask.back() << this->getId() << list_mask.back();
-        eventMask.push(rank, nbSenders[serverSize][rank], list_msgsMask.back());
-      }
-      client->sendEvent(eventMask);
-    }
-  }
+  CATCH_DUMP_ATTR
 
   /*!
     Send area from client to connected client(s)
   */
   void CDomain::sendArea()
+  TRY
   {
     if (!hasArea) return;
 
@@ -2249,6 +2239,7 @@ namespace xios {
       client->sendEvent(eventArea);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send longitude and latitude from client to servers
@@ -2256,6 +2247,7 @@ namespace xios {
     Because longitude and latitude are optional, this function only called if latitude and longitude exist
   */
   void CDomain::sendLonLat()
+  TRY
   {
     if (!hasLonLat) return;
 
@@ -2344,6 +2336,7 @@ namespace xios {
       client->sendEvent(eventLat);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send data index to corresponding connected clients.
@@ -2352,6 +2345,7 @@ namespace xios {
     The compressed index are represented with 1 and others are represented with -1
   */
   void CDomain::sendDataIndex()
+  TRY
   {
     int ns, n, i, j, ind, nv, idx;
     std::list<CContextClient*>::iterator it;
@@ -2420,8 +2414,10 @@ namespace xios {
       client->sendEvent(eventDataIndex);
     }
   }
+  CATCH
   
   bool CDomain::dispatchEvent(CEventServer& event)
+  TRY
   {
     if (SuperClass::dispatchEvent(event)) return true;
     else
@@ -2434,10 +2430,6 @@ namespace xios {
           break;
         case EVENT_ID_INDEX:
           recvIndex(event);
-          return true;
-          break;
-        case EVENT_ID_MASK:
-          recvMask(event);
           return true;
           break;
         case EVENT_ID_LON:
@@ -2463,12 +2455,14 @@ namespace xios {
        }
     }
   }
+  CATCH
 
   /*!
     Receive index event from clients(s)
     \param[in] event event contain info about rank and associated index
   */
   void CDomain::recvIndex(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2482,6 +2476,7 @@ namespace xios {
     }
     get(domainId)->recvIndex(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive index information from client(s). We use the global index for mapping index between
@@ -2489,6 +2484,7 @@ namespace xios {
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvIndex(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, type_int, iIndex, jIndex;
     recvClientRanks_.resize(nbReceived);        
@@ -2527,17 +2523,10 @@ namespace xios {
            jIndex = (index/ni_glo)-jbegin;
            jIndex = (jIndex < 0) ? 0 : jIndex;
            nbIndLoc = iIndex + ni * jIndex;
-           if (nbIndLoc < nbIndexGlobMax)
-           {
-             i_index(nbIndLoc) = index % ni_glo;
-             j_index(nbIndLoc) = index / ni_glo;
-             globalLocalIndexMap_[index] = nbIndLoc;  
-             ++nbIndGlob;
-           }
-           // i_index(nbIndGlob) = index % ni_glo;
-           // j_index(nbIndGlob) = index / ni_glo;
-           // globalLocalIndexMap_[index] = nbIndGlob;  
-           // ++nbIndGlob;
+           i_index(nbIndGlob) = index % ni_glo;
+           j_index(nbIndGlob) = index / ni_glo;
+           globalLocalIndexMap_[index] = nbIndGlob;
+           ++nbIndGlob;
          } 
       } 
     } 
@@ -2552,137 +2541,54 @@ namespace xios {
       i_index.resizeAndPreserve(nbIndGlob);
       j_index.resizeAndPreserve(nbIndGlob);
     }
+
+    domainMask.resize(0); // Mask is not defined anymore on servers
   }
+  CATCH
 
   /*!
     Receive attributes event from clients(s)
     \param[in] event event contain info about rank and associated attributes
   */
   void CDomain::recvDistributionAttributes(CEventServer& event)
+  TRY
   {
     CBufferIn* buffer=event.subEvents.begin()->buffer;
     string domainId ;
     *buffer>>domainId ;
     get(domainId)->recvDistributionAttributes(*buffer);
   }
+  CATCH
 
   /*!
-    Receive attributes from client(s): zoom info and begin and n of each server
+    Receive attributes from client(s)
     \param[in] rank rank of client source
     \param[in] buffer message containing attributes info
   */
   void CDomain::recvDistributionAttributes(CBufferIn& buffer)
+  TRY
   {
     int ni_tmp, ibegin_tmp, nj_tmp, jbegin_tmp;
-    int global_zoom_ni_tmp, global_zoom_ibegin_tmp, global_zoom_nj_tmp, global_zoom_jbegin_tmp;
+    int ni_glo_tmp, nj_glo_tmp;
     buffer >> isUnstructed_ >> ni_tmp >> ibegin_tmp >> nj_tmp >> jbegin_tmp
-           >> global_zoom_ni_tmp >> global_zoom_ibegin_tmp >> global_zoom_nj_tmp >> global_zoom_jbegin_tmp           
+           >> ni_glo_tmp >> nj_glo_tmp
            >> isCompressible_;
+
     ni.setValue(ni_tmp);
     ibegin.setValue(ibegin_tmp);
     nj.setValue(nj_tmp);
     jbegin.setValue(jbegin_tmp);
-
-    global_zoom_ni.setValue(global_zoom_ni_tmp);
-    global_zoom_ibegin.setValue(global_zoom_ibegin_tmp);
-    global_zoom_nj.setValue(global_zoom_nj_tmp);
-    global_zoom_jbegin.setValue(global_zoom_jbegin_tmp);
-
-    int iend = ibegin + ni  - 1;
-    int jend = jbegin + nj  - 1;
-    int zoom_iend_glob = global_zoom_ibegin + global_zoom_ni - 1;
-    int zoom_jend_glob = global_zoom_jbegin + global_zoom_nj - 1;
-
-    zoom_ibegin.setValue(global_zoom_ibegin > ibegin ? global_zoom_ibegin.getValue() : ibegin);
-    int zoom_iend = zoom_iend_glob < iend ? zoom_iend_glob : iend ;
-    zoom_ni.setValue(zoom_iend-zoom_ibegin+1);
-
-    zoom_jbegin.setValue(global_zoom_jbegin > jbegin ? global_zoom_jbegin.getValue() : jbegin);
-    int zoom_jend = zoom_jend_glob < jend ? zoom_jend_glob : jend ;
-    zoom_nj.setValue(zoom_jend-zoom_jbegin+1);
-
-    if (zoom_ni<=0 || zoom_nj<=0)
-    {
-      zoom_ni=0 ; zoom_ibegin=global_zoom_ibegin ; //=0; zoom_iend=0 ; 
-      zoom_nj=0 ; zoom_jbegin=global_zoom_jbegin ; //=0; zoom_jend=0 ;
-    }
+    ni_glo.setValue(ni_glo_tmp);
+    nj_glo.setValue(nj_glo_tmp);
 
   }
-
-  /*!
-    Receive area event from clients(s)
-    \param[in] event event contain info about rank and associated area
-  */
-  void CDomain::recvMask(CEventServer& event)
-  {
-    string domainId;
-    std::map<int, CBufferIn*> rankBuffers;
-
-    list<CEventServer::SSubEvent>::iterator it;
-    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
-    {      
-      CBufferIn* buffer = it->buffer;
-      *buffer >> domainId;
-      rankBuffers[it->rank] = buffer;     
-    }
-    get(domainId)->recvMask(rankBuffers);
-  }
-
-
-  /*!
-    Receive mask information from client(s)
-    \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
-  */
-  void CDomain::recvMask(std::map<int, CBufferIn*>& rankBuffers)
-  {
-    int nbReceived = rankBuffers.size(), i, ind, index, lInd;
-    if (nbReceived != recvClientRanks_.size())
-      ERROR("void CDomain::recvMask(std::map<int, CBufferIn*>& rankBuffers)",
-           << "The number of sending clients is not correct."
-           << "Expected number: " << recvClientRanks_.size() << " but received " << nbReceived);
-
-    vector<CArray<bool,1> > recvMaskValue(nbReceived);      
-    for (i = 0; i < recvClientRanks_.size(); ++i)
-    {
-      int rank = recvClientRanks_[i];
-      CBufferIn& buffer = *(rankBuffers[rank]);      
-      buffer >> recvMaskValue[i];
-    }
-
-    int nbMaskInd = 0;
-    for (i = 0; i < nbReceived; ++i)
-    {
-      nbMaskInd += recvMaskValue[i].numElements();
-    }
-  
-    if (nbMaskInd != globalLocalIndexMap_.size())
-      info (0) << "If domain " << this->getDomainOutputName() <<" does not have overlapped regions between processes "
-               << "something must be wrong with mask index "<< std::endl;
-
-    nbMaskInd = globalLocalIndexMap_.size();
-    mask_1d.resize(nbMaskInd);
-    domainMask.resize(nbMaskInd);
-    mask_1d = false;
-    
-    for (i = 0; i < nbReceived; ++i)
-    {
-      CArray<int,1>& tmpInd = indGlob_[recvClientRanks_[i]];
-      CArray<bool,1>& tmp = recvMaskValue[i];
-      for (ind = 0; ind < tmp.numElements(); ++ind)
-      {
-        lInd = globalLocalIndexMap_[size_t(tmpInd(ind))];
-        if (!mask_1d(lInd)) // Only rewrite mask_1d if it's not true
-          mask_1d(lInd) = tmp(ind);
-      }
-    }
-    domainMask=mask_1d ;
-  }
-
+ CATCH_DUMP_ATTR
   /*!
     Receive longitude event from clients(s)
     \param[in] event event contain info about rank and associated longitude
   */
   void CDomain::recvLon(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2696,12 +2602,14 @@ namespace xios {
     }
     get(domainId)->recvLon(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive longitude information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvLon(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, iindex, jindex, lInd;
     if (nbReceived != recvClientRanks_.size())
@@ -2761,12 +2669,14 @@ namespace xios {
       }       
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive latitude event from clients(s)
     \param[in] event event contain info about rank and associated latitude
   */
   void CDomain::recvLat(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2780,12 +2690,14 @@ namespace xios {
     }
     get(domainId)->recvLat(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive latitude information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvLat(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, iindex, jindex, lInd;
     if (nbReceived != recvClientRanks_.size())
@@ -2847,12 +2759,14 @@ namespace xios {
       }       
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive area event from clients(s)
     \param[in] event event contain info about rank and associated area
   */
   void CDomain::recvArea(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2866,12 +2780,14 @@ namespace xios {
     }
     get(domainId)->recvArea(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive area information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer     
   */
   void CDomain::recvArea(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, lInd;
     if (nbReceived != recvClientRanks_.size())
@@ -2917,6 +2833,7 @@ namespace xios {
       
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Compare two domain objects. 
@@ -2926,6 +2843,7 @@ namespace xios {
   \return result of the comparison
   */
   bool CDomain::isEqual(CDomain* obj)
+  TRY
   {
     vector<StdString> excludedAttr;
     excludedAttr.push_back("domain_ref");
@@ -2948,12 +2866,14 @@ namespace xios {
 
     return objEqual;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive data index event from clients(s)
     \param[in] event event contain info about rank and associated index
   */
   void CDomain::recvDataIndex(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2967,6 +2887,7 @@ namespace xios {
     }
     get(domainId)->recvDataIndex(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive data index information from client(s)
@@ -2978,6 +2899,7 @@ namespace xios {
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer     
   */
   void CDomain::recvDataIndex(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, indexI, indexJ, type_int, lInd;    
     if (nbReceived != recvClientRanks_.size())
@@ -3014,11 +2936,6 @@ namespace xios {
          lInd = globalLocalIndexMap_[size_t(tmpInd(ind))];
          dataIIndex(lInd) = (-1 == dataIIndex(lInd)) ? tmpI(ind) : dataIIndex(lInd); // Only fill in dataIndex if there is no data
          dataJIndex(lInd) = (-1 == dataJIndex(lInd)) ? tmpJ(ind) : dataJIndex(lInd);  
-
-         if (!domainMask(lInd))   // Include mask info into data index on the RECEIVE getServerDimensionSizes    
-         {
-           dataIIndex(lInd) = dataJIndex(lInd) = -1;
-         }
       } 
     }
 
@@ -3049,52 +2966,64 @@ namespace xios {
     data_ibegin.setValue(0);
     data_jbegin.setValue(0);
   }
+  CATCH_DUMP_ATTR
 
   CTransformation<CDomain>* CDomain::addTransformation(ETranformationType transType, const StdString& id)
+  TRY
   {
     transformationMap_.push_back(std::make_pair(transType, CTransformation<CDomain>::createTransformation(transType,id)));
     return transformationMap_.back().second;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Check whether a domain has transformation
     \return true if domain has transformation
   */
   bool CDomain::hasTransformation()
+  TRY
   {
     return (!transformationMap_.empty());
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Set transformation for current domain. It's the method to move transformation in hierarchy
     \param [in] domTrans transformation on domain
   */
   void CDomain::setTransformations(const TransMapTypes& domTrans)
+  TRY
   {
     transformationMap_ = domTrans;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Get all transformation current domain has
     \return all transformation
   */
   CDomain::TransMapTypes CDomain::getAllTransformations(void)
+  TRY
   {
     return transformationMap_;
   }
+  CATCH_DUMP_ATTR
 
   void CDomain::duplicateTransformation(CDomain* src)
+  TRY
   {
     if (src->hasTransformation())
     {
       this->setTransformations(src->getAllTransformations());
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
    * Go through the hierarchy to find the domain from which the transformations must be inherited
    */
   void CDomain::solveInheritanceTransformation()
+  TRY
   {
     if (hasTransformation() || !hasDirectDomainReference())
       return;
@@ -3111,8 +3040,10 @@ namespace xios {
       for (size_t i = 0; i < refDomains.size(); ++i)
         refDomains[i]->setTransformations(domain->getAllTransformations());
   }
+  CATCH_DUMP_ATTR
 
   void CDomain::setContextClient(CContextClient* contextClient)
+  TRY
   {
     if (clientsSet.find(contextClient)==clientsSet.end())
     {
@@ -3120,6 +3051,7 @@ namespace xios {
       clientsSet.insert(contextClient);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Parse children nodes of a domain in xml file.
@@ -3127,6 +3059,7 @@ namespace xios {
     \param node child node to process
   */
   void CDomain::parse(xml::CXMLNode & node)
+  TRY
   {
     SuperClass::parse(node);
 
@@ -3157,6 +3090,7 @@ namespace xios {
       node.goToParentElement();
     }
   }
+  CATCH_DUMP_ATTR
    //----------------------------------------------------------------
 
    DEFINE_REF_FUNC(Domain,domain)

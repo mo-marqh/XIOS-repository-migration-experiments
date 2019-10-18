@@ -30,10 +30,11 @@ namespace xios
 
       // Send event to server
       void sendEvent(CEventClient& event);
+      bool sendTemporarilyBufferedEvent();
       void waitEvent(list<int>& ranks);
 
       // Functions to set/get buffers
-      bool getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers, bool nonBlocking = false);
+      bool getBuffers(const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers, bool nonBlocking = false);
       void newBuffer(int rank);
       bool checkBuffers(list<int>& ranks);
       bool checkBuffers(void);
@@ -46,6 +47,7 @@ namespace xios
       const std::list<int>& getRanksServerNotLeader(void) const;
 
       bool isAttachedModeEnabled() const;
+      bool hasTemporarilyBufferedEvent() const { return !tmpBufferedEvent.isEmpty(); };
 
       static void computeLeader(int clientRank, int clientSize, int serverSize,
                                 std::list<int>& rankRecvLeader,
@@ -68,28 +70,35 @@ namespace xios
 
       int serverSize; //!< Size of server group
 
-      MPI_Comm interComm; //!< Communicator of server group (interCommunicator)
-
-      MPI_Comm interCommMerged; //!< Communicator of the client group + server group (intraCommunicator) needed for one sided communication.
+      MPI_Comm interComm; //!< Communicator of server group
 
       MPI_Comm intraComm; //!< Communicator of client group
 
-      MPI_Comm commSelf; //!< Communicator of the client alone. Needed to create a new communicator between 1 proc client and 1 proc server for one sided communication
-
       map<int,CClientBuffer*> buffers; //!< Buffers for connection to servers
 
-      bool pureOneSided ; //!< if true, client will communicated with servers only trough one sided communication. Otherwise the hybrid mode P2P /One sided is used.
-
     private:
-      void lockBuffers(list<int>& ranks) ;
-      void unlockBuffers(list<int>& ranks) ;
-      
       //! Mapping of server and buffer size for each connection to server
       std::map<int,StdSize> mapBufferSize_;
       //! Maximum event sizes estimated for each connection to server
       std::map<int,StdSize> maxEventSizes;
       //! Maximum number of events that can be buffered
       StdSize maxBufferedEvents;
+
+      struct {
+        std::list<int> ranks, sizes;
+        std::list<CBufferOut*> buffers;
+
+        bool isEmpty() const { return ranks.empty(); };
+        void clear() {
+          ranks.clear();
+          sizes.clear();
+
+          for (std::list<CBufferOut*>::iterator it = buffers.begin(); it != buffers.end(); it++)
+            delete *it;
+
+          buffers.clear();
+        };
+      } tmpBufferedEvent; //! Event temporarily buffered (used only on the server)
 
       //! Context for server (Only used in attached mode)
       CContext* parentServer;

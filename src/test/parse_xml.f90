@@ -8,5 +8,6 @@ PROGRAM parse_xml
   END INTERFACE
 
   CALL xios_init() ! This will parse the XML file and report any parsing error
+  WRITE (*,*) 'Parsing finished successfully.'
 
 END PROGRAM parse_xml

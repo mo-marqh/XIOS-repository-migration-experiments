@@ -21,6 +21,7 @@ namespace xios
     macro( InverseAxis )
     macro( ZoomAxis )
     macro( InterpolateAxis )
+    macro( ExtractAxis )
     macro( ZoomDomain )
     macro( InterpolateDomain )
     macro( GenerateRectilinearDomain )
@@ -37,5 +38,6 @@ namespace xios
     macro( DuplicateScalarToAxis )
     macro( ReduceScalarToScalar )
     macro( ReorderDomain )
+    macro( ExtractDomain )
   }
 }

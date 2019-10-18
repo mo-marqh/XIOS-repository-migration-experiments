@@ -18,7 +18,7 @@
 
 namespace xios {
 
-   /// ////////////////////// D��clarations ////////////////////// ///
+   /// ////////////////////// Declarations ////////////////////// ///
 
    class CGridGroup;
    class CGridAttributes;
@@ -90,9 +90,11 @@ namespace xios {
 
          StdSize  getDataSize(void) const;
 
-         /// Entr��es-sorties de champs
+         /// Entrees-sorties de champs
          template <int n>
          void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
+         template <int n>
+         void maskField(const CArray<double,n>& field, CArray<double,1>& stored) const;
          template <int n>
          void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;  
          template <int n>
@@ -202,11 +204,9 @@ namespace xios {
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
          size_t getGlobalWrittenSize(void) ;
-         void getLocalMask(CArray<bool,1>& localMask) ;
-         template<int N>
-         void getLocalMask(const CArray<bool,N>& gridMask, CArray<bool,1>& localMask) ;
       public:
          CArray<int, 1> storeIndex_client;
+         CArray<bool, 1> storeMask_client;
 
 /** Map containing indexes that will be sent in sendIndex(). */
          std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv;
@@ -246,6 +246,7 @@ namespace xios {
 
          CArray<size_t,1> indexFromClients;
 
+         bool hasMask(void) const;
          void checkMask(void);
          void createMask(void);
          void modifyMask(const CArray<int,1>& indexToModify, bool valueToModify = false);
@@ -272,6 +273,7 @@ namespace xios {
         void storeField_arr(const double* const data, CArray<double, 1>& stored) const;
         void restoreField_arr(const CArray<double, 1>& stored, double* const data) const;
         void uncompressField_arr(const double* const data, CArray<double, 1>& outData) const;
+        void maskField_arr(const double* const data, CArray<double, 1>& stored) const;
 
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
@@ -371,6 +373,7 @@ namespace xios {
 
    template <int n>
    void CGrid::inputField(const CArray<double,n>& field, CArray<double,1>& stored) const
+   TRY
    {
 //#ifdef __XIOS_DEBUG
       if (this->getDataSize() != field.numElements())
@@ -382,9 +385,25 @@ namespace xios {
 //#endif
       this->storeField_arr(field.dataFirst(), stored);
    }
+   CATCH
+
+   template <int n>
+   void CGrid::maskField(const CArray<double,n>& field, CArray<double,1>& stored) const
+   {
+//#ifdef __XIOS_DEBUG
+      if (this->getDataSize() != field.numElements())
+         ERROR("void CGrid::inputField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
+                << "[ Awaiting data of size = " << this->getDataSize() << ", "
+                << "Received data size = "      << field.numElements() << " ] "
+                << "The data array does not have the right size! "
+                << "Grid = " << this->getId())
+//#endif
+      this->maskField_arr(field.dataFirst(), stored);
+   }
 
    template <int n>
    void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field) const
+   TRY
    {
 //#ifdef __XIOS_DEBUG
       if (this->getDataSize() != field.numElements())
@@ -396,6 +415,7 @@ namespace xios {
 //#endif
       this->restoreField_arr(stored, field.dataFirst());
    }
+   CATCH
 
    /*!
      This function removes the effect of mask on received data on the server.
@@ -405,9 +425,11 @@ namespace xios {
    */
    template <int N>
    void CGrid::uncompressField(const CArray<double,N>& data, CArray<double,1>& outData) const
+   TRY
    {      
      uncompressField_arr(data.dataFirst(), outData);
    }
+   CATCH
 
    template<int N>
    void CGrid::checkGridMask(CArray<bool,N>& gridMask,
@@ -415,6 +437,7 @@ namespace xios {
                              const std::vector<CArray<bool,1>* >& axisMasks,
                              const CArray<int,1>& axisDomainOrder,
                              bool createMask)
+   TRY
    {
      int idx = 0;
      int numElement = axisDomainOrder.numElements();
@@ -509,13 +532,14 @@ namespace xios {
       ++idxLoop[0];
       ++idx;
     }
-
    }
+   CATCH_DUMP_ATTR
 
    template<int N>
    void CGrid::modifyGridMaskSize(CArray<bool,N>& gridMask,
                                   const std::vector<int>& eachDimSize,
                                   bool newValue)
+   TRY
    {
       if (N != eachDimSize.size())
       {
@@ -530,6 +554,7 @@ namespace xios {
       CArrayBoolTraits<CArray<bool,N> >::resizeArray(gridMask,eachDimSize);
       gridMask = newValue;
    }
+   CATCH_DUMP_ATTR
                                  
 
    /*!
@@ -539,6 +564,7 @@ namespace xios {
    */
    template<int N>
    void CGrid::modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify, bool valueToModify)
+   TRY
    {     
      int num = indexToModify.numElements();
      for (int idx = 0; idx < num; ++idx)
@@ -546,50 +572,11 @@ namespace xios {
        *(gridMask.dataFirst()+indexToModify(idx)) = valueToModify;
      }
    }
+   CATCH_DUMP_ATTR
+
    ///--------------------------------------------------------------
 
 
-/*!
-  A grid can have multiple dimension, so can its mask in the form of multi-dimension array.
-It's not a good idea to store all multi-dimension arrays corresponding to each mask.
-One of the ways is to convert this array into 1-dimension one and every process is taken place on it.
-  \param [in] multi-dimension array grid mask
-*/
-template<int N>
-void CGrid::getLocalMask(const CArray<bool,N>& gridMask, CArray<bool,1>& localMask)
-{
-  if (gridMask.isEmpty()) return ;
-  int dim = gridMask.dimensions();
-  std::vector<int> dimensionSizes(dim);
-  for (int i = 0; i < dim; ++i) dimensionSizes[i] = gridMask.extent(i);
-
-  std::vector<int> idxLoop(dim,0);
-  int ssize = gridMask.numElements(), idx = 0;
-  localMask.resize(ssize);
-  while (idx < ssize)
-  {
-    for (int i = 0; i < dim-1; ++i)
-    {
-      if (idxLoop[i] == dimensionSizes[i])
-      {
-        idxLoop[i] = 0;
-        ++idxLoop[i+1];
-      }
-    }
-
-    int maskIndex = idxLoop[0];
-    int mulDim = 1;
-    for (int k = 1; k < dim; ++k)
-    {
-      mulDim *= dimensionSizes[k-1];
-      maskIndex += idxLoop[k]*mulDim;
-    }
-    localMask(maskIndex) = *(gridMask.dataFirst()+maskIndex);
-
-    ++idxLoop[0];
-    ++idx;
-  }
-}
 
    // Declare/Define CGridGroup and CGridDefinition
    DECLARE_GROUP(CGrid);

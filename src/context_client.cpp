@@ -23,9 +23,6 @@ namespace xios
     CContextClient::CContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
      : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4)
     {
-      pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-      if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
-      
       context = parent;
       intraComm = intraComm_;
       interComm = interComm_;
@@ -39,11 +36,7 @@ namespace xios
 
       computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
 
-      if (flag) MPI_Intercomm_merge(interComm_,false,&interCommMerged) ;
-
-      MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf) ;
-
-      timeLine = 1;
+      timeLine = 0;
     }
 
     void CContextClient::computeLeader(int clientRank, int clientSize, int serverSize,
@@ -101,7 +94,7 @@ namespace xios
     void CContextClient::sendEvent(CEventClient& event)
     {
       list<int> ranks = event.getRanks();
-
+      info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<endl ;
       if (CXios::checkEventSync)
       {
         int typeId, classId, typeId_in, classId_in, timeLine_out;
@@ -122,23 +115,69 @@ namespace xios
       {
         list<int> sizes = event.getSizes();
 
-         // We force the getBuffers call to be non-blocking on classical servers
+        // We force the getBuffers call to be non-blocking on classical servers
         list<CBufferOut*> buffList;
-        getBuffers(timeLine, ranks, sizes, buffList) ;
+        bool couldBuffer = getBuffers(ranks, sizes, buffList, (!CXios::isClient && (CServer::serverLevel == 0) ));
+//        bool couldBuffer = getBuffers(ranks, sizes, buffList, CXios::isServer );
 
-        event.send(timeLine, sizes, buffList);
-        unlockBuffers(ranks) ;
-          
-        checkBuffers(ranks);
-
-        if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
+        if (couldBuffer)
         {
-          waitEvent(ranks);
-          CContext::setCurrent(context->getId());
+          event.send(timeLine, sizes, buffList);
+          info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<"  sent"<<endl ;
+
+          checkBuffers(ranks);
+
+          if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
+          {
+            waitEvent(ranks);
+            CContext::setCurrent(context->getId());
+          }
+        }
+        else
+        {
+          tmpBufferedEvent.ranks = ranks;
+          tmpBufferedEvent.sizes = sizes;
+
+          for (list<int>::const_iterator it = sizes.begin(); it != sizes.end(); it++)
+            tmpBufferedEvent.buffers.push_back(new CBufferOut(*it));
+          info(100)<<"DEBUG : temporaly event created : timeline "<<timeLine<<endl ;
+          event.send(timeLine, tmpBufferedEvent.sizes, tmpBufferedEvent.buffers);
+          info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<"  sent"<<endl ;
         }
       }
 
       timeLine++;
+    }
+
+    /*!
+     * Send the temporarily buffered event (if any).
+     *
+     * \return true if a temporarily buffered event could be sent, false otherwise 
+     */
+    bool CContextClient::sendTemporarilyBufferedEvent()
+    {
+      bool couldSendTmpBufferedEvent = false;
+
+      if (hasTemporarilyBufferedEvent())
+      {
+        list<CBufferOut*> buffList;
+        if (getBuffers(tmpBufferedEvent.ranks, tmpBufferedEvent.sizes, buffList, true)) // Non-blocking call
+        {
+          list<CBufferOut*>::iterator it, itBuffer;
+
+          for (it = tmpBufferedEvent.buffers.begin(), itBuffer = buffList.begin(); it != tmpBufferedEvent.buffers.end(); it++, itBuffer++)
+            (*itBuffer)->put((char*)(*it)->start(), (*it)->count());
+
+          info(100)<<"DEBUG : temporaly event sent "<<endl ;
+          checkBuffers(tmpBufferedEvent.ranks);
+
+          tmpBufferedEvent.clear();
+
+          couldSendTmpBufferedEvent = true;
+        }
+      }
+
+      return couldSendTmpBufferedEvent;
     }
 
     /*!
@@ -165,15 +204,13 @@ namespace xios
      * Get buffers for each connection to the servers. This function blocks until there is enough room in the buffers unless
      * it is explicitly requested to be non-blocking.
      *
-     *
-     * \param [in] timeLine time line of the event which will be sent to servers
      * \param [in] serverList list of rank of connected server
      * \param [in] sizeList size of message corresponding to each connection
      * \param [out] retBuffers list of buffers that can be used to store an event
      * \param [in] nonBlocking whether this function should be non-blocking
      * \return whether the already allocated buffers could be used
     */
-    bool CContextClient::getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers,
+    bool CContextClient::getBuffers(const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers,
                                     bool nonBlocking /*= false*/)
     {
       list<int>::const_iterator itServer, itSize;
@@ -198,33 +235,36 @@ namespace xios
       {
         areBuffersFree = true;
         for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
-        {
           areBuffersFree &= (*itBuffer)->isBufferFree(*itSize);
-        }
 
         if (!areBuffersFree)
         {
-          for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
           checkBuffers();
-          if (CServer::serverLevel == 0)  context->server->listen();
+          if (CServer::serverLevel == 0)
+            context->server->listen();
+
           else if (CServer::serverLevel == 1)
           {
             context->server->listen();
-            for (int i = 0; i < context->serverPrimServer.size(); ++i)  context->serverPrimServer[i]->listen();
+            for (int i = 0; i < context->serverPrimServer.size(); ++i)
+              context->serverPrimServer[i]->listen();
             CServer::contextEventLoop(false) ; // avoid dead-lock at finalize...
           }
 
-          else if (CServer::serverLevel == 2) context->server->listen();
+          else if (CServer::serverLevel == 2)
+            context->server->listen();
 
         }
       } while (!areBuffersFree && !nonBlocking);
+
       CTimer::get("Blocking time").suspend();
 
       if (areBuffersFree)
       {
         for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
-          retBuffers.push_back((*itBuffer)->getBuffer(timeLine, *itSize));
+          retBuffers.push_back((*itBuffer)->getBuffer(*itSize));
       }
+
       return areBuffersFree;
    }
 
@@ -240,20 +280,11 @@ namespace xios
         mapBufferSize_[rank] = CXios::minBufferSize;
         maxEventSizes[rank] = CXios::minBufferSize;
       }
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxEventSizes[rank]);
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxEventSizes[rank], maxBufferedEvents);
       // Notify the server
-      CBufferOut* bufOut = buffer->getBuffer(0, sizeof(StdSize));
+      CBufferOut* bufOut = buffer->getBuffer(sizeof(StdSize));
       bufOut->put(mapBufferSize_[rank]); // Stupid C++
-      buffer->checkBuffer(true);
-
-      if (!isAttachedModeEnabled()) // create windows only in server mode
-      {
-        MPI_Comm OneSidedInterComm, oneSidedComm ;
-        MPI_Intercomm_create(commSelf, 0, interCommMerged, clientSize+rank, 0, &OneSidedInterComm );
-        MPI_Intercomm_merge(OneSidedInterComm,false,&oneSidedComm);
-        buffer->createWindows(oneSidedComm) ;
-      }
-       
+      buffer->checkBuffer();
    }
 
    /*!
@@ -265,7 +296,7 @@ namespace xios
       map<int,CClientBuffer*>::iterator itBuff;
       bool pending = false;
       for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
-        pending |= itBuff->second->checkBuffer(!pureOneSided);
+        pending |= itBuff->second->checkBuffer();
       return pending;
    }
 
@@ -275,31 +306,11 @@ namespace xios
       map<int,CClientBuffer*>::iterator itBuff;
       for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
       {
-         delete itBuff->second;
+          delete itBuff->second;
       }
       buffers.clear();
    }
 
-  /*!
-   Lock the buffers for one sided communications
-   \param [in] ranks list rank of server to which client connects to
-   */
-   void CContextClient::lockBuffers(list<int>& ranks)
-   {
-      list<int>::iterator it;
-      for (it = ranks.begin(); it != ranks.end(); it++) buffers[*it]->lockBuffer();
-   }
-
-  /*!
-   Unlock the buffers for one sided communications
-   \param [in] ranks list rank of server to which client connects to
-   */
-   void CContextClient::unlockBuffers(list<int>& ranks)
-   {
-      list<int>::iterator it;
-      for (it = ranks.begin(); it != ranks.end(); it++) buffers[*it]->unlockBuffer();
-   }
-      
    /*!
    Verify state of buffers corresponding to a connection
    \param [in] ranks list rank of server to which client connects to
@@ -309,7 +320,7 @@ namespace xios
    {
       list<int>::iterator it;
       bool pending = false;
-      for (it = ranks.begin(); it != ranks.end(); it++) pending |= buffers[*it]->checkBuffer(!pureOneSided);
+      for (it = ranks.begin(); it != ranks.end(); it++) pending |= buffers[*it]->checkBuffer();
       return pending;
    }
 
@@ -323,6 +334,27 @@ namespace xios
    {
      mapBufferSize_ = mapSize;
      maxEventSizes = maxEventSize;
+
+     // Compute the maximum number of events that can be safely buffered.
+     double minBufferSizeEventSizeRatio = std::numeric_limits<double>::max();
+     for (std::map<int,StdSize>::const_iterator it = mapSize.begin(), ite = mapSize.end(); it != ite; ++it)
+     {
+       double ratio = double(it->second) / maxEventSizes[it->first];
+       if (ratio < minBufferSizeEventSizeRatio) minBufferSizeEventSizeRatio = ratio;
+     }
+     MPI_Allreduce(MPI_IN_PLACE, &minBufferSizeEventSizeRatio, 1, MPI_DOUBLE, MPI_MIN, intraComm);
+
+     if (minBufferSizeEventSizeRatio < 1.0)
+     {
+       ERROR("void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize)",
+             << "The buffer sizes and the maximum events sizes are incoherent.");
+     }
+     else if (minBufferSizeEventSizeRatio == std::numeric_limits<double>::max())
+       minBufferSizeEventSizeRatio = 1.0; // In this case, maxBufferedEvents will never be used but we want to avoid any floating point exception
+
+     maxBufferedEvents = size_t(2 * minBufferSizeEventSizeRatio) // there is room for two local buffers on the server
+                          + size_t(minBufferSizeEventSizeRatio)  // one local buffer can always be fully used
+                          + 1;                                   // the other local buffer might contain only one event
    }
 
   /*!
@@ -377,27 +409,17 @@ namespace xios
   void CContextClient::finalize(void)
   {
     map<int,CClientBuffer*>::iterator itBuff;
-    std::list<int>::iterator ItServerLeader; 
-    
     bool stop = false;
 
-    int* nbServerConnectionLocal  = new int[serverSize] ;
-    int* nbServerConnectionGlobal  = new int[serverSize] ;
-    for(int i=0;i<serverSize;++i) nbServerConnectionLocal[i]=0 ;
-    for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)  nbServerConnectionLocal[itBuff->first]=1 ;
-    for (ItServerLeader = ranksServerLeader.begin(); ItServerLeader != ranksServerLeader.end(); ItServerLeader++)  nbServerConnectionLocal[*ItServerLeader]=1 ;
-    
-    MPI_Allreduce(nbServerConnectionLocal, nbServerConnectionGlobal, serverSize, MPI_INT, MPI_SUM, intraComm);
-    
+    CTimer::get("Blocking time").resume();
+    while (hasTemporarilyBufferedEvent())
+    {
+      checkBuffers();
+      sendTemporarilyBufferedEvent();
+    }
+    CTimer::get("Blocking time").suspend();
+
     CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_FINALIZE);
-    CMessage msg;
-
-    for (int i=0;i<serverSize;++i) if (nbServerConnectionLocal[i]==1) event.push(i, nbServerConnectionGlobal[i], msg) ;
-    sendEvent(event);
-
-    delete[] nbServerConnectionLocal ;
-    delete[] nbServerConnectionGlobal ;
-/*    
     if (isServerLeader())
     {
       CMessage msg;
@@ -410,10 +432,17 @@ namespace xios
       sendEvent(event);
     }
     else sendEvent(event);
-*/
 
     CTimer::get("Blocking time").resume();
-    checkBuffers();
+//    while (!stop)
+    {
+      checkBuffers();
+      if (hasTemporarilyBufferedEvent())
+        sendTemporarilyBufferedEvent();
+
+      stop = true;
+//      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) stop &= !itBuff->second->hasPendingRequest();
+    }
     CTimer::get("Blocking time").suspend();
 
     std::map<int,StdSize>::const_iterator itbMap = mapBufferSize_.begin(),

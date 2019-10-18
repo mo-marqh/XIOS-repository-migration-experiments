@@ -27,6 +27,7 @@ extern "C"
    // ------------------------ Création des handle -----------------------------
 
    void cxios_scalar_handle_create (XScalarPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -34,8 +35,10 @@ extern "C"
       *_ret = xios::CScalar::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    void cxios_scalargroup_handle_create (XScalarGroupPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -43,10 +46,12 @@ extern "C"
       *_ret = xios::CScalarGroup::get(id);
       CTimer::get("XIOS").suspend() ;
     }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
 
    void cxios_scalar_valid_id (bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -55,8 +60,10 @@ extern "C"
       *_ret = xios::CScalar::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    void cxios_scalargroup_valid_id (bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -66,5 +73,6 @@ extern "C"
       CTimer::get("XIOS").suspend() ;
 
    }
+   CATCH_DUMP_STACK
 
 } // extern "C"

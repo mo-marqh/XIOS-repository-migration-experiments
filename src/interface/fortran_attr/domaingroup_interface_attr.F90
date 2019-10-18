@@ -802,6 +802,25 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_prec
 
 
+    SUBROUTINE cxios_set_domaingroup_radius(domaingroup_hdl, radius) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: radius
+    END SUBROUTINE cxios_set_domaingroup_radius
+
+    SUBROUTINE cxios_get_domaingroup_radius(domaingroup_hdl, radius) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)             :: radius
+    END SUBROUTINE cxios_get_domaingroup_radius
+
+    FUNCTION cxios_is_defined_domaingroup_radius(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_radius
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_radius
+
+
     SUBROUTINE cxios_set_domaingroup_standard_name(domaingroup_hdl, standard_name, standard_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl

@@ -19,6 +19,7 @@ namespace xios {
 
 CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource)
  : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(axisSource), domainSrc_(0),scalarSrc_(0)
+TRY
 {
   axisDestGlobalSize_ = axisDestination->n_glo.getValue();
   int niDest = axisDestination->n.getValue();
@@ -27,9 +28,11 @@ CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestinatio
   for (int idx = 0; idx < niDest; ++idx)
     if ((axisDestination->mask)(idx)) axisDestGlobalIndex_.push_back(ibeginDest+idx);
 }
+CATCH
 
 CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CDomain* domainSource)
  : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(0), domainSrc_(domainSource),scalarSrc_(0)
+TRY
 {
   axisDestGlobalSize_ = axisDestination->n_glo.getValue();
   int niDest = axisDestination->n.getValue();
@@ -38,9 +41,11 @@ CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestinatio
   for (int idx = 0; idx < niDest; ++idx)
     if ((axisDestination->mask)(idx)) axisDestGlobalIndex_.push_back(ibeginDest+idx);
 }
+CATCH
 
 CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CScalar* scalarSource)
  : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(0), domainSrc_(0), scalarSrc_(scalarSource)
+TRY
 {
   axisDestGlobalSize_ = axisDestination->n_glo.getValue();
   int niDest = axisDestination->n.getValue();
@@ -49,6 +54,8 @@ CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestinatio
   for (int idx = 0; idx < niDest; ++idx)
     if ((axisDestination->mask)(idx)) axisDestGlobalIndex_.push_back(ibeginDest+idx);
 }
+CATCH
+
 CAxisAlgorithmTransformation::~CAxisAlgorithmTransformation()
 {
 }
@@ -65,6 +72,7 @@ void CAxisAlgorithmTransformation::computeIndexSourceMapping_(const std::vector<
 void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
                                                               int elementType,
                                                               CClientClientDHTInt::Index2VectorInfoTypeMap& globalAxisIndexOnProc)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -123,5 +131,6 @@ void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_
 
   globalAxisIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
 }
+CATCH
 
 }

@@ -20,6 +20,9 @@ namespace xios
   string CXios::serverPrmFile="./xios_server1";
   string CXios::serverSndFile="./xios_server2";
 
+  bool CXios::xiosStack = true;
+  bool CXios::systemStack = false;
+
   bool CXios::isClient ;
   bool CXios::isServer ;
   MPI_Comm CXios::globalComm ;
@@ -61,6 +64,13 @@ namespace xios
     report.setLevel(getin<int>("info_level",50));
     printLogs2Files=getin<bool>("print_file",false);
 
+    xiosStack=getin<bool>("xios_stack",true) ;
+    systemStack=getin<bool>("system_stack",false) ;
+    if (xiosStack && systemStack)
+    {
+      xiosStack = false;
+    }
+
     StdString bufMemory("memory");
     StdString bufPerformance("performance");
     StdString bufOpt = getin<StdString>("optimal_buffer_size", bufPerformance);
@@ -90,6 +100,7 @@ namespace xios
   \param [in/out] returnComm communicator corresponding to group of client with same codeId
   */
   void CXios::initClientSide(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
+  TRY
   {
     initialize() ;
 
@@ -113,6 +124,7 @@ namespace xios
       CClient::openErrorStream();
     }
   }
+  CATCH
 
   void CXios::clientFinalize(void)
   {

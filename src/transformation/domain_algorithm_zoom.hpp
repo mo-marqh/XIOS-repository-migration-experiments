@@ -1,11 +1,4 @@
-/*!
-   \file domain_algorithm_zoom.hpp
-   \author Ha NGUYEN
-   \since 03 June 2015
-   \date 12 June 2015
 
-   \brief Algorithm for zooming on an domain.
- */
 #ifndef __XIOS_DOMAIN_ALGORITHM_ZOOM_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_ZOOM_HPP__
 
@@ -19,9 +12,7 @@ class CZoomDomain;
 
 /*!
   \class CDomainAlgorithmZoom
-  Implementing zoom on domain
-  A zoomed region can be considered as region that isnt masked.
-  Only this zoomed region is extracted to write on Netcdf.
+  Implementing zoom (alternative zoom) on domain
 */
 class CDomainAlgorithmZoom : public CDomainAlgorithmTransformation
 {
@@ -32,10 +23,10 @@ public:
 
   static bool registerTrans();
 protected:
+  void updateDomainAttributes();
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
-  // void updateDomainDestinationMask();
   void updateZoom();
 
 private:

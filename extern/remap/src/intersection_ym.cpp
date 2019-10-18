@@ -7,6 +7,11 @@
 #include <vector>
 #include <stdlib.h>
 #include <limits>
+#include <array>
+#include <cstdint> 
+#include "earcut.hpp"
+#include <fstream> 
+
 
 #define epsilon 1e-3  // epsilon distance ratio over side lenght for approximate small circle by great circle
 #define fusion_vertex 1e-13
@@ -15,9 +20,15 @@ namespace sphereRemap {
 
 using namespace std;
 using namespace ClipperLib ;
+        
 
 double intersect_ym(Elt *a, Elt *b)
 {
+
+  using N = uint32_t;
+  using Point = array<double, 2>;
+  vector<Point> vect_points;
+  vector< vector<Point> > polyline;
 
 // transform small circle into piece of great circle if necessary
 
@@ -44,13 +55,37 @@ double intersect_ym(Elt *a, Elt *b)
   Coord Oy=crossprod(Oz,Ox) ;
   double cos_alpha;
 
+  /// vector<p2t::Point*> polyline;
   for(int n=0; n<na;n++)
   {
     cos_alpha=scalarprod(OC,dstPolygon[n]) ;
     a_gno[n].x=scalarprod(dstPolygon[n],Ox)/cos_alpha ;
     a_gno[n].y=scalarprod(dstPolygon[n],Oy)/cos_alpha ;
     a_gno[n].z=scalarprod(dstPolygon[n],Oz)/cos_alpha ; // must be equal to 1
+
+    vect_points.push_back( array<double, 2>() );
+    vect_points[n][0] = a_gno[n].x;
+    vect_points[n][1] = a_gno[n].y;
+
   }
+
+  polyline.push_back(vect_points);
+  vector<N> indices_a_gno = mapbox::earcut<N>(polyline);
+  
+  double area_a_gno=0 ;
+  for(int i=0;i<indices_a_gno.size()/3;++i)
+    {
+      Coord x0 = Ox * polyline[0][indices_a_gno[3*i]][0] + Oy* polyline[0][indices_a_gno[3*i]][1] + Oz ;
+      Coord x1 = Ox * polyline[0][indices_a_gno[3*i+1]][0] + Oy* polyline[0][indices_a_gno[3*i+1]][1] + Oz ;
+      Coord x2 = Ox * polyline[0][indices_a_gno[3*i+2]][0] + Oy* polyline[0][indices_a_gno[3*i+2]][1] + Oz ;
+      area_a_gno+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
+    }
+
+  vect_points.clear();
+  polyline.clear();
+  indices_a_gno.clear();
+
+ 
 
   for(int n=0; n<nb;n++)
   {
@@ -58,8 +93,28 @@ double intersect_ym(Elt *a, Elt *b)
     b_gno[n].x=scalarprod(srcPolygon[n],Ox)/cos_alpha ;
     b_gno[n].y=scalarprod(srcPolygon[n],Oy)/cos_alpha ;
     b_gno[n].z=scalarprod(srcPolygon[n],Oz)/cos_alpha ; // must be equal to 1
+
+    vect_points.push_back( array<double, 2>() );
+    vect_points[n][0] = b_gno[n].x;
+    vect_points[n][1] = b_gno[n].y;
   }
 
+
+  polyline.push_back(vect_points);
+  vector<N> indices_b_gno = mapbox::earcut<N>(polyline);
+
+  double area_b_gno=0 ;
+  for(int i=0;i<indices_b_gno.size()/3;++i)
+    {
+      Coord x0 = Ox * polyline[0][indices_b_gno[3*i]][0] + Oy* polyline[0][indices_b_gno[3*i]][1] + Oz ;
+      Coord x1 = Ox * polyline[0][indices_b_gno[3*i+1]][0] + Oy* polyline[0][indices_b_gno[3*i+1]][1] + Oz ;
+      Coord x2 = Ox * polyline[0][indices_b_gno[3*i+2]][0] + Oy* polyline[0][indices_b_gno[3*i+2]][1] + Oz ;
+      area_b_gno+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
+    }
+
+  vect_points.clear();
+  polyline.clear();
+  indices_b_gno.clear();
 
 
 // Compute intersections using clipper
@@ -108,40 +163,72 @@ double intersect_ym(Elt *a, Elt *b)
   clip.AddPaths(src, ptSubject, true);
   clip.AddPaths(dst, ptClip, true);
   clip.Execute(ctIntersection, intersection);
-
+ 
   double area=0 ;
 
   for(int ni=0;ni<intersection.size(); ni++)
   {
-    // go back into real coordinate on the sphere
     Coord* intersectPolygon=new Coord[intersection[ni].size()] ;
     for(int n=0; n < intersection[ni].size(); n++)
     {
-      double x=intersection[ni][n].X/xscale+xoffset ;
-      double y=intersection[ni][n].Y/yscale+yoffset ;
-
-      intersectPolygon[n]=Ox*x+Oy*y+Oz ;
-      intersectPolygon[n]=intersectPolygon[n]*(1./norm(intersectPolygon[n])) ;
+      intersectPolygon[n].x=intersection[ni][n].X/xscale+xoffset ;
+      intersectPolygon[n].y=intersection[ni][n].Y/yscale+yoffset ;
     }
+    
 
-// remove redondants vertex
-    int nv=0 ;
+    int nv=0;
+
     for(int n=0; n < intersection[ni].size(); n++)
     {
-      if (norm(intersectPolygon[n]-intersectPolygon[(n+1)%intersection[ni].size()])>fusion_vertex)
-      {
-        intersectPolygon[nv]=intersectPolygon[n] ;
-        nv++ ;
-      }
+       double dx=intersectPolygon[n].x-intersectPolygon[(n+1)%intersection[ni].size()].x ;
+       double dy=intersectPolygon[n].y-intersectPolygon[(n+1)%intersection[ni].size()].y ;
+     
+       if (dx*dx+dy*dy>fusion_vertex*fusion_vertex)
+       {
+          intersectPolygon[nv]=intersectPolygon[n] ;
+
+	  vect_points.push_back( array<double, 2>() );
+          vect_points[nv][0] = intersectPolygon[n].x;
+	  vect_points[nv][1] = intersectPolygon[n].y;
+
+	  nv++ ;
+       }
+      
+
     }
 
+    polyline.push_back(vect_points);
+    vect_points.clear();
 
     if (nv>2)
     {
+ 
+      vector<N> indices = mapbox::earcut<N>(polyline);
+
+      double area2=0 ;
+      for(int i=0;i<indices.size()/3;++i)
+      {
+	  Coord x0 = Ox * polyline[0][indices[3*i]][0] + Oy* polyline[0][indices[3*i]][1] + Oz ;
+	  Coord x1 = Ox * polyline[0][indices[3*i+1]][0] + Oy* polyline[0][indices[3*i+1]][1] + Oz ;
+	  Coord x2 = Ox * polyline[0][indices[3*i+2]][0] + Oy* polyline[0][indices[3*i+2]][1] + Oz ;
+	  area2+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
+      }
+
+      polyline.clear();
+
+      for(int n=0; n < nv; n++)
+      {
+        intersectPolygon[n] = Ox*intersectPolygon[n].x+Oy*intersectPolygon[n].y+Oz;
+        intersectPolygon[n] = intersectPolygon[n]*(1./norm(intersectPolygon[n])) ;
+      }
+
+
 //     assign intersection to source and destination polygons
        Polyg *is = new Polyg;
        is->x = exact_barycentre(intersectPolygon,nv);
-       is->area = polygonarea(intersectPolygon,nv) ;
+//       is->area = polygonarea(intersectPolygon,nv) ;
+       is->area = area2 ;
+
 //        if (is->area < 1e-12) cout<<"Small intersection : "<<is->area<<endl ;
        if (is->area==0.) delete is ;
        else
@@ -160,7 +247,10 @@ double intersect_ym(Elt *a, Elt *b)
   delete[] a_gno ;
   delete[] b_gno ;
   return area ;
+
 }
+
+
 
 void createGreatCirclePolygon(const Elt& element, const Coord& pole, vector<Coord>& coordinates)
 {

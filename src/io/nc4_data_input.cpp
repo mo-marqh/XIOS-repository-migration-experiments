@@ -28,6 +28,7 @@ namespace xios
   { /* Nothing more to do */ }
 
   StdSize CNc4DataInput::getFieldNbRecords_(CField* field)
+  TRY
   {
     StdString fieldId = field->getFieldOutputName();
 
@@ -39,8 +40,10 @@ namespace xios
 
     return 1;
   }
+  CATCH
 
   void CNc4DataInput::readFieldData_(CField* field)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
@@ -62,27 +65,6 @@ namespace xios
         break;
       case ONE_FILE:
       {
-/*
-        std::vector<int> nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
-        std::vector<int> nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
-        std::vector<int> nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
-
-        int ssize = nZoomBeginGlobal.size();
-
-        std::vector<StdSize> start(ssize);
-        std::vector<StdSize> count(ssize);
-
-        for (int i = 0; i < ssize; ++i)
-        {
-          start[i] = nZoomBeginServer[ssize - i - 1] - nZoomBeginGlobal[ssize - i - 1];
-          count[i] = nZoomSizeServer[ssize - i - 1];
-        }
-*/
-
-        std::vector<int> nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
-        std::vector<int> nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
-        std::vector<int> nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
-
         std::vector<StdSize> start, count;
 
         CArray<int,1> axisDomainOrder = grid->axis_domain_order;
@@ -90,10 +72,10 @@ namespace xios
         std::vector<StdString> axisList   = grid->getAxisList();
         int numElement = axisDomainOrder.numElements();
         int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
-        int idx = nZoomBeginGlobal.size() - 1;
+        int idx = domainList.size() * 2 + axisList.size() - 1;
 
-        start.reserve(nZoomBeginGlobal.size());
-        count.reserve(nZoomBeginGlobal.size());
+        start.reserve(idx+1);
+        count.reserve(idx+1);
 
         for (int i = numElement - 1; i >= 0; --i)
         {
@@ -102,20 +84,19 @@ namespace xios
             CDomain* domain = CDomain::get(domainList[idxDomain]);
             if ((domain->type) != CDomain::type_attr::unstructured)
             {
-              start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-              count.push_back(nZoomSizeServer[idx]);
+              start.push_back(domain->jbegin);
+              count.push_back(domain->nj);
             }
-            --idx ;
-            start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-            count.push_back(nZoomSizeServer[idx]);
-            --idx ;
+            start.push_back(domain->ibegin);
+            count.push_back(domain->ni);
             --idxDomain;
           }
           else if (1 == axisDomainOrder(i))
           {
-            start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-            count.push_back(nZoomSizeServer[idx]);
-            --idx;
+            CAxis* axis = CAxis::get(axisList[idxAxis]);
+            start.push_back(axis->begin);
+            count.push_back(axis->n);
+            --idxAxis ;
           }
           else
           {
@@ -124,7 +105,6 @@ namespace xios
               start.push_back(0);
               count.push_back(1);
             }
-            --idx;
           }
         }
 
@@ -143,8 +123,10 @@ namespace xios
       field->invertScaleFactorAddOffset(scaleFactor, addOffset);
     }
   }
+  CATCH
 
   void CNc4DataInput::readFieldAttributes_(CField* field, bool readAttributeValues)
+  TRY
   {
     StdString fieldId = field->getFieldOutputName();
 
@@ -161,7 +143,7 @@ namespace xios
 
     // Verify the compatibility of dimension of declared grid and real grid in file
     int realGridDim = 1;
-    bool isUnstructuredGrid = SuperClassWriter::isUnstructured(fieldId);
+    bool isUnstructuredGrid = ((gridDim < 2) ? false :  SuperClassWriter::isUnstructured(fieldId));
     std::map<StdString, StdSize> dimSizeMap = SuperClassWriter::getDimensions(&fieldId);
     std::list<StdString> dimList = SuperClassWriter::getDimensionsList(&fieldId);
 
@@ -270,6 +252,7 @@ namespace xios
       }
     }
   }
+  CATCH
 
   /*!
     Read attributes of a domain from a file
@@ -280,6 +263,7 @@ namespace xios
   */
   void CNc4DataInput::readDomainAttributeValueFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                        int elementPosition, const StdString& fieldId)
+  TRY
   {
     // There are some optional attributes of a domain to retrieve from file    // + lon lat?
     std::list<std::pair<StdString, StdSize> >::const_iterator itMapNi = dimSizeMap.begin(), itMapNj,
@@ -458,6 +442,7 @@ namespace xios
     }
     domain->fillInLonLat();
   }
+  CATCH
 
   /*!
     Read attribute value of a domain from a file
@@ -468,6 +453,7 @@ namespace xios
   */
   void CNc4DataInput::readDomainAttributesFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                    int elementPosition, const StdString& fieldId)
+  TRY
   {
     // There are some mandatory attributes of a domain to retrieve from file
     // + ni_glo, nj_glo
@@ -516,7 +502,27 @@ namespace xios
       }       
       domain->ni_glo.setValue(itMapNi->second);
     }
+
+// determine if coordinates values are present in file
+    if ((CDomain::type_attr::rectilinear == domain->type))
+    {
+      // Ok, try to read some attributes such as longitude and latitude
+      domain->hasLatInReadFile_ = SuperClassWriter::hasVariable(itMapNj->first);
+      domain->hasLonInReadFile_  = SuperClassWriter::hasVariable(itMapNi->first);
+    }
+    else if ((CDomain::type_attr::curvilinear == domain->type) || (CDomain::type_attr::unstructured == domain->type) )
+    {
+      StdString latName = this->getLatCoordName(fieldId);
+      domain->hasLatInReadFile_ = SuperClassWriter::hasVariable(latName) ;
+      StdString lonName = this->getLonCoordName(fieldId);        
+      domain->hasLonInReadFile_ = SuperClassWriter::hasVariable(lonName) ; 
+      StdString boundsLatName = this->getBoundsId(latName);
+      domain->hasBoundsLatInReadFile_ = SuperClassWriter::hasVariable(boundsLatName) ; 
+      StdString boundsLonName = this->getBoundsId(lonName);
+      domain->hasBoundsLonInReadFile_ = SuperClassWriter::hasVariable(boundsLonName) ;
+    }
   }
+  CATCH
 
   /*!
     Read attributes of an axis from a file
@@ -527,6 +533,7 @@ namespace xios
   */
   void CNc4DataInput::readAxisAttributesFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                  int elementPosition, const StdString& fieldId)
+  TRY
   {
     std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
                                                               iteMap = dimSizeMap.end();
@@ -543,6 +550,7 @@ namespace xios
     }    
     axis->n_glo.setValue(itMapN->second);
   }
+  CATCH
 
   /*!
     Read attribute value of an axis from a file
@@ -553,6 +561,7 @@ namespace xios
   */
   void CNc4DataInput::readAxisAttributeValueFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                     int elementPosition, const StdString& fieldId)
+  TRY
   {
     std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
                                                               iteMap = dimSizeMap.end();
@@ -573,6 +582,7 @@ namespace xios
       }
     }
   }
+  CATCH
 
   /*!
     Read attributes of a scalar from a file
@@ -601,7 +611,9 @@ namespace xios
   }
 
   void CNc4DataInput::closeFile_(void)
+  TRY
   {
     SuperClassWriter::close();
   }
+  CATCH
 } // namespace xios

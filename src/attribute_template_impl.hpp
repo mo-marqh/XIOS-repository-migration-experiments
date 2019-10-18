@@ -200,6 +200,18 @@ namespace xios
       }
 
       //---------------------------------------------------------------
+
+      template <class T>
+         StdString CAttributeTemplate<T>::_dump(void) const
+      {
+         StdOStringStream oss;
+         if (!CType<T>::isEmpty() && this->hasId())
+            oss << this->getName() << "=\"" << CType<T>::dump() << "\"";
+         return (oss.str());
+      }
+
+
+      //---------------------------------------------------------------
 /*
       template <class T>
          void CAttributeTemplate<T>::toBinary (StdOStream & os) const

@@ -20,6 +20,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmTemporalSplitting::create(CGrid* 
                                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CScalar*> scalarListSrcP = gridSrc->getScalars();
@@ -30,12 +31,14 @@ CGenericAlgorithmTransformation* CAxisAlgorithmTemporalSplitting::create(CGrid* 
 
   return (new CAxisAlgorithmTemporalSplitting(axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], temporalSplitting));
 }
+CATCH
 
 bool CAxisAlgorithmTemporalSplitting::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_TEMPORAL_SPLITTING, create);
 }
-
+CATCH
 
 CAxisAlgorithmTemporalSplitting::CAxisAlgorithmTemporalSplitting(CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo)
  : CAxisAlgorithmTransformation(axisDestination, scalarSource)
@@ -49,6 +52,7 @@ CAxisAlgorithmTemporalSplitting::~CAxisAlgorithmTemporalSplitting()
 }
 
 void CAxisAlgorithmTemporalSplitting::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -71,5 +75,6 @@ void CAxisAlgorithmTemporalSplitting::computeIndexSourceMapping_(const std::vect
     }
   }
 }
+CATCH
 
 }

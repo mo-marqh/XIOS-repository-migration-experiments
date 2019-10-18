@@ -54,6 +54,7 @@ namespace xios
             virtual void fromString(const StdString & str) { if (str==resetInheritanceStr) { reset(); _canInherite=false ;}  else _fromString(str);}
             virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);}
             virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); }
+            virtual string dump(void) const { return _dump();}
 
             virtual void generateCInterface(ostream& oss,const string& className) ;
             virtual void generateFortran2003Interface(ostream& oss,const string& className) ;
@@ -68,6 +69,7 @@ namespace xios
           bool isEqual_(const CAttributeArray& attr);
           CArray<T_numtype, N_rank> inheritedValue ;
           StdString _toString(void) const;
+          StdString _dump(void) const;
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;
           bool _fromBuffer(CBufferIn& buffer) ;

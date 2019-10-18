@@ -48,7 +48,7 @@ namespace xios {
          enum EEventId
          {
            EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, 
-           EVENT_ID_AREA, EVENT_ID_MASK,
+           EVENT_ID_AREA,
            EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT
          } ;
 
@@ -141,7 +141,7 @@ namespace xios {
          CArray<double, 2> bounds_lonvalue, bounds_latvalue;
          CArray<double, 1> areavalue;
 
-         CArray<size_t,1> localIndexToWriteOnServer;         
+         CArray<int,1> localIndexToWriteOnServer;
 
          CArray<bool, 1> domainMask; // mask_1d, mask_2d -> domainMask
          CArray<bool, 1> localMask; // domainMask + indexing
@@ -150,6 +150,10 @@ namespace xios {
          bool hasArea;
          bool hasLonLat;
          bool hasPole ;
+         bool hasLatInReadFile_ ; // specify if latitude is defined on read file, so it can be read later when grid distribution will be defined
+         bool hasBoundsLatInReadFile_ ; // specify if latitude boundarues are defined on read file, so it can be read later when grid distribution will be defined
+         bool hasLonInReadFile_ ; // specify if longitude is defined on read file, so it can be read later when grid distribution will be defined
+         bool hasBoundsLonInReadFile_ ; // specify if longitude boundaries are defined on read file, so it can be read later when grid distribution will be defined
 
          void computeLocalMask(void) ;
       private:
@@ -164,14 +168,12 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
-         void checkZoom(void);
 
          void setTransformations(const TransMapTypes&);         
          void computeNGlobDomain();
          void sendAttributes();
          void sendIndex();
          void sendDistributionAttributes();
-         void sendMask();
          void sendArea();
          void sendLonLat();         
          void sendDataIndex();
@@ -182,15 +184,12 @@ namespace xios {
          
          static void recvDistributionAttributes(CEventServer& event);
          static void recvIndex(CEventServer& event);
-         static void recvIndexZoom(CEventServer& event);
-         static void recvMask(CEventServer& event);         
          static void recvLon(CEventServer& event);
          static void recvLat(CEventServer& event);
          static void recvArea(CEventServer& event);
          static void recvDataIndex(CEventServer& event);
          void recvDistributionAttributes(CBufferIn& buffer);                  
          void recvIndex(std::map<int, CBufferIn*>& rankBuffers);         
-         void recvMask(std::map<int, CBufferIn*>& rankBuffers);
          void recvLon(std::map<int, CBufferIn*>& rankBuffers);
          void recvLat(std::map<int, CBufferIn*>& rankBuffers);
          void recvArea(std::map<int, CBufferIn*>& rankBuffers);         
@@ -205,7 +204,6 @@ namespace xios {
          std::list<CContextClient*> clients;
          std::set<CContextClient*> clientsSet;
 
-         bool doZoomByIndex_;
          bool isChecked, computedWrittenIndex_;
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good

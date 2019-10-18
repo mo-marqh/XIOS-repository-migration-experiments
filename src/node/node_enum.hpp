@@ -22,6 +22,7 @@ namespace xios
          eInverseAxis,
          eZoomAxis,
          eInterpolateAxis,
+         eExtractAxis,
          eZoomDomain,
          eInterpolateDomain,
          eGenerateRectilinearDomain,
@@ -37,7 +38,8 @@ namespace xios
          eTemporalSplitting,
          eDuplicateScalarToAxis,
          eReduceScalarToScalar,
-         eReorderDomain
+         eReorderDomain,
+         eExtractDomain
        } ENodeType;
 
 } // namespace xios

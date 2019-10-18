@@ -26,6 +26,7 @@ extern "C"
 
    // ------------------------ Création des handle -----------------------------
    void cxios_reduce_axis_to_scalar_handle_create(XReduceAxisToScalarPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -33,9 +34,11 @@ extern "C"
       *_ret = xios::CReduceAxisToScalar::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
    void cxios_reduce_axis_to_scalar_valid_id(bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -44,8 +47,10 @@ extern "C"
       *_ret = xios::CReduceAxisToScalar::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    void cxios_reduce_domain_to_scalar_handle_create(XReduceDomainToScalarPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -53,9 +58,11 @@ extern "C"
       *_ret = xios::CReduceDomainToScalar::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
    void cxios_reduce_domain_to_scalar_valid_id(bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -64,5 +71,6 @@ extern "C"
       *_ret = xios::CReduceDomainToScalar::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
 } // extern "C"

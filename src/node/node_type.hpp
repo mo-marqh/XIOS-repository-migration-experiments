@@ -12,6 +12,7 @@
 #include "inverse_axis.hpp"
 #include "zoom_axis.hpp"
 #include "interpolate_axis.hpp"
+#include "extract_axis.hpp"
 #include "zoom_domain.hpp"
 #include "interpolate_domain.hpp"
 #include "generate_rectilinear_domain.hpp"
@@ -28,6 +29,7 @@
 #include "duplicate_scalar_to_axis.hpp"
 #include "reduce_scalar_to_scalar.hpp"
 #include "reorder_domain.hpp"
+#include "extract_domain.hpp"
 
 
 #endif // __XIOS_NODE_TYPE__

@@ -32,15 +32,10 @@ namespace xios
     interComm=interComm_;
     int flag;
     MPI_Comm_test_inter(interComm,&flag);
-
-    if (flag) attachedMode=false ;
-    else  attachedMode=true ;
-    
     if (flag) MPI_Comm_remote_size(interComm,&commSize);
     else  MPI_Comm_size(interComm,&commSize);
 
-     
-    currentTimeLine=1;
+    currentTimeLine=0;
     scheduled=false;
     finished=false;
     boost::hash<string> hashString;
@@ -48,24 +43,8 @@ namespace xios
       hashId=hashString(context->getId() + boost::lexical_cast<string>(context->clientPrimServer.size()));
     else
       hashId=hashString(context->getId());
-
-    if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,true,&interCommMerged) ;
-    
-    MPI_Comm_split(intraComm_,intraCommRank,intraCommRank, &commSelf) ;
-    itLastTimeLine=lastTimeLine.begin() ;
-
-    pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-    if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
-      
   }
 
-//! Attached mode is used ?
-//! \return true if attached mode is used, false otherwise
-  bool CContextServer::isAttachedModeEnabled() const
-  {
-    return attachedMode ;
-  }
-  
   void CContextServer::setPendingEvent(void)
   {
     pendingEvent=true;
@@ -85,7 +64,8 @@ namespace xios
   {
     listen();
     checkPendingRequest();
-    if (enableEventsProcessing)  processEvents();
+    if (enableEventsProcessing)
+      processEvents();
     return finished;
   }
 
@@ -140,16 +120,6 @@ namespace xios
        MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
        mapBufferSize_.insert(std::make_pair(rank, buffSize));
        it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(buffSize)))).first;
-       if (!isAttachedModeEnabled())
-       {
-         MPI_Comm OneSidedInterComm, oneSidedComm ;
-         MPI_Intercomm_create(commSelf, 0, interCommMerged, rank, 0, &OneSidedInterComm );
-         MPI_Intercomm_merge(OneSidedInterComm,true,&oneSidedComm);
-         buffers[rank]->createWindows(oneSidedComm) ;
-       }
-       lastTimeLine[rank]=0 ;
-       itLastTimeLine=lastTimeLine.begin() ;
-
        return true;
     }
     else
@@ -186,7 +156,6 @@ namespace xios
       traceOn();
       if (flag==true)
       {
-        buffers[rank]->updateCurrentWindows() ;
         recvRequest.push_back(rank);
         MPI_Get_count(&status,MPI_CHAR,&count);
         processRequest(rank,bufferRequest[rank],count);
@@ -200,47 +169,22 @@ namespace xios
     }
   }
 
-  void CContextServer::getBufferFromClient(size_t timeLine)
-  {
-    if (!isAttachedModeEnabled()) // one sided desactivated in attached mode
-    {  
-      int rank ;
-      char *buffer ;
-      size_t count ; 
-
-      if (itLastTimeLine==lastTimeLine.end()) itLastTimeLine=lastTimeLine.begin() ;
-      for(;itLastTimeLine!=lastTimeLine.end();++itLastTimeLine)
-      {
-        rank=itLastTimeLine->first ;
-        if (itLastTimeLine->second < timeLine &&  pendingRequest.count(rank)==0)
-        {
-          if (buffers[rank]->getBufferFromClient(timeLine, buffer, count))
-          {
-            processRequest(rank, buffer, count);
-            break ;
-          }
-        }
-      }
-    }
-  }
-         
-       
   void CContextServer::processRequest(int rank, char* buff,int count)
   {
 
     CBufferIn buffer(buff,count);
     char* startBuffer,endBuffer;
     int size, offset;
-    size_t timeLine=0;
+    size_t timeLine;
     map<size_t,CEventServer*>::iterator it;
 
-    
     CTimer::get("Process request").resume();
     while(count>0)
     {
       char* startBuffer=(char*)buffer.ptr();
       CBufferIn newBuffer(startBuffer,buffer.remain());
       newBuffer>>size>>timeLine;
+
       it=events.find(timeLine);
       if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer)).first;
       it->second->push(rank,buffers[rank],startBuffer,size);
@@ -248,9 +192,6 @@ namespace xios
       buffer.advance(size);
       count=buffer.remain();
     }
-
-    if (timeLine>0) lastTimeLine[rank]=timeLine ;
-    
     CTimer::get("Process request").suspend();
   }
 
@@ -288,30 +229,13 @@ namespace xios
          scheduled = false;
         }
       }
-      else getBufferFromClient(currentTimeLine) ;
     }
-    else if (pureOneSided) getBufferFromClient(currentTimeLine) ; // if pure one sided check buffer even if no event recorded at current time line
   }
 
   CContextServer::~CContextServer()
   {
     map<int,CServerBuffer*>::iterator it;
     for(it=buffers.begin();it!=buffers.end();++it) delete it->second;
-  }
-
-  void CContextServer::releaseBuffers()
-  {
-    map<int,CServerBuffer*>::iterator it;
-    bool out ;
-    do
-    {
-      out=true ;
-      for(it=buffers.begin();it!=buffers.end();++it)
-      {
-        out = out && it->second->freeWindows() ;
-
-      }
-    } while (! out) ; 
   }
 
   void CContextServer::dispatchEvent(CEventServer& event)
@@ -329,7 +253,6 @@ namespace xios
     {
       finished=true;
       info(20)<<" CContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
-      releaseBuffers() ;
       context->finalize();
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;

@@ -56,6 +56,7 @@ void CScalarAlgorithmTransformation::computeIndexSourceMapping_(const std::vecto
 void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalIndexElementSource,
                                                                 int elementSourceType,
                                                                 CClientClientDHTInt::Index2VectorInfoTypeMap& globalIndexElementSourceOnProc)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -120,5 +121,5 @@ void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
     globalIndexElementSourceOnProc = dhtIndexProcRank.getInfoIndexMap();
   }
 }
-
+CATCH
 }

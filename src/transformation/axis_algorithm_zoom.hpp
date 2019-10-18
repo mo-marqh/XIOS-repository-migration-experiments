@@ -1,10 +1,6 @@
 /*!
    \file axis_algorithm_zoom.hpp
-   \author Ha NGUYEN
-   \since 03 June 2015
-   \date 12 June 2015
-
-   \brief Algorithm for zooming on an axis.
+   \brief Algorithm for zooming an axis.
  */
 #ifndef __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
 #define __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
@@ -20,7 +16,7 @@ class CZoomAxis;
   \class CAxisAlgorithmZoom
   Implementing zoom on axis
   A zoomed region can be considered as region that isn't masked.
-  Only this zoomed region is extracted to write on Netcdf.
+  Only this zoomed region is zoomed to write on Netcdf.
 */
 class CAxisAlgorithmZoom : public CAxisAlgorithmTransformation
 {
@@ -34,8 +30,6 @@ protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
-  // void updateAxisDestinationMask();
-  void updateZoom();
 
 private:
   //! Global zoom begin on axis
@@ -45,7 +39,7 @@ private:
   StdSize zoomEnd_;
 
   //! Global zoom size on axis
-  StdSize zoomSize_;
+  StdSize zoomN_;
 
   std::vector<int> zoomIndex_;
 

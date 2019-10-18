@@ -108,10 +108,12 @@ namespace xios
 
    template <class T>
       void CObjectTemplate<T>::parse(xml::CXMLNode & node)
+   TRY
    {
       xml::THashAttributes attributes = node.getAttributes();
       CAttributeMap::setAttributes(attributes);
    }
+   CATCH
 
    //---------------------------------------------------------------
 
@@ -474,7 +476,6 @@ namespace xios
      oss << " * ************************************************************************** */" << iendl;
      oss << iendl;
      oss << "#include <boost/multi_array.hpp>" << iendl;
-     oss << "#include <boostXXX/shared_ptr.hpp>" << iendl;
      oss << "#include \"xios.hpp\"" << iendl;
      oss << "#include \"attribute_template.hpp\"" << iendl;
      oss << "#include \"object_template.hpp\"" << iendl;
@@ -508,7 +509,7 @@ namespace xios
      oss << iendl;
      oss << "INTERFACE" << iendl++;
      oss << "! Do not call directly / interface FORTRAN 2003 <-> C99";
-     SuperClassMap::generateFortran2003Interface(oss,className);
+     SuperClassMap::generateFortran2003Interface(oss, className);
      oss << iendl--;
      oss << "END INTERFACE" << iendl--;
      oss << iendl;

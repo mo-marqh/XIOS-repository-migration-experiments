@@ -13,6 +13,7 @@
 #include "tracer.hpp"
 #include "timer.hpp"
 #include "event_scheduler.hpp"
+#include "string_tools.hpp"
 
 namespace xios
 {
@@ -342,8 +343,8 @@ namespace xios
         }
 
         string codesId=CXios::getin<string>("oasis_codes_id") ;
-        vector<string> splitted ;
-        boost::split( splitted, codesId, boost::is_any_of(","), boost::token_compress_on ) ;
+        vector<string> oasisCodeId=splitRegex(codesId,"\\s*,\\s*") ;
+ 
         vector<string>::iterator it ;
 
         MPI_Comm newComm ;
@@ -351,7 +352,7 @@ namespace xios
         MPI_Comm_rank(CXios::globalComm,&globalRank);
 
 //      (2) Create interComms with models
-        for(it=splitted.begin();it!=splitted.end();it++)
+        for(it=oasisCodeId.begin();it!=oasisCodeId.end();it++)
         {
           oasis_get_intercomm(newComm,*it) ;
           if ( serverLevel == 0 || serverLevel == 1)
@@ -385,7 +386,9 @@ namespace xios
           interCommLeft.push_back(newComm) ;
         }
         if (CXios::usingServer2) delete [] srvGlobalRanks ;
-        oasis_enddef() ;
+
+        bool oasisEnddef=CXios::getin<bool>("call_oasis_enddef",true) ;
+        if (!oasisEnddef) oasis_enddef() ;
       }
 
 
@@ -441,11 +444,14 @@ namespace xios
          {
            listenContext();
            listenRootContext();
+           listenOasisEnddef() ;
+           listenRootOasisEnddef() ;
            if (!finished) listenFinalize() ;
          }
          else
          {
            listenRootContext();
+           listenRootOasisEnddef() ;
            if (!finished) listenRootFinalize() ;
          }
 
@@ -515,6 +521,106 @@ namespace xios
            finished=true ;
         }
       }
+
+
+   /*!
+    * Root process is listening for an order sent by client to call "oasis_enddef".
+    * The root client of a compound send the order (tag 5). It is probed and received.
+    * When the order has been received from each coumpound, the server root process ping the order to the root processes of the secondary levels of servers (if any).
+    * After, it also inform (asynchronous call) other processes of the communicator that the oasis_enddef call must be done
+    */
+    
+     void CServer::listenOasisEnddef(void)
+     {
+        int flag ;
+        MPI_Status status ;
+        list<MPI_Comm>::iterator it;
+        int msg ;
+        static int nbCompound=0 ;
+        int size ;
+        static bool sent=false ;
+        static MPI_Request* allRequests ;
+        static MPI_Status* allStatus ;
+
+
+        if (sent)
+        {
+          MPI_Comm_size(intraComm,&size) ;
+          MPI_Testall(size,allRequests, &flag, allStatus) ;
+          if (flag==true)
+          {
+            delete [] allRequests ;
+            delete [] allStatus ;
+            sent=false ;
+          }
+        }
+        
+
+        for(it=interCommLeft.begin();it!=interCommLeft.end();it++)
+        {
+           MPI_Status status ;
+           traceOff() ;
+           MPI_Iprobe(0,5,*it,&flag,&status) ;  // tags oasis_endded = 5
+           traceOn() ;
+           if (flag==true)
+           {
+              MPI_Recv(&msg,1,MPI_INT,0,5,*it,&status) ; // tags oasis_endded = 5
+              nbCompound++ ;
+              if (nbCompound==interCommLeft.size())
+              {
+                for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++)
+                {
+                   MPI_Send(&msg,1,MPI_INT,0,5,*it) ; // tags oasis_endded = 5
+                }
+                MPI_Comm_size(intraComm,&size) ;
+                allRequests= new MPI_Request[size] ;
+                allStatus= new MPI_Status[size] ;
+                for(int i=0;i<size;i++) MPI_Isend(&msg,1,MPI_INT,i,5,intraComm,&allRequests[i]) ; // tags oasis_endded = 5
+                sent=true ;
+              }
+           }
+        }
+     }
+     
+   /*!
+    * Processes probes message from root process if oasis_enddef call must be done.
+    * When the order is received it is scheduled to be treated in a synchronized way by all server processes of the communicator
+    */
+     void CServer::listenRootOasisEnddef(void)
+     {
+       int flag ;
+       MPI_Status status ;
+       const int root=0 ;
+       int msg ;
+       static bool eventSent=false ;
+
+       if (eventSent)
+       {
+         boost::hash<string> hashString;
+         size_t hashId = hashString("oasis_enddef");
+         if (eventScheduler->queryEvent(0,hashId))
+         {
+           oasis_enddef() ;
+           eventSent=false ;
+         }
+       }
+         
+       traceOff() ;
+       MPI_Iprobe(root,5,intraComm, &flag, &status) ;
+       traceOn() ;
+       if (flag==true)
+       {
+         MPI_Recv(&msg,1,MPI_INT,root,5,intraComm,&status) ; // tags oasis_endded = 5
+         boost::hash<string> hashString;
+         size_t hashId = hashString("oasis_enddef");
+         eventScheduler->registerEvent(0,hashId);
+         eventSent=true ;
+       }
+     }
+
+
+
+     
 
      void CServer::listenContext(void)
      {

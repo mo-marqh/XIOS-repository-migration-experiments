@@ -208,6 +208,8 @@ namespace xios {
         const string& getExpression(void);
         bool hasExpression(void) const;
 
+        bool hasGridMask(void) const;
+
       public:
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup;

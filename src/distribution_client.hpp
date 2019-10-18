@@ -32,7 +32,7 @@ public:
   typedef CDistribution::GlobalLocalMap GlobalLocalDataMap;
 
   public:
-    /** Default constructor */        
+    /** Default constructor */
     CDistributionClient(int rank, CGrid* grid);
 
     void createGlobalIndexSendToServer();
@@ -43,7 +43,7 @@ public:
     virtual const std::vector<int>& getLocalDataIndexOnClient();
     GlobalLocalDataMap& getGlobalLocalDataSendToServer();
     GlobalLocalDataMap& getGlobalDataIndexOnClient();
-    const std::vector<int>& getLocalMaskIndexOnClient();
+    const std::vector<bool>& getLocalMaskIndexOnClient();
     const std::vector<int>& getLocalMaskedDataIndexOnClient();
 
     std::vector<int> getNGlob() { return nGlob_; }
@@ -82,8 +82,21 @@ public:
     //!< LocalData index on client
     GlobalLocalDataMap globalLocalDataSendToServerMap_;
     GlobalLocalDataMap globalDataIndex_;
+
+    /*! Array holding masked data indexes.
+     * It includes:
+     *  masking on data (data_i/j_index or data_ni/nj and data_ibegin)
+     *  masking on grid elements (domains, axes or scalars)
+     * It DOES NOT include grid mask.
+     * The array size defines the data size entering the workflow. It is used by source filter of client or server1.
+    */
     std::vector<int> localDataIndex_;
-    std::vector<int> localMaskIndex_;
+
+    /*! Array holding grid mask. If grid mask is not defined, its size is zero.
+     * It is used by source filter of client for replacing unmasked data by NaN.
+    */
+    std::vector<bool> localMaskIndex_;
+
     std::vector<int> localMaskedDataIndex_;
 
   private:
@@ -96,8 +109,6 @@ public:
     std::vector<int> nGlob_; //!< Global size of each dimension (e.x: ni_glo, nj_glo, etc, ...)
     std::vector<int> nBeginLocal_;//!< Begin index of each dimension (e.x: for domain, it's always 0, for axis, it's zoom_begin, ...)
     std::vector<int> nBeginGlobal_; //!< Begin index of each dimension (e.x: ibegin, jbegin, ...)
-    std::vector<int> nZoomBegin_; //!< Begin index of zoom of each dimension
-    std::vector<int> nZoomEnd_; //!< End index of zoom of each dimension
 
     // Data_n_index of domain or axis (For now, axis uses its size as data_n_index
     std::vector<int> dataNIndex_; //!< Data_n_index in case of domain
@@ -106,14 +117,10 @@ public:
     std::vector<CArray<int,1> > dataIndex_; //!< Data index
     std::vector<CArray<int,1> > infoIndex_; //!< i_index, j_index
 
-    std::vector<CArray<bool,1> > domainMasks_; //!< Domain mask
-    std::vector<CArray<bool,1> > axisMasks_; //!< Axis mask
-
     std::vector<int> indexMap_; //!< Mapping element index to dimension index
     std::vector<CArray<int,1> > elementLocalIndex_;  //!< Local index of each element
     std::vector<CArray<size_t,1> > elementGlobalIndex_; //!< Global index of each element
     std::vector<CArray<bool,1> > elementIndexData_; //!< // The correct index of a domain has true value, the ghost one has false value
-    std::vector<CArray<bool,1> > elementZoomMask_; //!< Only zoomed region are true
     std::vector<size_t> elementNLocal_;
     std::vector<size_t> elementNGlobal_;
 

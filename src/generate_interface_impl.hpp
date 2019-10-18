@@ -214,7 +214,20 @@ namespace xios
     string fortranType=getStrFortranType<T>();
     string fortranKindC=getStrFortranKindC<T>();
 
-    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
+//    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
+    int indent = oss.iword(iendl.index);
+    string str = "SUBROUTINE cxios_set_" + className + "_" + name + "(" + className + "_hdl, " + name + ") BIND(C)";
+    if ((str.length() + indent) >132)
+    {
+      oss << str.substr(0,130-indent) ;
+      oss << "&" << endl;
+      oss << "&" << str.substr(130-indent,str.length()) ;
+    }
+    else
+    {
+      oss << str;
+    }
+    oss << iendl;
     oss << "  USE ISO_C_BINDING" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
     oss << "  " << fortranType << " " << fortranKindC << "      , VALUE :: " << name << iendl;
@@ -230,43 +243,63 @@ namespace xios
   template <>
   void CInterface::AttributeFortran2003Interface<string>(ostream& oss, const string& className, const string& name)
   {
-    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", " << name << "_size) BIND(C)" << iendl;
+//    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", " << name << "_size) BIND(C)" << iendl;
+    int indent = oss.iword(iendl.index);
+    string str ="SUBROUTINE cxios_set_" + className + "_" + name + "(" + className + "_hdl, " + name + ", " + name + "_size) BIND(C)";
+    if ((str.length() + indent) >132)
+    {
+      oss << str.substr(0,130-indent) ;
+      oss << "&" << endl;
+      oss << "&" << str.substr(130-indent,str.length()) ;
+    }
+    else
+    {
+      oss << str;
+    }
+    oss << iendl;
     oss << "  USE ISO_C_BINDING" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
     oss << "  CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: " << name << iendl;
     oss << "  INTEGER  (kind = C_INT)     , VALUE        :: " << name << "_size" << iendl;
     oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl;
     oss << iendl;
-    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", " << name << "_size) BIND(C)" << iendl;
+//    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", " << name << "_size) BIND(C)" << iendl;
+    str = "SUBROUTINE cxios_get_" + className + "_" + name + "(" + className + "_hdl, " + name + ", " + name + "_size) BIND(C)";
+    if ((str.length() + indent) >132)
+    {
+      oss << str.substr(0,130-indent) ;
+      oss << "&" << endl;
+      oss << "&" << str.substr(130-indent,str.length()) ;
+    }
+    else
+    {
+      oss << str;
+    }
+    oss << iendl;
     oss << "  USE ISO_C_BINDING" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
     oss << "  CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: " << name << iendl;
     oss << "  INTEGER  (kind = C_INT)     , VALUE        :: " << name << "_size" << iendl;
-    oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl;
-  }
-
-  template <>
-  void CInterface::AttributeFortran2003Interface<CDate>(ostream& oss, const string& className, const string& name)
-  {
-    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
-    oss << "  USE ISO_C_BINDING" << iendl;
-    oss << "  USE IDATE" << iendl;
-    oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
-    oss << "  TYPE(txios(date)), VALUE :: " << name << iendl;
-    oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl;
-    oss << iendl;
-    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
-    oss << "  USE ISO_C_BINDING" << iendl;
-    oss << "  USE IDATE" << iendl;
-    oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
-    oss << "  TYPE(txios(date)) :: " << name << iendl;
     oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl;
   }
 
   template <>
   void CInterface::AttributeFortran2003Interface<CDuration>(ostream& oss, const string& className, const string& name)
   {
-    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
+//    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
+    string str = "SUBROUTINE cxios_set_" + className + "_" + name + "(" + className + "_hdl, " + name + ") BIND(C)";
+    int indent = oss.iword(iendl.index);
+    if ((str.length() + indent) >132)
+    {
+      oss << str.substr(0,130-indent) ;
+      oss << "&" << endl;
+      oss << "&" << str.substr(130-indent,str.length()) ;
+    }
+    else
+    {
+      oss << str;
+    }
+    oss << iendl;
     oss << "  USE ISO_C_BINDING" << iendl;
     oss << "  USE IDURATION" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;

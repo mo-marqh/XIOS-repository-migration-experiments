@@ -35,10 +35,13 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CComputeConnectivityDomain compConDomain;
   CExpandDomain expandDomain;
   CReorderDomain reorderDomain;
+  CExtractDomain extractDomain;
 
   CInterpolateAxis interpolateAxis;
   CZoomAxis zoomAxis;
   CInverseAxis inverseAxis;
+  CExtractAxis extractAxis;
+
   CReduceDomainToAxis reduceDomainToAxis;
   CReduceAxisToAxis reduceAxisToAxis;
   CExtractDomainToAxis extractDomainToAxis;
@@ -313,7 +316,6 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"ireorder_domain_attr.F90").c_str());
   reorderDomain.generateFortranInterface(file);
-
   file.close();
   
   /*!
@@ -345,6 +347,10 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"inverse_axis_interface_attr.F90").c_str());
   inverseAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"extract_axis_interface_attr.F90").c_str());
+  extractAxis.generateFortran2003Interface(file);
   file.close();
 
   file.open((path+"icinverse_axis_attr.cpp").c_str());

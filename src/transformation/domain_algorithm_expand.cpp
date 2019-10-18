@@ -25,6 +25,7 @@ CGenericAlgorithmTransformation* CDomainAlgorithmExpand::create(CGrid* gridDst, 
                                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
@@ -35,17 +36,21 @@ CGenericAlgorithmTransformation* CDomainAlgorithmExpand::create(CGrid* gridDst, 
 
   return (new CDomainAlgorithmExpand(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], expandDomain));
 }
+CATCH
 
 bool CDomainAlgorithmExpand::registerTrans()
+TRY
 {
   CGridTransformationFactory<CDomain>::registerTransformation(TRANS_EXPAND_DOMAIN, create);
 }
+CATCH
 
 CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,
                                                CDomain* domainSource,
                                                CExpandDomain* expandDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource),
   isXPeriodic_(false), isYPeriodic_(false)
+TRY
 {
   if (domainDestination == domainSource)
   {
@@ -76,6 +81,7 @@ CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,
       break;
   }
 }
+CATCH
 
 /*!
  *  Expand domain with edge-type neighbor
@@ -84,6 +90,7 @@ CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,
  */
 void CDomainAlgorithmExpand::expandDomainEdgeConnectivity(CDomain* domainDestination,
                                                           CDomain* domainSource)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -103,6 +110,7 @@ void CDomainAlgorithmExpand::expandDomainEdgeConnectivity(CDomain* domainDestina
       break;      
   }  
 }
+CATCH
 
 /*!
  *  Expand domain with node-type neighbor
@@ -111,6 +119,7 @@ void CDomainAlgorithmExpand::expandDomainEdgeConnectivity(CDomain* domainDestina
  */
 void CDomainAlgorithmExpand::expandDomainNodeConnectivity(CDomain* domainDestination,
                                                           CDomain* domainSource)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -130,6 +139,7 @@ void CDomainAlgorithmExpand::expandDomainNodeConnectivity(CDomain* domainDestina
       break;      
   }  
 }
+CATCH
 
 /*!
  *  Extend rectilinear or curvilinear domain destination and update its attributes
@@ -141,6 +151,7 @@ void CDomainAlgorithmExpand::expandDomainNodeConnectivity(CDomain* domainDestina
 void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDestination,
                                                                CDomain* domainSource,
                                                                CArray<int,2>& neighborsDomainSrc)
+TRY
 {
   int index, globalIndex, idx;
   int iindexDst, jindexDst, globIndexDst;
@@ -227,8 +238,6 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   domainDestination->nj_glo.setValue(njGloDst);
   domainDestination->ni.setValue(niDst);
   domainDestination->nj.setValue(njDst);
-  domainDestination->global_zoom_ni.setValue(domainSource->global_zoom_ni+2);
-  domainDestination->global_zoom_nj.setValue(domainSource->global_zoom_nj+2);
 
   CArray<bool,1>& mask_1d_dst = domainDestination->domainMask;
   CArray<int,1>& i_index_dst  = domainDestination->i_index;
@@ -456,6 +465,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
    domainDestination->mask_1d=domainDestination->domainMask ;
    domainDestination->computeLocalMask() ;
 }
+CATCH
 
 /*!
  *  Extend domain destination and update its attributes
@@ -467,6 +477,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
 void CDomainAlgorithmExpand::updateUnstructuredDomainAttributes(CDomain* domainDestination,
                                                                 CDomain* domainSource,
                                                                 CArray<int,2>& neighborsDomainSrc)
+TRY
 {
 
   CContext* context = CContext::getCurrent();
@@ -670,7 +681,7 @@ void CDomainAlgorithmExpand::updateUnstructuredDomainAttributes(CDomain* domainD
   domainDestination->mask_1d=domainDestination->domainMask ;
   domainDestination->computeLocalMask() ;
 }
-
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination

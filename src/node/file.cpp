@@ -52,9 +52,11 @@ namespace xios {
    //----------------------------------------------------------------
 
    const StdString CFile::getFileOutputName(void) const
+   TRY
    {
      return (name.isEmpty() ? getId() : name) + (name_suffix.isEmpty() ? StdString("") :  name_suffix.getValue());
    }
+   CATCH
 
    //----------------------------------------------------------------
    /*!
@@ -64,9 +66,11 @@ namespace xios {
    \return data writer object.
    */
    std::shared_ptr<CDataOutput> CFile::getDataOutput(void) const
+   TRY
    {
       return data_out;
    }
+   CATCH
 
    /*!
    \brief Get data reader object.
@@ -75,9 +79,11 @@ namespace xios {
    \return data reader object.
    */
    std::shared_ptr<CDataInput> CFile::getDataInput(void) const
+   TRY
    {
       return data_in;
    }
+   CATCH
 
    /*!
    \brief Get virtual field group
@@ -87,9 +93,11 @@ namespace xios {
    \return Pointer to field group
    */
    CFieldGroup* CFile::getVirtualFieldGroup(void) const
+   TRY
    {
       return (this->vFieldGroup);
    }
+   CATCH
 
    /*!
    \brief Get virtual variable group
@@ -99,21 +107,27 @@ namespace xios {
    \return Pointer to variable group
    */
    CVariableGroup* CFile::getVirtualVariableGroup(void) const
+   TRY
    {
       return (this->vVariableGroup);
    }
+   CATCH
 
    //! Get all fields of a file
    std::vector<CField*> CFile::getAllFields(void) const
+   TRY
    {
       return (this->vFieldGroup->getAllChildren());
    }
+   CATCH
 
    //! Get all variables of a file
    std::vector<CVariable*> CFile::getAllVariables(void) const
+   TRY
    {
       return (this->vVariableGroup->getAllChildren());
    }
+   CATCH
 
    //----------------------------------------------------------------
    /*!
@@ -128,6 +142,7 @@ namespace xios {
    std::vector<CField*> CFile::getEnabledFields(int default_outputlevel,
                                                 int default_level,
                                                 bool default_enabled)
+   TRY
    {
       if (!this->enabledFields.empty())
          return (this->enabledFields);
@@ -144,31 +159,22 @@ namespace xios {
          if (!(*it)->enabled.isEmpty()) // Si l'attribut 'enabled' est dfini ...
          {
             if (! (*it)->enabled.getValue()) continue;
-//            { it--; this->enabledFields.erase(it+1); continue; }
          }
          else // Si l'attribut 'enabled' n'est pas dfini ...
          {
             if (!default_enabled) continue;
-//            { it--; this->enabledFields.erase(it+1); continue; }
          }
 
          if (!(*it)->level.isEmpty()) // Si l'attribut 'level' est dfini ...
          {
             if ((*it)->level.getValue() > _outputlevel) continue;
-//            { it--; this->enabledFields.erase(it+1); continue; }
          }
          else // Si l'attribut 'level' n'est pas dfini ...
          {
             if (default_level > _outputlevel) continue;
-//            { it--; this->enabledFields.erase(it+1); continue; }
          }
 
-//         CField* field_tmp=(*it).get();
-//         shared_ptr<CField> sptfield=*it;
-//         field_tmp->refObject.push_back(sptfield);
          newEnabledFields.push_back(*it);
-         // Le champ est finalement actif, on y ajoute sa propre reference.
-//         (*it)->refObject.push_back(*it);
          // Le champ est finalement actif, on y ajoute la rfrence au champ de base.
          (*it)->setRelFile(CFile::get(this));
       }
@@ -176,22 +182,28 @@ namespace xios {
 
       return (this->enabledFields);
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    //! Change virtual field group to a new one
    void CFile::setVirtualFieldGroup(CFieldGroup* newVFieldGroup)
+   TRY
    {
       this->vFieldGroup = newVFieldGroup;
    }
+   CATCH_DUMP_ATTR
 
    //! Change virtual variable group to new one
    void CFile::setVirtualVariableGroup(CVariableGroup* newVVariableGroup)
+   TRY
    {
       this->vVariableGroup = newVVariableGroup;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    bool CFile::isSyncTime(void)
+   TRY
    {
      CContext* context = CContext::getCurrent();
      const CDate& currentDate = context->calendar->getCurrentDate();
@@ -205,9 +217,11 @@ namespace xios {
       }
       return false;
     }
+    CATCH_DUMP_ATTR
 
    //! Initialize a file in order to write into it
    void CFile::initWrite(void)
+   TRY
    {
       CContext* context = CContext::getCurrent();
       const CDate& currentDate = context->calendar->getCurrentDate();
@@ -260,19 +274,23 @@ namespace xios {
       // if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
+    CATCH_DUMP_ATTR
 
     //! Initialize a file in order to write into it
     void CFile::initRead(void)
+    TRY
     {
       if (checkRead) return;
       createSubComFile();
       checkRead = true;
     }
+    CATCH_DUMP_ATTR
 
     /*!
       Create a sub communicator in which processes participate in reading/opening file
     */
     void CFile::createSubComFile()
+    TRY
     {
       CContext* context = CContext::getCurrent();
       CContextServer* server = context->server;
@@ -291,6 +309,7 @@ namespace xios {
       MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
       if (allZoneEmpty) MPI_Comm_free(&fileComm);
     }
+    CATCH_DUMP_ATTR
 
     /*
        Check condition to write into a file
@@ -298,6 +317,7 @@ namespace xios {
        or classical server to do this job.
     */
     void CFile::checkWriteFile(void)
+    TRY
     {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
@@ -314,6 +334,7 @@ namespace xios {
         checkSplit(); // REally need this?
       }
     }
+    CATCH_DUMP_ATTR
 
     /*
        Check condition to read from a file
@@ -322,6 +343,7 @@ namespace xios {
        This function can be used by client for reading metadata
     */
     void CFile::checkReadFile(void)
+    TRY
     {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
@@ -339,15 +361,18 @@ namespace xios {
         //checkSplit(); // Really need for reading?
       }
     }
+    CATCH_DUMP_ATTR
 
     /*!
       Verify if a process participates in an opening-file communicator 
       \return true if the process doesn't participate in opening file
     */
     bool CFile::isEmptyZone()
+    TRY
     {
       return allZoneEmpty;
     }
+    CATCH_DUMP_ATTR
 
     /*!
     \brief Verify if synchronisation should be done
@@ -356,6 +381,7 @@ namespace xios {
     \return True if it is the moment to synchronize file, otherwise false
     */
    bool CFile::checkSync(void)
+   TRY
    {
      CContext* context = CContext::getCurrent();
      const CDate& currentDate = context->calendar->getCurrentDate();
@@ -370,6 +396,7 @@ namespace xios {
       }
       return false;
     }
+   CATCH_DUMP_ATTR
 
     /*!
     \brief Verify if splitting should be done
@@ -378,6 +405,7 @@ namespace xios {
     \return True if it is the moment to split file, otherwise false
     */
     bool CFile::checkSplit(void)
+    TRY
     {
       CContext* context = CContext::getCurrent();
       const CDate& currentDate = context->calendar->getCurrentDate();
@@ -401,12 +429,14 @@ namespace xios {
       }
       return false;
     }
+    CATCH_DUMP_ATTR
 
    /*!
    \brief Create header of netcdf file
    There are some information to fill in header of each netcdf.
    */
    void CFile::createHeader(void)
+   TRY
    {
       CContext* context = CContext::getCurrent();
       CContextServer* server = context->server;
@@ -593,11 +623,13 @@ namespace xios {
         }
       }
    }
+   CATCH_DUMP_ATTR
 
   /*!
   \brief Open an existing NetCDF file in read-only mode
   */
   void CFile::openInReadMode()
+  TRY
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
@@ -674,9 +706,11 @@ namespace xios {
       isOpen = true;
     }
   }
+  CATCH_DUMP_ATTR
 
    //! Close file
    void CFile::close(void)
+   TRY
    {
      if (!allZoneEmpty)
        if (isOpen)
@@ -689,9 +723,12 @@ namespace xios {
        }
       if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm);
    }
+   CATCH_DUMP_ATTR
+
    //----------------------------------------------------------------
 
    void CFile::readAttributesOfEnabledFieldsInReadMode()
+   TRY
    {
      if (enabledFields.empty()) return;
 
@@ -721,13 +758,14 @@ namespace xios {
      // Now everything is ok, close it
      close();
    }
-
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Parse xml file and write information into file object
    \param [in] node xmld node corresponding in xml file
    */
    void CFile::parse(xml::CXMLNode & node)
+   TRY
    {
       SuperClass::parse(node);
 
@@ -740,8 +778,9 @@ namespace xios {
         } while (node.goToNextElement());
         node.goToParentElement();
       }
-
    }
+   CATCH_DUMP_ATTR
+
    //----------------------------------------------------------------
 
    /*!
@@ -749,6 +788,7 @@ namespace xios {
    \return String
    */
    StdString CFile::toString(void) const
+   TRY
    {
       StdOStringStream oss;
 
@@ -761,6 +801,7 @@ namespace xios {
       oss << "</" << CFile::GetName() << " >";
       return (oss.str());
    }
+   CATCH
 
    //----------------------------------------------------------------
 
@@ -771,11 +812,13 @@ namespace xios {
    \param [in] parent
    */
    void CFile::solveDescInheritance(bool apply, const CAttributeMap * const parent)
+   TRY
    {
       SuperClassAttribute::setAttributes(parent,apply);
       this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL);
       this->getVirtualVariableGroup()->solveDescInheritance(apply, NULL);
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -788,6 +831,7 @@ namespace xios {
    \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
    */
    void CFile::solveOnlyRefOfEnabledFields(bool sendToServer)
+   TRY
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -795,8 +839,10 @@ namespace xios {
        this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CFile::checkGridOfEnabledFields()
+   TRY
    { 
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -804,8 +850,10 @@ namespace xios {
        this->enabledFields[i]->checkGridOfEnabledFields();
      }
    }
+   CATCH_DUMP_ATTR
 
    void CFile::sendGridComponentOfEnabledFields()
+   TRY
    { 
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -813,12 +861,14 @@ namespace xios {
        this->enabledFields[i]->sendGridComponentOfEnabledFields();
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Sorting domains with the same name (= describing the same mesh) in the decreasing order of nvertex for UGRID files.
    This insures that the domain with the highest nvertex is written first and thus all known mesh connectivity is generated at once by this domain.
    */
    void CFile::sortEnabledFieldsForUgrid()
+   TRY
    {
      int size = this->enabledFields.size();
      std::vector<int> domainNvertices;
@@ -867,8 +917,10 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CFile::sendGridOfEnabledFields()
+   TRY
    { 
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -876,8 +928,10 @@ namespace xios {
        this->enabledFields[i]->sendGridOfEnabledFields();
      }
    }
+   CATCH_DUMP_ATTR
 
    void CFile::generateNewTransformationGridDest()
+   TRY
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -885,6 +939,7 @@ namespace xios {
        this->enabledFields[i]->generateNewTransformationGridDest();
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Resolve all reference of active fields.
@@ -895,6 +950,7 @@ namespace xios {
    \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
    */
    void CFile::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
+   TRY
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -902,6 +958,7 @@ namespace xios {
       this->enabledFields[i]->solveAllEnabledFieldsAndTransform();
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Constructs the filter graph for each active field.
@@ -909,6 +966,7 @@ namespace xios {
     * \param gc the garbage collector to use when building the filter graph
     */
    void CFile::buildFilterGraphOfEnabledFields(CGarbageCollector& gc)
+   TRY
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -916,11 +974,13 @@ namespace xios {
        this->enabledFields[i]->buildFilterGraph(gc, true);
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Post-process the filter graph for each active field.
     */
    void CFile::postProcessFilterGraph()
+   TRY
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
@@ -928,11 +988,13 @@ namespace xios {
        this->enabledFields[i]->checkIfMustAutoTrigger();
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Prefetching the data for enabled fields read from file.
    */
    void CFile::prefetchEnabledReadModeFields(void)
+   TRY
    {
      if (mode.isEmpty() || mode.getValue() != mode_attr::read)
        return;
@@ -941,6 +1003,7 @@ namespace xios {
      for (int i = 0; i < size; ++i)
        this->enabledFields[i]->sendReadDataRequest(CContext::getCurrent()->getCalendar()->getCurrentDate());
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Do all pre timestep operations for enabled fields in read mode:
@@ -948,6 +1011,7 @@ namespace xios {
       - Check if some filters must auto-trigger
    */
    void CFile::doPreTimestepOperationsForEnabledReadModeFields(void)
+   TRY
    {
      if (mode.isEmpty() || mode.getValue() != mode_attr::read)
        return;
@@ -959,12 +1023,14 @@ namespace xios {
        this->enabledFields[i]->autoTriggerIfNeeded();
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Do all post timestep operations for enabled fields in read mode:
       - Prefetch the data read from file when needed
    */
    void CFile::doPostTimestepOperationsForEnabledReadModeFields(void)
+   TRY
    {
      if (mode.isEmpty() || mode.getValue() != mode_attr::read)
        return;
@@ -975,14 +1041,17 @@ namespace xios {
        this->enabledFields[i]->sendReadDataRequestIfNeeded();
      }
    }
+   CATCH_DUMP_ATTR
 
    void CFile::solveFieldRefInheritance(bool apply)
+   TRY
    {
       // Rsolution des hritages par rfrence de chacun des champs contenus dans le fichier.
       std::vector<CField*> allF = this->getAllFields();
       for (unsigned int i = 0; i < allF.size(); i++)
          allF[i]->solveRefInheritance(apply);
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -995,9 +1064,11 @@ namespace xios {
    \return Pointer to added (or already existed) field
    */
    CField* CFile::addField(const string& id)
+   TRY
    {
      return vFieldGroup->createChild(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Add a field group into file.
@@ -1007,9 +1078,11 @@ namespace xios {
    \return Pointer to added (or already existed) field group
    */
    CFieldGroup* CFile::addFieldGroup(const string& id)
+   TRY
    {
      return vFieldGroup->createChildGroup(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Add a variable into file.
@@ -1022,9 +1095,11 @@ namespace xios {
    \return Pointer to added (or already existed) variable
    */
    CVariable* CFile::addVariable(const string& id)
+   TRY
    {
      return vVariableGroup->createChild(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Add a variable group into file.
@@ -1034,11 +1109,14 @@ namespace xios {
    \return Pointer to added (or already existed) variable group
    */
    CVariableGroup* CFile::addVariableGroup(const string& id)
+   TRY
    {
      return vVariableGroup->createChildGroup(id);
    }
+   CATCH_DUMP_ATTR
 
    void CFile::setContextClient(CContextClient* newContextClient)
+   TRY
    {
      client = newContextClient;
      size_t size = this->enabledFields.size();
@@ -1047,45 +1125,57 @@ namespace xios {
        this->enabledFields[i]->setContextClient(newContextClient);
      }
    }
+   CATCH_DUMP_ATTR
 
    CContextClient* CFile::getContextClient()
+   TRY
    {
      return client;
    }
+   CATCH_DUMP_ATTR
 
    void CFile::setReadContextClient(CContextClient* readContextclient)
+   TRY
    {
      read_client = readContextclient;
    }
+   CATCH_DUMP_ATTR
 
    CContextClient* CFile::getReadContextClient()
+   TRY
    {
      return read_client;
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Send a message to create a field on server side
    \param[in] id String identity of field that will be created on server
    */
    void CFile::sendAddField(const string& id, CContextClient* client)
+   TRY
    {
       sendAddItem(id, EVENT_ID_ADD_FIELD, client);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Send a message to create a field group on server side
    \param[in] id String identity of field group that will be created on server
    */
    void CFile::sendAddFieldGroup(const string& id, CContextClient* client)
+   TRY
    {
       sendAddItem(id, (int)EVENT_ID_ADD_FIELD_GROUP, client);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Receive a message annoucing the creation of a field on server side
    \param[in] event Received event
    */
    void CFile::recvAddField(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -1093,23 +1183,27 @@ namespace xios {
       *buffer>>id;
       get(id)->recvAddField(*buffer);
    }
+   CATCH
 
    /*!
    \brief Receive a message annoucing the creation of a field on server side
    \param[in] buffer Buffer containing message
    */
    void CFile::recvAddField(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer>>id;
       addField(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Receive a message annoucing the creation of a field group on server side
    \param[in] event Received event
    */
    void CFile::recvAddFieldGroup(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -1117,17 +1211,20 @@ namespace xios {
       *buffer>>id;
       get(id)->recvAddFieldGroup(*buffer);
    }
+   CATCH
 
    /*!
    \brief Receive a message annoucing the creation of a field group on server side
    \param[in] buffer Buffer containing message
    */
    void CFile::recvAddFieldGroup(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer>>id;
       addFieldGroup(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Send messages to duplicate all variables on server side
@@ -1136,6 +1233,7 @@ namespace xios {
    is to duplicate this value on server, too.
    */
    void CFile::sendAddAllVariables(CContextClient* client)
+   TRY
    {
      std::vector<CVariable*> allVar = getAllVariables();
      std::vector<CVariable*>::const_iterator it = allVar.begin();
@@ -1148,6 +1246,7 @@ namespace xios {
        (*it)->sendValue(client);
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Send a message to create a variable group on server side
@@ -1155,9 +1254,11 @@ namespace xios {
    \param [in] client client to which we will send this adding action
    */
    void CFile::sendAddVariableGroup(const string& id, CContextClient* client)
+   TRY
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP, client);
    }
+   CATCH_DUMP_ATTR
 
    /*
      Send message to add a variable into a file within a certain client
@@ -1165,39 +1266,45 @@ namespace xios {
      \param [in] client client to which we will send this adding action
    */
    void CFile::sendAddVariable(const string& id, CContextClient* client)
+   TRY
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Receive a message annoucing the creation of a variable on server side
    \param[in] event Received event
    */
    void CFile::recvAddVariable(CEventServer& event)
+   TRY
    {
-
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
       get(id)->recvAddVariable(*buffer);
    }
+   CATCH
 
    /*!
    \brief Receive a message annoucing the creation of a variable on server side
    \param[in] buffer Buffer containing message
    */
    void CFile::recvAddVariable(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer>>id;
       addVariable(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Receive a message annoucing the creation of a variable group on server side
    \param[in] event Received event
    */
    void CFile::recvAddVariableGroup(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -1205,17 +1312,20 @@ namespace xios {
       *buffer>>id;
       get(id)->recvAddVariableGroup(*buffer);
    }
+   CATCH
 
    /*!
    \brief Receive a message annoucing the creation of a variable group on server side
    \param[in] buffer Buffer containing message
    */
    void CFile::recvAddVariableGroup(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer>>id;
       addVariableGroup(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
      \brief Sending all active (enabled) fields from client to server.
@@ -1225,6 +1335,7 @@ namespace xios {
    Remark: This function must be called AFTER all active (enabled) files have been created on the server side
    */
    void CFile::sendEnabledFields(CContextClient* client)
+   TRY
    {
      size_t size = this->enabledFields.size();
      for (size_t i = 0; i < size; ++i)
@@ -1236,7 +1347,7 @@ namespace xios {
        field->sendAddAllVariables(client);
      }
    }
-
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Dispatch event received from client
@@ -1246,6 +1357,7 @@ namespace xios {
    \param [in] event: Received message
    */
    bool CFile::dispatchEvent(CEventServer& event)
+   TRY
    {
       if (SuperClass::dispatchEvent(event)) return true;
       else
@@ -1277,9 +1389,28 @@ namespace xios {
         }
       }
    }
+   CATCH
 
-
-
+   ///--------------------------------------------------------------
+   /*!
+   */
+   StdString CFile::dumpClassAttributes(void)
+   {
+     StdString str;
+     CContext* context = CContext::getCurrent();
+     str.append("context=\"");
+     str.append(context->getId());
+     str.append("\"");
+     str.append(" enabled fields=\"");
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       str.append(this->enabledFields[i]->getId());
+       str.append(" ");
+     }
+     str.append("\"");
+     return str;
+   }
 
    ///---------------------------------------------------------------
 

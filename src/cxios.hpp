@@ -33,6 +33,9 @@ namespace xios
      static string serverPrmFile;  //!< Filename template for primary server in case of two server levels
      static string serverSndFile;  //!< Filename template for secondary server in case of two server levels
 
+     static bool xiosStack;    //!< Exception handling
+     static bool systemStack;  //!< Exception handling
+
      static bool isClient ; //!< Check if xios is client
      static bool isServer ; //!< Check if xios is server
 

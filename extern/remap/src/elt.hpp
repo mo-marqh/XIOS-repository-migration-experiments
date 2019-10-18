@@ -47,6 +47,7 @@ struct Polyg
 	struct GloId src_id;
 	int n; /* number of vertices */
 	double area;
+  double given_area ;
 	Coord x; /* barycentre */
 };
 
@@ -79,6 +80,7 @@ struct Elt : Polyg
 		src_id    = rhs.src_id;
 		n    = rhs.n;
 		area = rhs.area;
+		given_area = rhs.given_area;
 		x    = rhs.x;
 		val  = rhs.val;
 		grad = rhs.grad;

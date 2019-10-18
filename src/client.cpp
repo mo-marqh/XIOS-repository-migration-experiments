@@ -10,6 +10,7 @@
 #include "mpi.hpp"
 #include "timer.hpp"
 #include "buffer_client.hpp"
+#include "string_tools.hpp"
 
 namespace xios
 {
@@ -22,9 +23,8 @@ namespace xios
     int CClient::rank_ = INVALID_RANK;
     StdOFStream CClient::m_infoStream;
     StdOFStream CClient::m_errorStream;
-
     MPI_Comm& CClient::getInterComm(void)   { return (interComm); }
-
+     
 ///---------------------------------------------------------------
 /*!
  * \fn void CClient::initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
@@ -229,6 +229,36 @@ namespace xios
 
       }
     }
+
+/*!
+ * \fn void CClient::callOasisEnddef(void)
+ * \brief Send the order to the servers to call "oasis_enddef". It must be done by each compound of models before calling oasis_enddef on client side
+ * Function is only called by client.
+ */
+    void CClient::callOasisEnddef(void)
+    {
+      bool oasisEnddef=CXios::getin<bool>("call_oasis_enddef",true) ;
+      if (!oasisEnddef) ERROR("void CClient::callOasisEnddef(void)", <<"Function xios_oasis_enddef called but variable <call_oasis_enddef> is set to false."<<endl
+                                                                     <<"Variable <call_oasis_enddef> must be set to true"<<endl) ;
+      if (CXios::isServer)
+      // Attached mode
+      {
+        // nothing to do   
+      }
+      else
+      {
+        int rank ;
+        int msg=0 ;
+
+        MPI_Comm_rank(intraComm,&rank) ;
+        if (rank==0) 
+        {
+          MPI_Send(&msg,1,MPI_INT,0,5,interComm) ; // tags oasis_endded = 5
+        }
+
+      }
+    }
+
 
     void CClient::finalize(void)
     {

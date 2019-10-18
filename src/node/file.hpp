@@ -81,6 +81,8 @@ namespace xios {
                                                 int default_level = 1,
                                                 bool default_enabled = true);
 
+         StdString dumpClassAttributes(void);
+
       public :
          // Some functions to verify state of file
          bool isSyncTime(void);

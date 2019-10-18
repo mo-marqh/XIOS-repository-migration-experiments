@@ -28,6 +28,7 @@ extern "C"
   // ------------------------ Création des handle -----------------------------
 
   void cxios_calendar_wrapper_handle_create(XCalendarWrapperPtr* _ret, const char* _id, int _id_len)
+  TRY
   {
     std::string id;
     if (!cstr2string(_id, _id_len, id)) return;
@@ -35,17 +36,21 @@ extern "C"
     *_ret = CCalendarWrapper::get(id);
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   void cxios_get_current_calendar_wrapper(XCalendarWrapperPtr* _ret)
+  TRY
   {
     CTimer::get("XIOS").resume();
     *_ret = CCalendarWrapper::get(CCalendarWrapper::GetDefName());
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   // -------------------- Vérification des identifiants -----------------------
 
   void cxios_calendar_wrapper_valid_id(bool* _ret, const char* _id, int _id_len)
+  TRY
   {
     std::string id;
     if (!cstr2string(_id, _id_len, id)) return;
@@ -53,10 +58,12 @@ extern "C"
     *_ret = CCalendarWrapper::has(id);
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   // ----------------------- Custom getters and setters -----------------------
 
   void cxios_set_calendar_wrapper_date_start_date(XCalendarWrapperPtr calendarWrapper_hdl, cxios_date start_date_c)
+  TRY
   {
     CTimer::get("XIOS").resume();
     CDate start_date(*calendarWrapper_hdl->getCalendar(true),
@@ -69,8 +76,10 @@ extern "C"
     calendarWrapper_hdl->setInitDate(start_date);
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   void cxios_get_calendar_wrapper_date_start_date(XCalendarWrapperPtr calendarWrapper_hdl, cxios_date* start_date_c)
+  TRY
   {
     CTimer::get("XIOS").resume();
     const CDate& start_date = calendarWrapper_hdl->getInitDate();
@@ -82,8 +91,10 @@ extern "C"
     start_date_c->second = start_date.getSecond();
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   void cxios_set_calendar_wrapper_date_time_origin(XCalendarWrapperPtr calendarWrapper_hdl, cxios_date time_origin_c)
+  TRY
   {
     CTimer::get("XIOS").resume();
     CDate time_origin(*calendarWrapper_hdl->getCalendar(true),
@@ -96,8 +107,10 @@ extern "C"
     calendarWrapper_hdl->setTimeOrigin(time_origin);
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   void cxios_get_calendar_wrapper_date_time_origin(XCalendarWrapperPtr calendarWrapper_hdl, cxios_date* time_origin_c)
+  TRY
   {
     CTimer::get("XIOS").resume();
     const CDate& time_origin = calendarWrapper_hdl->getTimeOrigin();
@@ -109,20 +122,25 @@ extern "C"
     time_origin_c->second = time_origin.getSecond();
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   // ----------------------- Calendar creation and update ----------------------
 
   void cxios_create_calendar(XCalendarWrapperPtr calendarWrapper_hdl)
+  TRY
   {
     CTimer::get("XIOS").resume();
     calendarWrapper_hdl->createCalendar();
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   void cxios_update_calendar_timestep(XCalendarWrapperPtr calendarWrapper_hdl)
+  TRY
   {
     CTimer::get("XIOS").resume();
     calendarWrapper_hdl->updateTimestep();
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 } // extern "C"

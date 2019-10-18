@@ -25,6 +25,7 @@ CGenericAlgorithmTransformation* CScalarAlgorithmReduceDomain::create(CGrid* gri
                                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CScalar*> scalarListDestP = gridDst->getScalars();
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
@@ -35,15 +36,19 @@ CGenericAlgorithmTransformation* CScalarAlgorithmReduceDomain::create(CGrid* gri
 
   return (new CScalarAlgorithmReduceDomain(scalarListDestP[scalarDstIndex], domainListSrcP[domainSrcIndex], reduceDomain));
 }
+CATCH
 
 bool CScalarAlgorithmReduceDomain::registerTrans()
+TRY
 {
   CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_DOMAIN_TO_SCALAR, create);
 }
+CATCH
 
 CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo)
  : CScalarAlgorithmTransformation(scalarDestination, domainSource),
    reduction_(0)
+TRY
 {
   algo->checkValid(scalarDestination, domainSource);
   
@@ -79,27 +84,35 @@ CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CScalar* scalarDestin
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
   local = algo->local ;
 }
+CATCH
 
 void CScalarAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
                                          const double* dataInput,
                                          CArray<double,1>& dataOut,
                                          std::vector<bool>& flagInitial,                     
                                          bool ignoreMissingValue, bool firstPass)
+TRY
 {
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
 }
+CATCH
 
 void CScalarAlgorithmReduceDomain::updateData(CArray<double,1>& dataOut)
+TRY
 {
   reduction_->updateData(dataOut);
 }
+CATCH
 
 CScalarAlgorithmReduceDomain::~CScalarAlgorithmReduceDomain()
+TRY
 {
   if (0 != reduction_) delete reduction_;
 }
+CATCH
 
 void CScalarAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -136,5 +149,6 @@ void CScalarAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<
   }
   
 }
+CATCH
 
 }

@@ -73,6 +73,7 @@ namespace xios
 //            virtual CAttributeTemplate* clone() const {}
 //            virtual void toBinary  (StdOStream & os) const;
 //            virtual void fromBinary(StdIStream & is);
+            virtual StdString dump(void) const { return _dump();}
 
             virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);}
             virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); }
@@ -97,6 +98,7 @@ namespace xios
          private :
           bool isEqual_(const CAttributeTemplate& attr);
           StdString _toString(void) const;
+          StdString _dump(void) const;
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;
           bool _fromBuffer(CBufferIn& buffer) ;

@@ -20,6 +20,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmDuplicateScalar::create(CGrid* gr
                                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CScalar*> scalarListSrcP = gridSrc->getScalars();
@@ -30,11 +31,14 @@ CGenericAlgorithmTransformation* CAxisAlgorithmDuplicateScalar::create(CGrid* gr
 
   return (new CAxisAlgorithmDuplicateScalar(axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], duplicateScalar));
 }
+CATCH
 
 bool CAxisAlgorithmDuplicateScalar::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_DUPLICATE_SCALAR_TO_AXIS, create);
 }
+CATCH
 
 
 CAxisAlgorithmDuplicateScalar::CAxisAlgorithmDuplicateScalar(CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo)
@@ -49,6 +53,7 @@ CAxisAlgorithmDuplicateScalar::~CAxisAlgorithmDuplicateScalar()
 }
 
 void CAxisAlgorithmDuplicateScalar::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -68,5 +73,5 @@ void CAxisAlgorithmDuplicateScalar::computeIndexSourceMapping_(const std::vector
     transWeight[globalAxisIdx][0] = 1.0 ;
   }
 }
-
+CATCH
 }

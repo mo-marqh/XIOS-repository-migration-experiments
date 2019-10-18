@@ -25,6 +25,8 @@ namespace xios
     class CZoomAxisGroup;
     class CInterpolateAxis;
     class CInterpolateAxisGroup;
+    class CExtractAxis;
+    class CExtractAxisGroup;
     class CZoomDomain;
     class CZoomDomainGroup;
     class CInterpolateDomain;
@@ -57,6 +59,8 @@ namespace xios
     class CReduceScalarToScalarGroup;
     class CReorderDomain;
     class CReorderDomainGroup;
+    class CExtractDomain;
+    class CExtractDomainGroup;
      
   template <typename T> inline string getStrType(void);
 
@@ -99,6 +103,8 @@ namespace xios
   macro(CZoomAxisGroup)
   macro(CInterpolateAxis)
   macro(CInterpolateAxisGroup)
+  macro(CExtractAxis)
+  macro(CExtractAxisGroup)
   macro(CZoomDomain)
   macro(CZoomDomainGroup)
   macro(CInterpolateDomain)
@@ -131,6 +137,8 @@ namespace xios
   macro(CReduceScalarToScalarGroup)
   macro(CReorderDomain)
   macro(CReorderDomainGroup)
+  macro(CExtractDomain)
+  macro(CExtractDomainGroup)
   
 #undef macro
 }
