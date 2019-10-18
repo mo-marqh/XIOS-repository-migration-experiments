@@ -53,7 +53,7 @@ namespace xios
             MPI_Init(NULL, NULL);
           }
           CTimer::get("XIOS").resume() ;
-          CTimer::get("XIOS init/finalize").resume() ;
+          CTimer::get("XIOS init/finalize",false).resume() ;
           boost::hash<string> hashString ;
 
           unsigned long hashClient=hashString(codeId) ;
@@ -142,7 +142,7 @@ namespace xios
         MPI_Comm_dup(localComm,&intraComm) ;
 
         CTimer::get("XIOS").resume() ;
-        CTimer::get("XIOS init/finalize").resume() ;
+        CTimer::get("XIOS init/finalize",false).resume() ;
 
         if (CXios::usingServer)
         {
@@ -281,7 +281,7 @@ namespace xios
       MPI_Comm_free(&interComm);
       MPI_Comm_free(&intraComm);
 
-      CTimer::get("XIOS init/finalize").suspend() ;
+      CTimer::get("XIOS init/finalize",false).suspend() ;
       CTimer::get("XIOS").suspend() ;
 
       if (!is_MPI_Initialized)
