@@ -217,6 +217,7 @@ namespace xios
           else
           {
             registerEvent( timeLine,hashId,lev) ;
+            recvEvent.erase(itEvent) ;
           }
         }
       }
