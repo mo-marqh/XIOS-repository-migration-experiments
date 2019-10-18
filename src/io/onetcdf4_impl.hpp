@@ -75,13 +75,21 @@ namespace xios
     PtrArrayStr=new char[stringArrayLen*data.numElements()] ;
     memset (PtrArrayStr,' ',stringArrayLen*data.numElements());
     size_t offset=0 ;
+    
+// pb with iterator with blitz++ string array  with recent compiler
+/*
     Array<StdString,1>::const_iterator it, itb=data.begin(), ite=data.end() ;
     for(it=itb;it!=ite;++it, offset+=stringArrayLen)
     {
       it->copy(PtrArrayStr+offset,it->size()) ;
       PtrArrayStr[offset+it->size()]='\0' ;
     }
-
+*/
+     for(int i=0;i<data.numElements();i++,offset+=stringArrayLen)
+     {
+       data(i).copy(PtrArrayStr+offset,data(i).size()) ;
+       PtrArrayStr[offset+data(i).size()]='\0' ;
+     }
      CTimer::get("CONetCDF4::writeData writeData_").resume();
      this->writeData_(grpid, varid, sstart, scount, PtrArrayStr);
      CTimer::get("CONetCDF4::writeData writeData_").suspend();
