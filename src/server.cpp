@@ -14,10 +14,18 @@
 #include "timer.hpp"
 #include "event_scheduler.hpp"
 #include "string_tools.hpp"
+#include "ressources_manager.hpp"
+#include "services_manager.hpp"
+#include "contexts_manager.hpp"
+#include "servers_ressource.hpp"
+#include <cstdio>
+
+
 
 namespace xios
 {
     MPI_Comm CServer::intraComm ;
+    MPI_Comm CServer::serversComm_ ;
     std::list<MPI_Comm> CServer::interCommLeft ;
     std::list<MPI_Comm> CServer::interCommRight ;
     std::list<MPI_Comm> CServer::contextInterComms;
@@ -33,6 +41,281 @@ namespace xios
     bool CServer::finished=false ;
     bool CServer::is_MPI_Initialized ;
     CEventScheduler* CServer::eventScheduler = 0;
+    CServersRessource* CServer::serversRessource_=nullptr ;
+
+    void CServer::initRessources(void)
+    { 
+      auto ressourcesManager=CXios::getRessourcesManager() ;
+      auto servicesManager=CXios::getServicesManager() ;
+      auto contextsManager=CXios::getContextsManager() ;
+      auto daemonsManager=CXios::getDaemonsManager() ;
+      auto serversRessource=CServer::getServersRessource() ;
+
+      if (serversRessource->isServerLeader())
+      {
+ //        ressourcesManager->createPool("LMDZ",ressourcesManager->getRessourcesSize()/2) ;
+ //        ressourcesManager->createPool("NEMO",ressourcesManager->getRessourcesSize()/2) ;
+          ressourcesManager->createPool("LMDZ",ressourcesManager->getRessourcesSize()) ;
+          servicesManager->createServices("LMDZ", "ioserver", CServicesManager::IO_SERVER, 8, 5) ;
+          for(int i=0 ; i<5;i++)
+          {
+            contextsManager->createServerContext("LMDZ","ioserver",i,"lmdz") ;
+          }
+      }
+
+
+
+      while (true)
+      {
+        daemonsManager->eventLoop() ;
+      }
+
+
+    }
+    
+    void CServer::initialize(void)
+    {
+      
+      MPI_Comm serverComm ;
+      int initialized ;
+      MPI_Initialized(&initialized) ;
+      if (initialized) is_MPI_Initialized=true ;
+      else is_MPI_Initialized=false ;
+      MPI_Comm globalComm=CXios::getGlobalComm() ;
+
+      /////////////////////////////////////////
+      ///////////// PART 1 ////////////////////
+      /////////////////////////////////////////
+
+      // don't use OASIS
+      if (!CXios::usingOasis)
+      {
+        if (!is_MPI_Initialized) MPI_Init(NULL, NULL);
+       
+        // split the global communicator
+        // get hash from all model to attribute a unique color (int) and then split to get client communicator
+        // every mpi process of globalComm (MPI_COMM_WORLD) must participate
+         
+        int commRank, commSize ;
+        MPI_Comm_rank(globalComm,&commRank) ;
+        MPI_Comm_size(globalComm,&commSize) ;
+
+        std::hash<string> hashString ;
+        size_t hashServer=hashString(CXios::xiosCodeId) ;
+          
+        size_t* hashAll = new size_t[commSize] ;
+        MPI_Allgather(&hashServer,1,MPI_UNSIGNED_LONG,hashAll,1,MPI_LONG,globalComm) ;
+          
+        int color=0 ;
+        set<size_t> listHash ;
+        for(int i=0 ; i<=commRank ; i++) 
+          if (listHash.count(hashAll[i])==1)
+          {
+            listHash.insert(hashAll[i]) ;
+            color=color+1 ;
+          }
+        delete[] hashAll ;
+
+        MPI_Comm_split(globalComm, color, commRank, &serverComm) ;
+      }
+      else // using OASIS
+      {
+        if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
+
+        CTimer::get("XIOS").resume() ;
+        oasis_get_localcomm(serverComm);
+      }
+ 
+      /////////////////////////////////////////
+      ///////////// PART 2 ////////////////////
+      /////////////////////////////////////////
+      
+
+      // Create the XIOS communicator for every process which is related
+      // to XIOS, as well on client side as on server side
+      MPI_Comm xiosGlobalComm ;
+      string strIds=CXios::getin<string>("clients_code_id","") ;
+      vector<string> clientsCodeId=splitRegex(strIds,"\\s*,\\s*") ;
+      if (strIds.empty())
+      {
+        // no code Ids given, suppose XIOS initialisation is global            
+        int commRank, commGlobalRank, serverLeader, clientLeader,serverRemoteLeader,clientRemoteLeader ;
+        MPI_Comm splitComm,interComm ;
+        MPI_Comm_rank(globalComm,&commGlobalRank) ;
+        MPI_Comm_split(globalComm, 1, commGlobalRank, &splitComm) ;
+        MPI_Comm_rank(splitComm,&commRank) ;
+        if (commRank==0) serverLeader=commGlobalRank ;
+        else serverLeader=0 ;
+        clientLeader=0 ;
+        MPI_Allreduce(&clientLeader,&clientRemoteLeader,1,MPI_INT,MPI_SUM,globalComm) ;
+        MPI_Allreduce(&serverLeader,&serverRemoteLeader,1,MPI_INT,MPI_SUM,globalComm) ;
+        MPI_Intercomm_create(splitComm, 0, globalComm, clientRemoteLeader,1341,&interComm) ;
+        MPI_Intercomm_merge(interComm,false,&xiosGlobalComm) ;
+        CXios::setXiosComm(xiosGlobalComm) ;
+      }
+      else
+      {
+
+        xiosGlobalCommByFileExchange(serverComm) ;
+
+      }
+      
+      /////////////////////////////////////////
+      ///////////// PART 4 ////////////////////
+      //  create servers intra communicator  //
+      ///////////////////////////////////////// 
+      
+      int commRank ;
+      MPI_Comm_rank(CXios::getXiosComm(), &commRank) ;
+      MPI_Comm_split(CXios::getXiosComm(),true,commRank,&serversComm_) ;
+      
+      CXios::setUsingServer() ;
+
+      /////////////////////////////////////////
+      ///////////// PART 5 ////////////////////
+      //       redirect files output         //
+      ///////////////////////////////////////// 
+      
+      CServer::openInfoStream(CXios::serverFile);
+      CServer::openErrorStream(CXios::serverFile);
+
+      /////////////////////////////////////////
+      ///////////// PART 4 ////////////////////
+      /////////////////////////////////////////
+
+      CXios::launchDaemonsManager(true) ;
+     
+      /////////////////////////////////////////
+      ///////////// PART 5 ////////////////////
+      /////////////////////////////////////////
+
+      // create the services
+
+      auto ressourcesManager=CXios::getRessourcesManager() ;
+      auto servicesManager=CXios::getServicesManager() ;
+      auto contextsManager=CXios::getContextsManager() ;
+      auto daemonsManager=CXios::getDaemonsManager() ;
+      auto serversRessource=CServer::getServersRessource() ;
+
+      if (serversRessource->isServerLeader())
+      {
+        int nbRessources = ressourcesManager->getRessourcesSize() ;
+        if (!CXios::usingServer2)
+        {
+          ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
+          servicesManager->createServices(CXios::defaultPoolId, CXios::defaultServerId, CServicesManager::IO_SERVER,nbRessources,1) ;
+        }
+        else
+        {
+          int nprocsServer = nbRessources*CXios::ratioServer2/100.;
+          int nprocsGatherer = nbRessources - nprocsServer ;
+          
+          int nbPoolsServer2 = CXios::nbPoolsServer2 ;
+          if (nbPoolsServer2 == 0) nbPoolsServer2 = nprocsServer;
+          ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
+          servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
+          servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServerId, CServicesManager::OUT_SERVER, nprocsServer, nbPoolsServer2) ;
+        }
+      }
+
+      /////////////////////////////////////////
+      ///////////// PART 5 ////////////////////
+      /////////////////////////////////////////
+      // loop on event loop
+
+      bool finished=false ;
+      while (!finished)
+      {
+        finished=daemonsManager->eventLoop() ;
+      }
+
+    }
+
+
+
+
+
+    void  CServer::xiosGlobalCommByFileExchange(MPI_Comm serverComm)
+    {
+        
+      MPI_Comm globalComm=CXios::getGlobalComm() ;
+      MPI_Comm xiosGlobalComm ;
+      
+      string strIds=CXios::getin<string>("clients_code_id","") ;
+      vector<string> clientsCodeId=splitRegex(strIds,"\\s*,\\s*") ;
+      
+      int commRank, globalRank ;
+      MPI_Comm_rank(serverComm, &commRank) ;
+      MPI_Comm_rank(globalComm, &globalRank) ;
+      string serverFileName("__xios_publisher::"+CXios::xiosCodeId+"__to_remove__") ;
+
+      if (commRank==0) // if root process publish name
+      {  
+        std::ofstream ofs (serverFileName, std::ofstream::out);
+        ofs<<globalRank ;
+        ofs.close();
+      }
+        
+      vector<int> clientsRank(clientsCodeId.size()) ;
+      for(int i=0;i<clientsRank.size();i++)
+      {
+        std::ifstream ifs ;
+        string fileName=("__xios_publisher::"+clientsCodeId[i]+"__to_remove__") ;
+        do
+        {
+          ifs.clear() ;
+          ifs.open(fileName, std::ifstream::in) ;
+        } while (ifs.fail()) ;
+        ifs>>clientsRank[i] ;
+        ifs.close() ; 
+      }
+
+      MPI_Comm intraComm ;
+      MPI_Comm_dup(serverComm,&intraComm) ;
+      MPI_Comm interComm ;
+      for(int i=0 ; i<clientsRank.size(); i++)
+      {  
+        MPI_Intercomm_create(intraComm, 0, globalComm, clientsRank[i], 3141, &interComm);
+        MPI_Comm_free(&intraComm) ;
+        MPI_Intercomm_merge(interComm,false, &intraComm ) ;
+      }
+      xiosGlobalComm=intraComm ;  
+      MPI_Barrier(xiosGlobalComm);
+      if (commRank==0) std::remove(serverFileName.c_str()) ;
+      MPI_Barrier(xiosGlobalComm);
+
+      CXios::setXiosComm(xiosGlobalComm) ;
+      
+    }
+
+
+    void  CServer::xiosGlobalCommByPublishing(MPI_Comm serverComm)
+    {
+        // untested, need to be tested on a true MPI-2 compliant library
+
+        // try to discover other client/server
+/*
+        // publish server name
+        char portName[MPI_MAX_PORT_NAME];
+        int ierr ;
+        int commRank ;
+        MPI_Comm_rank(serverComm, &commRank) ;
+        
+        if (commRank==0) // if root process publish name
+        {  
+          MPI_Open_port(MPI_INFO_NULL, portName);
+          MPI_Publish_name(CXios::xiosCodeId.c_str(), MPI_INFO_NULL, portName);
+        }
+
+        MPI_Comm intraComm=serverComm ;
+        MPI_Comm interComm ;
+        for(int i=0 ; i<clientsCodeId.size(); i++)
+        {  
+          MPI_Comm_accept(portName, MPI_INFO_NULL, 0, intraComm, &interComm);
+          MPI_Intercomm_merge(interComm,false, &intraComm ) ;
+        }
+*/      
+    }
 
 //---------------------------------------------------------------
 /*!
@@ -44,7 +327,7 @@ namespace xios
  *   secondary server -- interCommLeft for each pool.
  *   IMPORTANT: CXios::usingServer2 should NOT be used beyond this function. Use CServer::serverLevel instead.
  */
-    void CServer::initialize(void)
+    void CServer::initialize_old(void)
     {
       int initialized ;
       MPI_Initialized(&initialized) ;
@@ -52,6 +335,11 @@ namespace xios
       else is_MPI_Initialized=false ;
       int rank ;
 
+      CXios::launchRessourcesManager(true) ;
+      CXios::launchServicesManager(true) ;
+      CXios::launchContextsManager(true) ;
+      
+      initRessources() ;
       // Not using OASIS
       if (!CXios::usingOasis)
       {
@@ -420,7 +708,7 @@ namespace xios
         for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++)
           MPI_Comm_free(&(*it));
 
-      MPI_Comm_free(&intraComm);
+//      MPI_Comm_free(&intraComm);
 
       if (!is_MPI_Initialized)
       {
@@ -853,7 +1141,8 @@ namespace xios
            break ;
          }
          else
-           it->second->checkBuffersAndListen(enableEventsProcessing);
+          it->second->eventLoop(enableEventsProcessing);
+//ym          it->second->checkBuffersAndListen(enableEventsProcessing);
        }
      }
 
@@ -880,23 +1169,27 @@ namespace xios
     */
     void CServer::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)
     {
-      StdStringStream fileNameClient;
+      StdStringStream fileNameServer;
       int numDigit = 0;
-      int size = 0;
+      int commSize = 0;
+      int commRank ;
       int id;
-      MPI_Comm_size(CXios::globalComm, &size);
-      while (size)
+      
+      MPI_Comm_size(CXios::getGlobalComm(), &commSize);
+      MPI_Comm_rank(CXios::getGlobalComm(), &commRank);
+
+      while (commSize)
       {
-        size /= 10;
+        commSize /= 10;
         ++numDigit;
       }
-      id = rank_; //getRank();
+      id = commRank;
 
-      fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << id << ext;
-      fb->open(fileNameClient.str().c_str(), std::ios::out);
+      fileNameServer << fileName << "_" << std::setfill('0') << std::setw(numDigit) << id << ext;
+      fb->open(fileNameServer.str().c_str(), std::ios::out);
       if (!fb->is_open())
         ERROR("void CServer::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)",
-              << std::endl << "Can not open <" << fileNameClient.str() << "> file to write the server log(s).");
+              << std::endl << "Can not open <" << fileNameServer.str() << "> file to write the server log(s).");
     }
 
     /*!
@@ -951,5 +1244,10 @@ namespace xios
     void CServer::closeErrorStream()
     {
       if (m_errorStream.is_open()) m_errorStream.close();
+    }
+
+    void CServer::launchServersRessource(MPI_Comm serverComm)
+    {
+      serversRessource_ = new CServersRessource(serverComm) ;
     }
 }

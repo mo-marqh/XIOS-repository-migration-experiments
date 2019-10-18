@@ -31,6 +31,7 @@ namespace xios
       // Send event to server
       void sendEvent(CEventClient& event);
       void waitEvent(list<int>& ranks);
+      void waitEvent_old(list<int>& ranks);
 
       // Functions to set/get buffers
       bool getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers, bool nonBlocking = false);
@@ -45,7 +46,12 @@ namespace xios
       const std::list<int>& getRanksServerLeader(void) const;
       const std::list<int>& getRanksServerNotLeader(void) const;
 
-      bool isAttachedModeEnabled() const;
+  /*!
+   * Check if the attached mode is used.
+   *
+   * \return true if and only if attached mode is used
+   */
+      bool isAttachedModeEnabled() const { return isAttached_ ; } 
 
       static void computeLeader(int clientRank, int clientSize, int serverSize,
                                 std::list<int>& rankRecvLeader,
@@ -102,7 +108,7 @@ namespace xios
       std::list<int> ranksServerNotLeader;
 
       std::vector<std::vector<MPI_Win> >windows ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
-
+      bool isAttached_ ;
 
   };
 }

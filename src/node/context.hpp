@@ -11,6 +11,8 @@
 #include "garbage_collector.hpp"
 #include "registry.hpp"
 #include "mpi.hpp"
+#include "services_manager.hpp"
+#include "server_context.hpp"
 
 
 namespace xios {
@@ -88,16 +90,25 @@ namespace xios {
       public :
          // Initialize server or client
          void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer = 0);
+         void init(CServerContext* parentServerContext, MPI_Comm intraComm, int serviceType);
+         void initClient(MPI_Comm intraComm, int serviceType);
+         
          void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
+         void initServer(MPI_Comm intraComm, int serviceType );
+         void createClientInterComm(MPI_Comm interCommClient, MPI_Comm interCommServer)  ;
+         void createServerInterComm(void)  ;
+
          bool isInitialized(void);
 
          StdString dumpClassAttributes(void);
 
          // Put sever or client into loop state
          bool checkBuffersAndListen(bool enableEventsProcessing=true);
+         bool eventLoop(bool enableEventsProcessing=true);
 
          // Finalize a context
          void finalize(void);
+         void finalize_old(void);
          bool isFinalized(void);
 
          void closeDefinition(void);
@@ -160,7 +171,9 @@ namespace xios {
          void sendRegistry(void) ;
 
          const StdString& getIdServer();
+         void setIdServer(const StdString& idServer);
          const StdString& getIdServer(const int srvPoolNb);
+         std::string getContextId() {return contextId_;}
 
          // Client side: Receive and process messages
          static void recvUpdateCalendar(CEventServer& event);
@@ -207,6 +220,7 @@ namespace xios {
         // Some functions to visualize structure of current context
         static void ShowTree(StdOStream & out = std::clog);
         static void CleanTree(void);
+        int getServiceType(void) {return serviceType_;}
 
       public :
          // Parse xml node and write all info into context
@@ -222,6 +236,9 @@ namespace xios {
          // Verify if all root definition in a context have children
          virtual bool hasChild(void) const;
 
+         bool isProcessingEvent(void) {return isProcessingEvent_;}
+         bool setProcessingEvent(void) {isProcessingEvent_=true ;}
+         bool unsetProcessingEvent(void) {isProcessingEvent_=false ;}
 
       public :
          // Calendar of context
@@ -251,9 +268,13 @@ namespace xios {
          CContextClient* client;    //!< Concrete contex client
          std::vector<CContextServer*> serverPrimServer;
          std::vector<CContextClient*> clientPrimServer;
+         std::vector<std::string> primServerId_;
 
          CRegistry* registryIn ;    //!< input registry which is read from file
          CRegistry* registryOut ;   //!< output registry which will be written into file at the finalize
+
+
+        MPI_Comm intraComm_ ; //! context intra communicator
 
       private:
          bool isPostProcessed;
@@ -263,6 +284,11 @@ namespace xios {
          StdString idServer_;
          CGarbageCollector garbageCollector;
          std::list<MPI_Comm> comms; //!< Communicators allocated internally
+
+         int serviceType_;  //!< service associated to the context
+         string contextId_ ; //!< context client id for the servers. For clients this is same as getId() 
+         bool isProcessingEvent_ ;
+         CServerContext* parentServerContext_ ;
 
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;

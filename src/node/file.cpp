@@ -322,8 +322,9 @@ namespace xios {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
       // This condition should be changed soon
-      if (CServer::serverLevel == 0 || CServer::serverLevel == 2)
-      {
+//ym      if (CServer::serverLevel == 0 || CServer::serverLevel == 2)
+       if (context->getServiceType()==CServicesManager::IO_SERVER || context->getServiceType()==CServicesManager::OUT_SERVER)
+       {
         if (mode.isEmpty() || mode.getValue() == mode_attr::write)
         {
           CTimer::get("Files : create headers").resume();
@@ -348,7 +349,9 @@ namespace xios {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
       // TODO: This condition should be changed soon. It only works with maximum number of level as 2
-      if (CServer::serverLevel == 0 || CServer::serverLevel == 1)
+
+//ym      if (CServer::serverLevel == 0 || CServer::serverLevel == 1)
+      if (context->getServiceType()==CServicesManager::IO_SERVER || context->getServiceType()==CServicesManager::GATHERER)
       {
         if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {

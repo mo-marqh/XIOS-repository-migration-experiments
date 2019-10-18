@@ -10,6 +10,9 @@
 #include <new>
 #include "memtrack.hpp"
 #include "registry.hpp"
+#include "ressources_manager.hpp"
+#include "services_manager.hpp"
+#include "servers_ressource.hpp"
 
 namespace xios
 {
@@ -19,13 +22,19 @@ namespace xios
   string CXios::serverFile="./xios_server";
   string CXios::serverPrmFile="./xios_server1";
   string CXios::serverSndFile="./xios_server2";
-
+  const string CXios::defaultPoolId="default_pool_id" ;
+  const string CXios::defaultServerId="default_server_id" ;
+  const string CXios::defaultGathererId="default_gatherer_id" ;
+  
   bool CXios::xiosStack = true;
   bool CXios::systemStack = false;
 
   bool CXios::isClient ;
   bool CXios::isServer ;
+  
   MPI_Comm CXios::globalComm ;
+  MPI_Comm CXios::xiosComm ;
+
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
   bool CXios::usingServer2 = false;
@@ -40,7 +49,12 @@ namespace xios
   CRegistry* CXios::globalRegistry = 0;
   double CXios::recvFieldTimeout = 300.0;
   bool CXios::checkEventSync=false ;
- 
+
+  CDaemonsManager*    CXios::daemonsManager_=nullptr ;
+  CRessourcesManager* CXios::ressourcesManager_=nullptr ;
+  CServicesManager*   CXios::servicesManager_=nullptr ;
+  CContextsManager*   CXios::contextsManager_=nullptr ;
+
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
   {
@@ -106,9 +120,9 @@ namespace xios
 
     isClient = true;
 
+    //CClient::initialize(codeId,localComm,returnComm) ;
     CClient::initialize(codeId,localComm,returnComm) ;
-    if (CClient::getRank()==0) globalRegistry = new CRegistry(returnComm) ;
-
+    
     // If there are no server processes then we are in attached mode
     // and the clients are also servers
     isServer = !usingServer;
@@ -129,13 +143,7 @@ namespace xios
   void CXios::clientFinalize(void)
   {
      CClient::finalize() ;
-     if (CClient::getRank()==0)
-     {
-       info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
-       globalRegistry->toFile("xios_registry.bin") ;
-       delete globalRegistry ;
-     }
-
+          
 #ifdef XIOS_MEMTRACK
 
 #ifdef XIOS_MEMTRACK_LIGHT
@@ -171,9 +179,13 @@ namespace xios
     isServer = true;
 
     // Initialize all aspects MPI
+   // CServer::initialize();
+
     CServer::initialize();
-    if (CServer::getRank()==0 && CServer::serverLevel != 1) globalRegistry = new CRegistry(CServer::intraComm) ;
-    
+
+    //if (CServer::getRank()==0 && CServer::serverLevel != 1) globalRegistry = new CRegistry(CServer::intraComm) ;
+
+/*    
     if (printLogs2Files)
     {
       if (CServer::serverLevel == 0)
@@ -200,8 +212,9 @@ namespace xios
 
     // Enter the loop to listen message from Client
     CServer::eventLoop();
-
+*/
     // Finalize
+/*    
     if (CServer::serverLevel == 0)
     {
       if (CServer::getRank()==0)
@@ -270,6 +283,8 @@ namespace xios
       }
       delete globalRegistry;
     }
+  */
+
     CServer::finalize();
 
 #ifdef XIOS_MEMTRACK
@@ -304,4 +319,31 @@ namespace xios
   {
     usingServer = false;
   }
+
+  void CXios::launchRessourcesManager(bool isXiosServer)
+  {
+    ressourcesManager_ = new CRessourcesManager(isXiosServer) ;
+  }
+
+  void CXios::launchServicesManager(bool isXiosServer)
+  {
+    servicesManager_ = new CServicesManager(isXiosServer) ;
+  }
+
+  void CXios::launchContextsManager(bool isXiosServer)
+  {
+    contextsManager_ = new CContextsManager(isXiosServer) ;
+  }
+  
+  void CXios::launchDaemonsManager(bool isXiosServer)
+  {
+    daemonsManager_ = new CDaemonsManager(isXiosServer) ;
+  }
+
+  CPoolRessource* CXios::getPoolRessource(void)
+  {
+    if (isClient) return CClient::getPoolRessource() ;
+    else if (isServer) return CServer::getServersRessource()->getPoolRessource() ;
+  }
 }
+

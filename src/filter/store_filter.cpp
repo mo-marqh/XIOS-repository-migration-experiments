@@ -44,7 +44,8 @@ namespace xios
       if (it != packets.end())
         packet = it->second;
       else // if the packet is not available yet, check if it can be received
-        context->checkBuffersAndListen();
+//ym        context->checkBuffersAndListen();
+        context->eventLoop();
 
       timer.suspend();
     } while (!packet && timer.getCumulatedTime() < timeout);

@@ -269,7 +269,9 @@ namespace xios
         if (contextClientTmp->isServerLeader())
         {
           CMessage msg;
-          msg<<this->getIdServer();
+          if (context->hasServer)  msg<<this->getIdServer(i);
+          else  msg<<this->getIdServer(); 
+
           msg << attr.getName();
           msg << attr;
           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
@@ -289,7 +291,7 @@ namespace xios
     if (client->isServerLeader())
     {
       CMessage msg;
-      msg<<this->getIdServer();
+      msg<<this->getIdServer(); // pb with context attribute -> to check : for now seem to be never used for context...
       msg << attr.getName();
       msg << attr;
       const std::list<int>& ranks = client->getRanksServerLeader();

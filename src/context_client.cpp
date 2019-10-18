@@ -23,8 +23,6 @@ namespace xios
     CContextClient::CContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
      : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4)
     {
-      pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-      if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
       
       context = parent;
       intraComm = intraComm_;
@@ -34,6 +32,14 @@ namespace xios
 
       int flag;
       MPI_Comm_test_inter(interComm, &flag);
+      if (flag) isAttached_=false ;
+      else  isAttached_=true ;
+
+      pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
+      if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
+      
+
+
       if (flag) MPI_Comm_remote_size(interComm, &serverSize);
       else  MPI_Comm_size(interComm, &serverSize);
 
@@ -150,14 +156,14 @@ namespace xios
         info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<"  sent"<<endl ;
           
         checkBuffers(ranks);
-
-        if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
-        {
-          waitEvent(ranks);
-          CContext::setCurrent(context->getId());
-        }
       }
-
+      
+      if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
+      {
+        waitEvent(ranks);
+        CContext::setCurrent(context->getId());
+      }
+      
       timeLine++;
     }
 
@@ -167,6 +173,29 @@ namespace xios
     \param [in] ranks list rank of server connected this client
     */
     void CContextClient::waitEvent(list<int>& ranks)
+    {
+      while (checkBuffers(ranks))
+      {
+        CXios::getDaemonsManager()->eventLoop() ;
+      }
+
+      MPI_Request req ;
+      MPI_Status status ;
+
+      MPI_Ibarrier(intraComm,&req) ;
+      int flag=false ;
+
+      do  
+      {
+        CXios::getDaemonsManager()->eventLoop() ;
+        MPI_Test(&req,&flag,&status) ;
+      } while (!flag) ;
+
+
+    }
+
+
+    void CContextClient::waitEvent_old(list<int>& ranks)
     {
       parentServer->server->setPendingEvent();
       while (checkBuffers(ranks))
@@ -226,15 +255,14 @@ namespace xios
         {
           for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
           checkBuffers();
-          if (CServer::serverLevel == 0)  context->server->listen();
-          else if (CServer::serverLevel == 1)
+          
+          context->server->listen();
+
+          if (context->serverPrimServer.size()>0)
           {
-            context->server->listen();
             for (int i = 0; i < context->serverPrimServer.size(); ++i)  context->serverPrimServer[i]->listen();
             CServer::contextEventLoop(false) ; // avoid dead-lock at finalize...
           }
-
-          else if (CServer::serverLevel == 2) context->server->listen();
 
         }
       } while (!areBuffersFree && !nonBlocking);
@@ -319,8 +347,9 @@ namespace xios
           MPI_Win_free(&windows[rank][1]);
         }
       } 
-   }
 */
+   }
+
       
   /*!
    Lock the buffers for one sided communications
@@ -401,16 +430,6 @@ namespace xios
   bool CContextClient::isServerLeader(void) const
   {
     return !ranksServerLeader.empty();
-  }
-
-  /*!
-   * Check if the attached mode is used.
-   *
-   * \return true if and only if attached mode is used
-   */
-  bool CContextClient::isAttachedModeEnabled() const
-  {
-    return (parentServer != 0);
   }
 
    /*!

@@ -4,6 +4,10 @@
 #include "xios_spl.hpp"
 #include "mpi.hpp"
 #include "registry.hpp"
+#include "ressources_manager.hpp"
+#include "services_manager.hpp"
+#include "contexts_manager.hpp"
+#include "daemons_manager.hpp"
 
 namespace xios
 {
@@ -40,6 +44,7 @@ namespace xios
      static bool isServer ; //!< Check if xios is server
 
      static MPI_Comm globalComm ; //!< Global communicator
+     static MPI_Comm xiosComm ; //!< Global communicator
 
      static bool printLogs2Files; //!< Printing out logs into files
      static bool usingOasis ;     //!< Using Oasis
@@ -55,6 +60,17 @@ namespace xios
      static CRegistry* globalRegistry ; //!< global registry which is wrote by the root process of the servers
      static double recvFieldTimeout; //!< Time to wait for data before issuing an error when receiving a field
      static bool checkEventSync; //!< For debuuging, check if event are coherent and synchrone on client side
+     
+     static const string defaultPoolId ;
+     static const string defaultServerId ;
+     static const string defaultGathererId ;
+
+
+     static CRessourcesManager* ressourcesManager_ ;
+     static CServicesManager* servicesManager_ ;
+     static CContextsManager* contextsManager_ ;
+     static CDaemonsManager* daemonsManager_ ;
+     
 
     public:
      //! Setting xios to use server mode
@@ -62,9 +78,29 @@ namespace xios
 
      //! Setting xios NOT to use server mode
      static void setNotUsingServer();
+     
+     //! is using server mode
+     static bool isUsingServer() {return usingServer;}
 
      //! Initialize server (if any)
      static  void initServer();
+
+     static void launchServicesManager( bool isXiosServer) ;
+     static void launchContextsManager(bool isXiosServer) ;
+     static void launchDaemonsManager(bool isXiosServer) ;
+     static void launchRessourcesManager(bool isXiosServer) ;
+     
+     static CRessourcesManager* getRessourcesManager(void) { return ressourcesManager_ ;}
+     static CServicesManager*   getServicesManager(void) { return servicesManager_ ;}
+     static CContextsManager*   getContextsManager(void) { return contextsManager_ ;}
+     static CDaemonsManager*    getDaemonsManager(void) { return daemonsManager_ ;}
+     static CPoolRessource*     getPoolRessource(void) ;
+
+     static MPI_Comm getGlobalComm(void) { return globalComm ;}
+     static MPI_Comm getXiosComm(void) { return xiosComm ;}
+     static void setXiosComm(MPI_Comm comm) { xiosComm=comm ;}
+     static CRegistry* getGlobalRegistry(void) { return globalRegistry ;}
+     static void setGlobalRegistry(CRegistry* registry) { globalRegistry=registry ;}
 
     private:
       //! Parse only Xios part of configuration file

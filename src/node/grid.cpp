@@ -906,7 +906,8 @@ namespace xios {
          computeConnectedClients();
        }
      }
-     if (CServer::serverLevel==2)
+//ym     if (CServer::serverLevel==2)
+     if (context->getServiceType()==CServicesManager::OUT_SERVER)
      {
        computeWrittenIndex() ;
        if (serverDistribution_!=0) serverDistribution_->partialClear() ;
@@ -1678,12 +1679,14 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     connectedServerRankRead_ = ranks;
 
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    nbSrvPools = 1;    
+// ym something is bad here, I comment some line, to be checked in future
+   // int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+    int nbSrvPools = 1;    
     nbReadSenders.clear();
     for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextServer* server = (!context->hasClient) ? context->server : context->serverPrimServer[p];
+     // CContextServer* server = (!context->hasClient) ? context->server : context->serverPrimServer[p];
+      CContextServer* server = context->server  ;
       CContextClient* client = context->client;   //(!context->hasClient) ? context->client : context->clientPrimServer[p];
       
       int idx = 0, numElement = axis_domain_order.numElements();

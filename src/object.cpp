@@ -28,7 +28,12 @@ namespace xios
     return this->id;
   }
 
-  const StdString& CObject::getIdServer() const
+  const StdString& CObject::getIdServer() 
+  {
+    return this->id;
+  }
+
+  const StdString& CObject::getIdServer(int nSrvpool) 
   {
     return this->id;
   }

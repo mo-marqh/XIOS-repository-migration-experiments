@@ -4,6 +4,7 @@
 #include "event_server.hpp"
 #include "buffer_server.hpp"
 #include "mpi.hpp"
+#include "event_scheduler.hpp"
 
 namespace xios
 {
@@ -63,7 +64,7 @@ namespace xios
     private:
       std::map<int, StdSize> mapBufferSize_;
       vector<MPI_Win> windows ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
-
+      CEventScheduler* eventScheduler_ ;
   } ;
 
 }

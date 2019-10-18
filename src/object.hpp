@@ -16,7 +16,8 @@ namespace xios
 
       /// Accesseurs ///
       const StdString& getId(void) const;
-      virtual const StdString& getIdServer() const;
+      virtual const StdString& getIdServer() ;
+      virtual const StdString& getIdServer(int nsrvPool) ;
 
       virtual StdString dumpClassAttributes(void);
 

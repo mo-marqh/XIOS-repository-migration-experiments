@@ -15,12 +15,19 @@
 #include "cxios.hpp"
 #include "event_scheduler.hpp"
 #include "server.hpp"
-#include <boost/functional/hash.hpp>
+#include "servers_ressource.hpp"
+#include "pool_ressource.hpp"
+#include "services.hpp"
+#include "contexts_manager.hpp"
 
+#include <boost/functional/hash.hpp>
+#include <random>
+#include <chrono>
 
 
 namespace xios
 {
+  using namespace std ;
 
   CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
   {
@@ -39,15 +46,35 @@ namespace xios
     if (flag) MPI_Comm_remote_size(interComm,&commSize);
     else  MPI_Comm_size(interComm,&commSize);
 
-     
+   
+    SRegisterContextInfo contextInfo ;
+    CXios::getContextsManager()->getContextInfo(context->getId(), contextInfo, intraComm) ;
+
+    if (contextInfo.serviceType != CServicesManager::CLIENT) // we must have an event scheduler => to be retrieve from the associated services
+    {
+      eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
+    }
+
+
     currentTimeLine=1;
     scheduled=false;
     finished=false;
+
+    // generate unique hash for server
+    auto time=chrono::system_clock::now().time_since_epoch().count() ;
+    std::default_random_engine rd(time); // not reproducible from a run to another
+    std::uniform_int_distribution<size_t> dist;
+    hashId=dist(rd) ;
+    MPI_Bcast(&hashId,1,MPI_SIZE_T,0,intraComm) ; // Bcast to all server of the context
+
+    /*
     boost::hash<string> hashString;
+
     if (CServer::serverLevel == 1)
       hashId=hashString(context->getId() + boost::lexical_cast<string>(context->clientPrimServer.size()));
     else
       hashId=hashString(context->getId());
+*/
 
     if (!isAttachedModeEnabled())
     {
@@ -292,6 +319,8 @@ namespace xios
   {
     map<size_t,CEventServer*>::iterator it;
     CEventServer* event;
+    
+    if (context->isProcessingEvent()) return ;
 
     it=events.find(currentTimeLine);
     if (it!=events.end())
@@ -312,9 +341,11 @@ namespace xios
          // for now just set up a MPI barrier
          if (!CServer::eventScheduler && CXios::isServer) MPI_Barrier(intraComm) ;
 
+         context->setProcessingEvent() ;
          CTimer::get("Process events").resume();
          dispatchEvent(*event);
          CTimer::get("Process events").suspend();
+         context->unsetProcessingEvent() ;
          pendingEvent=false;
          delete event;
          events.erase(it);

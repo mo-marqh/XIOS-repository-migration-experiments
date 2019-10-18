@@ -422,7 +422,8 @@ extern "C"
       CTimer::get("XIOS send field").resume();
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
       CTimer::get("XIOS send field").suspend();
@@ -441,7 +442,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
@@ -462,7 +464,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
@@ -483,7 +486,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
@@ -504,7 +508,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
@@ -526,8 +531,8 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
@@ -550,7 +555,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//        context->checkBuffersAndListen();
 
       CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
@@ -574,7 +580,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//        context->checkBuffersAndListen();
 
       CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
       CField::get(fieldid_str)->setData(data);
@@ -594,7 +601,8 @@ extern "C"
       CTimer::get("XIOS send field").resume();
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
       CArray<double, 1> data(data_Xsize) ;
@@ -616,7 +624,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
       CArray<double, 1> data(data_Xsize);
@@ -639,7 +648,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 2> data_tmp(data_k4, shape(data_Xsize, data_Ysize), neverDeleteData);
       CArray<double, 2> data(data_Xsize, data_Ysize);
@@ -662,7 +672,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 3> data_tmp(data_k4, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
       CArray<double, 3> data(data_Xsize, data_Ysize, data_Zsize);
@@ -687,7 +698,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 4> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
       CArray<double, 4> data(data_0size, data_1size, data_2size, data_3size);
@@ -712,7 +724,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 5> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
       CArray<double, 5> data(data_0size, data_1size, data_2size, data_3size, data_4size);
@@ -737,7 +750,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 6> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
       CArray<double, 6> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size);
@@ -763,7 +777,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<float, 7> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
       CArray<double, 7> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size);
@@ -788,7 +803,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -809,7 +825,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -830,7 +847,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -851,7 +869,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -874,7 +893,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -897,7 +917,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -920,7 +941,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -944,7 +966,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
       CField::get(fieldid_str)->getData(data);
@@ -965,7 +988,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 1> data(data_Xsize);
       CField::get(fieldid_str)->getData(data);
@@ -988,7 +1012,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 1> data(data_Xsize);
       CField::get(fieldid_str)->getData(data);
@@ -1011,7 +1036,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 2> data(data_Xsize, data_Ysize);
       CField::get(fieldid_str)->getData(data);
@@ -1034,7 +1060,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 3> data(data_Xsize, data_Ysize, data_Zsize);
       CField::get(fieldid_str)->getData(data);
@@ -1059,7 +1086,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 4> data(data_0size, data_1size, data_2size, data_3size);
       CField::get(fieldid_str)->getData(data);
@@ -1084,7 +1112,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 5> data(data_0size, data_1size, data_2size, data_3size, data_4size);
       CField::get(fieldid_str)->getData(data);
@@ -1109,7 +1138,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 6> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size);
       CField::get(fieldid_str)->getData(data);
@@ -1135,7 +1165,8 @@ extern "C"
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->checkBuffersAndListen();
+        context->eventLoop();
+//ym        context->checkBuffersAndListen();
 
       CArray<double, 7> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size);
       CField::get(fieldid_str)->getData(data);

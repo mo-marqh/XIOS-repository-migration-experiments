@@ -6,19 +6,27 @@
 
 namespace xios
 {
+    class CPoolRessource ;
     class CClient
     {
       public:
         static void initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
+        static void initialize_old(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
+        static void xiosGlobalCommByFileExchange(MPI_Comm clientComm, const string& codeId) ;
+        static void xiosGlobalCommByPublishing(MPI_Comm clientComm, const string& codeId) ;
         static void finalize(void);
+        static void finalize_old(void);
         static void registerContext(const string& id, MPI_Comm contextComm);
-        static void callOasisEnddef(void) ;
-
+        static void registerContext_old(const string& id, MPI_Comm contextComm);
+        static void callOasisEnddef(void) ; 
+        static void initRessources(void) ;
+        
         static MPI_Comm intraComm;
         static MPI_Comm interComm;
         static std::list<MPI_Comm> contextInterComms;
         static int serverLeader;
         static bool is_MPI_Initialized ;
+        static MPI_Comm clientsComm_ ;
 
         static MPI_Comm& getInterComm();
 
@@ -38,6 +46,7 @@ namespace xios
         static void openErrorStream();
         //! Close the error log file if it opens
         static void closeErrorStream();
+        static CPoolRessource* getPoolRessource(void) { return poolRessource_ ; }
 
       protected:
         static int rank_;                 //!< Rank in model intraComm
@@ -45,6 +54,7 @@ namespace xios
         static StdOFStream m_errorStream;
 
         static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
+        static CPoolRessource* poolRessource_ ;
     };
 }
 
