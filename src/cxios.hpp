@@ -90,6 +90,11 @@ namespace xios
      static void launchDaemonsManager(bool isXiosServer) ;
      static void launchRessourcesManager(bool isXiosServer) ;
      
+     static void finalizeServicesManager() ;
+     static void finalizeContextsManager() ;
+     static void finalizeDaemonsManager() ;
+     static void finalizeRessourcesManager() ;
+
      static CRessourcesManager* getRessourcesManager(void) { return ressourcesManager_ ;}
      static CServicesManager*   getServicesManager(void) { return servicesManager_ ;}
      static CContextsManager*   getContextsManager(void) { return contextsManager_ ;}

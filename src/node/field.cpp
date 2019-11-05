@@ -634,7 +634,8 @@ namespace xios{
           timer.resume();
 
 //ym          context->checkBuffersAndListen();
-            context->eventLoop();
+//ym            context->eventLoop();
+          context->globalEventLoop();
 
           timer.suspend();
         }

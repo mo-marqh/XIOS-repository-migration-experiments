@@ -25,7 +25,7 @@ namespace xios
     CServersRessource(MPI_Comm serverComm) ;
     void createPool(const string& poolId, const int size) ;
     void createPool(void) ;
-    bool eventLoop(void) ;
+    bool eventLoop(bool serviceOnly=false) ;
     void sendNotification(int rank) ;
     void notificationsDumpOut(CBufferOut& buffer) ;
     void notificationsDumpIn(CBufferIn& buffer) ;
@@ -43,8 +43,9 @@ namespace xios
 
     const size_t maxBufferSize_=1024*1024 ;
     CWindowManager* winNotify_ ;
-    int notifyType_ ;
-    std::tuple<std::string, bool> notifyCreatePool_ ;
+    
+    int notifyInType_,notifyOutType_ ;
+    std::tuple<std::string, bool> notifyInCreatePool_,notifyOutCreatePool_ ;
     CPoolRessource* poolRessource_ ;
     bool finalizeSignal_ ;
 

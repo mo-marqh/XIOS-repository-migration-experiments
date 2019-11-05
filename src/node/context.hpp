@@ -52,7 +52,8 @@ namespace xios {
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
            EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY,
            EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES,
-           EVENT_ID_PROCESS_GRID_ENABLED_FIELDS
+           EVENT_ID_PROCESS_GRID_ENABLED_FIELDS,
+           EVENT_ID_CONTEXT_FINALIZE_CLIENT,
          };
 
          /// typedef ///
@@ -105,9 +106,11 @@ namespace xios {
          // Put sever or client into loop state
          bool checkBuffersAndListen(bool enableEventsProcessing=true);
          bool eventLoop(bool enableEventsProcessing=true);
+         void globalEventLoop(void);
 
          // Finalize a context
          void finalize(void);
+
          void finalize_old(void);
          bool isFinalized(void);
 
@@ -169,6 +172,8 @@ namespace xios {
          void sendProcessingGridOfEnabledFields();
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
          void sendRegistry(void) ;
+         void sendFinalizeClient(CContextClient* contextClient, const string& contextClientId);
+
 
          const StdString& getIdServer();
          void setIdServer(const StdString& idServer);
@@ -190,7 +195,9 @@ namespace xios {
          void recvPostProcessingGlobalAttributes(CBufferIn& buffer);
          static void recvRegistry(CEventServer& event) ;
          void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
-
+         static void recvFinalizeClient(CEventServer& event) ;
+         void recvFinalizeClient(CBufferIn& buffer);
+         
          void freeComms(void);                  //!< Free internally allcoated communicators
          void releaseClientBuffers(void);       //! Deallocate buffers allocated by clientContexts
 
@@ -280,7 +287,7 @@ namespace xios {
          bool isPostProcessed;
          bool allProcessed;
          bool finalized;
-         int countChildCtx_;        //!< Counter of child contexts (for now it is the number of secondary server pools)
+         int countChildContextFinalized_;        //!< Counter of child contexts (for now it is the number of secondary server pools)
          StdString idServer_;
          CGarbageCollector garbageCollector;
          std::list<MPI_Comm> comms; //!< Communicators allocated internally

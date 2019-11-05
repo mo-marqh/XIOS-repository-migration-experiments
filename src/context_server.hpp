@@ -65,6 +65,7 @@ namespace xios
       std::map<int, StdSize> mapBufferSize_;
       vector<MPI_Win> windows ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
       CEventScheduler* eventScheduler_ ;
+      bool isProcessingEvent_ ;
   } ;
 
 }

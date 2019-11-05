@@ -99,12 +99,12 @@ namespace xios
     }
   }
 
-  bool CPoolRessource::eventLoop(void)
+  bool CPoolRessource::eventLoop(bool serviceOnly)
   {
     checkCreateServiceNotification() ;
     for (auto it=services_.begin(); it!=services_.end() ; ++it) 
     {
-      if (it->second->eventLoop())
+      if (it->second->eventLoop(serviceOnly))
       {
         services_.erase(it) ;
         // don't forget to free service later

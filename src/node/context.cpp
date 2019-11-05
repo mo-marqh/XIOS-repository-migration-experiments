@@ -35,7 +35,7 @@ namespace xios {
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
       , idServer_(), client(nullptr), server(nullptr)
-      , allProcessed(false), countChildCtx_(0), isProcessingEvent_(false)
+      , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
 
    { /* Ne rien faire de plus */ }
 
@@ -44,7 +44,7 @@ namespace xios {
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
       , idServer_(), client(nullptr), server(nullptr)
-      , allProcessed(false), countChildCtx_(0), isProcessingEvent_(false)
+      , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
@@ -474,7 +474,7 @@ namespace xios {
     MPI_Comm intraCommClient ;
     MPI_Comm_dup(intraComm_, &intraCommClient);
     comms.push_back(intraCommClient);
-    
+    // attached_mode=parentServerContext_->isAttachedMode() ; //ym probably inherited from source context
     server = new CContextServer(this,intraComm_, interCommServer); // check if we need to dupl. intraComm_ ?
     client = new CContextClient(this,intraCommClient,interCommClient);
 
@@ -686,70 +686,39 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-
+  
+  void CContext::globalEventLoop(void)
+  {
+    CXios::getDaemonsManager()->eventLoop() ;
+    setCurrent(getId()) ;
+  }
 
 
    void CContext::finalize(void)
    TRY
    {
-      if (hasClient && !hasServer) // For now we only use server level 1 to read data
+      registryOut->hierarchicalGatherRegistry() ;
+      if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
+
+      if (hasClient && !hasServer)
       {
-        doPreTimestepOperationsForEnabledReadModeFiles();
-      }
-     // Send registry upon calling the function the first time
-     if (countChildCtx_ == 0) if (hasClient) sendRegistry() ;
+        doPreTimestepOperationsForEnabledReadModeFiles(); // For now we only use server level 1 to read data
 
-     // Client:
-     // (1) blocking send context finalize to its server
-     // (2) blocking receive context finalize from its server
-     // (3) some memory deallocations
-     if (CXios::isClient)
-     {
-       // Make sure that client (model) enters the loop only once
-       if (countChildCtx_ < 1)
-       {
-         ++countChildCtx_;
-
-         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
-         client->finalize();
-         info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
-         while (client->havePendingRequests()) client->checkBuffers();
-         
-         info(100)<<"DEBUG: context "<<getId()<<" no pending request ok"<<endl ;
-         while (!server->hasFinished())
-           server->eventLoop();
-        info(100)<<"DEBUG: context "<<getId()<<" server has finished"<<endl ;
-        
+        info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
+        client->finalize();
+        info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
+        while (client->havePendingRequests()) client->checkBuffers();
+        info(100)<<"DEBUG: context "<<getId()<<" no pending request ok"<<endl ;
         bool notifiedFinalized=false ;
         do
         {
           notifiedFinalized=client->isNotifiedFinalized() ;
         } while (!notifiedFinalized) ;
         client->releaseBuffers();
-
-         if (hasServer) // Mode attache
-         {
-           closeAllFile();
-           registryOut->hierarchicalGatherRegistry() ;
-           if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
-         }
-
-         //! Deallocate client buffers
-//         client->releaseBuffers();
         info(100)<<"DEBUG: context "<<getId()<<" release client ok"<<endl ;
-         //! Free internally allocated communicators
-         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-           MPI_Comm_free(&(*it));
-         comms.clear();
-
-         info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
-       }
-     }
-     else if (CXios::isServer)
-     {
-       // First context finalize message received from a model
-       // Send context finalize to its child contexts (if any)
-       if (countChildCtx_ == 0)
+      }
+      else if (hasClient && hasServer)
+      {
          for (int i = 0; i < clientPrimServer.size(); ++i)
          {
            clientPrimServer[i]->finalize();
@@ -763,66 +732,23 @@ namespace xios {
            bool notifiedFinalized=false ;
            do
            {
-//             clientPrimServer[i]->checkBuffers();
              notifiedFinalized=clientPrimServer[i]->isNotifiedFinalized() ;
            } while (!notifiedFinalized) ;
            clientPrimServer[i]->releaseBuffers();
          }
-           
+         closeAllFile();
 
-       // (Last) context finalized message received
-       if (countChildCtx_ == clientPrimServer.size())
-       {
-         // Blocking send of context finalize message to its client (e.g. primary server or model)
-         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
-         client->finalize();
-         info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
-         bool bufferReleased;
-         do
-         {
-           client->checkBuffers();
-           bufferReleased = !client->havePendingRequests();
-         } while (!bufferReleased);
-         
-         bool notifiedFinalized=false ;
-         do
-         {
-  //         client->checkBuffers();
-           notifiedFinalized=client->isNotifiedFinalized() ;
-         } while (!notifiedFinalized) ;
-         client->releaseBuffers();
-         
-         finalized = true;
-         info(100)<<"DEBUG: context "<<getId()<<" bufferRelease OK"<<endl ;
-         
-         closeAllFile(); // Just move to here to make sure that server-level 1 can close files
+      }
+      else if (!hasClient && hasServer)
+      {
+        closeAllFile();
+      }
+
+      freeComms() ;
         
-        /*  ym
-         if (hasServer && !hasClient)
-         {           
-           registryOut->hierarchicalGatherRegistry() ;
-           if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
-         }
-        */
-
-         //! Deallocate client buffers
-//         client->releaseBuffers();
-         info(100)<<"DEBUG: context "<<getId()<<" client release"<<endl ;
-
-/*         
-         for (int i = 0; i < clientPrimServer.size(); ++i)
-           clientPrimServer[i]->releaseBuffers();
-*/
-         //! Free internally allocated communicators
-         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-           MPI_Comm_free(&(*it));
-         comms.clear();
-
-         info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
-       }
-
-       ++countChildCtx_;
-     }
+      parentServerContext_->freeComm() ;
+      finalized = true;
+      info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
    }
    CATCH_DUMP_ATTR
 
@@ -832,6 +758,8 @@ namespace xios {
    void CContext::finalize_old(void)
    TRY
    {
+      int countChildCtx_ ; // ym temporary
+
       if (hasClient && !hasServer) // For now we only use server level 1 to read data
       {
         doPreTimestepOperationsForEnabledReadModeFiles();
@@ -2553,6 +2481,45 @@ namespace xios {
     }
   }
   CATCH_DUMP_ATTR
+
+  
+  void CContext::sendFinalizeClient(CContextClient* contextClient, const string& contextClientId)
+  TRY
+  {
+    CEventClient event(getType(),EVENT_ID_CONTEXT_FINALIZE_CLIENT);
+    if (contextClient->isServerLeader())
+    {
+      CMessage msg;
+      msg<<contextClientId ;
+      const std::list<int>& ranks = contextClient->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+      contextClient->sendEvent(event);
+    }
+    else contextClient->sendEvent(event);
+  }
+  CATCH_DUMP_ATTR
+
+ 
+  void CContext::recvFinalizeClient(CEventServer& event)
+  TRY
+  {
+    CBufferIn* buffer=event.subEvents.begin()->buffer;
+    string id;
+    *buffer>>id;
+    get(id)->recvFinalizeClient(*buffer);
+  }
+  CATCH
+
+  void CContext::recvFinalizeClient(CBufferIn& buffer)
+  TRY
+  {
+    countChildContextFinalized_++ ;
+  }
+  CATCH_DUMP_ATTR
+
+
+
 
   /*!
   * \fn bool CContext::isFinalized(void)

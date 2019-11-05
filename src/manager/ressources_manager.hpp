@@ -27,6 +27,7 @@ namespace xios
     public:
     
     CRessourcesManager(bool isXiosServer) ;
+    ~CRessourcesManager() ;
 
     void eventLoop(void) ;
     void createPool(const std::string& id, int size) ;

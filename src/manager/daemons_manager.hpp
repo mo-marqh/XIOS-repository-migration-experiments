@@ -10,8 +10,10 @@ namespace xios
     public:
 
     CDaemonsManager(bool isXiosServer) ;
+    ~CDaemonsManager() ;
 
     bool eventLoop(void) ;
+    bool servicesEventLoop(void) ;
     
     private:
     bool isServer_ ;

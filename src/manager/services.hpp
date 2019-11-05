@@ -15,9 +15,12 @@ namespace xios
   {
     public:
     
+    const int NOTIFY_NOTHING=0 ;
+    const int NOTIFY_CREATE_CONTEXT=1 ;
+
     CService(MPI_Comm serviceComm, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
              int type, int nbPartitions) ;
-    bool eventLoop(void) ;
+    bool eventLoop(bool serviceOnly=false) ;
     void createContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
     void checkCreateContextNotification(void) ;
     void createContextNotify(int rank, const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
@@ -35,15 +38,28 @@ namespace xios
     int getNbPartitions(void) {return nbPartitions_;}
 
     private:
-    
+    void sendNotification(int rank) ;
+    void notificationsDumpOut(CBufferOut& buffer) ;
+    void notificationsDumpIn(CBufferIn& buffer) ;
+    void checkNotifications(void) ;
+    void createContext(void) ;
+
     MPI_Comm serviceComm_ ;
     MPI_Comm globalComm_ ;
-   
+
     const size_t maxBufferSize_=1024*1024 ;
     const int localLeader_=0 ;
     int globalLeader_ ;
     CWindowManager* winNotify_ ;
+    
+    std::string name_ ;
+
     std::list<std::tuple<std::string, std::string, int, std::string>> notifications_;
+    
+    bool hasNotification_ ;
+    int notifyInType_,notifyOutType_ ;
+    std::tuple<std::string, std::string, int, std::string> notifyInCreateContext_, notifyOutCreateContext_ ;
+
     std::map<std::string, CServerContext*> contexts_ ;
     bool finalizeSignal_ ;
     CEventScheduler* eventScheduler_ ;

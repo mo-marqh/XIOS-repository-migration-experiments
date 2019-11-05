@@ -25,13 +25,29 @@ namespace xios
     MPI_Comm_free(&splitComm) ;
   }
 
+  CDaemonsManager::~CDaemonsManager()
+  {
+    CXios::finalizeContextsManager() ;
+    CXios::finalizeServicesManager() ;
+    CXios::finalizeRessourcesManager() ;
+  }
+
   bool CDaemonsManager::eventLoop(void)
   {
     CXios::getRessourcesManager()->eventLoop() ;
     CXios::getServicesManager()->eventLoop() ;
     CXios::getContextsManager()->eventLoop() ;
-    if (isServer_) return CServer::getServersRessource()->eventLoop() ;
-    else  return CXios::getPoolRessource()->eventLoop() ;
+    if (isServer_) return CServer::getServersRessource()->eventLoop(false) ;
+    else  return CXios::getPoolRessource()->eventLoop(false) ;
   }
+  
+  bool CDaemonsManager::servicesEventLoop(void)
+  {
+    CXios::getRessourcesManager()->eventLoop() ;
+    CXios::getServicesManager()->eventLoop() ;
+    CXios::getContextsManager()->eventLoop() ;
+    if (isServer_) return CServer::getServersRessource()->eventLoop(true) ;
+    else  return CXios::getPoolRessource()->eventLoop(true) ;
+  } 
 
 }

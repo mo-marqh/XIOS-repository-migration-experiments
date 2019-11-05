@@ -261,7 +261,8 @@ namespace xios
           if (context->serverPrimServer.size()>0)
           {
             for (int i = 0; i < context->serverPrimServer.size(); ++i)  context->serverPrimServer[i]->listen();
-            CServer::contextEventLoop(false) ; // avoid dead-lock at finalize...
+ //ym           CServer::contextEventLoop(false) ; // avoid dead-lock at finalize...
+            context->globalEventLoop() ;
           }
 
         }

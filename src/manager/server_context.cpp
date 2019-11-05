@@ -14,7 +14,8 @@ namespace xios
   map<string, tuple<bool,MPI_Comm,MPI_Comm> > CServerContext::overlapedComm_ ;
 
   CServerContext::CServerContext(CService* parentService, MPI_Comm contextComm, const std::string& poolId, const std::string& serviceId, 
-                                 const int& partitionId, const std::string& contextId) : finalizeSignal_(false), parentService_(parentService)
+                                 const int& partitionId, const std::string& contextId) : finalizeSignal_(false), parentService_(parentService),
+                                 hasNotification_(false)
   {
    int localRank, globalRank, commSize ;
 
@@ -47,7 +48,11 @@ namespace xios
                         <<" and global rank "<<globalRank<<endl  ;
   }
 
-  
+  CServerContext::~CServerContext()
+  {
+
+  } 
+
   bool CServerContext::createIntercomm(const string& poolId, const string& serviceId, const int& partitionId, const string& contextId, 
                                        const MPI_Comm& intraComm, MPI_Comm& interCommClient, MPI_Comm& interCommServer, bool wait)
   {
@@ -74,21 +79,41 @@ namespace xios
       }
     }
     
-    auto eventScheduler=parentService_->getEventScheduler() ;
-    std::hash<string> hashString ;
-    size_t hashId = hashString(name_) ;
-    size_t currentTimeLine=0 ;
-    eventScheduler->registerEvent(currentTimeLine,hashId); 
-
-    while (!eventScheduler->queryEvent(currentTimeLine,hashId))
+    MPI_Request req ;
+    MPI_Status status ;
+    MPI_Ibarrier(intraComm,&req) ;
+    
+    int flag=false ;
+    while(!flag) 
     {
-       CXios::getDaemonsManager()->eventLoop() ;
-    }  
+      CXios::getDaemonsManager()->servicesEventLoop() ;
+      MPI_Test(&req,&flag,&status) ;
+    }
+//    auto eventScheduler=parentService_->getEventScheduler() ;
+//    std::hash<string> hashString ;
+//    size_t hashId = hashString(name_) ;
+//    size_t currentTimeLine=0 ;
+//    eventScheduler->registerEvent(currentTimeLine,hashId); 
+//
+//    while (!eventScheduler->queryEvent(currentTimeLine,hashId))
+//    {
+//       CXios::getDaemonsManager()->servicesEventLoop() ;
+//       eventScheduler->checkEvent() ;
+//    }  
     
     MPI_Bcast(&ok, 1, MPI_INT, 0, intraComm) ;
 
     if (ok)  
     {
+      int globalRank ;
+      MPI_Comm_rank(xiosComm_,&globalRank) ;
+      MPI_Bcast(&contextLeader, 1, MPI_INT, 0, intraComm) ;
+      
+      int overlap, nOverlap ;
+      if (contextLeader==globalRank) overlap=1 ;
+      else overlap=0 ;
+      MPI_Allreduce(&overlap, &nOverlap, 1, MPI_INT, MPI_SUM, contextComm_) ;
+/*
       int overlap  ;
       if (get<0>(overlapedComm_[name_])) overlap=1 ;
       else overlap=0 ;
@@ -97,8 +122,11 @@ namespace xios
       MPI_Allreduce(&overlap, &nOverlap, 1, MPI_INT, MPI_SUM, contextComm_) ;
       int commSize ;
       MPI_Comm_size(contextComm_,&commSize ) ;
-      if (nOverlap==commSize)
+*/
+      if (nOverlap> 0 )
       {
+        while (get<0>(overlapedComm_[name_])==false) CXios::getDaemonsManager()->servicesEventLoop() ;
+        isAttachedMode_=true ;
         cout<<"CServerContext::createIntercomm : total overlap ==> context in attached mode"<<endl ;
         interCommClient=newInterCommClient ;
         interCommServer=newInterCommServer ;
@@ -106,6 +134,7 @@ namespace xios
       else if (nOverlap==0)
       { 
         cout<<"CServerContext::createIntercomm : No overlap ==> context in server mode"<<endl ;
+        isAttachedMode_=false ;
         MPI_Intercomm_create(intraComm, 0, xiosComm_, contextLeader, 3141, &interCommClient) ;
         MPI_Comm_dup(interCommClient, &interCommServer) ;
         MPI_Comm_free(&newInterCommClient) ;
@@ -127,8 +156,8 @@ namespace xios
      MPI_Comm_size(contextComm_,&commSize) ;
      for(int rank=0; rank<commSize; rank++)
      {
-       notifyType_=NOTIFY_CREATE_INTERCOMM ;
-       notifyCreateIntercomm_ = make_tuple(remoteLeader, sourceContext) ;
+       notifyOutType_=NOTIFY_CREATE_INTERCOMM ;
+       notifyOutCreateIntercomm_ = make_tuple(remoteLeader, sourceContext) ;
        sendNotification(rank) ;
      }
   }
@@ -146,22 +175,22 @@ namespace xios
     
     buffer.realloc(maxBufferSize_) ;
     
-    if (notifyType_==NOTIFY_CREATE_INTERCOMM)
+    if (notifyOutType_==NOTIFY_CREATE_INTERCOMM)
     {
-      auto& arg=notifyCreateIntercomm_ ;
-      buffer << notifyType_ << std::get<0>(arg)<<std::get<1>(arg) ;
+      auto& arg=notifyOutCreateIntercomm_ ;
+      buffer << notifyOutType_ << std::get<0>(arg)<<std::get<1>(arg) ;
     }
   }
 
   void CServerContext::notificationsDumpIn(CBufferIn& buffer)
   {
-    if (buffer.bufferSize() == 0) notifyType_= NOTIFY_NOTHING ;
+    if (buffer.bufferSize() == 0) notifyInType_= NOTIFY_NOTHING ;
     else
     {
-      buffer>>notifyType_;
-      if (notifyType_==NOTIFY_CREATE_INTERCOMM)
+      buffer>>notifyInType_;
+      if (notifyInType_==NOTIFY_CREATE_INTERCOMM)
       {
-        auto& arg=notifyCreateIntercomm_ ;
+        auto& arg=notifyInCreateIntercomm_ ;
         buffer >> std::get<0>(arg)>> std::get<1>(arg) ;
       }
     }
@@ -169,19 +198,44 @@ namespace xios
 
   void CServerContext::checkNotifications(void)
   {
-    int commRank ;
-    MPI_Comm_rank(contextComm_, &commRank) ;
-    winNotify_->lockWindow(commRank,0) ;
-    winNotify_->popFromWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
-    winNotify_->unlockWindow(commRank,0) ;
-    if (notifyType_==NOTIFY_CREATE_INTERCOMM) createIntercomm() ;
+    if (!hasNotification_)
+    {
+      int commRank ;
+      MPI_Comm_rank(contextComm_, &commRank) ;
+      winNotify_->lockWindow(commRank,0) ;
+      winNotify_->popFromWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
+      winNotify_->unlockWindow(commRank,0) ;
+      
+      if (notifyInType_!= NOTIFY_NOTHING)
+      {
+        hasNotification_=true ;
+        auto eventScheduler=parentService_->getEventScheduler() ;
+        std::hash<string> hashString ;
+        size_t hashId = hashString(name_) ;
+        size_t currentTimeLine=0 ;
+        eventScheduler->registerEvent(currentTimeLine,hashId); 
+      }
+    }
+    
+    if (hasNotification_)
+    {
+      auto eventScheduler=parentService_->getEventScheduler() ;
+      std::hash<string> hashString ;
+      size_t hashId = hashString(name_) ;
+      size_t currentTimeLine=0 ;
+      if (eventScheduler->queryEvent(currentTimeLine,hashId))
+      {
+        if (notifyInType_==NOTIFY_CREATE_INTERCOMM) createIntercomm() ;
+        hasNotification_=false ;
+      }
+    }
   }
 
-  bool CServerContext::eventLoop(void)
+  bool CServerContext::eventLoop(bool serviceOnly)
   {
     bool finished=false ;
-    checkNotifications() ;
-    if (context_!=nullptr)  
+    if (winNotify_!=nullptr) checkNotifications() ;
+    if (!serviceOnly && context_!=nullptr)  
     {
       if (context_->eventLoop())
       {
@@ -197,8 +251,9 @@ namespace xios
   void CServerContext::createIntercomm(void)
   {
      MPI_Comm interCommServer, interCommClient ;
-     int remoteLeader=get<0>(notifyCreateIntercomm_) ;
-     string sourceContext=get<1>(notifyCreateIntercomm_) ;
+     auto& arg=notifyInCreateIntercomm_ ;
+     int remoteLeader=get<0>(arg) ;
+     string sourceContext=get<1>(arg) ;
 
      auto it=overlapedComm_.find(sourceContext) ;
      int overlap=0 ;
@@ -214,7 +269,8 @@ namespace xios
 
     if (nOverlap==commSize)
     {
-      cout<<"CServerContext::createIntercomm : total overlap ==> context in attached mode"<<endl ;
+      info(10)<<"CServerContext::createIntercomm : total overlap ==> context in attached mode"<<endl ;
+      isAttachedMode_=true ;
       interCommClient=get<2>(it->second) ;
       interCommServer=get<1>(it->second) ;
       context_ -> createClientInterComm(interCommClient, interCommServer ) ;
@@ -223,7 +279,8 @@ namespace xios
     }
     else if (nOverlap==0)
     { 
-      cout<<"CServerContext::createIntercomm : No overlap ==> context in server mode"<<endl ;
+      info(10)<<"CServerContext::createIntercomm : No overlap ==> context in server mode"<<endl ;
+      isAttachedMode_=false ;
       MPI_Intercomm_create(contextComm_, 0, xiosComm_, remoteLeader, 3141, &interCommServer) ;
       MPI_Comm_dup(interCommServer,&interCommClient) ;
       context_ -> createClientInterComm(interCommClient,interCommServer) ;
@@ -232,15 +289,22 @@ namespace xios
     }
     else
     {
-      cout<<"CServerContext::createIntercomm : partial overlap ==> not managed"<<endl ;
+      ERROR("void CServerContext::createIntercomm(void)",<<"CServerContext::createIntercomm : partial overlap ==> not managed") ;
     }
    
   }
 
+  void CServerContext::freeComm(void)
+  {
+    delete winNotify_ ;
+    winNotify_=nullptr ;
+    MPI_Comm_free(&contextComm_) ;
+    // don't forget intercomm -> later
+  }
+  
   void CServerContext::finalizeSignal(void)
   {
     finalizeSignal_=true ;
   }
-   
 
 }

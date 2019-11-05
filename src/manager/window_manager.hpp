@@ -125,6 +125,10 @@ namespace xios
       
     }
 
+    ~CWindowManager()
+    {
+      MPI_Win_free(&window_) ;
+    }
   } ;
 }
 

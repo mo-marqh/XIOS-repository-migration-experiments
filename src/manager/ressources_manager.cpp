@@ -33,7 +33,12 @@ namespace xios
 
     MPI_Barrier(xiosComm_)  ;    
   }
-
+  
+  CRessourcesManager::~CRessourcesManager()
+  {
+    delete winNotify_ ;
+    delete winRessources_ ;
+  } 
 
   void CRessourcesManager::createPool(const string& poolId, int size)
   {

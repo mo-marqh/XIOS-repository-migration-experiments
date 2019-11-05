@@ -35,6 +35,13 @@ namespace xios
     MPI_Barrier(xiosComm_)  ;    
   }
 
+
+  CContextsManager::~CContextsManager()
+  {
+    delete winNotify_ ;
+    delete winContexts_ ;
+  }
+
   bool CContextsManager::createServerContext(const std::string& poolId, const std::string& serviceId, const int& partitionId,
                                              const string& contextId, bool wait)
   {
@@ -47,7 +54,7 @@ namespace xios
     {
       while (!ok) 
       {
-        CXios::getDaemonsManager()->eventLoop() ;
+        CXios::getDaemonsManager()->servicesEventLoop() ;
         ok=servicesManager->getServiceLeader(poolId, serviceId, partitionId, serviceLeader) ;
       }
     }
@@ -78,7 +85,7 @@ namespace xios
     {
       while (!ok) 
       {
-        CXios::getDaemonsManager()->eventLoop() ;
+        CXios::getDaemonsManager()->servicesEventLoop() ;
         ok=CXios::getServicesManager()->getServiceType(poolId,serviceId, 0, type) ;
         if (ok) ok=getContextLeader(getServerContextName(poolId, serviceId, partitionId, type, contextId), contextLeader) ;
       }

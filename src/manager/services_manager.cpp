@@ -41,6 +41,12 @@ namespace xios
     MPI_Barrier(xiosComm_)  ;    
   }
 
+  CServicesManager::~CServicesManager()
+  {
+    delete winNotify_ ;
+    delete winServices_ ;
+  }
+
   bool CServicesManager::createServices(const std::string& poolId, const std::string& serviceId, 
                                         int type, int size, int nbPartitions, bool wait) 
   {

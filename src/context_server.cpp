@@ -29,7 +29,7 @@ namespace xios
 {
   using namespace std ;
 
-  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
+  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) : eventScheduler_(nullptr), isProcessingEvent_(false)
   {
     context=parent;
     intraComm=intraComm_;
@@ -52,7 +52,7 @@ namespace xios
 
     if (contextInfo.serviceType != CServicesManager::CLIENT) // we must have an event scheduler => to be retrieve from the associated services
     {
-      eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
+      if (!isAttachedModeEnabled()) eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
     }
 
 
@@ -320,7 +320,8 @@ namespace xios
     map<size_t,CEventServer*>::iterator it;
     CEventServer* event;
     
-    if (context->isProcessingEvent()) return ;
+//    if (context->isProcessingEvent()) return ;
+    if (isProcessingEvent_) return ;
 
     it=events.find(currentTimeLine);
     if (it!=events.end())
@@ -329,23 +330,25 @@ namespace xios
 
       if (event->isFull())
       {
-        if (!scheduled && CServer::eventScheduler) // Skip event scheduling for attached mode and reception on client side
+        if (!scheduled && eventScheduler_) // Skip event scheduling for attached mode and reception on client side
         {
-          CServer::eventScheduler->registerEvent(currentTimeLine,hashId);
+          eventScheduler_->registerEvent(currentTimeLine,hashId);
           scheduled=true;
         }
-        else if (!CServer::eventScheduler || CServer::eventScheduler->queryEvent(currentTimeLine,hashId) )
+        else if (!eventScheduler_ || eventScheduler_->queryEvent(currentTimeLine,hashId) )
         {
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier
-         if (!CServer::eventScheduler && CXios::isServer) MPI_Barrier(intraComm) ;
+         if (!eventScheduler_ && CXios::isServer) MPI_Barrier(intraComm) ;
 
-         context->setProcessingEvent() ;
+//         context->setProcessingEvent() ;
+         isProcessingEvent_=true ;
          CTimer::get("Process events").resume();
          dispatchEvent(*event);
          CTimer::get("Process events").suspend();
-         context->unsetProcessingEvent() ;
+         isProcessingEvent_=false ;
+//         context->unsetProcessingEvent() ;
          pendingEvent=false;
          delete event;
          events.erase(it);

@@ -56,8 +56,8 @@ namespace xios
          newFreeRessourcesRank[i]=freeRessourcesRank_[i] ;
        }
        
-       notifyType_=NOTIFY_CREATE_POOL ;
-       notifyCreatePool_ = make_tuple(poolId, isPartOf) ;
+       notifyOutType_=NOTIFY_CREATE_POOL ;
+       notifyOutCreatePool_ = make_tuple(poolId, isPartOf) ;
        sendNotification(freeRessourcesRank_[i]) ;
     }
     freeRessourcesRank_ = std::move(newFreeRessourcesRank) ;
@@ -70,7 +70,7 @@ namespace xios
 
     for(int rank=0; rank<commSize;rank++)
     { 
-      notifyType_=NOTIFY_FINALIZE ;
+      notifyOutType_=NOTIFY_FINALIZE ;
       sendNotification(rank) ;
     }
   }
@@ -88,35 +88,35 @@ namespace xios
     
     buffer.realloc(maxBufferSize_) ;
     
-    if (notifyType_==NOTIFY_CREATE_POOL)
+    if (notifyOutType_==NOTIFY_CREATE_POOL)
     {
-      auto& arg=notifyCreatePool_ ;
-      buffer << notifyType_ << std::get<0>(arg) << std::get<1>(arg) ;
+      auto& arg=notifyOutCreatePool_ ;
+      buffer << notifyOutType_ << std::get<0>(arg) << std::get<1>(arg) ;
     }
-    else if (notifyType_==NOTIFY_FINALIZE) buffer << notifyType_ ;
+    else if (notifyOutType_==NOTIFY_FINALIZE) buffer << notifyOutType_ ;
   }
 
   void CServersRessource::notificationsDumpIn(CBufferIn& buffer)
   {
-    if (buffer.bufferSize() == 0) notifyType_= NOTIFY_NOTHING ;
+    if (buffer.bufferSize() == 0) notifyInType_= NOTIFY_NOTHING ;
     else
     {
-      buffer>>notifyType_;
-      if (notifyType_==NOTIFY_CREATE_POOL)
+      buffer>>notifyInType_;
+      if (notifyInType_==NOTIFY_CREATE_POOL)
       {
-        auto& arg=notifyCreatePool_ ;
+        auto& arg=notifyInCreatePool_ ;
         buffer >> std::get<0>(arg) >> std::get<1>(arg)  ;
       }
-      else if (notifyType_==NOTIFY_FINALIZE) { /*nothing to do*/}
+      else if (notifyInType_==NOTIFY_FINALIZE) { /*nothing to do*/}
     }
   }
 
-  bool CServersRessource::eventLoop()
+  bool CServersRessource::eventLoop(bool serviceOnly)
   {
     checkNotifications() ;
     if (poolRessource_!=nullptr) 
     {
-      if (poolRessource_->eventLoop())
+      if (poolRessource_->eventLoop(serviceOnly))
       {
         poolRessource_=nullptr ;
         // don't forget to free pool ressource later
@@ -134,13 +134,13 @@ namespace xios
     winNotify_->lockWindow(commRank,0) ;
     winNotify_->popFromWindow(commRank, this, &CServersRessource::notificationsDumpIn) ;
     winNotify_->unlockWindow(commRank,0) ;
-    if (notifyType_==NOTIFY_CREATE_POOL) createPool() ;
-    else if (notifyType_==NOTIFY_FINALIZE) finalizeSignal() ;
+    if (notifyInType_==NOTIFY_CREATE_POOL) createPool() ;
+    else if (notifyInType_==NOTIFY_FINALIZE) finalizeSignal() ;
   }
 
   void CServersRessource::createPool(void)
   {
-    auto& arg=notifyCreatePool_ ;
+    auto& arg=notifyInCreatePool_ ;
     string poolId=get<0>(arg) ;
     bool isPartOf=get<1>(arg) ;
     

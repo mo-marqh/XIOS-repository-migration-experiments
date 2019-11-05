@@ -27,6 +27,8 @@ namespace xios
     public:
  
     CContextsManager(bool isXiosServer) ;
+    ~CContextsManager() ;
+    
     bool createServerContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const string& contextId, bool wait=true) ;
 /*    bool createServerContextIntercomm(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId,
                                       const MPI_Comm& intraComm, MPI_Comm& InterComm, bool wait=true) ;*/

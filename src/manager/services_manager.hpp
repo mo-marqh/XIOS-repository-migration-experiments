@@ -26,6 +26,8 @@ namespace xios
     public:
     
     CServicesManager(bool isXiosServer) ;
+    ~CServicesManager() ;
+    
     bool createServices(const std::string& poolId, const std::string& serviceId, int type, int size, int nbPartition, bool wait=true) ;
     void createServicesNotify(int rank, const string& serviceId, int type, int size, int nbPartitions) ;
     void checkCreateServicesNotification(void) ;

@@ -30,7 +30,7 @@ namespace xios
     void createServiceDumpIn(CBufferIn& buffer) ;
     void checkCreateServiceNotification(void) ;
     void createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
-     bool eventLoop(void) ;
+     bool eventLoop(bool serviceOnly=false) ;
     CService* getService(const std::string serviceId, int partitionId) { return services_[make_tuple(serviceId,partitionId)]; }
     void finalizeSignal(void) ;
     string getId(void) { return Id_; }

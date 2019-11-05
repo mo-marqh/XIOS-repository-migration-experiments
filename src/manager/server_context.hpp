@@ -17,6 +17,7 @@ namespace xios
     public:
     CServerContext(CService* parentService, MPI_Comm contextComm, const std::string& poolId, const std::string& serviceId, 
                   const int& partitionId, const std::string& contextId) ;
+    ~CServerContext() ;
 
     bool createIntercomm(const string& poolId, const string& serviceId, const int& partitionId, const string& contextId, 
                          const MPI_Comm& intraComm, MPI_Comm& interCommClient, MPI_Comm& interCommServer, bool wait=true) ;
@@ -25,10 +26,12 @@ namespace xios
     void sendNotification(int rank);  
     void checkNotifications(void) ;
 
-    bool eventLoop(void) ;
+    bool eventLoop(bool serviceOnly=false) ;
     void notificationsDumpOut(CBufferOut& buffer) ;
     void notificationsDumpIn(CBufferIn& buffer) ;
     void finalizeSignal(void) ;
+    void freeComm(void) ;
+    bool isAttachedMode(void) { return isAttachedMode_ ;}
     private:
     void createIntercomm(void) ;
     
@@ -46,12 +49,14 @@ namespace xios
 
     const size_t maxBufferSize_=1024*1024 ;
     CWindowManager* winNotify_ ;
-    int notifyType_ ;
-    tuple<int, std::string> notifyCreateIntercomm_ ;
+    int notifyInType_, notifyOutType_ ;
+    tuple<int, std::string> notifyInCreateIntercomm_, notifyOutCreateIntercomm_ ;
 
     const int localLeader_=0 ;
     int globalLeader_ ;
     bool finalizeSignal_ ;
+    bool hasNotification_ ;
+    bool isAttachedMode_ ;
 
     friend class CWindowManager ;
   } ;

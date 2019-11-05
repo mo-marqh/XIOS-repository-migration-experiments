@@ -9,7 +9,7 @@ namespace xios
 {
   CService::CService(MPI_Comm serviceComm, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
                      int type, int nbPartitions) : finalizeSignal_(false), eventScheduler_(nullptr), poolId_(poolId), serviceId_(serviceId),
-                                                   partitionId_(partitionId), type_(type), nbPartitions_(nbPartitions)
+                                                   partitionId_(partitionId), type_(type), nbPartitions_(nbPartitions), hasNotification_(false)
 
 
   {
@@ -33,6 +33,10 @@ namespace xios
       CXios::getServicesManager()->registerService(poolId, serviceId, partitionId, type, commSize, nbPartitions, globalLeader_) ;
     }
     eventScheduler_ = new CEventScheduler(serviceComm_) ;
+
+    ostringstream oss;
+    oss<<partitionId;
+    name_= poolId+"::"+serviceId+"_"+oss.str();
   }
 
   void CService::createContext( const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId)
@@ -40,7 +44,12 @@ namespace xios
     int commSize ;
     MPI_Comm_size(serviceComm_, &commSize) ;
     
-    for(int rank=0; rank<commSize; rank++) createContextNotify(rank, poolId, serviceId, partitionId, contextId) ;
+    for(int rank=0; rank<commSize; rank++) 
+    {
+      notifyOutType_=NOTIFY_CREATE_CONTEXT ;
+      notifyOutCreateContext_ = make_tuple(poolId, serviceId, partitionId, contextId) ;
+      sendNotification(rank) ;
+    }
   }
 /*
   void CService::createContext(const std::string& contextId)
@@ -86,13 +95,15 @@ namespace xios
     }
   }
 
-  bool CService::eventLoop(void)
+  bool CService::eventLoop(bool serviceOnly)
   {
-    checkCreateContextNotification() ;
+    //checkCreateContextNotification() ;
+    checkNotifications() ;
+
     eventScheduler_->checkEvent() ;
     for(auto it=contexts_.begin();it!=contexts_.end();++it) 
     {
-      if (it->second->eventLoop())
+      if (it->second->eventLoop(serviceOnly))
       {
         contexts_.erase(it) ;
         // destroy server_context -> to do later
@@ -103,6 +114,80 @@ namespace xios
     if (contexts_.empty() && finalizeSignal_) return true ;
     else return false ;
   }
+
+  void CService::sendNotification(int rank)
+  {
+    winNotify_->lockWindow(rank,0) ;
+    winNotify_->pushToWindow(rank, this, &CService::notificationsDumpOut) ;
+    winNotify_->unlockWindow(rank,0) ;
+  }
+
+  
+  void CService::notificationsDumpOut(CBufferOut& buffer)
+  {
+    
+    buffer.realloc(maxBufferSize_) ;
+    
+    if (notifyOutType_==NOTIFY_CREATE_CONTEXT)
+    {
+      auto& arg=notifyOutCreateContext_ ;
+      buffer << notifyOutType_ << std::get<0>(arg)<<std::get<1>(arg) << std::get<2>(arg)<<std::get<3>(arg) ;
+    }
+  }
+
+  void CService::notificationsDumpIn(CBufferIn& buffer)
+  {
+    if (buffer.bufferSize() == 0) notifyInType_= NOTIFY_NOTHING ;
+    else
+    {
+      buffer>>notifyInType_;
+      if (notifyInType_==NOTIFY_CREATE_CONTEXT)
+      {
+        info(10)<<"NotifyDumpOut"<<endl ;
+        auto& arg=notifyInCreateContext_ ;
+        buffer >> std::get<0>(arg)>> std::get<1>(arg) >> std::get<2>(arg)>> std::get<3>(arg);
+      }
+    }
+  }
+
+
+
+
+  void CService::checkNotifications(void)
+  {
+    if (!hasNotification_)
+    {
+      int commRank ;
+      MPI_Comm_rank(serviceComm_, &commRank) ;
+      winNotify_->lockWindow(commRank,0) ;
+      winNotify_->popFromWindow(commRank, this, &CService::notificationsDumpIn) ;
+      winNotify_->unlockWindow(commRank,0) ;
+      
+      if (notifyInType_!= NOTIFY_NOTHING)
+      {
+        hasNotification_=true ;
+        std::hash<string> hashString ;
+        size_t hashId = hashString(name_) ;
+        size_t currentTimeLine=0 ;
+        eventScheduler_->registerEvent(currentTimeLine,hashId); 
+      }
+    }
+    
+    if (hasNotification_)
+    {
+      std::hash<string> hashString ;
+      size_t hashId = hashString(name_) ;
+      size_t currentTimeLine=0 ;
+      if (eventScheduler_->queryEvent(currentTimeLine,hashId))
+      {
+        if (notifyInType_==NOTIFY_CREATE_CONTEXT) createContext() ;
+        hasNotification_=false ;
+      }
+    }
+  }
+
+
+
 
   void CService::checkCreateContextNotification(void)
   {
@@ -121,6 +206,17 @@ namespace xios
     winNotify_->unlockWindow(commRank,0) ;
   }
 
+  void CService::createContext(void)
+   {
+     auto& arg=notifyInCreateContext_ ;
+     string poolId = get<0>(arg) ;
+     string& serviceId = get<1>(arg) ;
+     int partitionId = get<2>(arg) ;
+     string contextId = get<3>(arg) ;
+     contexts_[contextId] = new CServerContext(this, serviceComm_, poolId, serviceId, partitionId, contextId) ; 
+   }
+
+   //to remove
    void CService::createNewContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId)
    {
      contexts_[contextId] = new CServerContext(this, serviceComm_, poolId, serviceId, partitionId, contextId) ; 

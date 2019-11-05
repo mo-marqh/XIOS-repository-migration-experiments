@@ -354,6 +354,9 @@ namespace xios
   
       CXios::setXiosComm(xiosGlobalComm) ;
 
+      MPI_Comm commUnfree ;
+      MPI_Comm_dup(clientComm, &commUnfree ) ;
+ 
     }
 
     void CClient::xiosGlobalCommByPublishing(MPI_Comm clientComm, const string& codeId)
@@ -731,6 +734,9 @@ namespace xios
 
       CTimer::get("XIOS init/finalize",false).suspend() ;
       CTimer::get("XIOS").suspend() ;
+      
+      CXios::finalizeDaemonsManager() ;
+
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();
@@ -747,6 +753,8 @@ namespace xios
       report(0)<< " Memory report : Minimum buffer size required : " << CClientBuffer::maxRequestSize << " bytes" << endl ;
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
+    
+      
     }
     
 

@@ -710,6 +710,8 @@ namespace xios
 
 //      MPI_Comm_free(&intraComm);
 
+      CXios::finalizeDaemonsManager();
+      
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();

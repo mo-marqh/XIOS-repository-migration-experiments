@@ -340,6 +340,28 @@ namespace xios
     daemonsManager_ = new CDaemonsManager(isXiosServer) ;
   }
 
+  
+  void CXios::finalizeRessourcesManager()
+  {
+    delete ressourcesManager_;
+  }
+
+  void CXios::finalizeServicesManager()
+  {
+    delete servicesManager_  ;
+  }
+
+  void CXios::finalizeContextsManager()
+  {
+    delete contextsManager_  ;
+  }
+  
+  void CXios::finalizeDaemonsManager()
+  {
+    delete daemonsManager_  ;
+  }
+  
+
   CPoolRessource* CXios::getPoolRessource(void)
   {
     if (isClient) return CClient::getPoolRessource() ;
