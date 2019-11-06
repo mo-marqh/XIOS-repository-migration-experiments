@@ -89,18 +89,7 @@ namespace xios
       CXios::getDaemonsManager()->servicesEventLoop() ;
       MPI_Test(&req,&flag,&status) ;
     }
-//    auto eventScheduler=parentService_->getEventScheduler() ;
-//    std::hash<string> hashString ;
-//    size_t hashId = hashString(name_) ;
-//    size_t currentTimeLine=0 ;
-//    eventScheduler->registerEvent(currentTimeLine,hashId); 
-//
-//    while (!eventScheduler->queryEvent(currentTimeLine,hashId))
-//    {
-//       CXios::getDaemonsManager()->servicesEventLoop() ;
-//       eventScheduler->checkEvent() ;
-//    }  
-    
+
     MPI_Bcast(&ok, 1, MPI_INT, 0, intraComm) ;
 
     if (ok)  

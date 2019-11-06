@@ -11,15 +11,12 @@ namespace xios
     {
       public:
         static void initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
-        static void initialize_old(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
         static void xiosGlobalCommByFileExchange(MPI_Comm clientComm, const string& codeId) ;
         static void xiosGlobalCommByPublishing(MPI_Comm clientComm, const string& codeId) ;
         static void finalize(void);
-        static void finalize_old(void);
         static void registerContext(const string& id, MPI_Comm contextComm);
         static void registerContext_old(const string& id, MPI_Comm contextComm);
         static void callOasisEnddef(void) ; 
-        static void initRessources(void) ;
         
         static MPI_Comm intraComm;
         static MPI_Comm interComm;

@@ -67,14 +67,6 @@ namespace xios
     hashId=dist(rd) ;
     MPI_Bcast(&hashId,1,MPI_SIZE_T,0,intraComm) ; // Bcast to all server of the context
 
-    /*
-    boost::hash<string> hashString;
-
-    if (CServer::serverLevel == 1)
-      hashId=hashString(context->getId() + boost::lexical_cast<string>(context->clientPrimServer.size()));
-    else
-      hashId=hashString(context->getId());
-*/
 
     if (!isAttachedModeEnabled())
     {
@@ -199,15 +191,7 @@ namespace xios
        winAdress[0]=recvBuff[1] ; winAdress[1]=recvBuff[2] ;
        mapBufferSize_.insert(std::make_pair(rank, buffSize));
        it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows, winAdress, rank, buffSize)))).first;
-      /*
-       if (!isAttachedModeEnabled())
-       {
-         MPI_Comm OneSidedInterComm, oneSidedComm ;
-         MPI_Intercomm_create(commSelf, 0, interCommMerged, rank, 0, &OneSidedInterComm );
-         MPI_Intercomm_merge(OneSidedInterComm,true,&oneSidedComm);
-         buffers[rank]->createWindows(oneSidedComm) ;
-       }
-       */
+     
        lastTimeLine[rank]=0 ;
        itLastTimeLine=lastTimeLine.begin() ;
 

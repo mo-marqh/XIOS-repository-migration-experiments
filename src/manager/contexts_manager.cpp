@@ -100,30 +100,6 @@ namespace xios
     }
     else return false ;
   }
-    
-/*
-    auto eventScheduler=CServer::getServersRessource()->getPoolRessource()->getService(serviceId,partitionId)->getEventScheduler() ;
-    std::hash<string> hashString ;
-    size_t hashId = hashString(getServerContextName(poolId, serviceId, partitionId, contextId)) ;
-    size_t currentTimeLine=0 ;
-    CServer::eventScheduler->registerEvent(currentTimeLine,hashId); 
-    while (!eventScheduler->queryEvent(currentTimeLine,hashId))
-    {
-       CXios::getDaemonsManager()->eventLoop() ;
-    }  
-    
-    MPI_Bcast(&ok, 1, MPI_INT, 0, intraComm) ;
-
-    if (ok)
-    {
-
-      MPI_Intercomm_create(intraComm, 0, xiosComm_, contextLeader, 3141, &interComm) ;
-      return true ;
-    }
-    else return false ;
-  }
-*/
-
 
   void CContextsManager::sendNotification(int rank)
   {

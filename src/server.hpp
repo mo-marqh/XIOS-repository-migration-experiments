@@ -15,23 +15,12 @@ namespace xios
     {
       public:
         static void initialize(void);
-        static void initialize_old(void);
         static void xiosGlobalCommByFileExchange(MPI_Comm serverComm) ;
         static void xiosGlobalCommByPublishing(MPI_Comm serverComm) ;
 
         static void finalize(void);
         static void eventLoop(void);
-        static void contextEventLoop(bool enableEventsProcessing=true);
-        static void listenContext(void);
-        static void listenFinalize(void);
-        static void recvContextMessage(void* buff,int count);
-        static void listenRootContext(void);
-        static void listenRootFinalize(void);
-        static void listenRootOasisEnddef(void);
-        static void listenOasisEnddef(void);
-        static void registerContext(void* buff,int count, int leaderRank=0);
-        static void initRessources() ;
-
+        
         static MPI_Comm intraComm;
         static MPI_Comm serversComm_;
         static std::list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)

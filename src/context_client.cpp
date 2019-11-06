@@ -304,15 +304,6 @@ namespace xios
       bufOut->put(sendBuff, 3); // Stupid C++
       buffer->checkBuffer(true);
 
-/*
-      if (!isAttachedModeEnabled()) // create windows only in server mode
-      {
-        MPI_Comm OneSidedInterComm, oneSidedComm ;
-        MPI_Intercomm_create(commSelf, 0, interCommMerged, clientSize+rank, 0, &OneSidedInterComm );
-        MPI_Intercomm_merge(OneSidedInterComm,false,&oneSidedComm);
-        buffer->createWindows(oneSidedComm) ;
-      }
- */      
    }
 
    /*!
@@ -459,20 +450,7 @@ namespace xios
 
     delete[] nbServerConnectionLocal ;
     delete[] nbServerConnectionGlobal ;
-/*    
-    if (isServerLeader())
-    {
-      CMessage msg;
-      const std::list<int>& ranks = getRanksServerLeader();
-      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-      {
-        info(100)<<"DEBUG : Sent context Finalize event to rank "<<*itRank<<endl ;
-        event.push(*itRank, 1, msg);
-      }
-      sendEvent(event);
-    }
-    else sendEvent(event);
-*/
+
 
     CTimer::get("Blocking time").resume();
     checkBuffers();
@@ -490,7 +468,6 @@ namespace xios
     }
     report(0) << " Memory report : Context <" << context->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
 
-    //releaseBuffers(); // moved to CContext::finalize()
   }
 
 

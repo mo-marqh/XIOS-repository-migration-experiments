@@ -90,7 +90,6 @@ namespace xios {
 
       public :
          // Initialize server or client
-         void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer = 0);
          void init(CServerContext* parentServerContext, MPI_Comm intraComm, int serviceType);
          void initClient(MPI_Comm intraComm, int serviceType);
          
@@ -104,14 +103,12 @@ namespace xios {
          StdString dumpClassAttributes(void);
 
          // Put sever or client into loop state
-         bool checkBuffersAndListen(bool enableEventsProcessing=true);
          bool eventLoop(bool enableEventsProcessing=true);
          void globalEventLoop(void);
 
          // Finalize a context
          void finalize(void);
 
-         void finalize_old(void);
          bool isFinalized(void);
 
          void closeDefinition(void);
