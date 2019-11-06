@@ -529,44 +529,7 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
- 
-   void CContext::initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient /*= 0*/)
-   TRY
-   {
-     hasServer=true;
-     server = new CContextServer(this,intraComm,interComm);
-
-/* for registry take the id of client context */
-/* for servers, supress the _server_ from id  */
-     string contextRegistryId=getId() ;
-     size_t pos=contextRegistryId.find("_server_") ;
-     if (pos!=std::string::npos)  contextRegistryId=contextRegistryId.substr(0,pos) ;
-       
-     registryIn=new CRegistry(intraComm);
-     registryIn->setPath(contextRegistryId) ;
-     if (server->intraCommRank==0) registryIn->fromFile("xios_registry.bin") ;
-     registryIn->bcastRegistry() ;
-     registryOut=new CRegistry(intraComm) ;
-     registryOut->setPath(contextRegistryId) ;
-
-     MPI_Comm intraCommClient, interCommClient;
-     if (cxtClient) // Attached mode
-     {
-       intraCommClient = intraComm;
-       interCommClient = interComm;
-     }
-     else
-     {
-       MPI_Comm_dup(intraComm, &intraCommClient);
-       comms.push_back(intraCommClient);
-       MPI_Comm_dup(interComm, &interCommClient);
-       comms.push_back(interCommClient);
-     }
-     client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
-   }
-   CATCH_DUMP_ATTR
-
- 
+   
 
   bool CContext::eventLoop(bool enableEventsProcessing)
   {

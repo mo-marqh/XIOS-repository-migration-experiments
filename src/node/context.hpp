@@ -93,7 +93,6 @@ namespace xios {
          void init(CServerContext* parentServerContext, MPI_Comm intraComm, int serviceType);
          void initClient(MPI_Comm intraComm, int serviceType);
          
-         void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
          void initServer(MPI_Comm intraComm, int serviceType );
          void createClientInterComm(MPI_Comm interCommClient, MPI_Comm interCommServer)  ;
          void createServerInterComm(void)  ;
