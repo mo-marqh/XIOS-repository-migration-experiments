@@ -1011,7 +1011,13 @@ TRY
         if (allMissing(idx)) dataOut(idx) = defaultValue; // If all data source are nan then data destination must be nan
       }
     }
-    
+    else
+    {
+      for (int idx = 0; idx < nbIndex; ++idx)
+      {
+        dataOut(idx) = defaultValue; // If allMissing has no element means you have no source element so target is NaN
+      }
+    }
     if (renormalize)
     {
       if (renormalizationFactor.numElements()>0) dataOut/=renormalizationFactor ; // In some case, process doesn't received any data for interpolation (mask)
