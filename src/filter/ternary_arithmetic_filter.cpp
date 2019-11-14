@@ -499,7 +499,6 @@ namespace xios
     , value(value)
   { 
     expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
-    std::cout<<"expression = "<<expression;
     /* Nothing to do */ 
   };
 

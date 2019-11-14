@@ -92,7 +92,6 @@ extern "C"
     yacc_globalInputText_ptr = &globalInputText;
     //*yacc_globalInputText_ptr = globalInputText;
 
-    std::cout<<"========= yacc_globalInputText_ptr = "<<*yacc_globalInputText_ptr<<std::endl;
     
     size_t numBytesToRead = maxBytesToRead;
     size_t bytesRemaining = globalInputText.length()-globalReadOffset;

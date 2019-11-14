@@ -423,7 +423,6 @@ namespace xios
     std::shared_ptr<COutputPin> ch3 = child3->reduce(gc, thisField, start_graph, end_graph);
 
     std::shared_ptr<CFieldFieldFieldArithmeticFilter> filter(new CFieldFieldFieldArithmeticFilter(gc, opId));
-    std::cout<<"std::shared_ptr<CFieldFieldFieldArithmeticFilter> filter(new CFieldFieldFieldArithmeticFilter(gc, opId))" <<std::endl;
     ch1->connectOutput(filter, 0);
     ch2->connectOutput(filter, 1);
     ch3->connectOutput(filter, 2);

@@ -1450,7 +1450,7 @@ namespace xios{
    std::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc, Time start_graph, Time end_graph)
    TRY
    {
-     if(CXios::isClient) std::cout<<"getSelfReference field_id = "<<this->getId()<<" start_graph = "<<start_graph<<" end_graph = "<<end_graph<<std::endl;
+     //if(CXios::isClient) std::cout<<"getSelfReference field_id = "<<this->getId()<<" start_graph = "<<start_graph<<" end_graph = "<<end_graph<<std::endl;
 
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
@@ -1531,13 +1531,16 @@ namespace xios{
                                                                              freq_op, freq_offset, outFreq, detectMissingValues));
 
        instantDataFilter->connectOutput(temporalFilter, 0);
-       // temporalFilter->tag = buildWorkflowGraph;
+       //temporalFilter->tag = buildWorkflowGraph;
        
        temporalFilter->parent_filters.resize(1);
        temporalFilter->parent_filters[0] = instantDataFilter;
        
 
-       if(temporalFilter->parent_filters[0]->tag) temporalFilter->tag=true;
+       //if(temporalFilter->parent_filters[0]->tag) temporalFilter->tag=true;
+       temporalFilter->tag = temporalFilter->parent_filters[0]->tag;
+       temporalFilter->start_graph = temporalFilter->parent_filters[0]->start_graph;
+       temporalFilter->end_graph = temporalFilter->parent_filters[0]->end_graph;
 
        // temporalFilter->start_graph = filter_start;
        // temporalFilter->end_graph = filter_end;

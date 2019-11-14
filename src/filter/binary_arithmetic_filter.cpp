@@ -17,7 +17,6 @@ namespace xios
   std::tuple<int, int, int> CScalarFieldArithmeticFilter::buildGraph(std::vector<CDataPacketPtr> data)
   {
     bool building_graph = this->tag ? data[0]->timestamp >= this->start_graph && data[0]->timestamp <= this->end_graph : false;
-    // bool building_graph = true;
     int unique_filter_id;
     bool firstround;
 
