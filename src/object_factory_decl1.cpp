@@ -4,6 +4,8 @@ namespace xios
 {
   macro(CField)
   macro(CFile)
+  macro(CCouplerIn)
+  macro(CCouplerOut)
   macro(CGrid)
   macro(CAxis)
   macro(CDomain)

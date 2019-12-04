@@ -19,6 +19,8 @@ namespace xios
 
   macro(CFieldGroup)
   macro(CFileGroup)
+  macro(CCouplerInGroup)
+  macro(CCouplerOutGroup)
   macro(CGridGroup)
   macro(CAxisGroup)
   macro(CDomainGroup)

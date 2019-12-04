@@ -9,6 +9,8 @@ namespace xios
   macro(Context)
   macro(Field)
   macro(File)
+  macro(CouplerIn)
+  macro(CouplerOut)
   macro(Domain)
   macro(Grid)
   macro(Axis)

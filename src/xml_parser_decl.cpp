@@ -17,6 +17,8 @@ namespace xios
     macro( Grid )
     macro( Field )
     macro( File )
+    macro( CouplerIn )
+    macro( CouplerOut )
     macro( Variable )
     macro( InverseAxis )
     macro( ZoomAxis )

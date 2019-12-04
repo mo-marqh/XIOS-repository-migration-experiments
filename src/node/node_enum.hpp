@@ -14,6 +14,8 @@ namespace xios
          eDomain,gDomain,
          eField,gField,
          eFile,gFile,
+         eCouplerIn,gCouplerIn,
+         eCouplerOut,gCouplerOut,
          eGrid,gGrid,
          eVariable,gVariable,
          eContext,gContext,

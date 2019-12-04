@@ -8,6 +8,8 @@ namespace xios
   template class CObjectTemplate<CCalendarWrapper>;
   template class CObjectTemplate<CField>;
   template class CObjectTemplate<CFile>;
+  template class CObjectTemplate<CCouplerIn>;
+  template class CObjectTemplate<CCouplerOut>;
   template class CObjectTemplate<CDomain>;
   template class CObjectTemplate<CGrid>;
   template class CObjectTemplate<CAxis>;
@@ -37,6 +39,8 @@ namespace xios
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
   template class CObjectTemplate<CFileGroup>;
+  template class CObjectTemplate<CCouplerInGroup>;
+  template class CObjectTemplate<CCouplerOutGroup>;
   template class CObjectTemplate<CDomainGroup>;
   template class CObjectTemplate<CGridGroup>;
   template class CObjectTemplate<CAxisGroup>;

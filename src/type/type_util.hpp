@@ -14,6 +14,10 @@ namespace xios
     class CAxisGroup;
     class CFile;
     class CFileGroup;
+    class CCouplerIn;
+    class CCouplerInGroup;
+    class CCouplerOut;
+    class CCouplerOutGroup;
     class CContext;
     class CContextGroup;
     class CCalendarWrapper;
@@ -92,6 +96,10 @@ namespace xios
   macro(CAxisGroup)
   macro(CFile)
   macro(CFileGroup)
+  macro(CCouplerIn)
+  macro(CCouplerInGroup)
+  macro(CCouplerOut)
+  macro(CCouplerOutGroup)
   macro(CContext)
   macro(CContextGroup)
   macro(CCalendarWrapper)
