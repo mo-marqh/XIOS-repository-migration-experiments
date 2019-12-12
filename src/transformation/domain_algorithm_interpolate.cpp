@@ -598,7 +598,7 @@ TRY
     ++globalIndexCount;
   }
 
-  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp, client->serverSize);
+  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp, client->clientSize);
   const CClientServerMapping::GlobalIndexMap& globalIndexInterpSendToClient = domainIndexClientClientMapping.getGlobalIndexOnServer();
 
   //Inform each client number of index they will receive
