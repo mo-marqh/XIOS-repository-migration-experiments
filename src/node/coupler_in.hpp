@@ -10,6 +10,7 @@
 #include "attribute_enum_impl.hpp"
 #include "context_client.hpp"
 #include "mpi.hpp"
+#include "string_tools.hpp"
 
 namespace xios
 {
@@ -91,6 +92,9 @@ namespace xios
 //         virtual StdString toString(void) const;
 
       public:
+         virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
+         void solveFieldRefInheritance(bool apply);
+         void createInterCommunicator(void) ;
 
       private :
          CFieldGroup* virtualFieldGroup;

@@ -364,7 +364,6 @@ TRY
   }
 
   CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
 
   ListAlgoType::const_iterator itb = listAlgos_.begin(),
                                ite = listAlgos_.end(), it;
@@ -418,7 +417,7 @@ TRY
 
         CTimer::get("computeTransformationMappingConvert").resume();  
         nbLocalIndexOnGridDest_.push_back(nbLocalIndexOnGridDest) ;
-        int clientRank=client->clientRank ;
+        int clientRank=context->intraCommRank_ ;
         {
           SendingIndexGridSourceMap tmp;
           localIndexToSendFromGridSource_.push_back(tmp) ;
@@ -474,12 +473,11 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-  int nbClient = client->clientSize;
-  int clientRank = client->clientRank;
+  int nbClient = context->intraCommSize_;
+  int clientRank = context->intraCommRank_;
 
   // Recalculate the distribution of grid destination
-  CDistributionClient distributionClientDest(client->clientRank, tmpGridDestination_);
+  CDistributionClient distributionClientDest(clientRank, tmpGridDestination_);
   CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridDestSendToServer = distributionClientDest.getGlobalLocalDataSendToServer();
 
   // Update number of local index on each transformation
@@ -513,15 +511,15 @@ TRY
     sendSizeBuff[n] = sendSize;
     sendRankSizeMap[itIndex->first] = sendSize;
   }
-  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm);
+  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT, context->intraComm_);
 
   displ[0]=0 ;
   for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
   int recvSize=displ[nbClient-1]+recvCount[nbClient-1];
   int* recvRankBuff=new int[recvSize];
   int* recvSizeBuff=new int[recvSize];
-  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,client->intraComm);
-  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,client->intraComm);
+  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,context->intraComm_);
+  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,context->intraComm_);
   for (int i = 0; i < nbClient; ++i)
   {
     int currentPos = displ[i];
@@ -545,9 +543,9 @@ TRY
     recvGlobalIndexSrc[recvRank] = new unsigned long [recvSize];
 
     requests.push_back(MPI_Request());
-    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, client->intraComm, &requests.back());
+    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, context->intraComm_, &requests.back());
     requests.push_back(MPI_Request());
-    MPI_Irecv(recvMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 47, client->intraComm, &requests.back());
+    MPI_Irecv(recvMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 47, context->intraComm_, &requests.back());
   }
 
   std::unordered_map<int, CArray<size_t,1> > globalIndexDst;
@@ -583,9 +581,9 @@ TRY
 
     // Send global index source and mask
     requests.push_back(MPI_Request());
-    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, client->intraComm, &requests.back());
+    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, context->intraComm_, &requests.back());
     requests.push_back(MPI_Request());
-    MPI_Isend(sendMaskDst[sendRank], sendSize, MPI_UNSIGNED_CHAR, sendRank, 47, client->intraComm, &requests.back());
+    MPI_Isend(sendMaskDst[sendRank], sendSize, MPI_UNSIGNED_CHAR, sendRank, 47, context->intraComm_, &requests.back());
   }
 
   status.resize(requests.size());
@@ -601,11 +599,11 @@ TRY
     int recvSize = itSend->second;
 
     requests.push_back(MPI_Request());
-    MPI_Irecv(sendMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 48, client->intraComm, &requests.back());
+    MPI_Irecv(sendMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 48, context->intraComm_, &requests.back());
   }
 
   // Ok, now we fill in local index of grid source (we even count for masked index)
-  CDistributionClient distributionClientSrc(client->clientRank, gridSource_);
+  CDistributionClient distributionClientSrc(clientRank, gridSource_);
   CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridSrcSendToServer = distributionClientSrc.getGlobalLocalDataSendToServer();
   localIndexToSendFromGridSource_.push_back(SendingIndexGridSourceMap());
   SendingIndexGridSourceMap& tmpSend = localIndexToSendFromGridSource_.back();
@@ -638,7 +636,7 @@ TRY
 
     // Okie, now inform the destination which source index are masked
     requests.push_back(MPI_Request());
-    MPI_Isend(recvMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 48, client->intraComm, &requests.back());
+    MPI_Isend(recvMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 48, context->intraComm_, &requests.back());
   }
   status.resize(requests.size());
   MPI_Waitall(requests.size(), &requests[0], &status[0]);

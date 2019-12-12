@@ -50,7 +50,20 @@ namespace xios
    }
    CATCH_DUMP_ATTR
 
-   
+   void CCouplerIn::createInterCommunicator(void)
+   TRY
+   {
+     if (context.isEmpty())
+     {
+        ERROR("void CCouplerOut::createInterCommunicator(void)",
+               "The attribute <context> must be defined to specify the target coupling context");
+     }
+     CContext* contextPtr = CContext::getCurrent();
+     contextPtr->addCouplingChanel(context, false) ;
+   }
+   CATCH_DUMP_ATTR
+
+  
    /*!
    \brief Parse xml file and write information into coupler_in object
    \param [in] node xmld node corresponding in xml coupler_in
@@ -85,7 +98,23 @@ namespace xios
    }
    CATCH
 
+   void CCouplerIn::solveDescInheritance(bool apply, const CAttributeMap * const parent)
+   TRY
+   {
+      SuperClassAttribute::setAttributes(parent,apply);
+      this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL);
+   }
+   CATCH_DUMP_ATTR
 
+   void CCouplerIn::solveFieldRefInheritance(bool apply)
+   TRY
+   {
+      // Rsolution des hritages par rfrence de chacun des champs contenus dans le fichier.
+      std::vector<CField*> allF = this->getAllFields();
+      for (unsigned int i = 0; i < allF.size(); i++)
+         allF[i]->solveRefInheritance(apply);
+   }
+   CATCH_DUMP_ATTR
    /*!
    \brief Get virtual variable group
       In each CCouplerIn, there always exists a variable group which is the ancestor of all

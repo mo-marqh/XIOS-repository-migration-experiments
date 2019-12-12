@@ -87,6 +87,14 @@ namespace xios
 //         virtual StdString toString(void) const;
 
       public:
+        virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
+        void solveFieldRefInheritance(bool apply);
+        void createInterCommunicator(void) ;
+        void solveOnlyRefOfEnabledFields(void);
+        void generateNewTransformationGridDest(void);
+        void solveAllRefOfEnabledFieldsAndTransform() ;
+        void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
+        void checkGridOfEnabledFields(void) ;
 
       private :
          CFieldGroup* virtualFieldGroup;

@@ -108,8 +108,7 @@ TRY
   using namespace sphereRemap;
 
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
+  int clientRank = context->intraCommRank_;
   int i, j, k, idx;
   std::vector<double> srcPole(3,0), dstPole(3,0);
   int orderInterp = interpDomain_->order.getValue();
@@ -299,7 +298,7 @@ TRY
 
 
   // Calculate weight index
-  Mapper mapper(client->intraComm);
+  Mapper mapper(context->intraComm_);
   mapper.setVerbosity(PROGRESS) ;
 
      
@@ -431,10 +430,9 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-
+  
   MPI_Comm poleComme(MPI_COMM_NULL);
-  MPI_Comm_split(client->intraComm, interMapValuePole.empty() ? MPI_UNDEFINED : 1, 0, &poleComme);
+  MPI_Comm_split(context->intraComm_, interMapValuePole.empty() ? MPI_UNDEFINED : 1, 0, &poleComme);
   if (MPI_COMM_NULL != poleComme)
   {
     int nbClientPole;
@@ -533,8 +531,7 @@ void CDomainAlgorithmInterpolate::convertRemapInfo(std::map<int,std::vector<std:
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
+  int clientRank = context->intraCommRank_;
 
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -799,8 +796,7 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-
+  
   size_t n_src = domainSrc_->ni_glo * domainSrc_->nj_glo;
   size_t n_dst = domainDest_->ni_glo * domainDest_->nj_glo;
 
@@ -834,8 +830,8 @@ TRY
     }    
   }
 
-  MPI_Allreduce(&localNbWeight, &globalNbWeight, 1, MPI_LONG, MPI_SUM, client->intraComm);
-  MPI_Scan(&localNbWeight, &startIndex, 1, MPI_LONG, MPI_SUM, client->intraComm);
+  MPI_Allreduce(&localNbWeight, &globalNbWeight, 1, MPI_LONG, MPI_SUM, context->intraComm_);
+  MPI_Scan(&localNbWeight, &startIndex, 1, MPI_LONG, MPI_SUM, context->intraComm_);
   
   if (0 == globalNbWeight)
   {
@@ -849,7 +845,7 @@ TRY
   std::vector<StdSize> start(1, startIndex - localNbWeight);
   std::vector<StdSize> count(1, localNbWeight);
   
-  WriteNetCdf netCdfWriter(filename, client->intraComm);  
+  WriteNetCdf netCdfWriter(filename, context->intraComm_);  
 
   // Define some dimensions
   netCdfWriter.addDimensionWrite("n_src", n_src);
@@ -894,9 +890,8 @@ TRY
 
 
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int clientSize = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int clientSize = context->intraCommSize_;
 
 
   {

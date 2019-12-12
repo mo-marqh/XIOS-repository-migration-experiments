@@ -599,20 +599,24 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
 
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+    set<int> listNbServer ;
 
-    connectedServerRank_.clear();
-    nbSenders.clear();
-
-    for (int p = 0; p < nbSrvPools; ++p)
+    for (auto client : clients)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
       int nbServer = client->serverSize;
       int range, clientSize = client->clientSize;
       int rank = client->clientRank;
 
-      if (connectedServerRank_.find(nbServer) == connectedServerRank_.end())
+      if (listNbServer.find(nbServer)==listNbServer.end())
       {
+        listNbServer.insert(nbServer) ;
+ 
+        if (connectedServerRank_.find(nbServer) != connectedServerRank_.end())
+        {
+          nbSenders.erase(nbServer);
+          connectedServerRank_.erase(nbServer);
+        }
+
         size_t ni = this->n.getValue();
         size_t ibegin = this->begin.getValue();
         size_t nbIndex = index.numElements();

@@ -71,8 +71,7 @@ TRY
 {
   CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").resume() ;
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int nbClient = client->clientSize;
+  int nbClient = context->intraCommSize_;
   CArray<bool,1>& axisMask = axisSrc_->mask;
   int srcSize  = axisSrc_->n_glo.getValue();
   std::vector<CArray<double,1> > vecAxisValue;
@@ -226,8 +225,7 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(const CArray<double,1>& axi
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int nbClient = client->clientSize;
+  int nbClient = context->intraCommSize_;
 
   int srcSize  = axisSrc_->n_glo.getValue();
   int numValue = axisValue.numElements();
@@ -271,15 +269,15 @@ TRY
     }
 
     int* recvCount=new int[nbClient];
-    MPI_Allgather(&numValue,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm);
+    MPI_Allgather(&numValue,1,MPI_INT,recvCount,1,MPI_INT,context->intraComm_);
 
     int* displ=new int[nbClient];
     displ[0]=0 ;
     for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
 
     // Each client have enough global info of axis
-    MPI_Allgatherv(sendIndexBuff,numValue,MPI_INT,recvIndexBuff,recvCount,displ,MPI_INT,client->intraComm);
-    MPI_Allgatherv(sendValueBuff,numValue,MPI_DOUBLE,&(recvBuff[0]),recvCount,displ,MPI_DOUBLE,client->intraComm);
+    MPI_Allgatherv(sendIndexBuff,numValue,MPI_INT,recvIndexBuff,recvCount,displ,MPI_INT,context->intraComm_);
+    MPI_Allgatherv(sendValueBuff,numValue,MPI_DOUBLE,&(recvBuff[0]),recvCount,displ,MPI_DOUBLE,context->intraComm_);
 
     for (int idx = 0; idx < srcSize; ++idx)
     {

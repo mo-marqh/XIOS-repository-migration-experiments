@@ -78,8 +78,7 @@ namespace xios
             static bool dispatchEvent(CEventServer& event) ;
 
             //! Sending a request to set up variable data
-            void sendValue();
-            void sendValue(CContextClient* client, bool clientPrim = false);
+            void sendValue(CContextClient* client);
 
             static void recvValue(CEventServer& event) ;
             void recvValue(CBufferIn& buffer) ;

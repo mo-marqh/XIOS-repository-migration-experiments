@@ -93,8 +93,7 @@ void CDomainAlgorithmExpand::expandDomainEdgeConnectivity(CDomain* domainDestina
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-
+ 
   int type = 1; // For edge
   CMesh mesh;
   CArray<double,2>& bounds_lon_src = domainSource->bounds_lon_1d;
@@ -102,7 +101,7 @@ TRY
   CArray<int,2> neighborsSrc;
   switch (domainSource->type) {
    case CDomain::type_attr::unstructured:      
-      mesh.getGlobalNghbFaces(type, client->intraComm, domainSource->i_index, bounds_lon_src, bounds_lat_src, neighborsSrc);
+      mesh.getGlobalNghbFaces(type, context->intraComm_, domainSource->i_index, bounds_lon_src, bounds_lat_src, neighborsSrc);
       updateUnstructuredDomainAttributes(domainDestination, domainSource, neighborsSrc);
       break;
    default:
@@ -122,7 +121,6 @@ void CDomainAlgorithmExpand::expandDomainNodeConnectivity(CDomain* domainDestina
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
 
   int type = 1; // For edge
   CMesh mesh;
@@ -131,7 +129,7 @@ TRY
   CArray<int,2> neighborsSrc;
   switch (domainSource->type) {
    case CDomain::type_attr::unstructured:      
-      mesh.getGlobalNghbFaces(type, client->intraComm, domainSource->i_index, bounds_lon_src, bounds_lat_src, neighborsSrc);
+      mesh.getGlobalNghbFaces(type, context->intraComm_, domainSource->i_index, bounds_lon_src, bounds_lat_src, neighborsSrc);
       updateUnstructuredDomainAttributes(domainDestination, domainSource, neighborsSrc);
       break;
    default:
@@ -157,7 +155,6 @@ TRY
   int iindexDst, jindexDst, globIndexDst;
   int iindexSrc, jindexSrc, globIndexSrc;
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
 
   // First of all, "copy" all attributes of domain source to domain destination
   StdString domainDstRef = (!domainDestination->domain_ref.isEmpty()) ? domainDestination->domain_ref.getValue()
@@ -340,7 +337,7 @@ TRY
     data[dataIdx] = data_j_index_src_full(idx);
   }
 
-  CClientClientDHTDouble dhtData(localData,client->intraComm);
+  CClientClientDHTDouble dhtData(localData,context->intraComm_);
   dhtData.computeIndexInfoMapping(globalIndexSrcOnDstDomain);
   CClientClientDHTDouble::Index2VectorInfoTypeMap& neighborData = dhtData.getInfoIndexMap();
   CClientClientDHTDouble::Index2VectorInfoTypeMap::iterator ite = neighborData.end(), it;
@@ -481,7 +478,6 @@ TRY
 {
 
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
 
   // First of all, "copy" all attributes of domain source to domain destination
   StdString domainDstRef = (!domainDestination->domain_ref.isEmpty()) ? domainDestination->domain_ref.getValue()
@@ -605,7 +601,7 @@ TRY
     data[dataIdx] = data_i_index_src_full(idx);
   }
 
-  CClientClientDHTDouble dhtData(localData,client->intraComm);
+  CClientClientDHTDouble dhtData(localData, context->intraComm_);
   CArray<size_t,1> neighborInd(nbNeighbor);
   for (int idx = 0; idx < nbNeighbor; ++idx)
     neighborInd(idx) = neighborsDomainSrc(0,idx);

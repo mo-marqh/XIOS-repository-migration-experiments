@@ -5,6 +5,10 @@
 #include "object_factory.hpp"
 #include "context.hpp"
 #include "xios_spl.hpp"
+#include "string_tools.hpp"
+#include "contexts_manager.hpp"
+#include "services_manager.hpp"
+
 
 namespace xios
 {
@@ -101,7 +105,97 @@ namespace xios
    }
    CATCH
 
+   void CCouplerOut::solveDescInheritance(bool apply, const CAttributeMap * const parent)
+   TRY
+   {
+      SuperClassAttribute::setAttributes(parent,apply);
+      this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL);
+   }
+   CATCH_DUMP_ATTR
 
+   void CCouplerOut::solveFieldRefInheritance(bool apply)
+   TRY
+   {
+      // Rsolution des hritages par rfrence de chacun des champs contenus dans le fichier.
+      std::vector<CField*> allF = this->getAllFields();
+      for (unsigned int i = 0; i < allF.size(); i++)
+         allF[i]->solveRefInheritance(apply);
+   }
+   CATCH_DUMP_ATTR
+
+   void CCouplerOut::createInterCommunicator(void)
+   TRY
+   {
+     if (context.isEmpty())
+     {
+        ERROR("void CCouplerOut::createInterCommunicator(void)",
+               "The attribute <context> must be defined to specify the target coupling context");
+     }
+     CContext* contextPtr = CContext::getCurrent();
+     contextPtr->addCouplingChanel(context, true) ;
+   }
+   CATCH_DUMP_ATTR
+
+  
+   void CCouplerOut::solveOnlyRefOfEnabledFields(void)
+   TRY
+   {
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->solveOnlyReferenceEnabledField();
+     }
+   }
+   CATCH_DUMP_ATTR
+
+   void CCouplerOut::generateNewTransformationGridDest(void)
+   TRY
+   {
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->generateNewTransformationGridDest();
+     }
+   }
+   CATCH_DUMP_ATTR
+
+   void CCouplerOut::solveAllRefOfEnabledFieldsAndTransform(void)
+   TRY
+   {
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {       
+      this->enabledFields[i]->solveAllEnabledFieldsAndTransform();
+     }
+   }
+   CATCH_DUMP_ATTR
+
+   /*!
+    * Constructs the filter graph for each active field.
+    *
+    * \param gc the garbage collector to use when building the filter graph
+    */
+   void CCouplerOut::buildFilterGraphOfEnabledFields(CGarbageCollector& gc)
+   TRY
+   {
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->buildFilterGraph(gc, true);
+     }
+   }
+   CATCH_DUMP_ATTR
+
+   void CCouplerOut::checkGridOfEnabledFields(void)
+   TRY
+   { 
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->checkGridOfEnabledFields();
+     }
+   }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    //! Change virtual field group to a new one

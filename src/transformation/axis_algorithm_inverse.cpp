@@ -97,9 +97,8 @@ void CAxisAlgorithmInverse::updateAxisValue()
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int nbClient = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int nbClient = context->intraCommSize_;
 
   int niSrc     = axisSrc_->n.getValue();
   int ibeginSrc = axisSrc_->begin.getValue();
@@ -130,7 +129,7 @@ TRY
     ++localIndex;
   }
 
-  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
   dhtIndexProcRank.computeIndexInfoMapping(globalSrcIndex);
   CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
   std::unordered_map<int, std::vector<size_t> > globalSrcIndexSendToProc;
@@ -160,15 +159,15 @@ TRY
     sendSizeBuff[n] = sendSize;
     sendRankSizeMap[itIndex->first] = sendSize;
   }
-  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm);
+  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT,context->intraComm_);
 
   displ[0]=0 ;
   for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
   int recvSize=displ[nbClient-1]+recvCount[nbClient-1];
   int* recvRankBuff=new int[recvSize];
   int* recvSizeBuff=new int[recvSize];
-  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,client->intraComm);
-  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,client->intraComm);
+  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,context->intraComm_);
+  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,context->intraComm_);
   for (int i = 0; i < nbClient; ++i)
   {
     int currentPos = displ[i];
@@ -192,7 +191,7 @@ TRY
     sendValueToDest[recvRank] = new double [recvSize];
 
     requests.push_back(MPI_Request());
-    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, client->intraComm, &requests.back());
+    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, context->intraComm_, &requests.back());
   }
 
   std::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
@@ -214,7 +213,7 @@ TRY
 
     // Send global index source and mask
     requests.push_back(MPI_Request());
-    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, client->intraComm, &requests.back());
+    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, context->intraComm_, &requests.back());
   }
 
   status.resize(requests.size());
@@ -231,7 +230,7 @@ TRY
     int recvSize = itSend->second;
 
     requests.push_back(MPI_Request());
-    MPI_Irecv(recvValueFromSrc[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
+    MPI_Irecv(recvValueFromSrc[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, context->intraComm_, &requests.back());
   }
 
   for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
@@ -249,7 +248,7 @@ TRY
     }
     // Okie, now inform the destination which source index are masked
     requests.push_back(MPI_Request());
-    MPI_Isend(sendValueToDest[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
+    MPI_Isend(sendValueToDest[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, context->intraComm_, &requests.back());
   }
   status.resize(requests.size());
   MPI_Waitall(requests.size(), &requests[0], &status[0]);

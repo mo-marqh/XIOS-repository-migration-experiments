@@ -23,6 +23,8 @@
 #include "contexts_manager.hpp"
 #include "cxios.hpp"
 #include "client.hpp"
+#include "coupler_in.hpp"
+#include "coupler_out.hpp"
 
 namespace xios {
 
@@ -352,6 +354,9 @@ namespace xios {
    TRY
    {
       intraComm_=intraComm ;
+      MPI_Comm_rank(intraComm_, &intraCommRank_) ;
+      MPI_Comm_size(intraComm_, &intraCommSize_) ;
+
       serviceType_ = CServicesManager::CLIENT ;
       if (serviceType_==CServicesManager::CLIENT)
       {
@@ -384,6 +389,9 @@ namespace xios {
    {
      hasServer=true;
      intraComm_=intraComm ;
+     MPI_Comm_rank(intraComm_, &intraCommRank_) ;
+     MPI_Comm_size(intraComm_, &intraCommSize_) ;
+
      serviceType_=serviceType ;
 
      if (serviceType_==CServicesManager::GATHERER)
@@ -543,12 +551,76 @@ namespace xios {
       if (!finalized) finished &= serverPrimServer[i]->eventLoop(enableEventsProcessing);
     }
 
+    for (auto it=couplerClient_.begin(); it!=couplerClient_.end(); ++it)
+    {
+      if (!finalized) it->second->checkBuffers();
+    }
+
+    for (auto it=couplerServer_.begin(); it!=couplerServer_.end(); ++it)
+    {
+      if (!finalized) it->second->eventLoop(enableEventsProcessing);
+    }
+
     if (server!=nullptr) if (!finalized) finished &= server->eventLoop(enableEventsProcessing);
   
     return finalized && finished ;
   }
 
- 
+  void CContext::addCouplingChanel(const std::string& context, bool out)
+  {
+     vector<string> vectStr=splitRegex(context,"::") ;
+     string poolId=vectStr[0] ;
+     string serviceId=poolId ;
+     string contextId=vectStr[1] ;
+
+     int contextLeader ;
+     int type = CServicesManager::CLIENT ;
+     string contextName=CXios::getContextsManager()->getServerContextName(poolId, serviceId, 0, type, contextId) ;
+     
+     if (couplerClient_.find(contextName)==couplerClient_.end())
+     {
+       bool ok=CXios::getContextsManager()->getContextLeader(contextName, contextLeader, getIntraComm()) ;
+     
+       MPI_Comm interComm, interCommClient, interCommServer  ;
+       MPI_Comm intraCommClient, intraCommServer ;
+
+       if (ok) MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
+
+       MPI_Comm_dup(intraComm_, &intraCommClient) ;
+       MPI_Comm_dup(intraComm_, &intraCommServer) ;
+       if (out)
+       {
+         MPI_Comm_dup(interComm, &interCommClient) ;
+         MPI_Comm_dup(interComm, &interCommServer) ;
+         CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
+         CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
+       }
+       else
+       {
+          MPI_Comm_dup(interComm, &interCommServer) ;
+          MPI_Comm_dup(interComm, &interCommClient) ;
+          CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
+          CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
+       }
+       MPI_Comm_free(&interComm) ;
+
+
+      // for now, we don't now which beffer size must be used for client coupler
+      // It will be evaluated later. Fix a constant size for now...
+      // set to 10Mb for development
+       map<int,size_t> bufferSize, maxEventSize ;
+       for(int i=0;i<client->getRemoteSize();i++)
+       {
+         bufferSize[i]=10000000 ;
+         maxEventSize[i]=10000000 ;
+       }
+
+       client->setBufferSize(bufferSize, maxEventSize);    
+       
+       couplerClient_[contextName] = client ;
+       couplerServer_[contextName] = server ;
+     }
+  }
   
   void CContext::globalEventLoop(void)
   {
@@ -648,23 +720,33 @@ namespace xios {
      // After xml is parsed, there are some more works with post processing
      postProcessing();
 
-     // Check grid and calculate its distribution
-     checkGridEnabledFields();
- 
      // Distribute files between secondary servers according to the data size
      distributeFiles();
+
+     // Check grid and calculate its distribution
+     checkGridEnabledFields();
 
      setClientServerBuffer(client, (hasClient && !hasServer));
      for (int i = 0; i < clientPrimServer.size(); ++i)
          setClientServerBuffer(clientPrimServer[i], true);
 
+    
      if (hasClient)
-     {
-      // Send all attributes of current context to server
-      this->sendAllAttributesToServer();
+     { 
+       if (hasServer)
+       { 
+         for (auto it=clientPrimServer.begin(); it!=clientPrimServer.end();++it) 
+         {
+           this->sendAllAttributesToServer(*it); // Send all attributes of current context to server
+           CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(*it); // Send all attributes of current calendar
+         }
+       }
+       else
+       {
+         this->sendAllAttributesToServer(client);   // Send all attributes of current context to server
+         CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current calendar
+       }
 
-      // Send all attributes of current calendar
-      CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer();
 
       // We have enough information to send to server
       // First of all, send all enabled files
@@ -778,7 +860,7 @@ namespace xios {
      if (hasClient && !hasServer)
     {
       buildFilterGraphOfFieldsWithReadAccess();
-      postProcessFilterGraph();
+      postProcessFilterGraph(); // For coupling in, modify this later
     }
     
     checkGridEnabledFields();   
@@ -848,6 +930,12 @@ namespace xios {
      {
        enabledFiles[i]->checkGridOfEnabledFields();       
      }
+
+     size = enabledCouplerOut.size();
+     for (int i = 0; i < size; ++i)
+     {
+       enabledCouplerOut[i]->checkGridOfEnabledFields();       
+     }
    }
    CATCH_DUMP_ATTR
 
@@ -871,18 +959,29 @@ namespace xios {
       This can be done in a client then all computed information will be sent from this client to others
       \param [in] sendToServer Flag to indicate whether calculated information will be sent
    */
-   void CContext::solveOnlyRefOfEnabledFields(bool sendToServer)
+   void CContext::solveOnlyRefOfEnabledFields(void)
    TRY
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFiles[i]->solveOnlyRefOfEnabledFields(sendToServer);
+       this->enabledFiles[i]->solveOnlyRefOfEnabledFields();
      }
 
      for (int i = 0; i < size; ++i)
      {
        this->enabledFiles[i]->generateNewTransformationGridDest();
+     }
+
+     size = this->enabledCouplerOut.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledCouplerOut[i]->solveOnlyRefOfEnabledFields();
+     }
+
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledCouplerOut[i]->generateNewTransformationGridDest();
      }
    }
    CATCH_DUMP_ATTR
@@ -893,14 +992,21 @@ namespace xios {
       All computed information will be sent from this client to others.
       \param [in] sendToServer Flag to indicate whether calculated information will be sent
    */
-   void CContext::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
+   void CContext::solveAllRefOfEnabledFieldsAndTransform(void)
    TRY
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFiles[i]->solveAllRefOfEnabledFieldsAndTransform(sendToServer);
+       this->enabledFiles[i]->solveAllRefOfEnabledFieldsAndTransform();
      }
+
+     size = this->enabledCouplerOut.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledCouplerOut[i]->solveAllRefOfEnabledFieldsAndTransform();
+     }
+
    }
    CATCH_DUMP_ATTR
 
@@ -911,6 +1017,12 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFiles[i]->buildFilterGraphOfEnabledFields(garbageCollector);
+     }
+
+     size = this->enabledCouplerOut.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledCouplerOut[i]->buildFilterGraphOfEnabledFields(garbageCollector);
      }
    }
    CATCH_DUMP_ATTR
@@ -1001,6 +1113,8 @@ namespace xios {
 
      // Résolution des héritages par référence au niveau des fichiers.
       const vector<CFile*> allFiles=CFile::getAll();
+      const vector<CCouplerIn*> allCouplerIn=CCouplerIn::getAll();
+      const vector<CCouplerOut*> allCouplerOut=CCouplerOut::getAll();
       const vector<CGrid*> allGrids= CGrid::getAll();
 
       if (hasClient && !hasServer)
@@ -1008,6 +1122,12 @@ namespace xios {
       {
         for (unsigned int i = 0; i < allFiles.size(); i++)
           allFiles[i]->solveFieldRefInheritance(apply);
+
+        for (unsigned int i = 0; i < allCouplerIn.size(); i++)
+          allCouplerIn[i]->solveFieldRefInheritance(apply);
+
+        for (unsigned int i = 0; i < allCouplerOut.size(); i++)
+          allCouplerOut[i]->solveFieldRefInheritance(apply);
       }
 
       unsigned int vecSize = allGrids.size();
@@ -1069,6 +1189,37 @@ namespace xios {
 
    }
    CATCH_DUMP_ATTR
+
+   void CContext::findEnabledCouplerIn(void)
+   TRY
+   {
+      const std::vector<CCouplerIn*> allCouplerIn = CCouplerIn::getAll();
+      bool enabled ;
+      for (size_t i = 0; i < allCouplerIn.size(); i++)
+      {
+        if (allCouplerIn[i]->enabled.isEmpty()) enabled=true ;
+        else enabled=allCouplerIn[i]->enabled ;
+        if (enabled) enabledCouplerIn.push_back(allCouplerIn[i]) ;
+      }
+   }
+   CATCH_DUMP_ATTR
+
+   void CContext::findEnabledCouplerOut(void)
+   TRY
+   {
+      const std::vector<CCouplerOut*> allCouplerOut = CCouplerOut::getAll();
+      bool enabled ;
+      for (size_t i = 0; i < allCouplerOut.size(); i++)
+      {
+        if (allCouplerOut[i]->enabled.isEmpty()) enabled=true ;
+        else enabled=allCouplerOut[i]->enabled ;
+        if (enabled) enabledCouplerOut.push_back(allCouplerOut[i]) ;
+      }
+   }
+   CATCH_DUMP_ATTR
+
+
+
 
    void CContext::distributeFiles(void)
    TRY
@@ -1668,6 +1819,10 @@ namespace xios {
       findEnabledFiles();
       findEnabledWriteModeFiles();
       findEnabledReadModeFiles();
+      findEnabledCouplerIn();
+      findEnabledCouplerOut();
+      
+      createCouplerInterCommunicator() ;
 
       // For now, only read files with client and only one level server
       // if (hasClient && !hasServer) findEnabledReadModeFiles();      
@@ -1688,10 +1843,10 @@ namespace xios {
       }
 
       // Only search and rebuild all reference objects of enable fields, don't transform
-      this->solveOnlyRefOfEnabledFields(false);
+      this->solveOnlyRefOfEnabledFields();
 
       // Search and rebuild all reference object of enabled fields, and transform
-      this->solveAllRefOfEnabledFieldsAndTransform(false);
+      this->solveAllRefOfEnabledFieldsAndTransform();
 
       // Find all fields with read access from the public API
       if (hasClient && !hasServer) findFieldsWithReadAccess();
@@ -1699,6 +1854,22 @@ namespace xios {
       if (hasClient && !hasServer) solveAllRefOfFieldsWithReadAccess();
 
       isPostProcessed = true;
+   }
+   CATCH_DUMP_ATTR
+
+   void CContext::createCouplerInterCommunicator(void)
+   TRY
+   {
+      // juste for test now, in future need an scheduler to avoid dead-lock
+      for(auto it=enabledCouplerOut.begin();it!=enabledCouplerOut.end();++it)
+      {
+        (*it)->createInterCommunicator() ;
+      }
+
+      for(auto it=enabledCouplerIn.begin();it!=enabledCouplerIn.end();++it)
+      {
+        (*it)->createInterCommunicator() ;
+      }
    }
    CATCH_DUMP_ATTR
 
@@ -1952,7 +2123,8 @@ namespace xios {
    void CContext::sendRefGrid(const std::vector<CFile*>& activeFiles)
    TRY
    {
-     std::set<StdString> gridIds;
+     std::set<pair<StdString,CContextClient*>> gridIds;
+
      int sizeFile = activeFiles.size();
      CFile* filePtr(NULL);
 
@@ -1965,21 +2137,20 @@ namespace xios {
        for (int numField = 0; numField < sizeField; ++numField)
        {
          if (0 != enabledFields[numField]->getRelGrid())
-           gridIds.insert(CGrid::get(enabledFields[numField]->getRelGrid())->getId());
+           gridIds.insert(make_pair(CGrid::get(enabledFields[numField]->getRelGrid())->getId(),enabledFields[numField]->getContextClient()));
        }
      }
 
      // Create all reference grids on server side
      StdString gridDefRoot("grid_definition");
      CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
-     std::set<StdString>::const_iterator it, itE = gridIds.end();
-     for (it = gridIds.begin(); it != itE; ++it)
+     for (auto it = gridIds.begin(); it != gridIds.end(); ++it)
      {
-       gridPtr->sendCreateChild(*it);
-       CGrid::get(*it)->sendAllAttributesToServer();
-       CGrid::get(*it)->sendAllDomains();
-       CGrid::get(*it)->sendAllAxis();
-       CGrid::get(*it)->sendAllScalars();
+       gridPtr->sendCreateChild(it->first,it->second);
+       CGrid::get(it->first)->sendAllAttributesToServer(it->second);
+       CGrid::get(it->first)->sendAllDomains(it->second);
+       CGrid::get(it->first)->sendAllAxis(it->second);
+       CGrid::get(it->first)->sendAllScalars(it->second);
      }
    }
    CATCH_DUMP_ATTR
@@ -1988,7 +2159,7 @@ namespace xios {
    void CContext::sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles)
    TRY
    {
-     std::set<StdString> domainIds, axisIds, scalarIds;
+     std::set<pair<StdString,CContextClient*>> domainIds, axisIds, scalarIds;
 
      // Find all reference domain and axis of all active fields
      int numEnabledFiles = activeFiles.size();
@@ -1998,10 +2169,11 @@ namespace xios {
        int numEnabledFields = enabledFields.size();
        for (int j = 0; j < numEnabledFields; ++j)
        {
+         CContextClient* contextClient=enabledFields[j]->getContextClient() ;
          const std::vector<StdString>& prDomAxisScalarId = enabledFields[j]->getRefDomainAxisIds();
-         if ("" != prDomAxisScalarId[0]) domainIds.insert(prDomAxisScalarId[0]);
-         if ("" != prDomAxisScalarId[1]) axisIds.insert(prDomAxisScalarId[1]);
-         if ("" != prDomAxisScalarId[2]) scalarIds.insert(prDomAxisScalarId[2]);
+         if ("" != prDomAxisScalarId[0]) domainIds.insert(make_pair(prDomAxisScalarId[0],contextClient));
+         if ("" != prDomAxisScalarId[1]) axisIds.insert(make_pair(prDomAxisScalarId[1],contextClient));
+         if ("" != prDomAxisScalarId[2]) scalarIds.insert(make_pair(prDomAxisScalarId[2],contextClient));
        }
      }
 
@@ -2011,37 +2183,37 @@ namespace xios {
 
      StdString scalarDefRoot("scalar_definition");
      CScalarGroup* scalarPtr = CScalarGroup::get(scalarDefRoot);
-     itE = scalarIds.end();
-     for (itScalar = scalarIds.begin(); itScalar != itE; ++itScalar)
+     
+     for (auto itScalar = scalarIds.begin(); itScalar != scalarIds.end(); ++itScalar)
      {
-       if (!itScalar->empty())
+       if (!itScalar->first.empty())
        {
-         scalarPtr->sendCreateChild(*itScalar);
-         CScalar::get(*itScalar)->sendAllAttributesToServer();
+         scalarPtr->sendCreateChild(itScalar->first,itScalar->second);
+         CScalar::get(itScalar->first)->sendAllAttributesToServer(itScalar->second);
        }
      }
 
      StdString axiDefRoot("axis_definition");
      CAxisGroup* axisPtr = CAxisGroup::get(axiDefRoot);
-     itE = axisIds.end();
-     for (itAxis = axisIds.begin(); itAxis != itE; ++itAxis)
+     
+     for (auto itAxis = axisIds.begin(); itAxis != axisIds.end(); ++itAxis)
      {
-       if (!itAxis->empty())
+       if (!itAxis->first.empty())
        {
-         axisPtr->sendCreateChild(*itAxis);
-         CAxis::get(*itAxis)->sendAllAttributesToServer();
+         axisPtr->sendCreateChild(itAxis->first, itAxis->second);
+         CAxis::get(itAxis->first)->sendAllAttributesToServer(itAxis->second);
        }
      }
 
      // Create all reference domains on server side
      StdString domDefRoot("domain_definition");
      CDomainGroup* domPtr = CDomainGroup::get(domDefRoot);
-     itE = domainIds.end();
-     for (itDom = domainIds.begin(); itDom != itE; ++itDom)
+     
+     for (auto itDom = domainIds.begin(); itDom != domainIds.end(); ++itDom)
      {
-       if (!itDom->empty()) {
-          domPtr->sendCreateChild(*itDom);
-          CDomain::get(*itDom)->sendAllAttributesToServer();
+       if (!itDom->first.empty()) {
+          domPtr->sendCreateChild(itDom->first, itDom->second);
+          CDomain::get(itDom->first)->sendAllAttributesToServer(itDom->second);
        }
      }
    }

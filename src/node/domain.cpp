@@ -301,8 +301,8 @@ namespace xios {
      CContext* context = CContext::getCurrent();
      // For now the assumption is that secondary server pools consist of the same number of procs.
      // CHANGE the line below if the assumption changes.
-     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
-     int rankClient = client->clientRank;
+
+     int rankClient = context->intraCommRank_;
      int rankOnDomain = rankClient%nbLocalDomain;
 
      if (ni_glo.isEmpty() || ni_glo <= 0 )
@@ -679,27 +679,27 @@ namespace xios {
      CContext* context = CContext::getCurrent();
     // For now the assumption is that secondary server pools consist of the same number of procs.
     // CHANGE the line below if the assumption changes.
-    CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
+     int clientSize = context->intraCommSize_ ;
      lon_g.resize(ni_glo) ;
      lat_g.resize(nj_glo) ;
 
 
-     int* ibegin_g = new int[client->clientSize] ;
-     int* jbegin_g = new int[client->clientSize] ;
-     int* ni_g = new int[client->clientSize] ;
-     int* nj_g = new int[client->clientSize] ;
+     int* ibegin_g = new int[clientSize] ;
+     int* jbegin_g = new int[clientSize] ;
+     int* ni_g = new int[clientSize] ;
+     int* nj_g = new int[clientSize] ;
      int v ;
      v=ibegin ;
-     MPI_Allgather(&v,1,MPI_INT,ibegin_g,1,MPI_INT,client->intraComm) ;
+     MPI_Allgather(&v,1,MPI_INT,ibegin_g,1,MPI_INT,context->intraComm_) ;
      v=jbegin ;
-     MPI_Allgather(&v,1,MPI_INT,jbegin_g,1,MPI_INT,client->intraComm) ;
+     MPI_Allgather(&v,1,MPI_INT,jbegin_g,1,MPI_INT,context->intraComm_) ;
      v=ni ;
-     MPI_Allgather(&v,1,MPI_INT,ni_g,1,MPI_INT,client->intraComm) ;
+     MPI_Allgather(&v,1,MPI_INT,ni_g,1,MPI_INT,context->intraComm_) ;
      v=nj ;
-     MPI_Allgather(&v,1,MPI_INT,nj_g,1,MPI_INT,client->intraComm) ;
+     MPI_Allgather(&v,1,MPI_INT,nj_g,1,MPI_INT,context->intraComm_) ;
 
-     MPI_Allgatherv(lon.dataFirst(),ni,MPI_DOUBLE,lon_g.dataFirst(),ni_g, ibegin_g,MPI_DOUBLE,client->intraComm) ;
-     MPI_Allgatherv(lat.dataFirst(),nj,MPI_DOUBLE,lat_g.dataFirst(),nj_g, jbegin_g,MPI_DOUBLE,client->intraComm) ;
+     MPI_Allgatherv(lon.dataFirst(),ni,MPI_DOUBLE,lon_g.dataFirst(),ni_g, ibegin_g,MPI_DOUBLE,context->intraComm_) ;
+     MPI_Allgatherv(lat.dataFirst(),nj,MPI_DOUBLE,lat_g.dataFirst(),nj_g, jbegin_g,MPI_DOUBLE,context->intraComm_) ;
 
       delete[] ibegin_g ;
       delete[] jbegin_g ;
@@ -1830,23 +1830,25 @@ namespace xios {
   TRY
   {
     CContext* context=CContext::getCurrent() ;
-    
-    // This line should be changed soon.
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
+    set<int> listNbServer ;
 
-    nbSenders.clear();
-    connectedServerRank_.clear();
-
-    for (int p = 0; p < nbSrvPools; ++p)
+    for (auto client : clients)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+
       int nbServer = client->serverSize;
       int nbClient = client->clientSize;
       int rank     = client->clientRank;
       bool doComputeGlobalIndexServer = true;
-
-      if (connectedServerRank_.find(nbServer) == connectedServerRank_.end())
+   
+      if (listNbServer.find(nbServer)==listNbServer.end())
       {
+        listNbServer.insert(nbServer) ;
+ 
+        if (connectedServerRank_.find(nbServer) != connectedServerRank_.end())
+        {
+          nbSenders.erase(nbServer);
+          connectedServerRank_.erase(nbServer);
+        }
 
         if (indSrv_.find(nbServer) == indSrv_.end())
         {

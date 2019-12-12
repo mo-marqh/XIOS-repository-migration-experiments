@@ -59,9 +59,8 @@ void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int clientSize = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int clientSize = context->intraCommSize_;
 
   if (2 == elementSourceType) // Source is a domain
   {
@@ -83,7 +82,7 @@ TRY
       }
     }
 
-    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
     dhtIndexProcRank.computeIndexInfoMapping(globalIndexElementSource);
     globalIndexElementSourceOnProc = dhtIndexProcRank.getInfoIndexMap();
   }
@@ -105,7 +104,7 @@ TRY
       }
     }
 
-    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
     dhtIndexProcRank.computeIndexInfoMapping(globalIndexElementSource);
     globalIndexElementSourceOnProc = dhtIndexProcRank.getInfoIndexMap();
   }
@@ -116,7 +115,7 @@ TRY
     globalIndex2ProcRank[globalIndex].resize(1);
     globalIndex2ProcRank[globalIndex][0] = clientRank;
 
-    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
     dhtIndexProcRank.computeIndexInfoMapping(globalIndexElementSource);
     globalIndexElementSourceOnProc = dhtIndexProcRank.getInfoIndexMap();
   }

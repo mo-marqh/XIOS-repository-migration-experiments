@@ -75,9 +75,8 @@ void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int clientSize = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int clientSize = context->intraCommSize_;
 
   size_t globalIndex;
   int nIndexSize = 0;
@@ -126,7 +125,7 @@ TRY
     }
   }
 
-  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
   dhtIndexProcRank.computeIndexInfoMapping(globalAxisIndex);
 
   globalAxisIndexOnProc = dhtIndexProcRank.getInfoIndexMap();

@@ -38,9 +38,8 @@ void CDomainAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int clientSize = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int clientSize = context->intraCommSize_;
 
   int niGlob = domainSrc_->ni_glo.getValue();
   int njGlob = domainSrc_->nj_glo.getValue();
@@ -61,7 +60,7 @@ TRY
     }
   }
 
-  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
   dhtIndexProcRank.computeIndexInfoMapping(globalDomainIndex);
   globalDomainIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
 }

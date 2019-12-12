@@ -833,13 +833,13 @@ namespace xios {
    all information of active fields are created on server side, e.g: checking mask or index
    \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
    */
-   void CFile::solveOnlyRefOfEnabledFields(bool sendToServer)
+   void CFile::solveOnlyRefOfEnabledFields(void)
    TRY
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
+       this->enabledFields[i]->solveOnlyReferenceEnabledField();
      }
    }
    CATCH_DUMP_ATTR
@@ -952,7 +952,7 @@ namespace xios {
    all information of active fields are created on server side, e.g: checking mask or index
    \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
    */
-   void CFile::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
+   void CFile::solveAllRefOfEnabledFieldsAndTransform(void)
    TRY
    {
      int size = this->enabledFields.size();

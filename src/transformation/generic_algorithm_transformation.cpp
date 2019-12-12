@@ -123,8 +123,7 @@ TRY
     else
     {
       CContext* context = CContext::getCurrent();
-      CContextClient* client = context->client;
-  
+        
       computePositionElements(gridSrc, gridDst);
       std::vector<CScalar*> scalarListSrcP  = gridSrc->getScalars();
       std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
@@ -135,13 +134,13 @@ TRY
       if (2 == axisDomainSrcOrder(elementPositionInGrid)) // It's domain
       {
         distributed=domainListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]]->isDistributed() ;
-        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
+        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, context->intraComm_) ;
     
       }
       else if (1 == axisDomainSrcOrder(elementPositionInGrid))//it's an axis
       {
         distributed=axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]]->isDistributed() ;
-        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
+        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, context->intraComm_) ;
       }
       else //it's a scalar
       {
@@ -169,8 +168,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
 TRY
  {
   CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-  int nbClient = client->clientSize;
+  int nbClient = context->intraCommSize_;
 
   typedef std::unordered_map<int, std::vector<std::pair<int,double> > > SrcToDstMap;
   int idx;
@@ -237,7 +235,7 @@ TRY
       
   int sendValue = (computeGlobalIndexOnProc) ? 1 : 0;
   int recvValue = 0;
-  MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, client->intraComm);
+  MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, context->intraComm_);
   computeGlobalIndexOnProc = (0 < recvValue);
 
 //  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;
@@ -474,8 +472,7 @@ TRY
   SourceDestinationIndexMap globaIndexWeightFromSrcToDst_tmp ;
   
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
+  int clientRank = context->intraCommRank_;
   
   std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
   std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
@@ -666,9 +663,8 @@ void CGenericAlgorithmTransformation::computeExchangeScalarIndex(CScalar* scalar
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int clientSize = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int clientSize = context->intraCommSize_;
 
   globalScalarIndexOnProc.rehash(std::ceil(clientSize/globalScalarIndexOnProc.max_load_factor()));
   for (int idx = 0; idx < clientSize; ++idx)
@@ -692,9 +688,8 @@ void CGenericAlgorithmTransformation::computeExchangeAxisIndex(CAxis* axisDst,
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int clientSize = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int clientSize = context->intraCommSize_;
 
   size_t globalIndex;
   int nIndexSize = axisSrc->index.numElements();
@@ -709,7 +704,7 @@ TRY
     }
   }
 
-  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
   CArray<size_t,1> globalAxisIndex(axisDst->index.numElements());
   for (int idx = 0; idx < globalAxisIndex.numElements(); ++idx)
   {
@@ -763,9 +758,8 @@ void CGenericAlgorithmTransformation::computeExchangeDomainIndex(CDomain* domain
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-  int clientSize = client->clientSize;
+  int clientRank = context->intraCommRank_;
+  int clientSize = context->intraCommSize_;
 
   int niGlobSrc = domainSrc->ni_glo.getValue();
   size_t globalIndex;
@@ -819,7 +813,7 @@ TRY
     globalDomainIndex.reference(destGlobalIndexPositionInGrid);
   }
 
-  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
   dhtIndexProcRank.computeIndexInfoMapping(globalDomainIndex);
 
   std::vector<int> countIndex(clientSize,0);
@@ -861,8 +855,7 @@ TRY
 {
 
   CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-  int nbClient = client->clientSize;
+  int nbClient = context->intraCommSize_;
 
   computePositionElements(gridDst, gridSrc);
   std::vector<CScalar*> scalarListDstP = gridDst->getScalars();

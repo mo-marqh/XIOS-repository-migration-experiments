@@ -25,6 +25,8 @@ namespace xios {
    class CContextAttributes;
    class CContext;
    class CFile;
+   class CCouplerIn ;
+   class CCouplerOut ;
    ///--------------------------------------------------------------
 
    // Declare/Define CFileAttribute
@@ -119,6 +121,9 @@ namespace xios {
          void readAttributesOfEnabledFieldsInReadModeFiles();
          void solveAllInheritance(bool apply=true);
          void findEnabledFiles(void);
+         void findEnabledCouplerIn(void);
+         void findEnabledCouplerOut(void);
+         void createCouplerInterCommunicator(void) ;
          void findEnabledWriteModeFiles(void);
          void findEnabledReadModeFiles(void);
          void closeAllFile(void);
@@ -127,7 +132,7 @@ namespace xios {
          void initReadFiles(void);
          void checkAxisDomainsGridsEligibilityForCompressedOutput();
          void prepareTimeseries(void);
-         void solveOnlyRefOfEnabledFields(bool sendToServer);         
+         void solveOnlyRefOfEnabledFields(void);         
          void buildFilterGraphOfEnabledFields();
          void postProcessFilterGraph();
          void startPrefetchingOfEnabledReadModeFiles();
@@ -139,7 +144,7 @@ namespace xios {
          void postProcessing();
          void postProcessingGlobalAttributes();         
 
-         void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
+         void solveAllRefOfEnabledFieldsAndTransform(void);
          void checkGridEnabledFields();
          void checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
          void sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);  
@@ -242,6 +247,9 @@ namespace xios {
          bool isProcessingEvent(void) {return isProcessingEvent_;}
          bool setProcessingEvent(void) {isProcessingEvent_=true ;}
          bool unsetProcessingEvent(void) {isProcessingEvent_=false ;}
+         MPI_Comm getIntraComm(void) { return intraComm_ ;}
+
+         void addCouplingChanel(const std::string& contextId, bool out) ;
 
       public :
          // Calendar of context
@@ -253,6 +261,10 @@ namespace xios {
          std::vector<CFile*> enabledReadModeFiles;
          // List of all enabled files in write mode
          std::vector<CFile*> enabledWriteModeFiles;
+
+         std::vector<CCouplerIn*> enabledCouplerIn;
+         std::vector<CCouplerOut*> enabledCouplerOut;
+
 
          // List of all enabled fields whose instant data is accessible from the public API
          // but which are not part of a file
@@ -271,6 +283,10 @@ namespace xios {
          CContextClient* client;    //!< Concrete contex client
          std::vector<CContextServer*> serverPrimServer;
          std::vector<CContextClient*> clientPrimServer;
+         std::map<std::string, CContextClient*> couplerClient_ ;
+         std::map<std::string, CContextServer*> couplerServer_ ;
+
+
          std::vector<std::string> primServerId_;
 
          CRegistry* registryIn ;    //!< input registry which is read from file
@@ -278,7 +294,9 @@ namespace xios {
 
 
         MPI_Comm intraComm_ ; //! context intra communicator
-
+        int intraCommRank_ ; //! context intra communicator rank
+        int intraCommSize_ ; //! context intra communicator size
+        
       private:
          bool isPostProcessed;
          bool allProcessed;

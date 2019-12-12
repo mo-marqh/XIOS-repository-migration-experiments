@@ -121,7 +121,7 @@ namespace xios {
          void solveServerOperation(void);
          void solveCheckMaskIndex(bool doSendingIndex);
          void solveAllReferenceEnabledField(bool doSending2Server);
-         void solveOnlyReferenceEnabledField(bool doSending2Server);
+         void solveOnlyReferenceEnabledField(void);
          void generateNewTransformationGridDest();
          void updateRef(CGrid* grid);
          void buildGridTransformationGraph();

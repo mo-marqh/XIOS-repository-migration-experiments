@@ -71,9 +71,8 @@ namespace xios
          V* createChildGroup(const string& id="") ; 
          void addChildGroup(V* childGroup) ; 
          static bool dispatchEvent(CEventServer& event) ;
-         void sendCreateChild(const string& id="") ;
          void sendCreateChild(const string& id, CContextClient* client) ;
-         void sendCreateChildGroup(const string& id="") ;
+         void sendCreateChildGroup(const string& id, CContextClient* client) ;
          static void recvCreateChild(CEventServer& event) ;
          void recvCreateChild(CBufferIn& buffer) ;
          static void recvCreateChildGroup(CEventServer& event) ;

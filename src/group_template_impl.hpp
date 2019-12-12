@@ -368,39 +368,6 @@ namespace xios
     return CGroupFactory::AddGroup<V>(this->getShared(), childGroup->getShared()) ;
   }
 
-
-   template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::sendCreateChild(const string& id)
-   {
-    CContext* context=CContext::getCurrent() ;  
-
-    if (context->hasClient)
-    // if (!context->hasServer )
-    {
-      // Use correct context client to send message
-//      CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
-      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-      for (int i = 0; i < nbSrvPools; ++i)
-      {
-         CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
-
-         CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;
-         if (contextClientTmp->isServerLeader())
-         {
-           CMessage msg ;
-           msg<<this->getId() ;
-           msg<<id ;
-           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             event.push(*itRank,1,msg) ;
-           contextClientTmp->sendEvent(event) ;
-         }
-         else contextClientTmp->sendEvent(event) ;
-      }
-    }
-      
-   }
-
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::sendCreateChild(const string& id, CContextClient* client)
    {
@@ -419,35 +386,24 @@ namespace xios
     else client->sendEvent(event) ;
    }
 
-
    template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id)
+   void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id, CContextClient* client)
    {
-    CContext* context=CContext::getCurrent() ;
-    if (context->hasClient)
-    {
-      // Use correct context client to send message
-      // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-      for (int i = 0; i < nbSrvPools; ++i)
-      {
-        CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
-        CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;
-        if (contextClientTmp->isServerLeader())
-        {
-          CMessage msg ;
-          msg<<this->getId() ;
-          msg<<id ;
-          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-            event.push(*itRank,1,msg) ;
-          contextClientTmp->sendEvent(event) ;
-        }
-        else contextClientTmp->sendEvent(event) ;
-      }
-    }
-   }
-   
+     CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;
+     if (client->isServerLeader())
+     {
+       CMessage msg ;
+       msg<<this->getId() ;
+       msg<<id ;
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg) ;
+       client->sendEvent(event) ;
+     }
+     else client->sendEvent(event) ;
+   }   
+
+
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::recvCreateChild(CEventServer& event)
    {

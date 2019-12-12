@@ -186,9 +186,9 @@ namespace xios
   {
     CTimer::get("CSpatialTransformFilterEngine::apply").resume(); 
     
-    CContextClient* client = CContext::getCurrent()->client;
+    CContext* context = CContext::getCurrent();
     int rank;
-    MPI_Comm_rank (client->intraComm, &rank);
+    MPI_Comm_rank (context->intraComm_, &rank);
 
     // Get default value for output data
     bool ignoreMissingValue = false; 
@@ -245,7 +245,7 @@ namespace xios
             sendBuff[idxSendBuff][idx] = dataCurrentSrc(localIndex_p(idx));
           }
           sendRecvRequest.push_back(MPI_Request());
-          MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRecvRequest.back());
+          MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, context->intraComm_, &sendRecvRequest.back());
         }
         else
         {
@@ -278,7 +278,7 @@ namespace xios
         {
           int countSize = itRecv->second.size();
           sendRecvRequest.push_back(MPI_Request());
-          MPI_Irecv(recvBuff + currentBuff, countSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &sendRecvRequest.back());
+          MPI_Irecv(recvBuff + currentBuff, countSize, MPI_DOUBLE, srcRank, 12, context->intraComm_, &sendRecvRequest.back());
           currentBuff += countSize;
         }
       }

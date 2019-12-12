@@ -64,6 +64,9 @@ namespace xios
 
       void setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize);
 
+      int getRemoteSize(void) {return serverSize;}
+      int getServerSize(void) {return serverSize;}
+      
     public:
       CContext* context; //!< Context for client
 

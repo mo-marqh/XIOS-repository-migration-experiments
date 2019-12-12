@@ -47,15 +47,16 @@ void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource(CGrid* g
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-
+  int clientSize = context->intraCommSize_ ;
+  int clientRank = context->intraCommRank_ ;
+  
   std::vector<CDomain*> domListSrcP = gridSrc->getDomains();
   std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
 
   for (int i = 0; i < domListSrcP.size(); ++i) // support we have only domain, more than one, for now, dont know how to process
   {
     // First, find (roundly) distribution of associated axis (if any)
-    if (axisListSrcP.empty()) nbDomainDistributedPart_ = client->clientSize;
+    if (axisListSrcP.empty()) nbDomainDistributedPart_ = clientSize;
     else
     {
       gridSrc->solveAxisRef(false);
@@ -68,12 +69,12 @@ TRY
           globalAxisIndex[idx] = axisListSrcP[j]->begin + idx;
         HashXIOS<int> hashFunc;
         StdSize hashValue = hashFunc.hashVec(globalAxisIndex);
-        std::vector<StdSize> recvBuff(client->clientSize);
+        std::vector<StdSize> recvBuff(clientSize);
         MPI_Gather(&hashValue, 1, MPI_UNSIGNED_LONG,
                    &recvBuff[0], 1, MPI_UNSIGNED_LONG,
                    0,
-                   client->intraComm);
-        if (0 == client->clientRank)
+                   context->intraComm_);
+        if (0 == clientRank)
         {
           std::set<StdSize> setTmp;
           for (int k = 0; k < recvBuff.size(); ++k)
@@ -87,12 +88,12 @@ TRY
         }
 
         MPI_Bcast(&nbLocalAxis[0], nbAxis, MPI_INT,
-                  0, client->intraComm);
+                  0, context->intraComm_);
       }
 
       int nbAxisDistributedPart = 1;
       for (int j = 0; j < nbAxis; ++j) nbAxisDistributedPart *= nbLocalAxis[j];
-      nbDomainDistributedPart_ = client->clientSize/nbAxisDistributedPart;
+      nbDomainDistributedPart_ = clientSize/nbAxisDistributedPart;
     }
   }
 }
@@ -117,12 +118,11 @@ TRY
   }
 
   CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-  int modPart = (client->clientSize) % nbPartition;
+  int modPart = (context->intraCommSize_) % nbPartition;
   if (0 != modPart)
     ERROR("CDomainAlgorithmGenerateRectilinear::computeDistributionGridDestination(CGrid* gridDest)",
        << "The grid " <<gridDest->getId() << " is not well-distributed. There is an incompatibility between distribution of axis and domain.");
-  nbDomainDistributedPart_ = client->clientSize/nbPartition;
+  nbDomainDistributedPart_ = context->intraCommSize_/nbPartition;
 
 }
 CATCH

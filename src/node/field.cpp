@@ -975,7 +975,7 @@ namespace xios{
    }   
    CATCH_DUMP_ATTR
 
-   void CField::solveOnlyReferenceEnabledField(bool doSending2Server)
+   void CField::solveOnlyReferenceEnabledField(void)
    TRY
    {
      CContext* context = CContext::getCurrent();
@@ -986,7 +986,7 @@ namespace xios{
         if (context->hasClient && !context->hasServer)
         {
           solveRefInheritance(true);
-          if (hasDirectFieldReference()) getDirectFieldReference()->solveOnlyReferenceEnabledField(false);
+          if (hasDirectFieldReference()) getDirectFieldReference()->solveOnlyReferenceEnabledField();
         }
 
         if (context->hasServer)
@@ -1008,7 +1008,7 @@ namespace xios{
    TRY
    {
      CContext* context = CContext::getCurrent();
-     solveOnlyReferenceEnabledField(doSending2Server);
+     solveOnlyReferenceEnabledField();
 
      if (!areAllReferenceSolved)
      {

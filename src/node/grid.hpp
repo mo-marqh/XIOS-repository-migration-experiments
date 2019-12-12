@@ -143,12 +143,12 @@ namespace xios {
          CDomain* addDomain(const std::string& id=StdString());
          CAxis* addAxis(const std::string& id=StdString());
          CScalar* addScalar(const std::string& id=StdString());
-         void sendAddDomain(const std::string& id="");
-         void sendAddAxis(const std::string& id="");
-         void sendAddScalar(const std::string& id="");
-         void sendAllDomains();
-         void sendAllAxis();
-         void sendAllScalars();
+         void sendAddDomain(const std::string& id,CContextClient* contextClient);
+         void sendAddAxis(const std::string& id,CContextClient* contextClient);
+         void sendAddScalar(const std::string& id,CContextClient* contextClient);
+         void sendAllDomains(CContextClient* contextClient);
+         void sendAllAxis(CContextClient* contextClient);
+         void sendAllScalars(CContextClient* contextClient);
 
          static void recvAddDomain(CEventServer& event);
          void recvAddDomain(CBufferIn& buffer);
@@ -217,8 +217,6 @@ namespace xios {
          std::map<CContextClient*, std::map<int,int> > nbReadSenders;
 
          map<int, CArray<int, 1> > storeIndex_fromSrv; // Support, for now, reading with level-1 server
-
-         map<int, CArray<size_t, 1> > outIndexFromClient;  // Deprecated
 
          map<int, CArray<size_t, 1> > compressedOutIndexFromClient;
 
@@ -364,7 +362,7 @@ namespace xios {
         std::map<int, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
 
 
-/** List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false) */
+/** List order of axis and domain in a grid, if there is a domain, it will take value 2, axis 1, scalar 0 */
         std::vector<int> order_;
 
    }; // class CGrid
