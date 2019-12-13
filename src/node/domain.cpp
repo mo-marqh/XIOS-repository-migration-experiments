@@ -226,7 +226,7 @@ namespace xios {
       bool distributed =  !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
               (!i_index.isEmpty() && i_index.numElements() == ni_glo*nj_glo));
       bool distributed_glo ;
-      distributed |= (1 == CContext::getCurrent()->client->clientSize);
+      distributed |= (1 == CContext::getCurrent()->intraCommSize_);
 
       return distributed;
    }

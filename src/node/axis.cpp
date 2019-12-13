@@ -92,7 +92,7 @@ namespace xios {
              (!this->n.isEmpty() && (this->n != this->n_glo));
       // A condition to make sure that if there is only one client, axis
       // should be considered to be distributed. This should be a temporary solution     
-      distributed |= (1 == CContext::getCurrent()->client->clientSize);
+      distributed |= (1 == CContext::getCurrent()->intraCommSize_);
       return distributed;
    }
    CATCH

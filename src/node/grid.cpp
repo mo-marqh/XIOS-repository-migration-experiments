@@ -1351,9 +1351,7 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();    
     {
-      CContextClient* client = context->client;
-
-      int rank = client->clientRank;
+      int rank = context->intraCommRank_;
 
       clientDistribution_ = new CDistributionClient(rank, this);
 

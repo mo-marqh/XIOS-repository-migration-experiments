@@ -561,8 +561,8 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std
 TRY
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
+  int clientRank = context->intraCommRank_;
+  int nbClient = context-> intraCommSize_;
 
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -586,7 +586,7 @@ TRY
   }
 
   CClientServerMappingDistributed domainIndexClientClientMapping(globalIndexOfDomainDest,
-                                                                 client->intraComm,
+                                                                 context->intraComm_,
                                                                  true);
   CArray<size_t,1> globalIndexInterp(interpMapValue.size());
   std::map<int,std::vector<std::pair<int,double> > >::const_iterator itb = interpMapValue.begin(), it,
@@ -598,11 +598,10 @@ TRY
     ++globalIndexCount;
   }
 
-  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp, client->clientSize);
+  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp, nbClient);
   const CClientServerMapping::GlobalIndexMap& globalIndexInterpSendToClient = domainIndexClientClientMapping.getGlobalIndexOnServer();
 
   //Inform each client number of index they will receive
-  int nbClient = client->clientSize;
   int* sendBuff = new int[nbClient];
   int* recvBuff = new int[nbClient];
   for (int i = 0; i < nbClient; ++i)
@@ -627,7 +626,7 @@ TRY
   }
 
 
-  MPI_Allreduce(sendBuff, recvBuff, nbClient, MPI_INT, MPI_SUM, client->intraComm);
+  MPI_Allreduce(sendBuff, recvBuff, nbClient, MPI_INT, MPI_SUM, context->intraComm_);
 
   int* sendIndexDestBuff = new int [sendBuffSize];
   int* sendIndexSrcBuff  = new int [sendBuffSize];
@@ -660,7 +659,7 @@ TRY
              MPI_INT,
              itMap->first,
              MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
-             client->intraComm,
+             context->intraComm_,
              &sendRequest.back());
     sendRequest.push_back(MPI_Request());
     MPI_Isend(sendIndexSrcBuff + sendOffSet,
@@ -668,7 +667,7 @@ TRY
              MPI_INT,
              itMap->first,
              MPI_DOMAIN_INTERPOLATION_SRC_INDEX,
-             client->intraComm,
+             context->intraComm_,
              &sendRequest.back());
     sendRequest.push_back(MPI_Request());
     MPI_Isend(sendWeightBuff + sendOffSet,
@@ -676,7 +675,7 @@ TRY
              MPI_DOUBLE,
              itMap->first,
              MPI_DOMAIN_INTERPOLATION_WEIGHT,
-             client->intraComm,
+             context->intraComm_,
              &sendRequest.back());
     sendOffSet += k;
   }
@@ -695,7 +694,7 @@ TRY
              MPI_INT,
              MPI_ANY_SOURCE,
              MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
-             client->intraComm,
+             context->intraComm_,
              &recvStatus);
 
     int countBuff = 0;
@@ -707,7 +706,7 @@ TRY
              MPI_INT,
              clientSrcRank,
              MPI_DOMAIN_INTERPOLATION_SRC_INDEX,
-             client->intraComm,
+             context->intraComm_,
              &recvStatus);
 
     MPI_Recv((recvWeightBuff + receivedSize),
@@ -715,7 +714,7 @@ TRY
              MPI_DOUBLE,
              clientSrcRank,
              MPI_DOMAIN_INTERPOLATION_WEIGHT,
-             client->intraComm,
+             context->intraComm_,
              &recvStatus);
 
     for (int idx = 0; idx < countBuff; ++idx)
