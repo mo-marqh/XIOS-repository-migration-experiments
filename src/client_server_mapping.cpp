@@ -26,7 +26,7 @@ some clients. In order to write data correctly, each server must know from how m
   \param [in] nbServer number of servers
   \param [in] nClient number of clients
   \param [in] clientIntraComm MPI communication of clients
-  \param [in] connectedServerRank Rank of servers connected to one client
+  \param [in] connectedServerRank Rank of servers connected to the current client
 */
 std::map<int,int> CClientServerMapping::computeConnectedClients(int nbServer, int nbClient,
                                                                 MPI_Comm& clientIntraComm,

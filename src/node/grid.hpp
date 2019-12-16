@@ -204,45 +204,6 @@ namespace xios {
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
          size_t getGlobalWrittenSize(void) ;
-      public:
-         CArray<int, 1> storeIndex_client;
-         CArray<bool, 1> storeMask_client;
-
-/** Map containing indexes that will be sent in sendIndex(). */
-         std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv;
-
-/** Map storing the number of senders. Key = size of receiver's intracomm */
-         std::map<int, std::map<int,int> > nbSenders;
-
-         std::map<CContextClient*, std::map<int,int> > nbReadSenders;
-
-         map<int, CArray<int, 1> > storeIndex_fromSrv; // Support, for now, reading with level-1 server
-
-         map<int, CArray<size_t, 1> > compressedOutIndexFromClient;
-
-/** Map storing received indexes. Key = sender rank, value = index array. */
-         map<int, CArray<size_t, 1> > outGlobalIndexFromClient;
-
-// Manh Ha's comment: " A client receives global index from other clients (via recvIndex)
-// then does mapping these index into local index of STORE_CLIENTINDEX
-// In this way, store_clientIndex can be used as an input of a source filter
-// Maybe we need a flag to determine whether a client wants to write. TODO "
-
-/** Map storing received data. Key = sender rank, value = data array.
- *  The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData() */
-         map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient; 
-
-/** Indexes calculated based on server-like distribution.
- *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
- *  Along with localIndexToWriteOnClient, these indexes are used to correctly place incoming data. */
-         CArray<size_t,1> localIndexToWriteOnServer;
-
-/** Indexes calculated based on client-like distribution.
- *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
- *  Along with localIndexToWriteOnServer, these indexes are used to correctly place incoming data. */
-         CArray<size_t,1> localIndexToWriteOnClient;
-
-         CArray<size_t,1> indexFromClients;
 
          bool hasMask(void) const;
          void checkMask(void);
@@ -302,11 +263,88 @@ namespace xios {
         void computeClientIndexScalarGrid(); 
         void computeConnectedClientsScalarGrid(); 
 
+
+      public:
+/** Array containing the local index of the grid
+ *  storeIndex_client[local_workflow_grid_index] -> local_model_grid_index. 
+ *  Used to store field from model into the worklow, or to return field into models.  
+ *  The size of the array is the number of local index of the workflow grid */        
+         CArray<int, 1> storeIndex_client_;
+
+/** Array containing the grid mask masked defined by the mask_nd grid attribute.        
+  * The corresponding masked field value provided by the model will be replaced by a NaN value
+  * in the workflow.  */
+         CArray<bool, 1> storeMask_client_;
+
+/** Map containing the indexes on client side that will be sent to each connected server.
+  * storeIndex_toSrv[&contextClient] -> map concerning the contextClient for which the data will be sent (client side)
+  * storeIndex_toSrv[&contextClient][rank] -> array of indexes that will be sent to each "rank" of the connected servers 
+  * storeIndex_toSrv[&contextClient][rank](index_of_buffer_sent_to_server) -> local index of the field of the workflow 
+  * grid that will be sent to server */
+         std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv_;
+
+
+/** Map containing the indexes on client side that will be received from each connected server.
+  * This map is used to agreggate field data received from server (for reading) into a single array, which will be an entry
+  * point of the worklow on client side.
+  * storeIndex_toSrv[rank] -> array of indexes that will be received from each "rank" of the connected servers 
+  * storeIndex_toSrv[rank](index_of_buffer_received_from_server) -> local index of the field in the "workflow grid"
+  * that has been received from server */
+         std::map<int, CArray<int, 1> > storeIndex_fromSrv_; // Support, for now, reading with level-1 server
+
+
+/** Maps storing the number of participating clients for data sent a specific server for a given contextClient, identified
+  * by the servers communicator size. In future must be direcly identified by context.
+  * nbSender_[context_server_size] -> map the number of client sender by connected rank of servers
+  * nbSender_[context_server_size] [rank_server] -> the number of client participating to a send message for a server of rank "rank_server" 
+  * Usefull to indicate in a message the number of participant needed by the transfer protocol */
+         std::map<int, std::map<int,int> > nbSenders_;
+
+
+/** Maps storing the number of participating servers for data sent a specific client for a given contextClient.
+  * Symetric of nbSenders_, but for server side which want to send data to client.
+  * nbReadSender_[context_client_size] -> map the number of server sender by connected rank of clients
+  * nbReadSender_[context_client_size] [rank_client] -> the number of serverq participating to a send message for a client of rank "rank_client" 
+  * Usefull to indicate in a message the number of participant needed by the transfer protocol */
+         std::map<CContextClient*, std::map<int,int> > nbReadSenders_;
+
+
+// Manh Ha's comment: " A client receives global index from other clients (via recvIndex)
+// then does mapping these index into local index of STORE_CLIENTINDEX
+// In this way, store_clientIndex can be used as an input of a source filter
+// Maybe we need a flag to determine whether a client wants to write. TODO "
+
+/** Map storing received data on server side. This map is the equivalent of storeIndex_client, but for data not received from model
+  * instead that for client. This map is used to concatenate data received from several clients into a single array on server side
+  * which match the local workflow grid.
+  * outLocalIndexStoreOnClient_[client_rank] -> Array of index from client of rank "client_rank"
+  * outLocalIndexStoreOnClient_[client_rank](index of buffer from client) -> local index of the workflow grid
+  * The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData().
+  * Symetrically it is also used to send data from a server to sevral client for reading case. */
+         map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient_; 
+
+
+/** Indexes calculated based on server-like distribution.
+ *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
+ *  Along with localIndexToWriteOnClient, these indexes are used to correctly place incoming data. */
+         CArray<size_t,1> localIndexToWriteOnServer;
+
+/** Indexes calculated based on client-like distribution.
+  * They are used for writing/reading data and only calculated for server level that does the writing/reading.
+  * Along with localIndexToWriteOnServer, these indexes are used to correctly place incoming data. */
+         CArray<size_t,1> localIndexToWriteOnClient;
+
+         CArray<size_t,1> indexFromClients;
+
+
       private:
 
 /** Clients that have to send a grid. There can be multiple clients in case of secondary server, otherwise only one client. */
         std::list<CContextClient*> clients;
         std::set<CContextClient*> clientsSet;
+
+/** Map storing received indexes. Key = sender rank, value = index array. */
+         map<int, CArray<size_t, 1> > outGlobalIndexFromClient_;
 
         bool isChecked;
         bool isDomainAxisChecked;

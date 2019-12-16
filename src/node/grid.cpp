@@ -694,26 +694,26 @@ namespace xios {
      int nbStoreIndex = clientDistribution_->getLocalDataIndexOnClient().size();
      int nbStoreGridMask = clientDistribution_->getLocalMaskIndexOnClient().size();
      // nbStoreGridMask = nbStoreIndex if grid mask is defined, and 0 otherwise
-     storeIndex_client.resize(nbStoreIndex);
-     storeMask_client.resize(nbStoreGridMask);
-     for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
-     for (int idx = 0; idx < nbStoreGridMask; ++idx) storeMask_client(idx) = (clientDistribution_->getLocalMaskIndexOnClient())[idx];
+     storeIndex_client_.resize(nbStoreIndex);
+     storeMask_client_.resize(nbStoreGridMask);
+     for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client_(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
+     for (int idx = 0; idx < nbStoreGridMask; ++idx) storeMask_client_(idx) = (clientDistribution_->getLocalMaskIndexOnClient())[idx];
 
      if (0 == serverDistribution_) isDataDistributed_= clientDistribution_->isDataDistributed();
      else
      {
-        // Mapping global index received from clients to the storeIndex_client
+        // Mapping global index received from clients to the storeIndex_client_
         CDistributionClient::GlobalLocalDataMap& globalDataIndex = clientDistribution_->getGlobalDataIndexOnClient();
         CDistributionClient::GlobalLocalDataMap::const_iterator itGloe = globalDataIndex.end();
-        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient.begin(),
-                                               ite = outGlobalIndexFromClient.end(), it;
+        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient_.begin(),
+                                               ite = outGlobalIndexFromClient_.end(), it;
 
         for (it = itb; it != ite; ++it)
         {
           int rank = it->first;
-          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient[rank];
-          outLocalIndexStoreOnClient.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
-          CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient[rank];
+          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient_[rank];
+          outLocalIndexStoreOnClient_.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
+          CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient_[rank];
           size_t nbIndex = 0;
 
           // Keep this code for this moment but it should be removed (or moved to DEBUG) to improve performance
@@ -771,7 +771,7 @@ namespace xios {
             connectedServerRank_.erase(receiverSize);
             connectedDataSize_.erase(receiverSize);
             globalIndexOnServer_.erase(receiverSize);
-            nbSenders.erase(receiverSize);
+            nbSenders_.erase(receiverSize);
          }
 
          if (!doGridHaveDataDistributed(client))
@@ -871,7 +871,7 @@ namespace xios {
            }
          }
 
-         nbSenders[receiverSize] = clientServerMap_->computeConnectedClients(receiverSize, client->clientSize, client->intraComm, connectedServerRank_[receiverSize]);
+         nbSenders_[receiverSize] = clientServerMap_->computeConnectedClients(receiverSize, client->clientSize, client->intraComm, connectedServerRank_[receiverSize]);
        }
      }
    }
@@ -910,7 +910,7 @@ namespace xios {
        computeWrittenIndex() ;
        if (serverDistribution_!=0) serverDistribution_->partialClear() ;
        if (clientDistribution_!=0) clientDistribution_->partialClear() ;
-       outGlobalIndexFromClient.clear() ;
+       outGlobalIndexFromClient_.clear() ;
      }
    }
    CATCH_DUMP_ATTR
@@ -1309,32 +1309,32 @@ namespace xios {
    void CGrid::storeField_arr(const double* const data, CArray<double, 1>& stored) const
    TRY
    {
-      const StdSize size = storeIndex_client.numElements();
+      const StdSize size = storeIndex_client_.numElements();
 
       stored.resize(size);
-      for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
+      for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client_(i)];
    }
    CATCH
 
    void CGrid::restoreField_arr(const CArray<double, 1>& stored, double* const data) const
    TRY
    {
-      const StdSize size = storeIndex_client.numElements();
+      const StdSize size = storeIndex_client_.numElements();
 
-      for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
+      for(StdSize i = 0; i < size; i++) data[storeIndex_client_(i)] = stored(i);
    }
    CATCH
 
    void CGrid::maskField_arr(const double* const data, CArray<double, 1>& stored) const
    {
-      const StdSize size = storeIndex_client.numElements();
+      const StdSize size = storeIndex_client_.numElements();
       stored.resize(size);
       const double nanValue = std::numeric_limits<double>::quiet_NaN();
 
-      if (storeMask_client.numElements() != 0)
-        for(StdSize i = 0; i < size; i++) stored(i) = (storeMask_client(i)) ? data[storeIndex_client(i)] : nanValue;
+      if (storeMask_client_.numElements() != 0)
+        for(StdSize i = 0; i < size; i++) stored(i) = (storeMask_client_(i)) ? data[storeIndex_client_(i)] : nanValue;
       else
-        for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
+        for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client_(i)];
    }
 
    void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) const
@@ -1355,19 +1355,19 @@ namespace xios {
 
       clientDistribution_ = new CDistributionClient(rank, this);
 
-      storeIndex_client.resize(1);
-      storeIndex_client(0) = 0;      
+      storeIndex_client_.resize(1);
+      storeIndex_client_(0) = 0;      
 
       if (0 != serverDistribution_)
       {
-        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient.begin(),
-                                               ite = outGlobalIndexFromClient.end(), it;
+        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient_.begin(),
+                                               ite = outGlobalIndexFromClient_.end(), it;
         for (it = itb; it != ite; ++it)
         {
           int rank = it->first;
-          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient[rank];
-          outLocalIndexStoreOnClient.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
-          CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient[rank];
+          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient_[rank];
+          outLocalIndexStoreOnClient_.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
+          CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient_[rank];
           if (1 != globalIndex.numElements())
             ERROR("void CGrid::computeClientIndexScalarGrid()",
               << "Something wrong happened. "
@@ -1405,7 +1405,7 @@ namespace xios {
           connectedServerRank_.erase(receiverSize);
           connectedDataSize_.erase(receiverSize);
           globalIndexOnServer_.erase(receiverSize);
-          nbSenders.erase(receiverSize);
+          nbSenders_.erase(receiverSize);
         }
 
         if (client->isServerLeader())
@@ -1417,7 +1417,7 @@ namespace xios {
             int nb = 1;
             connectedServerRank_[receiverSize].push_back(rank);
             connectedDataSize_[receiverSize][rank] = nb;
-            nbSenders[receiverSize][rank] = nb;
+            nbSenders_[receiverSize][rank] = nb;
           }
         }
         else
@@ -1429,7 +1429,7 @@ namespace xios {
             int nb = 1;
             connectedServerRank_[receiverSize].push_back(rank);
             connectedDataSize_[receiverSize][rank] = nb;
-            nbSenders[receiverSize][rank] = nb;
+            nbSenders_[receiverSize][rank] = nb;
           }
         }
       }
@@ -1442,7 +1442,7 @@ namespace xios {
   TRY
   {
     CContext* context = CContext::getCurrent();
-    storeIndex_toSrv.clear();
+    storeIndex_toSrv_.clear();
     std::list<CContextClient*>::iterator it;
 
     for (it=clients.begin(); it!=clients.end(); ++it)
@@ -1461,10 +1461,10 @@ namespace xios {
         {
           int rank = *itRank;
           int nb = 1;
-          storeIndex_toSrv[client].insert(std::make_pair(rank, CArray<int,1>(nb)));
+          storeIndex_toSrv_[client].insert(std::make_pair(rank, CArray<int,1>(nb)));
           listOutIndex.push_back(CArray<size_t,1>(nb));
 
-          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[client][rank];
+          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv_[client][rank];
           CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
 
           for (int k = 0; k < nb; ++k)
@@ -1474,7 +1474,7 @@ namespace xios {
           }
 
           if (context->hasClient && !context->hasServer)
-            storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+            storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
 
           listMsg.push_back(CMessage());
           listMsg.back() << getId( )<< isDataDistributed_ << isCompressible_ << listOutIndex.back();
@@ -1497,7 +1497,7 @@ namespace xios {
           }
 
           if (context->hasClient && !context->hasServer)
-            storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+            storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
         }
         client->sendEvent(event);
       }
@@ -1509,7 +1509,7 @@ namespace xios {
   TRY
   {
     CContext* context = CContext::getCurrent();
-    storeIndex_toSrv.clear();
+    storeIndex_toSrv_.clear();
     std::list<CContextClient*>::iterator it;
 
     for (it=clients.begin(); it!=clients.end(); ++it)
@@ -1542,9 +1542,9 @@ namespace xios {
           const std::list<int>& ranks = client->getRanksServerLeader();
           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
           {
-            storeIndex_toSrv[client].insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+            storeIndex_toSrv_[client].insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
             if (context->hasClient && !context->hasServer)
-              storeIndex_fromSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+              storeIndex_fromSrv_.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
             
             listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
 
@@ -1567,7 +1567,7 @@ namespace xios {
            const std::list<int>& ranks = client->getRanksServerNotLeader();
            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            {
-             storeIndex_fromSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+             storeIndex_fromSrv_.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
            }
            client->sendEvent(event);
          }
@@ -1603,10 +1603,10 @@ namespace xios {
           if (globalIndexTmp.end() != globalIndexTmp.find(rank))
             nb = globalIndexTmp[rank].size();
 
-          storeIndex_toSrv[client].insert(make_pair(rank, CArray<int,1>(nb)));
+          storeIndex_toSrv_[client].insert(make_pair(rank, CArray<int,1>(nb)));
           listOutIndex.push_back(CArray<size_t,1>(nb));
 
-          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[client][rank];
+          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv_[client][rank];
           CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
 
           for (int k = 0; k < nb; ++k)
@@ -1615,11 +1615,11 @@ namespace xios {
             outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
           }
 
-          storeIndex_fromSrv.insert(make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+          storeIndex_fromSrv_.insert(make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
           listMsg.push_back(CMessage());
           listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
-          event.push(rank, nbSenders[receiverSize][rank], listMsg.back());
+          event.push(rank, nbSenders_[receiverSize][rank], listMsg.back());
         }
 
         client->sendEvent(event);
@@ -1653,7 +1653,7 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     connectedServerRankRead_ = ranks;
 
-    nbReadSenders.clear();
+    nbReadSenders_.clear();
     CContextServer* server = context->server  ;
     CContextClient* client = context->client;   
       
@@ -1749,7 +1749,7 @@ namespace xios {
 
       CArray<size_t,1> outIndex;
       buffer >> outIndex;
-      outGlobalIndexFromClient.insert(std::make_pair(rank, outIndex));
+      outGlobalIndexFromClient_.insert(std::make_pair(rank, outIndex));
       connectedDataSizeRead_[rank] = outIndex.numElements();
 
       if (doGridHaveDataDistributed(client))
@@ -1810,7 +1810,7 @@ namespace xios {
 
     if (isScalarGrid()) return;
 
-    nbReadSenders[client] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
+    nbReadSenders_[client] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
 
   }
   CATCH_DUMP_ATTR
@@ -1974,6 +1974,9 @@ namespace xios {
   bool CGrid::doGridHaveDataDistributed(CContextClient* client)
   TRY
   {
+    // This function is now useless because it will return false only if server and client size are equal to 1
+    // to be seriously check in future 
+
     if (isScalarGrid()) return false;
     else if (0 != client)
     {

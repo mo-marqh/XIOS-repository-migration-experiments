@@ -33,7 +33,7 @@ namespace xios
     packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
 
-    packet->data.resize(grid->storeIndex_client.numElements());    
+    packet->data.resize(grid->storeIndex_client_.numElements());    
     
     if (compression)
     {
@@ -79,16 +79,16 @@ namespace xios
     packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
     
-    if (data.size() != grid->storeIndex_fromSrv.size())
+    if (data.size() != grid->storeIndex_fromSrv_.size())
       ERROR("CSourceFilter::streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data)",
             << "Incoherent data received from servers,"
-            << " expected " << grid->storeIndex_fromSrv.size() << " chunks but " << data.size() << " were given.");
+            << " expected " << grid->storeIndex_fromSrv_.size() << " chunks but " << data.size() << " were given.");
 
-    packet->data.resize(grid->storeIndex_client.numElements());
+    packet->data.resize(grid->storeIndex_client_.numElements());
     std::map<int, CArray<double, 1> >::const_iterator it, itEnd = data.end();
     for (it = data.begin(); it != itEnd; it++)
     {      
-      CArray<int,1>& index = grid->storeIndex_fromSrv[it->first];
+      CArray<int,1>& index = grid->storeIndex_fromSrv_[it->first];
       for (int n = 0; n < index.numElements(); n++)
         packet->data(index(n)) = it->second(n);
     }

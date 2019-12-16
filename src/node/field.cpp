@@ -161,7 +161,7 @@ namespace xios{
     {
        if (client->isServerLeader())
        {
-          for (it = grid->storeIndex_toSrv[client].begin(); it != grid->storeIndex_toSrv[client].end(); it++)
+          for (it = grid->storeIndex_toSrv_[client].begin(); it != grid->storeIndex_toSrv_[client].end(); it++)
           {
             int rank = it->first;
             CArray<int,1>& index = it->second;
@@ -181,7 +181,7 @@ namespace xios{
     }
     else
     {
-      for (it = grid->storeIndex_toSrv[client].begin(); it != grid->storeIndex_toSrv[client].end(); it++)
+      for (it = grid->storeIndex_toSrv_[client].begin(); it != grid->storeIndex_toSrv_[client].end(); it++)
       {
         int rank = it->first;
         CArray<int,1>& index = it->second;
@@ -193,7 +193,7 @@ namespace xios{
         for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
         list_msg.back() << getId() << data_tmp;
-        event.push(rank, grid->nbSenders[receiverSize][rank], list_msg.back());
+        event.push(rank, grid->nbSenders_[receiverSize][rank], list_msg.back());
       }
       client->sendEvent(event);
     }
@@ -230,7 +230,7 @@ namespace xios{
     size_t sizeData = 0;
     if (0 == recvDataSrv.numElements())
     {            
-      CArray<int,1>& storeClient = grid->storeIndex_client;
+      CArray<int,1>& storeClient = grid->storeIndex_client_;
 
       // Gather all data from different clients      
       recvDataSrv.resize(storeClient.numElements());
@@ -247,7 +247,7 @@ namespace xios{
 
     if (opeDate <= currDate)
     {
-      for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); it != grid->outLocalIndexStoreOnClient.end(); ++it)
+      for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient_.begin(); it != grid->outLocalIndexStoreOnClient_.end(); ++it)
       {
         CArray<double,1> tmp;
         CArray<size_t,1>& indexTmp = it->second;
@@ -444,8 +444,8 @@ namespace xios{
     }
     else
     {
-      for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); 
-                                                  it != grid->outLocalIndexStoreOnClient.end(); ++it)
+      for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient_.begin(); 
+                                                  it != grid->outLocalIndexStoreOnClient_.end(); ++it)
       {
         CArray<size_t,1>& indexTmp = it->second;
         CArray<double,1> tmp(indexTmp.numElements());
@@ -471,7 +471,7 @@ namespace xios{
             break;
         }
 
-        event.push(it->first, grid->nbReadSenders[client][it->first], msg);
+        event.push(it->first, grid->nbReadSenders_[client][it->first], msg);
       }
       client->sendEvent(event);
     }
@@ -497,7 +497,7 @@ namespace xios{
       {
         if (0 == recvDataSrv.numElements())
         {            
-          CArray<int,1>& storeClient = grid->storeIndex_client;          
+          CArray<int,1>& storeClient = grid->storeIndex_client_;          
           recvDataSrv.resize(storeClient.numElements());          
         }
         
