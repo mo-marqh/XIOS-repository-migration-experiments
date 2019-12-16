@@ -42,7 +42,7 @@ ctest -V
 mkdir -p ../html
 mkdir -p ../html/build_${machine}
 
-mv build_*.txt ../html/build_${machine}/
+cp build_*.txt ../html/build_${machine}/
 bash -c "cd ../html && python generate_compile.py"
 
 exit

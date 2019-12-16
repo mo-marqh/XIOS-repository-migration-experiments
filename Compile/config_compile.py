@@ -66,7 +66,7 @@ def main():
             g.close()
             
             f.write("add_test( NAME "+build_dir_name+'\n')
-            f.write("          COMMAND bash -c \"source ../arch/arch-"+configs_arg[0][i]+".env && module load cmake && cd .. && ./make_xios --arch "+configs_arg[0][i]+" --"+configs_arg[1][j]+" --omp --job 4 --build_dir build_"+build_dir_name+" | tail -n 1 >> Compile/build_"+revision+"_"+machine+"_"+build_dir_name+".txt\")\n\n")
+            f.write("          COMMAND bash -c \"source ../arch/arch-"+configs_arg[0][i]+".env && module load cmake && cd .. && ./make_xios --arch "+configs_arg[0][i]+" --"+configs_arg[1][j]+" --job 4 --build_dir build_"+build_dir_name+" | tail -n 1 >> Compile/build_"+revision+"_"+machine+"_"+build_dir_name+".txt\")\n\n")
             f.write("set_tests_properties( "+build_dir_name+" PROPERTIES\n")
             f.write("                      FAIL_REGULAR_EXPRESSION \"failed\")\n\n")
     
