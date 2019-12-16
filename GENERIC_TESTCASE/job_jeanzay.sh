@@ -18,6 +18,7 @@ cd ${SLURM_SUBMIT_DIR}
 
 #============================= X64_JEANZAY_prod =============================
 
+module load subversion
 export arch=X64_JEANZAY
 export mode=prod
 export machine_name=jeanzay
@@ -131,6 +132,7 @@ bash -c "cd ../html && python generate_test.py"
 
 #============================= X64_JEANZAY_debug =============================
 
+module load subversion
 export arch=X64_JEANZAY
 export mode=debug
 export machine_name=jeanzay

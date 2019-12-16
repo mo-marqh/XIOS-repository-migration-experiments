@@ -22,6 +22,7 @@
 
 cd $BRIDGE_MSUB_PWD
 
+module load subversion
 export arch=X64_IRENE
 export mode=prod
 export machine_name=irene
@@ -114,15 +115,26 @@ rm -f test_*/user_param.pyc
 rm -f test_*/user_param.py.*
 
 mkdir -p ../html
-mkdir -p ../html/test_irene
+mkdir -p ../html/test_${machine_name}
 
-cp plein_report.txt ../html/test_irene/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
+cp plein_report.txt ../html/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
+
+mkdir -p ../html/def_files
+mkdir -p ../html/def_files/${xios_revision}
+
+for i in $(ls -d test_*/)
+do
+  mkdir -p ../html/def_files/${xios_revision}/${i%%}
+  cp ${i%%}/user_params.def ../html/def_files/${xios_revision}/${i%%}      
+  for j in $(ls -d ${i%%/}/config_*)
+  do
+    mkdir -p ../html/def_files/${xios_revision}/${j%%}
+    cp ${j%%}/setup/all_param.def ../html/def_files/${xios_revision}/${j%%}  
+  done
+done
+
 
 bash -c "cd ../html && python generate_test.py"
-
-
-
-
 
 
 #============================= X64_IRENE_debug =============================
@@ -130,6 +142,7 @@ bash -c "cd ../html && python generate_test.py"
 
 cd $BRIDGE_MSUB_PWD
 
+module load subversion
 export arch=X64_IRENE
 export mode=debug
 export machine_name=irene
@@ -222,9 +235,24 @@ rm -f test_*/user_param.pyc
 rm -f test_*/user_param.py.*
 
 mkdir -p ../html
-mkdir -p ../html/test_irene
+mkdir -p ../html/test_${machine_name}
 
-cp plein_report.txt ../html/test_irene/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
+cp plein_report.txt ../html/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
+
+mkdir -p ../html/def_files
+mkdir -p ../html/def_files/${xios_revision}
+
+for i in $(ls -d test_*/)
+do
+  mkdir -p ../html/def_files/${xios_revision}/${i%%}
+  cp ${i%%}/user_params.def ../html/def_files/${xios_revision}/${i%%}      
+  for j in $(ls -d ${i%%/}/config_*)
+  do
+    mkdir -p ../html/def_files/${xios_revision}/${j%%}
+    cp ${j%%}/setup/all_param.def ../html/def_files/${xios_revision}/${j%%}  
+  done
+done
+
 
 bash -c "cd ../html && python generate_test.py"
 
