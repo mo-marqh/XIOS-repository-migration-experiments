@@ -1,0 +1,10 @@
+#!/bin/bash
+THREDDS_DIR=/ccc/work/cont003/thredds/p86yann/XIOS_TEST_SUITE
+
+branch_name=$1
+files="compile_${1}_info.js test_${1}_info.js"
+
+for file in $files 
+do
+  cp $file $THREDDS_DIR ; chmod g+wr $THREDDS_DIR/$file ; chmod o+r $THREDDS_DIR/$file
+done
