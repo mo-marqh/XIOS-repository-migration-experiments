@@ -241,4 +241,5 @@ done
 
 
 bash -c "cd ../html && python generate_test.py"
+bash -c "cd ../html && copy_to_forge_info jeanzay"
 

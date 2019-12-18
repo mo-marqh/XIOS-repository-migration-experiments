@@ -27,7 +27,7 @@ export arch=X64_IRENE
 export mode=prod
 export machine_name=irene
 export machine_full_name=Irene
-export xios_dir=/ccc/cont003/home/gencmip6/wangyush/XIOS/trunk
+export xios_dir=$(bash -c "cd .. && pwd" 2>&1)
 export reference_dir=${CCCWORKDIR}
 export reference_file=xios_reference.tar.gz
 export reference_folder=xios_reference
@@ -147,7 +147,7 @@ export arch=X64_IRENE
 export mode=debug
 export machine_name=irene
 export machine_full_name=Irene
-export xios_dir=/ccc/cont003/home/gencmip6/wangyush/XIOS/trunk
+export xios_dir=$(bash -c "cd .. && pwd" 2>&1)
 export reference_dir=${CCCWORKDIR}
 export reference_file=xios_reference.tar.gz
 export reference_folder=xios_reference
@@ -255,8 +255,8 @@ done
 
 
 bash -c "cd ../html && python generate_test.py"
-
-
+bash -c "cd ../html && copy_to_thredds_html"
+bash -c "cd ../html && copy_to_thredds_info irene"
 
 
 
