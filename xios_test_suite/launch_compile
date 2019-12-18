@@ -1,0 +1,4 @@
+#!/bin/bash
+
+source ./load_env
+(cd COMPILE && ./compile_${xios_machine_name})
