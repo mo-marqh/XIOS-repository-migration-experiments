@@ -7,5 +7,5 @@ files=$*
 for file in $files 
 do
   scp $file $forge_IP:$FORGE_DIR 
-  ssh $forge_IP "chmod a+rw ${FORGE_DIR}/${file}"
+  ssh $forge_IP "chmod --quiet a+rw ${FORGE_DIR}/${file}"
 done

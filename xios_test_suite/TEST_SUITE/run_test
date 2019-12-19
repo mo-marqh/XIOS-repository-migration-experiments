@@ -89,10 +89,10 @@ mkdir -p $rundir ; chmod --quiet ug+rwx rundir
 mkdir -p ${rundir}/test_${machine_name} ; chmod --quiet  ug+rwx ${xios_test_suite_repository}/test_${machine_name}
 
 cp plein_report.txt ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
-chmod -quiet ug+rw ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
+chmod --quiet ug+rw ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
 
-mkdir -p ${rundir}/def_files ;  chmod -quiet ug+rwx ${rundir}/RUN/def_files
-mkdir -p ${rundir}/def_files/${xios_revision} ;  chmod -quiet ug+rwx ${rundir}/def_files/${xios_revision}
+mkdir -p ${rundir}/def_files ;  chmod --quiet ug+rwx ${rundir}/RUN/def_files
+mkdir -p ${rundir}/def_files/${xios_revision} ;  chmod --quiet ug+rwx ${rundir}/def_files/${xios_revision}
 
 for i in $(ls -d test_*/)
 do
@@ -103,6 +103,6 @@ do
     mkdir -p ${rundir}/def_files/${xios_revision}/${j%%}
     cp ${j%%}/setup/all_param.def ${rundir}/def_files/${xios_revision}/${j%%}  
   done
-  chmod -R -quiet ug+rwx ${rundir}/def_files
+  chmod -R --quiet ug+rwx ${rundir}/def_files
 done
 

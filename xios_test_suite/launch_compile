@@ -1,4 +1,5 @@
 #!/bin/bash
 
 source ./load_env
+mkdir -p BUILD
 (cd COMPILE && ./compile_${xios_machine_name})

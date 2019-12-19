@@ -91,7 +91,7 @@ def subgenerate(directory, machine, machine_name):
     Sort(myTestList)
     print(myTestList)
   
-    f=open("test_"+machine+"_info.js", "w")
+    f=open("_test_"+machine+"_info.js", "w")
     f.write("var test_"+machine+"_revision_list = "+repr(revision_list)+"\n\n")
     f.write("var test_"+machine+"_info_list = [\n")
     for i in range(len(myTestList)) :

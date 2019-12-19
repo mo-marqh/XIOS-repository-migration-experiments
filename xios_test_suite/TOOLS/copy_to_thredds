@@ -4,5 +4,5 @@ files=$*
 
 for file in $files 
 do
-  cp $file $THREDDS_DIR ; chmod g+wr $THREDDS_DIR/$file ; chmod o+r $THREDDS_DIR/$file
+  cp $file $THREDDS_DIR ; chmod --quiet g+wr $THREDDS_DIR/$file ; chmod --quiet o+r $THREDDS_DIR/$file
 done

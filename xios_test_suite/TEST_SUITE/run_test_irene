@@ -3,4 +3,6 @@
 ccc_msub -E "--wait" job_irene.sh 
 
 bash -c "python generate_test.py"
+mv _test_${xios_machine_name}_info.js test_${xios_machine_name}_info.js
 copy_to_thredds  test_${xios_machine_name}_info.js
+mv test_${xios_machine_name}_info.js _test_${xios_machine_name}_info.js
