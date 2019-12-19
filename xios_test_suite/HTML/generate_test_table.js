@@ -1,7 +1,5 @@
 var dict = {"-1": "&#10060;", "0": "&#10062;", "1": "&#9989;"}
 
-// var bg_color = ["#84c5ff", "#96cdff", "#a1d3ff", "#b3dafd", "#c2e1fd"]
-
 function generateTestTable()
 {
   var machine_list=[];
@@ -49,20 +47,45 @@ function generateTestTable()
   }
 
   revision_list.sort(function(a, b){return b-a});
-  
-  
-  // Generate select list for compile table
 
-  var sel = document.getElementById("test_revision");
-  for (var i=0; i<revision_list.length; i++)
+  // Generate select list for test table
+
+  var sel = document.getElementById("revision");
+
+  var sel_options = sel.children
+  
+  var new_options=[]
+  for(var i=0; i<sel_options.length-1; i++)
   {
-    var opt = document.createElement('option');
-    opt.appendChild( document.createTextNode(revision_list[i]) );
-    opt.value = revision_list[i]; 
-    sel.appendChild(opt); 
+    new_options[i] = sel_options[i+1].value
   }
   
-  // Generate content of compile table
+  for(var i=0; i<revision_list.length; i++)
+  {
+    if (!new_options.includes(revision_list[i]))
+    {
+      new_options.push(revision_list[i])
+    }
+  }
+  
+  new_options.sort(function(a, b){return b-a})
+  
+  while (sel.lastChild && sel.children.length>1) {
+    sel.removeChild(sel.lastChild);
+  }
+
+  for(var i=0; i<new_options.length; i++)
+  {
+    var opt = document.createElement('option');
+    opt.appendChild( document.createTextNode(new_options[i]));
+    opt.value = new_options[i]; 
+    sel.appendChild(opt);
+  }
+  
+
+
+  
+  // Generate content of test table
   
   var table = document.getElementById("test_table")
   table.style.backgroundColor = "#84c5ff";
@@ -84,6 +107,25 @@ function generateTestTable()
     titelRow.appendChild(myCell)
   }
 
+  var emptyRow = document.createElement("tr")
+  emptyRow.setAttribute("id", "empty_test_row")
+  emptyRow.style.display="none"
+  table.appendChild(emptyRow)
+  
+  var myCell = document.createElement("TD");
+  myCell.setAttribute("id", "empty_test_row_revision")
+  myCell.style.fontWeight="bold"
+  emptyRow.appendChild(myCell)
+
+  for (var machine_index=0; machine_index<machine_list.length; machine_index++)
+  {
+    var myCell = document.createElement("TD");
+    myCell.innerHTML="No Test Information"
+    myCell.style.color="white"
+    emptyRow.appendChild(myCell)
+  }
+
+
   for (var i=0; i<revision_list.length; i++)
   {
     var revision = revision_list[i]
@@ -91,6 +133,7 @@ function generateTestTable()
     var myRow = document.createElement("TR");
     myRow.setAttribute("id", "test_table_"+revision);
     myRow.setAttribute("class", "test_table_row");
+    table.appendChild(myRow)
     
     var myCell = document.createElement("TD");
     myCell.innerHTML = (revision);
@@ -105,7 +148,6 @@ function generateTestTable()
       myRow.appendChild(myCell)
       myRow.appendChild(myCell)
     }        
-    table.appendChild(myRow)
   }
 
   for (var i=0; i<revision_list.length; i++)
@@ -127,7 +169,6 @@ function generateTestTable()
       }
       if (!has_test_info)
       {
-        console.log("revision ",revision, "machine ",machine," has no test information")
         var myTD = document.getElementById("test_table_"+revision+"_"+machine);
         myTD.innerHTML = "No Test Information"
         myTD.style.color = "white"
@@ -169,8 +210,8 @@ function fillSubTestTable(revision, machine, build_dir, branch_name, machine_nam
   myCell_3.setAttribute("class", "dropdown-content")
   myCell_3.setAttribute("id", "test_sub_table_"+revision+"_"+machine+"_"+build_dir+"_dropdown")
   myCell_4 = document.createElement("a")
-  myCell_4.innerHTML = ("show plein report")
-  myCell_4.onclick = function() {show_plein_report(machine, revision, build_dir)}
+  myCell_4.innerHTML = ("show plain report")
+  myCell_4.onclick = function() {show_plain_report(machine, revision, build_dir)}
   myCell_5 = document.createElement("a")
   myCell_5.innerHTML = ("show xios info")
   myCell_5.onclick = function() {show_text("<table><tr><td>Branch</td><td><em>"+branch_name+"</em></td></tr><tr><td>Revision</td><td><em>"+revision+"</em></td></tr><tr><td>Machine</td><td><em>"+machine_name+"</em></td></tr><tr><td>Architecture</td><td><em>"+arch_name+"</em></td></tr><tr><td>Compile mode</td><td><em>"+mode_name+"</em></td></tr><tr><td>Full build directory</td><td><em>"+full_dir+"</em></td></tr><tr><td>Short build directory</td><td><em>"+build_dir+"</em></td></tr></table>")}
@@ -427,65 +468,3 @@ function mytoggle(classname)
   }
 }
 
-// function build_level_toggle(classname)
-// {
-//   var myCells = document.getElementsByClassName(classname)
-//   for (var i=0; i<myCells.length; i++)
-//   {
-//     var mySubCells = document.getElementsByClassName(myCells[i].id)
-//     if (myCells[i].style.display=="table-row")
-//     {
-//       myCells[i].style.display="none" 
-//       for(var j=0; j<mySubCells.length; j++)
-//       {
-//         mySubCells[j].style.display="none"
-//         var mySubSubCells = document.getElementsByClassName(mySubCells[j].id)
-//         for(var k=0; k<mySubSubCells.length; k++)
-//         {
-//           mySubSubCells[k].style.display="none"
-//         }
-//       }
-//     }
-//     else
-//     {
-//       myCells[i].style.display="table-row"
-//     }
-//   }
-// }
-
-// function algo_level_toggle(classname)
-// {
-//   var myCells = document.getElementsByClassName(classname)
-//   for (var i=0; i<myCells.length; i++)
-//   {
-//     var mySubCells = document.getElementsByClassName(myCells[i].id)
-//     if (myCells[i].style.display=="table-row")
-//     {
-//       myCells[i].style.display="none" 
-//       for(var j=0; j<mySubCells.length; j++)
-//       {
-//         mySubCells[j].style.display="none"
-//       }
-//     }
-//     else
-//     {
-//       myCells[i].style.display="table-row"
-//     }
-//   }
-// }
-
-// function config_level_toggle(classname)
-// {
-//   var myCells = document.getElementsByClassName(classname)
-//   for (var i=0; i<myCells.length; i++)
-//   {
-//     if (myCells[i].style.display=="table-row")
-//     {
-//       myCells[i].style.display="none" 
-//     }
-//     else
-//     {
-//       myCells[i].style.display="table-row"
-//     }
-//   }
-// }

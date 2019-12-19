@@ -49,13 +49,36 @@ function generateCompileTable()
   
   // Generate select list for compile table
 
-  var sel = document.getElementById("compile_revision");
-  for (var i=0; i<revision_list.length; i++)
+  var sel = document.getElementById("revision");
+
+  var sel_options = sel.children
+  
+  var new_options=[]
+  for(var i=0; i<sel_options.length-1; i++)
+  {
+    new_options[i] = sel_options[i+1].value
+  }
+  
+  for(var i=0; i<revision_list.length; i++)
+  {
+    if (!new_options.includes(revision_list[i]))
+    {
+      new_options.push(revision_list[i])
+    }
+  }
+  
+  new_options.sort(function(a, b){return b-a})
+  
+  while (sel.lastChild && sel.children.length>1) {
+    sel.removeChild(sel.lastChild);
+  }
+
+  for(var i=0; i<new_options.length; i++)
   {
     var opt = document.createElement('option');
-    opt.appendChild( document.createTextNode(revision_list[i]) );
-    opt.value = revision_list[i]; 
-    sel.appendChild(opt); 
+    opt.appendChild( document.createTextNode(new_options[i]));
+    opt.value = new_options[i]; 
+    sel.appendChild(opt);
   }
   
   // Generate content of compile table
@@ -80,6 +103,24 @@ function generateCompileTable()
     titelRow.appendChild(myCell)
   }
 
+  var emptyRow = document.createElement("tr")
+  emptyRow.setAttribute("id", "empty_compile_row")
+  emptyRow.style.display="none"
+  table.appendChild(emptyRow)
+  
+  var myCell = document.createElement("TD");
+  myCell.setAttribute("id", "empty_compile_row_revision")
+  myCell.style.fontWeight="bold"
+  emptyRow.appendChild(myCell)
+
+  for (var machine_index=0; machine_index<machine_list.length; machine_index++)
+  {
+    var myCell = document.createElement("TD");
+    myCell.innerHTML="No Compile Information"
+    myCell.style.color="white"
+    emptyRow.appendChild(myCell)
+  }
+
   for (var i=0; i<revision_list.length; i++)
   {
     var revision = revision_list[i]
@@ -87,6 +128,7 @@ function generateCompileTable()
     var myRow = document.createElement("TR");
     myRow.setAttribute("id", "compile_table_"+revision);
     myRow.setAttribute("class", "compile_table_row");
+    table.appendChild(myRow)
     
     var myCell = document.createElement("TD");
     myCell.innerHTML = (revision);
@@ -100,7 +142,6 @@ function generateCompileTable()
       myCell.setAttribute("id", "compile_table_"+revision+"_"+machine);
       myRow.appendChild(myCell)
     }        
-    table.appendChild(myRow)
 
   }
 
@@ -151,6 +192,7 @@ function fillSubCompileTable(revision, machine, machine_compile_info, machine_re
     }
 
     mySubTable = document.createElement("table")
+    mySubTable.setAttribute("class", "compile_sub_table")
     myTD.appendChild(mySubTable)
 
     myRow = document.createElement("tr")
