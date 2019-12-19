@@ -11,3 +11,4 @@ then
 fi 
 
 source ./ENV/${xios_machine_name}.env
+export PATH=`pwd`/TOOLS:$PATH 
