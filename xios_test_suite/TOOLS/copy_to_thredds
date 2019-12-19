@@ -1,0 +1,8 @@
+#!/bin/bash
+THREDDS_DIR=$xios_thredds_dir
+files=$*
+
+for file in $files 
+do
+  cp $file $THREDDS_DIR ; chmod g+wr $THREDDS_DIR/$file ; chmod o+r $THREDDS_DIR/$file
+done
