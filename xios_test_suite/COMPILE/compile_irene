@@ -1,0 +1,2 @@
+#!/bin/bash
+ccc_msub job_compile_irene.sh
