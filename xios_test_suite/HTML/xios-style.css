@@ -95,7 +95,8 @@ h1, h2
     margin-left: 60px;
     margin-bottom: 30px;
     margin-top: 30px;
-    border-collapse: collapse;
+    /* border-collapse: collapse; */
+    /* border: solid 1px black; */
 }
 
 .compile_table td
@@ -127,7 +128,7 @@ h1, h2
     margin-left: 60px;
     margin-bottom: 30px;
     margin-top: 30px;
-    border-collapse: collapse;
+    /* border-collapse: collapse; */
 }
 
 .test_table td
