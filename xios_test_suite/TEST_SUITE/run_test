@@ -84,7 +84,7 @@ rm -f test_*/user_param.pyc
 rm -f test_*/user_param.py.*
 
 rundir=${xios_test_suite_repository}/RUN
-mkdir -p $rundir ; CHMOD  rundir
+mkdir -p $rundir ; CHMOD  $rundir
 mkdir -p ${rundir}/test_${machine_name} ; CHMOD ${xios_test_suite_repository}/test_${machine_name}
 
 cp plein_report.txt ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt

@@ -2,5 +2,5 @@
 
 source ./load_env
 ./copy_html
-./launch_compile 
+./launch_compile
 ./launch_test_suite

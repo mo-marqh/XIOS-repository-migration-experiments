@@ -142,7 +142,7 @@ def subgenerate(directory, machine, machine_name):
             f.write("        ]\n\n")
 
     for revision in revision_list :
-        algo_list = glob.glob(directory+"def_files/"+revision+"/test_*")
+        algo_list = glob.glob(directory+"/def_files/"+revision+"/test_*")
     
         for algo in algo_list :
             config_list = glob.glob(algo+"/config_*")
