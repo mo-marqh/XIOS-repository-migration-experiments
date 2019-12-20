@@ -14,7 +14,7 @@
 #MSUB -q skylake           # thin nodes
 #MSUB -A gen0826
 #MSUB -Q test
-#MSUB -m work
+#MSUB -m work,scratch
 
 
 #============================= X64_IRENE_prod =============================
