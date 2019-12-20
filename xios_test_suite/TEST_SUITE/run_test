@@ -1,16 +1,16 @@
 #!/bin/bash
 
 source ../ARCH/arch-${arch}.env
-cd .. ; source load_env ; cd RUN_TEST_SUITE 
+cd .. ; source load_env_local ; cd RUN_TEST_SUITE 
 
 export machine_name=$xios_machine_name
 export machine_full_name=$xios_full_machine_name
 export xios_dir=$(bash -c "cd ../.. && pwd" 2>&1)
-export reference_dir=${xios_reference_dir}
+
 export reference_file=xios_reference.tar.gz
 export reference_folder=xios_reference
 
-export build_dir=build_${arch}_${mode}
+export build_dir=xios_test_suite/RUN_TEST_SUITE/build_${arch}_${mode}
 export xios_revision=$(svn info --show-item revision ../.. 2>&1)
 export relurl=$(svn info --show-item relative-url ../.. 2>&1)
 
@@ -19,9 +19,10 @@ set -x
 
 
 bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16"
+export build_status=$?
 
 #----------- Fetch reference -----------
-cp ${reference_dir}/${reference_file} ./
+cp ${xios_reference_dir}/${reference_file} ./
 tar -xzvf ${reference_file}
 
 rm -f ${reference_file}
@@ -36,15 +37,17 @@ done
 rm -rf ${reference_folder}
 
 
-rm -f plein_report.txt
+rm -f plain_report.txt
 
-echo "#revision" ${xios_revision} >> plein_report.txt
-echo "#relurl" ${relurl} >> plein_report.txt
-echo "#machine" ${machine_name} >> plein_report.txt
-echo "#build_dir" ${xios_dir}/${build_dir} >> plein_report.txt
-echo "#arch" ${arch} >> plein_report.txt
-echo "#mode" ${mode} >> plein_report.txt
+echo "#revision" ${xios_revision} >> plain_report.txt
+echo "#relurl" ${relurl} >> plain_report.txt
+echo "#machine" ${machine_name} >> plain_report.txt
+echo "#build_dir" ${xios_dir}/${build_dir} >> plain_report.txt
+echo "#arch" ${arch} >> plain_report.txt
+echo "#mode" ${mode} >> plain_report.txt
 
+if [[ ${build_status} == 0 ]]
+then
 
 rm -f setup.sh
 touch setup.sh
@@ -87,7 +90,7 @@ rundir=${xios_test_suite_repository}/RUN
 mkdir -p $rundir ; CHMOD  $rundir
 mkdir -p ${rundir}/test_${machine_name} ; CHMOD ${xios_test_suite_repository}/test_${machine_name}
 
-cp plein_report.txt ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
+cp plain_report.txt ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
 CHMOD ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
 
 mkdir -p ${rundir}/def_files ;  CHMOD ${rundir}/RUN/def_files
@@ -104,4 +107,6 @@ do
   done
   CHMOD ${rundir}/def_files
 done
+
+fi
 

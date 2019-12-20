@@ -7,16 +7,6 @@ cp ../check.py sub_check.py
 cp ../default_param.py default_param.py
 
 
-# Black        0;30     Dark Gray     1;30
-# Red          0;31     Light Red     1;31
-# Green        0;32     Light Green   1;32
-# Brown/Orange 0;33     Yellow        1;33
-# Blue         0;34     Light Blue    1;34
-# Purple       0;35     Light Purple  1;35
-# Cyan         0;36     Light Cyan    1;36
-# Light Gray   0;37     White         1;37
-
-
 { nb_proc=$(python sub_config.py 2>&1 1>&3-) ;} 3>&1
 
 if [[ ($machine_name == irene) ]]
@@ -24,10 +14,6 @@ then
     echo "Testing on Irene"
     echo "build_dir="$build_dir
     ccc_mprun -n $nb_proc $xios_dir/$build_dir/bin/generic_testcase.exe
-elif [[($machine_name == ada)]]
-then
-    echo "Testing on ADA"
-    mpirun -np $nb_proc $xios_dir/$build_dir/bin/generic_testcase.exe
 elif [[($machine_name == jeanzay)]]
 then
     echo "Testing on Jean-Zay" 

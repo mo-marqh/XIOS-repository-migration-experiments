@@ -215,11 +215,7 @@ def main():
 		
 
 		f=open("checkfile.def", "r")
-		h=open("report.txt", "a+")
-		l=open("report.html", "a+")
-		preport=open("../plein_report.txt", "a+")
-		h.write("Config : "+configName+"\n")		
-		l.write("<p>Config : "+configName+"</p>")	
+		preport=open("../plain_report.txt", "a+")
 		for line in f:
 			line=line.strip()
 			line=line.rstrip()
@@ -231,9 +227,7 @@ def main():
 						cmd = 'mv '+thisfile + ' '+configName+'/tmp_reference/'
 						OSinfo(cmd)	
 				
-				h.write("test for "+lpurple("all NC files")+"     \t"+yellow('INITIALIZED')+"\n")
 				preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"_all_nc_files"+" "+repr(0)+" \n")				
-				l.write("<p>test for <font color=\"purple\">"+"all NC files"+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"darkorange\">INITIALIZED</font></p>")
 				print yellow("\n        ****************************************")
 				print yellow("        ** "+"all NC files"+" is stored as temporal reference !!! **")
 				print yellow("\n        ****************************************")
@@ -244,18 +238,12 @@ def main():
 				cmd = 'mv '+line + ' '+configName+'/tmp_reference/'
 				OSinfo(cmd)
 
-				h.write("test for "+lpurple(line)+"     \t"+yellow('INITIALIZED')+"\n")		
 				preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"@"+line+" "+repr(0)+" \n")		
-				l.write("<p>test for <font color=\"purple\">"+line+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"darkorange\">INITIALIZED</font></p>")
 				print yellow("\n        ****************************************")
 				print yellow("        ** "+line+" is stored as temporal reference !!! **")
 				print yellow("\n        ****************************************")
 				
 		f.close()
-		h.write("\n")
-		l.write("<br>")
-		h.close()
-		l.close()
 		preport.close()
 		#generate job scripts
 		hostname=os.getenv('machine_name')
@@ -298,13 +286,8 @@ def main():
 			OSinfo('cp '+configName+'/setup/user_param.py '+configName+'/setup/user_param.def ')
 		
 		f=open("checkfile.def", "r")
-		h=open("report.txt", "a+")
-		l=open("report.html", "a+")
-		preport=open("../plein_report.txt", "a+")
+		preport=open("../plain_report.txt", "a+")
 
-
-		h.write("Config : "+configName+"\n")	
-		l.write("<p>Config : "+configName+"</p>")	
 		for line in f:
 
 			line=line.strip()
@@ -318,9 +301,7 @@ def main():
 						OSinfo(cmd)
 						
 						if os.stat("diff.txt").st_size==0:
-							h.write("test for "+lpurple(thisfile)+"     \t"+green('PASSED')+"\n")		
 							preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"@"+thisfile+" "+repr(1)+" \n")		
-							l.write("<p>test for <font color=\"purple\">"+thisfile+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"green\">PASSED</font></p>")		
 							print green("\n        ****************************************")
 							print green("        ** "+thisfile+" is valid !!! **")
 							print green("\n        ****************************************")
@@ -329,16 +310,12 @@ def main():
 							g=open("diff.txt", "r")
 							for gline in g:
 								if gline.strip().startswith("0") or ":" in gline :
-									h.write("test for "+lpurple(thisfile)+"      \t"+green('PASSED')+"\n")	
 									preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"@"+thisfile+" "+repr(1)+" \n")			
-									l.write("<p>test for <font color=\"purple\">"+thisfile+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"green\">PASSED</font></p>")		
 									print green("\n        ****************************************")
 									print green("        ** "+thisfile+" is valid !!! **")
 									print green("\n        ****************************************")
 								else:
-									h.write("test for "+lpurple(thisfile)+"     \t"+red('FAILED')+"\n")	
 									preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"@"+thisfile+" "+repr(-1)+" \n")			
-									l.write("<p>test for <font color=\"purple\">"+thisfile+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"red\">FAILED</font></p>")		
 									print red("\n        **************************************************")
 									print red("        ** "+thisfile+" is NOT valid. Please debugging.. **")
 									print red("\n        **************************************************")
@@ -366,9 +343,7 @@ def main():
 				OSinfo(cmd)
 
 				if os.stat("diff.txt").st_size==0:
-					h.write("test for "+lpurple(line)+"     \t"+green('PASSED')+"\n")
 					preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"@"+line+" "+repr(1)+" \n")				
-					l.write("<p>test for <font color=\"purple\">"+line+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"green\">PASSED</font></p>")		
 					print green("\n        ****************************************")
 					print green("        ** "+line+" is valid !!! **")
 					print green("\n        ****************************************")
@@ -377,16 +352,12 @@ def main():
 					g=open("diff.txt", "r")
 					for gline in g:
 						if gline.strip().startswith("0") or ":" in gline :
-							h.write("test for "+lpurple(line)+"      \t"+green('PASSED')+"\n")		
 							preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"@"+line+" "+repr(1)+" \n")		
-							l.write("<p>test for <font color=\"purple\">"+line+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"green\">PASSED</font></p>")		
 							print green("\n        ****************************************")
 							print green("        ** "+line+" is valid !!! **")
 							print green("\n        ****************************************")
 						else:
-							h.write("test for "+lpurple(line)+"     \t"+red('FAILED')+"\n")	
 							preport.write(os.path.basename(os.getcwd())+" "+os.path.basename(os.getcwd())[5:]+"@"+configName+" "+os.path.basename(os.getcwd())[5:]+"@"+configName[7:]+"@"+line+" "+repr(-1)+" \n")			
-							l.write("<p>test for <font color=\"purple\">"+line+"</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color=\"red\">FAILED</font></p>")		
 							print red("\n        **************************************************")
 							print red("        ** "+line+" is NOT valid. Please debugging.. **")
 							print red("\n        **************************************************")
@@ -408,10 +379,6 @@ def main():
 
 
 		f.close()
-		h.write("\n")
-		l.write("<br>")
-		h.close()
-		l.close()
 		preport.close()
 
 		if not os.path.exists('current_run'):
