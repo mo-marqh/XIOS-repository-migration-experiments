@@ -17,9 +17,15 @@ export relurl=$(svn info --show-item relative-url ../.. 2>&1)
 
 set -x 
 
-
-bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16"
+echo "Start Building XIOS ... "
+bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16 &> /dev/null"
 export build_status=$?
+if [[ ${build_status} == 0 ]]
+then
+  echo "XIOS Build Finished. Start Unit Tests"
+else
+  echo "XIOS Build Failed. Skip Unit Tests"
+fi
 
 #----------- Fetch reference -----------
 cp ${xios_reference_dir}/${reference_file} ./
