@@ -20,25 +20,7 @@
 
 cd $BRIDGE_MSUB_PWD
 
-set -x 
-
-export revision=$(svn info --show-item revision .. 2>&1)
-
-python config_compile.py
-
 cmake .
 ctest -V
-
-build_dir=${xios_test_suite_repository}/BUILD
-mkdir -p $build_dir
-chmod --quiet ug+rwX $build_dir
-mkdir -p ${build_dir}/build_${xios_machine_name}
-
-cp build_*.txt ${build_dir}/build_${xios_machine_name}
-chmod -R ug+rwX ${build_dir}/build_${xios_machine_name}
-
-bash -c "python ./generate_compile.py"
-
-copy_to_thredds compile_${xios_machine_name}_info.js
 
 exit
