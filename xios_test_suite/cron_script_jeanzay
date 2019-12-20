@@ -1,0 +1,34 @@
+#/bin/bash
+
+xios_branch=trunk
+xios_svn_rep="svn+ssh://forge.ipsl.jussieu.fr/ipsl/forge/projets/ioserver/svn/XIOS"
+xios_test_suite_dir="/gpfsscratch/rech/psl/commun/XIOS_TEST_SUITE"
+
+#permission for group
+CHMOD() { setfacl -m u::rwX,u:rpsl565:rwX,u:rpsl954:rwX,u:rgzi016:rwX,g::r-X,o::r-X,m::rwX "$@" ;}
+
+
+mkdir -p $xios_test_suite_dir ; CHMOD $xios_test_suite_dir
+mkdir -p $xios_test_suite_dir/$xios_branch ; CHMOD $xios_test_suite_dir/$xios_branch
+
+full_branch_dir=${xios_test_suite_dir}/$xios_branch
+full_svn_rep=$xios_svn_rep/$xios_branch
+
+cd $full_branch_dir
+
+if [ ! -f "./last_rev_tested" ]; then
+  echo 0 > ./last_rev_tested 
+  CHMOD ./last_rev_tested 
+fi
+
+last_rev=`cat ./last_rev_tested`
+current_rev=`svn info --show-item revision $full_svn_rep`
+
+if [ "$current_rev" -gt "$last_rev" ];
+then 
+    echo $current_rev > last_rev_tested
+    CHMOD ./last_rev_tested 
+    svn co $full_svn_rep xios_rev_$current_rev
+    (cd xios_rev_$current_rev/xios_test_suite && ./launch_all)
+    CHMOD -R xios_rev_$current_rev
+fi;
