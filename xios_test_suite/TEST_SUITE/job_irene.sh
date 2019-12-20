@@ -22,7 +22,6 @@
 
 cd $BRIDGE_MSUB_PWD
 
-module load subversion
 export arch=X64_IRENE
 export mode=prod
 
@@ -34,7 +33,6 @@ export mode=prod
 
 cd $BRIDGE_MSUB_PWD
 
-module load subversion
 export arch=X64_IRENE
 export mode=debug
 

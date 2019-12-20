@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source ../ARCH/arch-${arch}.env
+cd .. ; source load_env ; cd RUN_TEST_SUITE 
+
 export machine_name=$xios_machine_name
 export machine_full_name=$xios_full_machine_name
 export xios_dir=$(bash -c "cd ../.. && pwd" 2>&1)
@@ -11,15 +14,11 @@ export build_dir=build_${arch}_${mode}
 export xios_revision=$(svn info --show-item revision ../.. 2>&1)
 export relurl=$(svn info --show-item relative-url ../.. 2>&1)
 
-source ../ARCH/arch-${arch}.env
-module load nco
-module load cdo
-module load subversion
 
 set -x 
 
 
-bash -c "cd ../.. && ./make_xios --arch_dir ../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16"
+bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16"
 
 #----------- Fetch reference -----------
 cp ${reference_dir}/${reference_file} ./
@@ -85,14 +84,14 @@ rm -f test_*/user_param.pyc
 rm -f test_*/user_param.py.*
 
 rundir=${xios_test_suite_repository}/RUN
-mkdir -p $rundir ; chmod --quiet ug+rwx rundir
-mkdir -p ${rundir}/test_${machine_name} ; chmod --quiet  ug+rwx ${xios_test_suite_repository}/test_${machine_name}
+mkdir -p $rundir ; CHMOD  rundir
+mkdir -p ${rundir}/test_${machine_name} ; CHMOD ${xios_test_suite_repository}/test_${machine_name}
 
 cp plein_report.txt ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
-chmod --quiet ug+rw ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
+CHMOD ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
 
-mkdir -p ${rundir}/def_files ;  chmod --quiet ug+rwx ${rundir}/RUN/def_files
-mkdir -p ${rundir}/def_files/${xios_revision} ;  chmod --quiet ug+rwx ${rundir}/def_files/${xios_revision}
+mkdir -p ${rundir}/def_files ;  CHMOD ${rundir}/RUN/def_files
+mkdir -p ${rundir}/def_files/${xios_revision} ;  CHMOD ${rundir}/def_files/${xios_revision}
 
 for i in $(ls -d test_*/)
 do
@@ -103,6 +102,6 @@ do
     mkdir -p ${rundir}/def_files/${xios_revision}/${j%%}
     cp ${j%%}/setup/all_param.def ${rundir}/def_files/${xios_revision}/${j%%}  
   done
-  chmod -R --quiet ug+rwx ${rundir}/def_files
+  CHMOD ${rundir}/def_files
 done
 
