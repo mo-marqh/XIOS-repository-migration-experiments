@@ -189,6 +189,21 @@ function fillSubTestTable(revision, machine, build_dir, branch_name, machine_nam
   mySubTable.setAttribute("class", "test_sub_table")
   mySubTable.setAttribute("id", "test_sub_table_"+revision+"_"+machine+"_"+build_dir)
 
+  if(info_list.length == 0)
+  {
+    myRow = document.createElement("tr")
+    myRow.setAttribute("id","test_sub_table_row_"+revision+"_"+machine+"_"+build_dir)
+    myRow.setAttribute("class","test_sub_table_row_"+revision+"_"+machine)
+    myRow.classList.add("build_level")
+    myCell = document.createElement("td")
+    myCell.innerHTML = build_dir.replace("build_","")+" Build Failed"
+    myCell.style.color = "white"
+    myCell.style.fontWeight = "bold"
+    myRow.appendChild(myCell)
+    mySubTable.append(myRow)
+    return;
+  }
+
   myRow = document.createElement("tr")
   myRow.setAttribute("id","test_sub_table_row_"+revision+"_"+machine+"_"+build_dir)
   myRow.setAttribute("class","test_sub_table_row_"+revision+"_"+machine)

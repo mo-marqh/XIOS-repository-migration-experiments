@@ -85,6 +85,10 @@ h1, h2
     background-color:#2e86c1;
 }
 
+.showit 
+{
+    display: block;
+}
 
 .compile_table
 {

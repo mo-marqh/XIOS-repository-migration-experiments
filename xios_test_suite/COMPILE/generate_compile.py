@@ -84,9 +84,9 @@ def subgenerate(maindir, machine_name):
                     mode_list.append(myText)
                 myBuild[3] = myText
 
-            elif line.startswith("Build command"):
-                myTexts = line.replace("Build command ", "").replace("\n", "").split(" ")
-                if myTexts[0] == "finished" :
+            elif line[0].isdigit():
+                myTexts = line.replace("\n", "")
+                if myTexts == "0" :
                     myBuild[4] = "&#9989;" 
                 else :
                     myBuild[4] = "&#10060;"

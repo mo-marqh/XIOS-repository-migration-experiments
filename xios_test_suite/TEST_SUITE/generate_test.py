@@ -62,11 +62,6 @@ def subgenerate(directory, machine, machine_name):
                 branch = tmp_url[len(tmp_url)-1]
                 if not relurl in relurl_list :
                     relurl_list.append(relurl)
-#            elif line.startswith("#machine") :
-#                machine = line.replace("\n","").split(" ")[1]
-#                machine_name = machine_name_dict[machine]
-#                if not machine in machine_list :
-#                    machine_list.append(machine)
             elif line.startswith("#build_dir") :
                 build_dir = line.replace("\n","").split(" ")[1]
                 tmp_list = build_dir.split("/")
@@ -125,8 +120,8 @@ def subgenerate(directory, machine, machine_name):
             if j<len(myReportDict[key])-1 : 
                 f.write("        [\'"+myReportDict[key][j][0]+"\', \'"+myReportDict[key][j][1]+"\', \'"+myReportDict[key][j][2]+"\', "+myReportDict[key][j][3]+"],\n")
             else :
-                f.write("        [\'"+myReportDict[key][j][0]+"\', \'"+myReportDict[key][j][1]+"\', \'"+myReportDict[key][j][2]+"\', "+myReportDict[key][j][3]+"]]\n")
-        f.write("\n\n")
+                f.write("        [\'"+myReportDict[key][j][0]+"\', \'"+myReportDict[key][j][1]+"\', \'"+myReportDict[key][j][2]+"\', "+myReportDict[key][j][3]+"]")
+        f.write("]\n\n\n")
 
     for revision in revision_list :
         algo_list = glob.glob(directory+"/def_files/"+revision+"/test_*")
