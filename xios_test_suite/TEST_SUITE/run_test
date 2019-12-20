@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source ../ARCH/arch-${arch}.env
-cd .. ; source load_env_local ; cd RUN_TEST_SUITE 
+cd .. ; source load_env ; cd RUN_TEST_SUITE 
 
 export machine_name=$xios_machine_name
 export machine_full_name=$xios_full_machine_name
