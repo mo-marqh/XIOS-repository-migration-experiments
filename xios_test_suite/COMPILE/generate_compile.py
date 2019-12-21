@@ -56,7 +56,7 @@ def subgenerate(maindir, machine_name):
     
     for compile_log in compile_list:
         revision = compile_log[6:10]
-        myBuild[4] = "&#10060"  
+        myBuild[4] = "&#10060;"  
         f=open(compile_log, "r")
         for line in f:
             if line.startswith("revision"):
