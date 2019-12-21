@@ -56,7 +56,7 @@ def subgenerate(maindir, machine_name):
     
     for compile_log in compile_list:
         revision = compile_log[6:10]
-        
+        myBuild[4] = "&#10060"  
         f=open(compile_log, "r")
         for line in f:
             if line.startswith("revision"):
@@ -88,8 +88,6 @@ def subgenerate(maindir, machine_name):
                 myTexts = line.replace("\n", "")
                 if myTexts == "0" :
                     myBuild[4] = "&#9989;" 
-                else :
-                    myBuild[4] = "&#10060;"
         myBuildList.append([myBuild[0], myBuild[1], myBuild[2], myBuild[3], myBuild[4]])
         f.close()
 
