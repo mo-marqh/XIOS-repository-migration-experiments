@@ -94,7 +94,7 @@ rm -f test_*/user_param.py.*
 
 rundir=${xios_test_suite_repository}/RUN
 mkdir -p $rundir ; CHMOD  $rundir
-mkdir -p ${rundir}/test_${machine_name} ; CHMOD ${xios_test_suite_repository}/test_${machine_name}
+mkdir -p ${rundir}/test_${machine_name} ; CHMOD ${rundir}/test_${machine_name}
 
 cp plain_report.txt ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
 CHMOD ${rundir}/test_${machine_name}/test_${xios_revision}_${machine_name}_${arch}_${mode}.txt
