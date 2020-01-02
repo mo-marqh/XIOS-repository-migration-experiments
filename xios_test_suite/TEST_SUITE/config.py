@@ -3,6 +3,7 @@ import sys
 
 from default_param import *
 from user_param import *
+from param_list import *
 
 def main():
 	
@@ -19,13 +20,8 @@ def main():
 	f=open("all_param.def", "w")
 
 	f.write("&params_run\n")
-	f.write('UsingServer2 = ' + repr(UsingServer2) + '\n')
-	f.write('RatioServer2 = ' + repr(RatioServer2) + '\n')
-	f.write('NumberPoolsServer2 = ' + repr(NumberPoolsServer2) + '\n')
-	f.write('NumberClients = ' + repr(NumberClients) + '\n')
-	f.write('NumberServers = ' + repr(NumberServers) + '\n')
-	f.write('Duration = ' + repr(Duration) + '\n')
-	f.write('ATMdomain = ' + repr(ATMdomain) + '\n')
+	for i in range(len(param_list)):
+		f.write(param_list[i]+" = "+repr(eval(param_list[i]))+ "\n")
 	f.write('/\n\n')
 
 	f.close()
