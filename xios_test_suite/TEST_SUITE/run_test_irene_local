@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ccc_msub -E "--wait" job_irene_local.sh 
+
+bash -c "python generate_test.py"
