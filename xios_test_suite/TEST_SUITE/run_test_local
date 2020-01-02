@@ -60,7 +60,9 @@ touch setup.sh
 >setup.sh
 for i in $(ls -d test_*/)
 do
-  cp setup.py ${i%%/}      
+  cp setup.py ${i%%/}  
+  cp default_param.json ${i%%/}  
+  cp param_list.py ${i%%/}     
   cp run_sub_test.sh ${i%%/}    
   echo "bash -c \"cd " ${i%%/} " && python setup.py\" ">> setup.sh
   echo "echo \"setup.py called from " ${i%%/} "\"">> setup.sh
@@ -105,7 +107,7 @@ mkdir -p ${rundir}/def_files/${xios_revision} ;  CHMOD ${rundir}/def_files/${xio
 for i in $(ls -d test_*/)
 do
   mkdir -p ${rundir}/def_files/${xios_revision}/${i%%}
-  cp ${i%%}/user_params.def ${rundir}/def_files/${xios_revision}/${i%%}      
+  cp ${i%%}/user_param.json ${rundir}/def_files/${xios_revision}/${i%%}  
   for j in $(ls -d ${i%%/}/config_*)
   do
     mkdir -p ${rundir}/def_files/${xios_revision}/${j%%}

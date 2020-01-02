@@ -40,12 +40,6 @@ def main():
 	f.write("                   POST_BUILD\n")
 	f.write("                   COMMAND rm -f report.txt\n")
 	f.write("                   COMMAND rm -f report.html\n")
-
-	
-	for folder in test_list:
-		f.write("                   COMMAND cat "+folder+"/report.txt >> report.txt\n")
-		f.write("                   COMMAND cat "+folder+"/report.html >> report.html\n")
-	
 	f.write("                   )\n\n")
 	f.close
 	

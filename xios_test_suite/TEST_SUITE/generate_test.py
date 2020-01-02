@@ -129,11 +129,18 @@ def subgenerate(directory, machine, machine_name):
         for l in algo_list :
             tmp_algo = l.split("/")
             f.write("var test_"+machine+"_"+revision+"_"+tmp_algo[len(tmp_algo)-1]+"_user_params = [\n")
-            g=open(l+"/user_params.def","r")
-            for line in g:
-                if not line=="\n" and not line.startswith("#"):
-                    f.write("        \'"+line.replace("\n","").replace("'","\\\'")+"\',\n")
-            g.close()
+            if os.path.exists(l+"/user_param.json"):
+                g=open(l+"/user_param.json","r")
+                for line in g:
+                    if not line=="\n" and not line.startswith("#"):
+                        f.write("        \'"+line.replace("\n","").replace("'","\\\'")+"\',\n")
+                g.close()
+            else :
+                g=open(l+"/user_params.def","r")
+                for line in g:
+                    if not line=="\n" and not line.startswith("#"):
+                        f.write("        \'"+line.replace("\n","").replace("'","\\\'")+"\',\n")
+                g.close()
             f.write("        ]\n\n")
 
     for revision in revision_list :

@@ -4,7 +4,7 @@ cp ../context_grid_dynamico.xml ./
 cp ../dynamico_grid.nc ./
 cp ../config.py sub_config.py
 cp ../check.py sub_check.py
-cp ../default_param.py default_param.py
+# cp ../default_param.py default_param.py
 
 
 { nb_proc=$(python sub_config.py 2>&1 1>&3-) ;} 3>&1
