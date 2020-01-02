@@ -1,0 +1,29 @@
+#!/bin/bash
+revision=$(svn info --show-item revision ../ 2>&1)
+mkdir -p xios_reference
+for i in $(ls -d test_*)
+do
+  echo ${i%%}
+  mkdir -p xios_reference/${i%%}
+  for j in $(ls -d ${i%%}/config_*)
+  do
+    echo ${j%%}
+    mkdir -p xios_reference/${j%%}
+    DIR=${j%%}/tmp_reference
+    if [ -d "$DIR" ]; then
+      mv ${j%%}/tmp_reference ${j%%}/reference  
+    fi
+
+    cp -r ${j%%}/reference xios_reference/${j%%}
+    cp -r ${j%%}/setup xios_reference/${j%%}
+  done
+
+done
+
+
+mkdir -p ${CCCWORKDIR}/xios_reference_archive
+mkdir -p ${CCCWORKDIR}/xios_reference_archive/$(( ${revision}-1 ))
+mv ${CCCWORKDIR}/xios_reference.tar.gz ${CCCWORKDIR}/xios_reference_archive/$(( ${revision}-1 ))/
+
+tar -zcvf ${CCCWORKDIR}/xios_reference.tar.gz xios_reference/
+rm -rf xios_reference
