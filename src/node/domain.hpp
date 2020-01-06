@@ -208,17 +208,40 @@ namespace xios {
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          bool isClientAfterTransformationChecked;
-         std::map<int, CArray<int,1> > indGlob_;
-         std::map<int, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
 
-/** Global index of each client sent to server: map<serverSize, map<serverRank, indexes>> */
+/** global index of the domain on server side, sent by the clients. This is global index for lon, lat, mask elements (ie non masked elements)
+    indGlobs_[rank] -> array of global index received from the client of rank "rank"
+    indGlobs[rank](ind) -> global indices of the "ind" element sent.
+    Defined only on server side
+*/
+         std::map<int, CArray<int,1> > indGlob_;
+
+/** only on client sided : defined the number of clients which participate to a message sent to a server for longitude, lat, area, etc. attributes 
+    nbSender[nbServers] --> first map is related to the server distribution (ie associated with the contextClient)
+    nbSenders[nbServers][server_rank]-> return the number of participants of a message sent to the server of rank "server_rank"
+*/
+         std::map<int, map<int,int> > nbSenders; 
+
+/** only on client side : Global index of each client sent to server: map<serverSize, map<serverRank, indexes>> 
+    indSrv_[nbServers] -->  first map is related to the server distribution (ie associated with the contextClient)
+    indSrv_[nbServers][server_rank] -> array of global index sent to the server of rank "server_rank"
+    indSrv_[nbServers][server_rank](ind) --> global index on server of the local element "ind" sent (for lon, lat, mask, etc...) 
+*/
          std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_;
-         // std::map<CContextClient*, std::map<int, vector<int> > > indWrittenSrv_; // Global written index of each client sent to server
-         std::vector<int> indexesToWrite;
+         
+ /** make the mapping between the global index (the key) and the local index
+     globalLocalIndexMap_[global_index] --> get the local index
+ */        
+         std::unordered_map<size_t,size_t> globalLocalIndexMap_;
+
+
+/** only on server side : get the rank of each clients which participate to a received message
+*   recvClientRanks_[num_receiver] : client rank of the receiver "num_receiver" 
+*/
          std::vector<int> recvClientRanks_;
+
          std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;     
-         std::map<int, std::map<int,size_t> > connectedDataSize_;
          std::map<int, std::vector<int> > connectedServerRank_;
 
          //! True if and only if the data defined on the domain can be outputted in a compressed way
@@ -226,7 +249,7 @@ namespace xios {
          bool isRedistributed_;
          TransMapTypes transformationMap_;         
          bool isUnstructed_;
-         std::unordered_map<size_t,size_t> globalLocalIndexMap_;
+
        
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

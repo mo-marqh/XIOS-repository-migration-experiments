@@ -1638,7 +1638,7 @@ namespace xios
            SuperClassWriter::addAttribute("compress", compress.str(), &varId);         
 
            CArray<int, 1> indexes(grid->getNumberWrittenIndexes());
-           indexes = grid->localIndexToWriteOnServer;
+           indexes = grid->localIndexToWriteOnServer_;
 
            switch (SuperClass::type)
            {

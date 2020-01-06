@@ -314,28 +314,29 @@ namespace xios {
 // In this way, store_clientIndex can be used as an input of a source filter
 // Maybe we need a flag to determine whether a client wants to write. TODO "
 
-/** Map storing received data on server side. This map is the equivalent of storeIndex_client, but for data not received from model
-  * instead that for client. This map is used to concatenate data received from several clients into a single array on server side
+/** Map storing received data on server side. This map is the equivalent to the storeIndex_client, but for data received from client
+  * instead that from model. This map is used to concatenate data received from several clients into a single array on server side
   * which match the local workflow grid.
   * outLocalIndexStoreOnClient_[client_rank] -> Array of index from client of rank "client_rank"
   * outLocalIndexStoreOnClient_[client_rank](index of buffer from client) -> local index of the workflow grid
   * The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData().
-  * Symetrically it is also used to send data from a server to sevral client for reading case. */
+  * Symetrically it is also used to send data from a server to several client for reading case. */
          map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient_; 
 
 
 /** Indexes calculated based on server-like distribution.
  *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
- *  Along with localIndexToWriteOnClient, these indexes are used to correctly place incoming data. */
-         CArray<size_t,1> localIndexToWriteOnServer;
+ *  Along with localIndexToWriteOnClient, these indexes are used to correctly place incoming data. 
+ *  size of the array : numberWrittenIndexes_ : number of index written in a compressed way
+ *  localIndexToWriteOnServer_(compressed_written_index) : -> local uncompressed index that will be written in the file */
+         CArray<size_t,1> localIndexToWriteOnServer_;
 
 /** Indexes calculated based on client-like distribution.
   * They are used for writing/reading data and only calculated for server level that does the writing/reading.
-  * Along with localIndexToWriteOnServer, these indexes are used to correctly place incoming data. */
-         CArray<size_t,1> localIndexToWriteOnClient;
-
-         CArray<size_t,1> indexFromClients;
-
+  * Along with localIndexToWriteOnServer, these indexes are used to correctly place incoming data. 
+  * size of the array : numberWrittenIndexes_
+  * localIndexToWriteOnClient_(compressed_written_index) -> local index of the workflow grid*/
+         CArray<size_t,1> localIndexToWriteOnClient_;
 
       private:
 
@@ -343,8 +344,12 @@ namespace xios {
         std::list<CContextClient*> clients;
         std::set<CContextClient*> clientsSet;
 
-/** Map storing received indexes. Key = sender rank, value = index array. */
-         map<int, CArray<size_t, 1> > outGlobalIndexFromClient_;
+/** Map storing received indexes on server side sent by clients. Key = sender rank, value = global index array. 
+    Later, the global indexes received will be mapped onto local index computed with the local distribution.
+    outGlobalIndexFromClient_[rank] -> array of global index send by client of rank "rank"
+    outGlobalIndexFromClient_[rank](n) -> global index of datav n sent by client
+*/
+        map<int, CArray<size_t, 1> > outGlobalIndexFromClient_;
 
         bool isChecked;
         bool isDomainAxisChecked;
@@ -393,8 +398,13 @@ namespace xios {
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
 
-/** Map storing global indexes of server-like (band-wise) distribution for sending to receivers.
-  * Key = size of receiver's intracomm.
+/** Map storing global indexes of server-like (band-wise) distribution for sending to receivers (client side).
+  * Key = size of receiver's intracomm (i.e. number of servers)
+  * ~ map<int, umap<int, std::vector<size_t> >> globalIndexOnServer_
+  * globalIndexOnServer_[servers_size] -> map for a distribution of size "servers_size" (number of servers)
+  * globalIndexOnServer_[servers_size][server_rank] -> array of global index managed by server of rank "server_rank"
+  * globalIndexOnServer_[servers_size][server_rank][n] -> global index of data to be send to the server by client based on sub element of the grid.
+  * -> grid masking is not included.
   */
 //        std::map<CContextClient*, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
         std::map<int, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;

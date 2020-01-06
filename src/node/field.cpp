@@ -1626,8 +1626,8 @@ namespace xios{
    void CField::outputField(CArray<double,1>& fieldOut)
    TRY
    { 
-      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
-      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
+      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient_;
+      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer_;
       for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
       {
         fieldOut(outIndexServer(idx)) = recvDataSrv(outIndexClient(idx));
@@ -1638,8 +1638,8 @@ namespace xios{
    void CField::inputField(CArray<double,1>& fieldIn)
    TRY
    {
-      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
-      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
+      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient_;
+      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer_;
       for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
       {
         recvDataSrv(outIndexClient(idx)) = fieldIn(outIndexServer(idx));
@@ -1650,8 +1650,8 @@ namespace xios{
    void CField::outputCompressedField(CArray<double,1>& fieldOut)
    TRY
    {
-      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
-      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
+      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient_;
+      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer_;
       for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
       {
         fieldOut((idx)) = recvDataSrv(outIndexClient(idx));

@@ -621,10 +621,10 @@ namespace xios {
         size_t nbWritten = 1;
         int writtenIndex = 0;
 
-        localIndexToWriteOnClient.resize(nbWritten);  
-        localIndexToWriteOnServer.resize(nbWritten);
-        localIndexToWriteOnServer(0) = writtenIndex;
-        localIndexToWriteOnClient(0) = writtenIndex;
+        localIndexToWriteOnClient_.resize(nbWritten);  
+        localIndexToWriteOnServer_.resize(nbWritten);
+        localIndexToWriteOnServer_(0) = writtenIndex;
+        localIndexToWriteOnClient_(0) = writtenIndex;
         
         return;
       }
@@ -642,16 +642,16 @@ namespace xios {
         if (globalLocalIndex.end() != globalLocalIndex.find(indGlo)) ++nbWritten;                
       }
 
-      localIndexToWriteOnClient.resize(nbWritten);  
-      localIndexToWriteOnServer.resize(nbWritten);
+      localIndexToWriteOnClient_.resize(nbWritten);  
+      localIndexToWriteOnServer_.resize(nbWritten);
       
       {
         numberWrittenIndexes_ = nbWritten;
         if (isDataDistributed_)
         {
-          CContextServer* server = CContext::getCurrent()->server;      
-          MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-          MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+          CContext* context = CContext::getCurrent();      
+          MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, context->intraComm_);
+          MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, context->intraComm_);
           offsetWrittenIndexes_ -= numberWrittenIndexes_;
         }
         else
@@ -665,8 +665,8 @@ namespace xios {
         itSrv = globalLocalIndex.find(indGlo);
         if (itSrve != itSrv)
         {
-          localIndexToWriteOnServer(nbWritten) = itSrv->second;
-          localIndexToWriteOnClient(nbWritten) = it->second;
+          localIndexToWriteOnServer_(nbWritten) = itSrv->second;
+          localIndexToWriteOnClient_(nbWritten) = it->second;
           ++nbWritten;                
         } 
       }
@@ -1742,7 +1742,7 @@ namespace xios {
 
         for (int i = 0; i < nSize.size(); ++i)
         dataSize *= nSize[i];
-        serverDistribution_ = new CDistributionServer(server->intraCommRank, 
+        serverDistribution_ = new CDistributionServer(context->intraCommRank_, 
                                                       globalIndex, axis_domain_order,
                                                       nBegin, nSize, nBeginGlobal, nGlob);
       }

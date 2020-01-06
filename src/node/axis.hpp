@@ -168,7 +168,6 @@ namespace xios {
          std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
          // std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
          std::unordered_map<size_t,size_t> globalLocalIndexMap_;
-         std::vector<int> indexesToWrite;
          std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;
          std::map<int, std::vector<int> > connectedServerRank_;
