@@ -175,10 +175,6 @@ namespace xios {
          void sendRegistry(void) ;
          void sendFinalizeClient(CContextClient* contextClient, const string& contextClientId);
 
-
-         const StdString& getIdServer();
-         void setIdServer(const StdString& idServer);
-         const StdString& getIdServer(const int srvPoolNb);
          std::string getContextId() {return contextId_;}
 
          // Client side: Receive and process messages
@@ -302,7 +298,6 @@ namespace xios {
          bool allProcessed;
          bool finalized;
          int countChildContextFinalized_;        //!< Counter of child contexts (for now it is the number of secondary server pools)
-         StdString idServer_;
          CGarbageCollector garbageCollector;
          std::list<MPI_Comm> comms; //!< Communicators allocated internally
 

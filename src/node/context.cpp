@@ -36,7 +36,7 @@ namespace xios {
       : CObjectTemplate<CContext>(), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
-      , idServer_(), client(nullptr), server(nullptr)
+      , client(nullptr), server(nullptr)
       , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
 
    { /* Ne rien faire de plus */ }
@@ -45,7 +45,7 @@ namespace xios {
       : CObjectTemplate<CContext>(id), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
-      , idServer_(), client(nullptr), server(nullptr)
+      , client(nullptr), server(nullptr)
       , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
    { /* Ne rien faire de plus */ }
 
@@ -279,8 +279,8 @@ namespace xios {
    void CContext::setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting)
    TRY
    {
-      // Estimated minimum event size for small events (10 is an arbitrary constant just for safety)
-     const size_t minEventSize = CEventClient::headerSize + getIdServer().size() + 10 * sizeof(int);
+      // Estimated minimum event size for small events (20 is an arbitrary constant just for safety)
+     const size_t minEventSize = CEventClient::headerSize + 20 * sizeof(int);
 
       // Ensure there is at least some room for 20 of such events in the buffers
       size_t minBufferSize = std::max(CXios::minBufferSize, 20 * minEventSize);
@@ -462,7 +462,6 @@ namespace xios {
         int type ; 
         if (commRank==0) CXios::getServicesManager()->getServiceType(CClient::getPoolRessource()->getId(), CXios::defaultServerId, 0, type) ;
         MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
-        setIdServer(CXios::getContextsManager()->getServerContextName(CClient::getPoolRessource()->getId(), CXios::defaultServerId, 0, type, getContextId())) ;
         setCurrent(getId()) ; // getCurrent/setCurrent may be supress, it can cause a lot of trouble
       }
       else if (CXios::usingServer2)
@@ -473,7 +472,6 @@ namespace xios {
         int type ; 
         if (commRank==0) CXios::getServicesManager()->getServiceType(CXios::defaultPoolId, CXios::defaultGathererId, 0, type) ;
         MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
-        setIdServer(CXios::getContextsManager()->getServerContextName(CXios::defaultPoolId, CXios::defaultGathererId, 0, type, getContextId())) ;
       }
       else
       {
@@ -483,7 +481,6 @@ namespace xios {
         int type ; 
         if (commRank==0) CXios::getServicesManager()->getServiceType(CXios::defaultPoolId, CXios::defaultServerId, 0, type) ;
         MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
-        setIdServer(CXios::getContextsManager()->getServerContextName(CXios::defaultPoolId, CXios::defaultServerId, 0, type, getContextId())) ;
       }
 
         // intraComm client is not duplicated. In all the code we use client->intraComm for MPI
@@ -803,10 +800,6 @@ namespace xios {
        if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
-         if (hasServer)
-           msg<<this->getIdServer(i);
-         else
-           msg<<this->getIdServer();
          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
@@ -821,9 +814,7 @@ namespace xios {
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      string id;
-      *buffer>>id;
-      get(id)->recvPostProcessingGlobalAttributes(*buffer);
+      getCurrent()->recvPostProcessingGlobalAttributes(*buffer);
    }
    CATCH
 
@@ -1519,10 +1510,6 @@ namespace xios {
        if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
-         if (hasServer)
-           msg<<this->getIdServer(i);
-         else
-           msg<<this->getIdServer();
          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
@@ -1538,9 +1525,7 @@ namespace xios {
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      string id;
-      *buffer>>id;
-      get(id)->closeDefinition();
+      getCurrent()->closeDefinition();
    }
    CATCH
 
@@ -1559,9 +1544,9 @@ namespace xios {
          {
            CMessage msg;
            if (hasServer)
-             msg<<this->getIdServer(i)<<step;
+             msg<<step;
            else
-             msg<<this->getIdServer()<<step;
+             msg<<step;
            const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
              event.push(*itRank,1,msg);
@@ -1577,9 +1562,7 @@ namespace xios {
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      string id;
-      *buffer>>id;
-      get(id)->recvUpdateCalendar(*buffer);
+      getCurrent()->recvUpdateCalendar(*buffer);
    }
    CATCH
 
@@ -1612,10 +1595,6 @@ namespace xios {
        if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
-         if (hasServer)
-           msg<<this->getIdServer(i);
-         else
-           msg<<this->getIdServer();
          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg) ;
@@ -1631,9 +1610,7 @@ namespace xios {
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      string id;
-      *buffer>>id;
-      get(id)->recvCreateFileHeader(*buffer);
+      getCurrent()->recvCreateFileHeader(*buffer);
    }
    CATCH
 
@@ -1660,10 +1637,6 @@ namespace xios {
        if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
-         if (hasServer)
-           msg<<this->getIdServer(i);
-         else
-           msg<<this->getIdServer();
          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
@@ -1679,8 +1652,7 @@ namespace xios {
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      string id;
-      *buffer>>id;      
+      // nothing to do, no call ??!!    
    }
    CATCH
 
@@ -1698,10 +1670,6 @@ namespace xios {
        if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
-         if (hasServer)
-           msg<<this->getIdServer(i);
-         else
-           msg<<this->getIdServer();
          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
          event.push(*itRank,1,msg);
@@ -1717,9 +1685,7 @@ namespace xios {
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      string id;
-      *buffer>>id;
-      get(id)->recvPostProcessing(*buffer);
+      getCurrent()->recvPostProcessing(*buffer);
    }
    CATCH
 
@@ -1732,55 +1698,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CContext::setIdServer(const StdString& idServer)
-   TRY
-   {
-      idServer_=idServer ;
-   }
-   CATCH_DUMP_ATTR
-
-   
-   const StdString& CContext::getIdServer()
-   TRY
-   {
-      return idServer_;
-   }
-   CATCH_DUMP_ATTR
-
-   const StdString& CContext::getIdServer(const int i)
-   TRY
-   {
-//     return idServer_ + std::to_string(static_cast<unsigned long long>(i));
-      return primServerId_[i] ;
-   }
-   CATCH_DUMP_ATTR
-
-/*
-   const StdString& CContext::getIdServer()
-   TRY
-   {
-      if (hasClient)
-      {
-        idServer_ = this->getId();
-        idServer_ += "_server";
-        return idServer_;
-      }
-      if (hasServer) return (this->getId());
-   }
-   CATCH_DUMP_ATTR
-
-   const StdString& CContext::getIdServer(const int i)
-   TRY
-   {
-     idServer_ = this->getId();
-     idServer_ += "_server_";
-     idServer_ += std::to_string(static_cast<unsigned long long>(i));
-     return idServer_;
-   }
-   CATCH_DUMP_ATTR
-*/
-
-
+ 
    /*!
    \brief Do some simple post processings after parsing xml file
       After the xml file (iodef.xml) is parsed, it is necessary to build all relations among
@@ -2328,9 +2246,7 @@ namespace xios {
   TRY
   {
     CBufferIn* buffer=event.subEvents.begin()->buffer;
-    string id;
-    *buffer>>id;
-    get(id)->recvRegistry(*buffer);
+    getCurrent()->recvRegistry(*buffer);
   }
   CATCH
 
@@ -2360,10 +2276,6 @@ namespace xios {
         if (contextClientTmp->isServerLeader())
         {
            CMessage msg ;
-           if (hasServer)
-             msg<<this->getIdServer(i);
-           else
-             msg<<this->getIdServer();
            if (contextClientTmp->clientRank==0) msg<<*registryOut ;
            const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)

@@ -204,7 +204,7 @@ namespace xios
        if (minimumSize)
        {
          // Account for extra header info
-         minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
+         minimumSize += CEventClient::headerSize + getId().size() + sizeof(size_t);
 
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
@@ -240,7 +240,25 @@ namespace xios
     if (client->isServerLeader())
     {
       CMessage msg;
-      msg<<this->getIdServer(); // pb with context attribute -> to check : for now seem to be never used for context...
+      msg<<this->getId(); 
+      msg << attr.getName();
+      msg << attr;
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        event.push(*itRank,1,msg);
+      client->sendEvent(event);
+    }
+    else client->sendEvent(event);
+  }
+
+/* specialisation for context, because context Id on client is not the same on server, and no need to transfer context Id */
+  template <>
+  void CObjectTemplate<CContext>::sendAttributToServer(CAttribute& attr, CContextClient* client)
+  {
+    CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
+    if (client->isServerLeader())
+    {
+      CMessage msg;
       msg << attr.getName();
       msg << attr;
       const std::list<int>& ranks = client->getRanksServerLeader();
@@ -294,6 +312,26 @@ namespace xios
     if (attr->isEmpty()) info(50) << "--> empty" << endl;
     else info(50) /*attr->getValue()*/ << endl;
   }
+
+/* specialisation for context, because context Id on client is not the same on server and no need to transfer context Id */
+  template <>
+  void CObjectTemplate<CContext>::recvAttributFromClient(CEventServer& event)
+  {
+
+    CBufferIn* buffer=event.subEvents.begin()->buffer;
+    string attrId;
+    CAttributeMap & attrMap = *CContext::getCurrent();
+    *buffer>>attrId;
+    CAttribute* attr=attrMap[attrId];
+    info(50) << "attribut recu " << attrId << "  ";
+    if (attr->isEmpty()) info(50) << "--> empty" << endl;
+    else info(50) /*<attr->getValue()*/ << endl;
+    *buffer>>*attr;
+     info(50) << "attribut recu " << attrId << "  ";
+    if (attr->isEmpty()) info(50) << "--> empty" << endl;
+    else info(50) /*attr->getValue()*/ << endl;
+  }
+
 
    template <class T>
    bool CObjectTemplate<T>::dispatchEvent(CEventServer& event)
