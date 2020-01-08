@@ -36,6 +36,7 @@ USE idate, ONLY : txios(date),                                                  
                   OPERATOR(+), OPERATOR(-),                                                                    &
                   OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=),            &
                   ASSIGNMENT(=)
+USE itimer, ONLY : xios(timer_resume), xios(timer_suspend), xios(timer_reset), xios(timer_get_time)
 
 USE ifield, ONLY : txios(field), txios(fieldgroup), xios(is_valid_field), xios(is_valid_fieldgroup)
 
