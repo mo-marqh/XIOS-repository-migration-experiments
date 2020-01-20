@@ -41,7 +41,7 @@ CATCH
 bool CDomainAlgorithmExpand::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CDomain>::registerTransformation(TRANS_EXPAND_DOMAIN, create);
+  return CGridTransformationFactory<CDomain>::registerTransformation(TRANS_EXPAND_DOMAIN, create);
 }
 CATCH
 

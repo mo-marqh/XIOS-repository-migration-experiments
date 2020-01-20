@@ -39,7 +39,7 @@ CATCH
 bool CDomainAlgorithmComputeConnectivity::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CDomain>::registerTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN, create);
+  return CGridTransformationFactory<CDomain>::registerTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN, create);
 }
 CATCH
 

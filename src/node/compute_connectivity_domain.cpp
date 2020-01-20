@@ -26,7 +26,7 @@ namespace xios {
   bool CComputeConnectivityDomain::_dummyRegistered = CComputeConnectivityDomain::registerTrans();
   bool CComputeConnectivityDomain::registerTrans()
   {
-    registerTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN, CComputeConnectivityDomain::create);
+    return registerTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN, CComputeConnectivityDomain::create);
   }
 
   //----------------------------------------------------------------

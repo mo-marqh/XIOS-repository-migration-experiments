@@ -46,7 +46,7 @@ CATCH
 bool CDomainAlgorithmInterpolate::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CDomain>::registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
+  return CGridTransformationFactory<CDomain>::registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
 }
 CATCH
 

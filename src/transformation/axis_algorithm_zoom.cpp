@@ -34,7 +34,7 @@ CATCH
 bool CAxisAlgorithmZoom::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_ZOOM_AXIS, create);
+  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_ZOOM_AXIS, create);
 }
 CATCH
 

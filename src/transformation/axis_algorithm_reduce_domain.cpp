@@ -40,7 +40,7 @@ CATCH
 bool CAxisAlgorithmReduceDomain::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_REDUCE_DOMAIN_TO_AXIS, create);
+  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_REDUCE_DOMAIN_TO_AXIS, create);
 }
 CATCH
 

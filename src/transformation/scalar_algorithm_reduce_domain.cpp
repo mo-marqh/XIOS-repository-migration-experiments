@@ -41,7 +41,7 @@ CATCH
 bool CScalarAlgorithmReduceDomain::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_DOMAIN_TO_SCALAR, create);
+  return CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_DOMAIN_TO_SCALAR, create);
 }
 CATCH
 

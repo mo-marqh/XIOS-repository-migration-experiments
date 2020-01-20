@@ -36,7 +36,7 @@ CATCH
 bool CAxisAlgorithmTemporalSplitting::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_TEMPORAL_SPLITTING, create);
+  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_TEMPORAL_SPLITTING, create);
 }
 CATCH
 

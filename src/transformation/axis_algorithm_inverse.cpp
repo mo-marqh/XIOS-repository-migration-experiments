@@ -42,7 +42,7 @@ CATCH
 bool CAxisAlgorithmInverse::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INVERSE_AXIS, create);
+  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INVERSE_AXIS, create);
 }
 CATCH
 

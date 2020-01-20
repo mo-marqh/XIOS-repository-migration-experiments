@@ -26,7 +26,7 @@ namespace xios {
   bool CZoomDomain::_dummyRegistered = CZoomDomain::registerTrans();
   bool CZoomDomain::registerTrans()
   {
-    registerTransformation(TRANS_ZOOM_DOMAIN, CZoomDomain::create);
+    return registerTransformation(TRANS_ZOOM_DOMAIN, CZoomDomain::create);
   }
 
   //----------------------------------------------------------------

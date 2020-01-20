@@ -34,7 +34,7 @@ CATCH
 bool CAxisAlgorithmExtract::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_EXTRACT_AXIS, create);
+  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_EXTRACT_AXIS, create);
 }
 CATCH
 

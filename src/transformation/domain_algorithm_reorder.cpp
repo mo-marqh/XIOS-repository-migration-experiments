@@ -34,7 +34,7 @@ CATCH
 bool CDomainAlgorithmReorder::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CDomain>::registerTransformation(TRANS_REORDER_DOMAIN, create);
+  return CGridTransformationFactory<CDomain>::registerTransformation(TRANS_REORDER_DOMAIN, create);
 }
 CATCH
 

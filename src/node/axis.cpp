@@ -59,6 +59,8 @@ namespace xios {
      m["temporal_splitting"] = TRANS_TEMPORAL_SPLITTING;
      m["duplicate_scalar"] = TRANS_DUPLICATE_SCALAR_TO_AXIS;
 
+     return true ;
+
    }
    CATCH
 

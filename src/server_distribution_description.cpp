@@ -39,6 +39,7 @@ int CServerDistributionDescription::defaultDistributedDimension(int gridDimensio
     default:
       break;
   } 
+  return -1 ;
 }
 
 /*!

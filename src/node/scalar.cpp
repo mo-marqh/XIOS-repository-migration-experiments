@@ -34,6 +34,8 @@ namespace xios {
      m["extract_axis"]  = TRANS_EXTRACT_AXIS_TO_SCALAR;
      m["reduce_domain"] = TRANS_REDUCE_DOMAIN_TO_SCALAR;
      m["reduce_scalar"] = TRANS_REDUCE_SCALAR_TO_SCALAR;
+
+     return true ;
    }
 
    StdString CScalar::GetName(void)   { return (StdString("scalar")); }

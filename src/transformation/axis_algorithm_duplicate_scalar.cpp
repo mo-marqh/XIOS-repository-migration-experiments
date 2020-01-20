@@ -36,7 +36,7 @@ CATCH
 bool CAxisAlgorithmDuplicateScalar::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_DUPLICATE_SCALAR_TO_AXIS, create);
+  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_DUPLICATE_SCALAR_TO_AXIS, create);
 }
 CATCH
 

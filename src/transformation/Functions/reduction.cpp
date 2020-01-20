@@ -26,6 +26,8 @@ bool CReductionAlgorithm::initReductionOperation(std::map<StdString,EReductionTy
 
   m["average"] = TRANS_REDUCE_AVERAGE;
   CAverageReductionAlgorithm::registerTrans();
+
+  return true;
 }
 
 bool CReductionAlgorithm::_dummyInit = CReductionAlgorithm::initReductionOperation(CReductionAlgorithm::ReductionOperations);

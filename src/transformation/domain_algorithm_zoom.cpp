@@ -31,7 +31,7 @@ CATCH
 bool CDomainAlgorithmZoom::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CDomain>::registerTransformation(TRANS_ZOOM_DOMAIN, create);
+  return CGridTransformationFactory<CDomain>::registerTransformation(TRANS_ZOOM_DOMAIN, create);
 }
 CATCH
 

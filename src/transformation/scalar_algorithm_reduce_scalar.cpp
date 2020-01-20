@@ -37,7 +37,7 @@ CATCH
 bool CScalarAlgorithmReduceScalar::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_SCALAR_TO_SCALAR, create);
+  return CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_SCALAR_TO_SCALAR, create);
 }
 CATCH
 

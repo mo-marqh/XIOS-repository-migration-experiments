@@ -44,7 +44,7 @@ CATCH
 bool CAxisAlgorithmInterpolate::registerTrans()
 TRY
 {
-  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INTERPOLATE_AXIS, create);
+  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INTERPOLATE_AXIS, create);
 }
 CATCH
 
