@@ -191,10 +191,14 @@ CONTAINS
     LOGICAL :: ok_field2D_W, ok_field3D_W, ok_pressure_W, ok_field2D_sub_W, ok_field3D_sub_W,ok_field3D_recv_W, ok_field3D_send_W
     LOGICAL :: ok_field_XW, ok_field_YW, ok_field_XYW, ok_field_ZW, ok_field_XYZW, ok_field_XZW, ok_field_YZW
 
-    LOGICAL :: ok_other_field2D, ok_other_field3D, ok_other_pressure, ok_other_field2D_sub, ok_other_field3D_sub,ok_other_field3D_recv, ok_other_field3D_send
-    LOGICAL :: ok_other_field_X, ok_other_field_Y, ok_other_field_XY, ok_other_field_Z, ok_other_field_XYZ, ok_other_field_XZ, ok_other_field_YZ
-    LOGICAL :: ok_other_field2D_W, ok_other_field3D_W, ok_other_pressure_W, ok_other_field2D_sub_W, ok_other_field3D_sub_W,ok_other_field3D_recv_W, ok_other_field3D_send_W
-    LOGICAL :: ok_other_field_XW, ok_other_field_YW, ok_other_field_XYW, ok_other_field_ZW, ok_other_field_XYZW, ok_other_field_XZW, ok_other_field_YZW
+    LOGICAL :: ok_other_field2D, ok_other_field3D, ok_other_pressure, ok_other_field2D_sub, ok_other_field3D_sub, &
+               ok_other_field3D_recv, ok_other_field3D_send
+    LOGICAL :: ok_other_field_X, ok_other_field_Y, ok_other_field_XY, ok_other_field_Z, ok_other_field_XYZ, &
+               ok_other_field_XZ, ok_other_field_YZ
+    LOGICAL :: ok_other_field2D_W, ok_other_field3D_W, ok_other_pressure_W, ok_other_field2D_sub_W, ok_other_field3D_sub_W, &
+               ok_other_field3D_recv_W, ok_other_field3D_send_W
+    LOGICAL :: ok_other_field_XW, ok_other_field_YW, ok_other_field_XYW, ok_other_field_ZW, ok_other_field_XYZW, &
+               ok_other_field_XZW, ok_other_field_YZW
     
       !! XIOS Initialization (get the local communicator)
     CALL xios_initialize(trim(model_id),return_comm=comm)
@@ -899,12 +903,14 @@ CONTAINS
     INTEGER :: axis_proc_rank, axis_proc_size
     INTEGER :: ensemble_proc_size, ensemble_proc_rank
 
-    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)
+    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                           ensemble_proc_size, ensemble_proc_rank)
     ALLOCATE(return_value(0:0))
     return_value(0)=ensemble_proc_rank
 
     IF (xios_is_valid_axis(TRIM(ensemble_id))) THEN
-      CALL xios_set_axis_attr(ensemble_id, n_glo=ensemble_proc_size, begin=ensemble_proc_rank, n=1, value=return_value(:), unit='-')    
+      CALL xios_set_axis_attr(ensemble_id, n_glo=ensemble_proc_size, begin=ensemble_proc_rank, n=1, value=return_value(:), &
+                              unit='-')    
     ENDIF
     
    END SUBROUTINE init_ensemble
@@ -996,7 +1002,8 @@ CONTAINS
     CALL MPI_COMM_RANK(comm,mpi_rank,ierr)
     CALL MPI_COMM_SIZE(comm,mpi_size,ierr)
 
-    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)
+    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                           ensemble_proc_size, ensemble_proc_rank)
 
     mpi_rank=domain_proc_rank
     mpi_size=domain_proc_size
@@ -1191,7 +1198,8 @@ CONTAINS
     IF (xios_is_valid_domain(TRIM(domain_id))) THEN
       CALL xios_set_domain_attr(TRIM(domain_id), type="unstructured", ni_glo=ncell_glo, ni=ncell, ibegin=0, i_index=i_index)
       CALL xios_set_domain_attr(TRIM(domain_id), data_dim=1, data_ni=data_n_index, data_i_index=data_i_index, mask_1d=return_mask)
-      CALL xios_set_domain_attr(TRIM(domain_id), lonvalue_1D=lon, latvalue_1D=lat, nvertex=4, bounds_lon_1D=bounds_lon, bounds_lat_1D=bounds_lat)
+      CALL xios_set_domain_attr(TRIM(domain_id), lonvalue_1D=lon, latvalue_1D=lat, nvertex=4, bounds_lon_1D=bounds_lon, &
+                                bounds_lat_1D=bounds_lat)
     ENDIF
 
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN
@@ -1209,7 +1217,7 @@ CONTAINS
 
 
 
-  SUBROUTINE init_domain_dynamico(domain_id, comm, params, return_ni, return_nj,               &
+  SUBROUTINE init_domain_dynamico(domain_id, comm, params, return_ni, return_nj,           &
                               return_lon,return_lat,return_mask, return_index,             &
                               return_X_lon,return_X_lat, return_X_mask, return_X_index,    &
                               return_Y_lon,return_Y_lat, return_Y_mask, return_Y_index)
@@ -1251,15 +1259,18 @@ CONTAINS
     CALL MPI_COMM_RANK(comm,mpi_rank,ierr)
     CALL MPI_COMM_SIZE(comm,mpi_size,ierr)
 
-    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)
+    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                           ensemble_proc_size, ensemble_proc_rank)
 
     CALL xios_get_current_context(ctx_hdl)
     
     CALL xios_context_initialize("grid_dynamico",comm)
     CALL xios_close_context_definition()
-    CALL xios_get_domain_attr("domain_dynamico",ni_glo=ni_glo,nj_glo=nj_glo,ni=ni,nj=nj, ibegin=ibegin, jbegin=jbegin ,nvertex=nvertex)
+    CALL xios_get_domain_attr("domain_dynamico",ni_glo=ni_glo,nj_glo=nj_glo,ni=ni,nj=nj, ibegin=ibegin, jbegin=jbegin , &
+                              nvertex=nvertex)
     ALLOCATE(lon(ni),lat(ni),bounds_lon(nvertex,ni),bounds_lat(nvertex,ni))
-    CALL xios_get_domain_attr("domain_dynamico", lonvalue_1d=lon, latvalue_1d=lat, bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
+    CALL xios_get_domain_attr("domain_dynamico", lonvalue_1d=lon, latvalue_1d=lat, bounds_lon_1d=bounds_lon, &
+                               bounds_lat_1d=bounds_lat)
     CALL xios_context_finalize
 
     CALL xios_set_current_context(ctx_hdl)
@@ -1277,8 +1288,10 @@ CONTAINS
 
     CALL MPI_AllgatherV(lon, ni, MPI_REAL8, lon_glo, ni_all, ibegin_all, MPI_REAL8, comm, ierr) 
     CALL MPI_AllgatherV(lat, ni, MPI_REAL8, lat_glo, ni_all, ibegin_all, MPI_REAL8, comm, ierr) 
-    CALL MPI_AllgatherV(bounds_lon, ni*nvertex, MPI_REAL8, bounds_lon_glo, ni_all*nvertex, ibegin_all*nvertex, MPI_REAL8, comm, ierr) 
-    CALL MPI_AllgatherV(bounds_lat, ni*nvertex, MPI_REAL8, bounds_lat_glo, ni_all*nvertex, ibegin_all*nvertex, MPI_REAL8, comm, ierr) 
+    CALL MPI_AllgatherV(bounds_lon, ni*nvertex, MPI_REAL8, bounds_lon_glo, ni_all*nvertex, ibegin_all*nvertex, &
+                        MPI_REAL8, comm, ierr) 
+    CALL MPI_AllgatherV(bounds_lat, ni*nvertex, MPI_REAL8, bounds_lat_glo, ni_all*nvertex, ibegin_all*nvertex, &
+                        MPI_REAL8, comm, ierr) 
 
     
     nbp_glo=ni_glo
@@ -1344,7 +1357,8 @@ CONTAINS
 
     IF (xios_is_valid_domain(TRIM(domain_id))) THEN
       CALL xios_set_domain_attr(TRIM(domain_id), type="unstructured", ni_glo=ni_glo, ibegin=offset, ni=nbp, nvertex=nvertex)
-      CALL xios_set_domain_attr(TRIM(domain_id), data_dim=1, lonvalue_1d=lon, latvalue_1d=lat, bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat, mask_1d=return_mask)
+      CALL xios_set_domain_attr(TRIM(domain_id), data_dim=1, lonvalue_1d=lon, latvalue_1d=lat, bounds_lon_1d=bounds_lon, &
+                                bounds_lat_1d=bounds_lat, mask_1d=return_mask)
     ENDIF    
 
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN
@@ -1400,7 +1414,8 @@ CONTAINS
     CALL MPI_COMM_RANK(comm,mpi_rank,ierr)
     CALL MPI_COMM_SIZE(comm,mpi_size,ierr)
 
-    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)
+    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                           ensemble_proc_size, ensemble_proc_rank)
     ni_glo=params%ni
     nj_glo=params%nj
     nbp_glo=ni_glo*nj_glo
@@ -1483,7 +1498,8 @@ CONTAINS
     return_nj=nj
 
     IF (xios_is_valid_domain(TRIM(domain_id))) THEN
-      CALL xios_set_domain_attr(TRIM(domain_id), type="rectilinear", ni_glo=ni_glo, ibegin=ibegin, ni=ni, nj_glo=nj_glo, jbegin=jbegin, nj=nj)
+      CALL xios_set_domain_attr(TRIM(domain_id), type="rectilinear", ni_glo=ni_glo, ibegin=ibegin, ni=ni, nj_glo=nj_glo, &
+                                jbegin=jbegin, nj=nj)
       CALL xios_set_domain_attr(TRIM(domain_id), data_dim=2, lonvalue_1d=lon, latvalue_1d=lat, mask_1d=return_mask)
     ENDIF
     
@@ -1537,7 +1553,8 @@ CONTAINS
     CALL MPI_COMM_RANK(comm,mpi_rank,ierr)
     CALL MPI_COMM_SIZE(comm,mpi_size,ierr)
 
-    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)
+    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                           ensemble_proc_size, ensemble_proc_rank)
     ni_glo=params%ni
     nj_glo=params%nj
     nbp_glo=ni_glo*nj_glo
@@ -1682,17 +1699,20 @@ CONTAINS
     return_nj=nj
 
     IF (xios_is_valid_domain(TRIM(domain_id))) THEN
-      CALL xios_set_domain_attr(TRIM(domain_id), type="rectilinear", ni_glo=ni_glo, ibegin=ibegin, ni=ni, nj_glo=nj_glo, jbegin=jbegin, nj=nj)
+      CALL xios_set_domain_attr(TRIM(domain_id), type="rectilinear", ni_glo=ni_glo, ibegin=ibegin, ni=ni, nj_glo=nj_glo, &
+                                jbegin=jbegin, nj=nj)
       CALL xios_set_domain_attr(TRIM(domain_id), data_dim=1, data_ni=size(return_index), data_i_index=return_index)
       CALL xios_set_domain_attr(TRIM(domain_id), lonvalue_1d=lon, latvalue_1d=lat, mask_1d=mask)
     ENDIF
     
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN
-      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, value=return_X_lon, data_n=size(return_X_index), data_index=return_X_index)
+      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, value=return_X_lon, &
+                              data_n=size(return_X_index), data_index=return_X_index)
     ENDIF
 
     IF (xios_is_valid_axis(TRIM(domain_id)//"_Y")) THEN    
-      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, value=return_Y_lat, data_n=size(return_Y_index), data_index=return_Y_index)
+      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, value=return_Y_lat, &
+                              data_n=size(return_Y_index), data_index=return_Y_index)
     ENDIF
 
   END SUBROUTINE init_domain_orchidee
@@ -1741,7 +1761,8 @@ CONTAINS
     CALL MPI_COMM_RANK(comm,mpi_rank,ierr)
     CALL MPI_COMM_SIZE(comm,mpi_size,ierr)
 
-    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)
+    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                           ensemble_proc_size, ensemble_proc_rank)
     ni_glo=params%ni
     nj_glo=params%nj
 
@@ -1910,13 +1931,17 @@ CONTAINS
 
     
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN
-      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, data_begin=-offset_i, data_n=ni+2*offset_i, value=return_X_lon)
-!      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, data_index=return_X_index, data_n=ni+2*offset_i, value=return_X_lon)
+      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, data_begin=-offset_i, &
+                              data_n=ni+2*offset_i, value=return_X_lon)
+!      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, data_index=return_X_index,&
+!                               data_n=ni+2*offset_i,  value=return_X_lon)
     ENDIF
 
     IF (xios_is_valid_axis(TRIM(domain_id)//"_Y")) THEN    
-      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, data_begin=-offset_j, data_n=nj+2*offset_j, value=return_Y_lat)
-!      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, data_index=return_Y_index, data_n=nj+2*offset_j, value=return_Y_lat)
+      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, data_begin=-offset_j, &
+                              data_n=nj+2*offset_j, value=return_Y_lat)
+!      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, data_index=return_Y_index, &
+!                               data_n=nj+2*offset_j, value=return_Y_lat)
     ENDIF
 
   END SUBROUTINE init_domain_nemo
@@ -2002,7 +2027,8 @@ CONTAINS
     INTEGER :: axis_proc_rank, axis_proc_size
     INTEGER :: ensemble_proc_size, ensemble_proc_rank
 
-    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)     
+    CALL get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                           ensemble_proc_size, ensemble_proc_rank)     
 
     nlev_glo=params%nlev
     
@@ -2042,7 +2068,8 @@ CONTAINS
     return_value=value
     return_mask=.TRUE.
     CALL set_axis_mask(params,value,return_mask)    
-    CALL xios_set_axis_attr(axis_id, n_glo=nlev_glo, begin=begin, n=nlev, value=value*100000, mask=return_mask, bounds=bounds_value*100000, unit='Pa', positive='up')    
+    CALL xios_set_axis_attr(axis_id, n_glo=nlev_glo, begin=begin, n=nlev, value=value*100000, mask=return_mask, &
+                            bounds=bounds_value*100000, unit='Pa', positive='up')    
    
 
     ALLOCATE(return_index(0:nlev-1))
@@ -2238,7 +2265,8 @@ CONTAINS
 
 
 
-   SUBROUTINE get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, ensemble_proc_size, ensemble_proc_rank)
+   SUBROUTINE get_decomposition(comm, params, domain_proc_size, domain_proc_rank, axis_proc_size, axis_proc_rank, &
+                                ensemble_proc_size, ensemble_proc_rank)
    IMPLICIT NONE
      INTEGER,INTENT(IN) :: comm
      TYPE(tmodel_params) :: params
