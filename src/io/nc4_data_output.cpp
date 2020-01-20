@@ -70,7 +70,6 @@ namespace xios
         }
 
          CContext* context = CContext::getCurrent() ;
-         CContextServer* server=context->server ;
 
          if (domain->IsWritten(this->filename)) return;
          domain->checkAttributes();
@@ -145,14 +144,6 @@ namespace xios
 
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
-/*
-         StdString lonid_loc = (server->intraCommSize > 1)
-                             ? StdString("lon").append(appendDomid).append("_local")
-                             : lonid;
-         StdString latid_loc = (server->intraCommSize > 1)
-                             ? StdString("lat").append(appendDomid).append("_local")
-                             : latid;
-*/
 
          CArray<int, 1>& indexToWrite = domain->localIndexToWriteOnServer;
          int nbWritten = indexToWrite.numElements();
@@ -245,7 +236,7 @@ namespace xios
                  if (domain->hasBounds)
                    SuperClassWriter::addDimension(dimVertId, domain->nvertex);
 
-                 if (server->intraCommSize > 1)
+                 if (context->intraCommSize_ > 1)
                  {
                    this->writeLocalAttributes(domain->ibegin,
                                               domain->ni,
@@ -260,7 +251,7 @@ namespace xios
                                                       domain->jbegin,
                                                       domain->nj,
                                                       domain->ni_glo,domain->nj_glo,
-                                                      server->intraCommRank,server->intraCommSize);
+                                                      context->intraCommRank_,context->intraCommSize_);
                  }
 
                  if (domain->hasLonLat)
@@ -299,7 +290,7 @@ namespace xios
                  dim0.push_back(dimXid);
 
 
-  // supress mask               if (server->intraCommSize > 1)
+  // supress mask               if (context->intraCommSize_ > 1)
   // supress mask               {
   // supress mask                  SuperClassWriter::addVariable(maskid, NC_INT, dim0);
   // supress mask
@@ -547,7 +538,6 @@ namespace xios
     void CNc4DataOutput::writeUnstructuredDomainUgrid(CDomain* domain)
     {
       CContext* context = CContext::getCurrent() ;
-      CContextServer* server=context->server ;
 
       if (domain->IsWritten(this->filename)) return;
 
@@ -570,7 +560,7 @@ namespace xios
       std::vector<StdString> dim0;
       StdString domainName = domain->name;
       domain->assignMesh(domainName, domain->nvertex);
-      domain->mesh->createMeshEpsilon(server->intraComm, domain->lonvalue, domain->latvalue, domain->bounds_lonvalue, domain->bounds_latvalue);
+      domain->mesh->createMeshEpsilon(context->intraComm_, domain->lonvalue, domain->latvalue, domain->bounds_lonvalue, domain->bounds_latvalue);
 
       StdString node_x = domainName + "_node_x";
       StdString node_y = domainName + "_node_y";
@@ -907,7 +897,6 @@ namespace xios
     void CNc4DataOutput::writeUnstructuredDomain(CDomain* domain)
       {
          CContext* context = CContext::getCurrent() ;
-         CContextServer* server=context->server ;
 
          if (domain->IsWritten(this->filename)) return;
          domain->checkAttributes();
@@ -1813,7 +1802,6 @@ namespace xios
       void CNc4DataOutput::writeField_(CField* field)
       {
         CContext* context = CContext::getCurrent() ;
-        CContextServer* server=context->server ;
 
         std::vector<StdString> dims, coodinates;
         CGrid* grid = field->grid;
@@ -2357,7 +2345,6 @@ namespace xios
       void CNc4DataOutput::writeFieldData_ (CField*  field)
       {
         CContext* context = CContext::getCurrent();
-        CContextServer* server = context->server;
         CGrid* grid = field->grid;
 
         if (field->getNStep()<1) 
@@ -2461,7 +2448,7 @@ namespace xios
           }
         }
 
-         bool isRoot = (server->intraCommRank == 0);
+         bool isRoot = (context->intraCommRank_ == 0);
 
          if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
          {

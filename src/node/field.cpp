@@ -142,13 +142,10 @@ namespace xios{
   }
   CATCH
 
-  void CField::sendUpdateData(const CArray<double,1>& data)
+  void CField::sendUpdateData(const CArray<double,1>& data, CContextClient* client)
   TRY
   {
     CTimer::get("Field : send data").resume();
-
-    CContext* context = CContext::getCurrent();
-    CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
     int receiverSize = client->serverSize;
 
     CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
@@ -318,14 +315,10 @@ namespace xios{
     In the future, it can be called by level-1 servers
     \param [in] tsDataRequested timestamp when the call is made
   */
-  bool CField::sendReadDataRequest(const CDate& tsDataRequested)
+  bool CField::sendReadDataRequest(const CDate& tsDataRequested, CContextClient* client)
   TRY
   {
     CContext* context = CContext::getCurrent();
-    // CContextClient* client = context->client;
-
-    // This code is for future: If we want to read file with level-2 servers
-    CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
 
     lastDataRequestedFromServer = tsDataRequested;
 
@@ -371,7 +364,7 @@ namespace xios{
       info(20) << "file->output_freq.getValue() : " << file->output_freq.getValue() << endl ;
       info(20) << "lastDataRequestedFromServer + file->output_freq.getValue() : " << lastDataRequestedFromServer + file->output_freq << endl ;
 
-      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer + file->output_freq);
+      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer + file->output_freq, file->getContextClient());
     }
 
     return dataRequested;
@@ -384,7 +377,7 @@ namespace xios{
     CBufferIn* buffer = event.subEvents.begin()->buffer;
     StdString fieldId;
     *buffer >> fieldId;
-    get(fieldId)->recvReadDataRequest();
+    get(fieldId)->recvReadDataRequest(event.getContextServer());
   }
   CATCH
 
@@ -394,12 +387,10 @@ namespace xios{
     At the moment, this function is called by server level 1
     In the future, this should (only) be done by the last level servers.
   */
-  void CField::recvReadDataRequest(void)
+  void CField::recvReadDataRequest(CContextServer* server)
   TRY
   {
-    CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
-
+    CContextClient* client = server->getAssociatedClient() ;
     CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
     std::list<CMessage> msgs;
 
@@ -531,7 +522,7 @@ namespace xios{
 
     if (!nstepMaxRead)
     {
-       MPI_Allreduce(MPI_IN_PLACE, &nstepMax, 1, MPI_INT, MPI_MAX, context->server->intraComm);
+       MPI_Allreduce(MPI_IN_PLACE, &nstepMax, 1, MPI_INT, MPI_MAX, context->intraComm_);
        nstepMaxRead = true;
     }
 
@@ -808,7 +799,7 @@ namespace xios{
    TRY
    {
      CContext* context = CContext::getCurrent();
-     if (context->hasClient && !context->hasServer)
+     if (context->getServiceType()==CServicesManager::CLIENT)
      {
        if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
        {
@@ -825,7 +816,7 @@ namespace xios{
    TRY
    {
      CContext* context = CContext::getCurrent();
-     if (context->hasClient && !context->hasServer)
+     if (context->getServiceType()==CServicesManager::CLIENT)
      {
        std::map<CGrid*,std::pair<bool,StdString> >& gridSrcMap = grid->getTransGridSource();
        if (1 < gridSrcMap.size())
@@ -912,25 +903,23 @@ namespace xios{
    TRY
    {
      CContext* context = CContext::getCurrent();
-     bool hasClient = context->hasClient;
-     bool hasServer = context->hasServer;
 
      if (!isReferenceSolvedAndTransformed)
      {
         isReferenceSolvedAndTransformed = true;
 
-        if (hasClient && !hasServer)
+        if (context->getServiceType()==CServicesManager::CLIENT)
         {
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveAllEnabledFieldsAndTransform();
         }
 
-        if (hasServer)
+        if (context->getServiceType()==CServicesManager::GATHERER || context->getServiceType()==CServicesManager::OUT_SERVER)
           solveServerOperation();
 
         solveGridReference();
 
-        if (hasClient && !hasServer)
+       if (context->getServiceType()==CServicesManager::CLIENT)
        {
          solveGenerateGrid();
          buildGridTransformationGraph();
@@ -938,7 +927,7 @@ namespace xios{
 
        solveGridDomainAxisRef(false);
 
-       if (hasClient && !hasServer)
+       if (context->getServiceType()==CServicesManager::CLIENT)
        {
          solveTransformedGrid();
        }
@@ -983,19 +972,19 @@ namespace xios{
      {
         isReferenceSolved = true;
 
-        if (context->hasClient && !context->hasServer)
+        if (context->getServiceType()==CServicesManager::CLIENT)
         {
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveOnlyReferenceEnabledField();
         }
 
-        if (context->hasServer)
+        if (context->getServiceType()==CServicesManager::GATHERER || context->getServiceType()==CServicesManager::OUT_SERVER)
           solveServerOperation();
 
         solveGridReference();
         grid->solveDomainAxisRefInheritance(true); // make it again to solve grid reading from file
 
-        if (context->hasClient && !context->hasServer)
+       if (context->getServiceType()==CServicesManager::CLIENT)
        {
          solveGenerateGrid();
          buildGridTransformationGraph();
@@ -1014,12 +1003,12 @@ namespace xios{
      {
         areAllReferenceSolved = true;
        
-        if (context->hasClient && !context->hasServer)
+        if (context->getServiceType()==CServicesManager::CLIENT)
         {
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveAllReferenceEnabledField(false);
         }
-        else if (context->hasServer)
+        else if (context->getServiceType()==CServicesManager::GATHERER || context->getServiceType()==CServicesManager::OUT_SERVER)
           solveServerOperation();
 
         solveGridReference();
@@ -1027,7 +1016,7 @@ namespace xios{
 
      solveGridDomainAxisRef(doSending2Server);
 
-     if (context->hasClient && !context->hasServer)
+     if (context->getServiceType()==CServicesManager::CLIENT)
      {
        solveTransformedGrid();
      }
@@ -1064,7 +1053,7 @@ namespace xios{
    {
       CContext* context = CContext::getCurrent();
 
-      if (!context->hasServer || !hasOutputFile) return;
+      if (context->getServiceType()==CServicesManager::CLIENT || !hasOutputFile) return;
 
       if (freq_op.isEmpty())
         freq_op.setValue(TimeStep);
@@ -1125,8 +1114,8 @@ namespace xios{
      const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
      CContext* context = CContext::getCurrent();
-     bool hasWriterServer = context->hasServer && !context->hasClient;
-     bool hasIntermediateServer = context->hasServer && context->hasClient;
+     bool hasWriterServer = context->getServiceType()==CServicesManager::OUT_SERVER ;
+     bool hasIntermediateServer = context->getServiceType()==CServicesManager::GATHERER ;
 
      if (hasWriterServer)
      {
@@ -1154,7 +1143,7 @@ namespace xios{
        {
          if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
          {
-           fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
+           fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, file->getContextClient()));
            instantDataFilter->connectOutput(fileWriterFilter, 0);
          }
        }
@@ -1216,7 +1205,7 @@ namespace xios{
 
          if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
          {
-           fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
+           fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, file->getContextClient()));
            getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
          }
        }
@@ -1735,17 +1724,15 @@ namespace xios{
    {
      CContext* context = CContext::getCurrent();
      client = contextClient;
-     if (context->hasClient)
+  
+     // A grid is sent by a client (both for read or write) or by primary server (write only)
+     if (context->getServiceType()==CServicesManager::GATHERER)
      {
-       // A grid is sent by a client (both for read or write) or by primary server (write only)
-       if (context->hasServer)
-       {
-         if (file->mode.isEmpty() || (!file->mode.isEmpty() && file->mode == CFile::mode_attr::write))
-           grid->setContextClient(contextClient);
-       }
-       else
-           grid->setContextClient(contextClient);
+       if (file->mode.isEmpty() || (!file->mode.isEmpty() && file->mode == CFile::mode_attr::write))
+         grid->setContextClient(contextClient);
      }
+     else if (context->getServiceType()==CServicesManager::CLIENT)
+       grid->setContextClient(contextClient);
    }
    CATCH_DUMP_ATTR
 

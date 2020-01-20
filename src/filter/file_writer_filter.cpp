@@ -2,12 +2,13 @@
 #include "exception.hpp"
 #include "field.hpp"
 #include "utils.hpp"
+#include "context_client.hpp"
 
 namespace xios
 {
-  CFileWriterFilter::CFileWriterFilter(CGarbageCollector& gc, CField* field)
+  CFileWriterFilter::CFileWriterFilter(CGarbageCollector& gc, CField* field, CContextClient* client)
     : CInputPin(gc, 1)
-    , field(field)
+    , field(field), client_(client)
   {
     if (!field)
       ERROR("CFileWriterFilter::CFileWriterFilter(CField* field)",
@@ -33,7 +34,7 @@ namespace xios
       }
     }
 
-    field->sendUpdateData(dataArray);
+    field->sendUpdateData(dataArray, client_);
   }
 
   bool CFileWriterFilter::mustAutoTrigger() const

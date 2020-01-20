@@ -46,7 +46,6 @@ namespace xios
   TRY
   {
     CContext* context = CContext::getCurrent();
-    CContextServer* server = context->server;
 
     CGrid* grid = field->grid;
 

@@ -318,7 +318,7 @@ namespace xios {
       if (!this->value.isEmpty())
       {
         // Avoid this check at writing because it fails in case of a hole
-        if (context->hasClient)
+        if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
         {
           StdSize true_size = value.numElements();
           if (this->n.getValue() != true_size)
@@ -332,7 +332,7 @@ namespace xios {
 
       this->checkBounds();
 
-      if (context->hasClient)
+      if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
       {
         this->checkMask();
         this->checkData();
@@ -511,7 +511,7 @@ namespace xios {
      if (this->areClientAttributesChecked_) return;
 
      CContext* context=CContext::getCurrent();
-     if (context->hasClient && !context->hasServer) this->checkAttributes();
+     if (context->getServiceType()==CServicesManager::CLIENT) this->checkAttributes();
 
      this->areClientAttributesChecked_ = true;
    }
@@ -528,7 +528,7 @@ namespace xios {
      CContext* context=CContext::getCurrent() ;
 
      if (this->isClientAfterTransformationChecked) return;
-     if (context->hasClient)
+     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
      {        
        if (orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
          computeConnectedClients(globalDim, orderPositionInGrid, distType);
@@ -555,7 +555,7 @@ namespace xios {
      CContext* context = CContext::getCurrent();
 
      if (this->isChecked) return;
-     if (context->hasClient) sendAttributes(globalDim, orderPositionInGrid, distType);    
+     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER) sendAttributes(globalDim, orderPositionInGrid, distType);    
 
      this->isChecked = true;
    }
@@ -733,7 +733,6 @@ namespace xios {
     computedWrittenIndex_ = true;
 
     CContext* context=CContext::getCurrent();      
-    CContextServer* server = context->server; 
 
     // We describe the distribution of client (server) on which data are written
     std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
@@ -741,7 +740,7 @@ namespace xios {
     nSize[0]        = n;
     nBeginGlobal[0] = 0; 
     nGlob[0]        = n_glo;
-    CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
+    CDistributionServer srvDist(context->intraCommSize_, nBegin, nSize, nBeginGlobal, nGlob); 
     const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
 
     // Because all written data are local on a client, 
@@ -783,15 +782,14 @@ namespace xios {
     {
       size_t nbWritten = 0, indGlo;
       CContext* context=CContext::getCurrent();      
-      CContextServer* server = context->server; 
-
+ 
       // We describe the distribution of client (server) on which data are written
       std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
       nBegin[0]       = 0;
       nSize[0]        = n;
       nBeginGlobal[0] = 0; 
       nGlob[0]        = n_glo;
-      CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
+      CDistributionServer srvDist(context->intraCommSize_, nBegin, nSize, nBeginGlobal, nGlob); 
       const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
       std::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                           ite = globalLocalIndexMap_.end(), it;   

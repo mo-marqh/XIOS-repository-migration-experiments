@@ -330,11 +330,14 @@ namespace xios {
    TRY
    {
      CContext* context = CContext::getCurrent();
-     if (context->hasClient && this->isChecked && doSendingIndex && !isIndexSent) 
-     { 
-       if (isScalarGrid())  sendIndexScalarGrid();
-       else  sendIndex();
-       this->isIndexSent = true; 
+     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)     
+     {
+       if (this->isChecked && doSendingIndex && !isIndexSent) 
+       { 
+         if (isScalarGrid())  sendIndexScalarGrid();
+         else  sendIndex();
+         this->isIndexSent = true; 
+       }
      }
 
      if (this->isChecked) return;
@@ -725,7 +728,7 @@ namespace xios {
             }
           }
 
-          if (doGridHaveDataDistributed(client) && (nbIndex != localIndex.numElements()))
+          if (nbIndex != localIndex.numElements())
                ERROR("void CGrid::computeClientIndex()",
                   << "Number of local index on client is different from number of received global index"
                   << "Rank of sent client " << rank <<"."
@@ -891,7 +894,7 @@ namespace xios {
      if (isScalarGrid())
      {
        computeClientIndexScalarGrid();
-       if (context->hasClient)
+       if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
        {
          computeConnectedClientsScalarGrid();
        }
@@ -899,7 +902,7 @@ namespace xios {
      else
      {
        computeClientIndex();
-       if (context->hasClient)
+       if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
        {
          computeConnectedClients();
        }
@@ -1473,7 +1476,7 @@ namespace xios {
             outLocalIndexToServer(k)  = 0;
           }
 
-          if (context->hasClient && !context->hasServer)
+          if (context->getServiceType()==CServicesManager::CLIENT)  
             storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
 
           listMsg.push_back(CMessage());
@@ -1496,7 +1499,7 @@ namespace xios {
             outLocalIndexToServer(k)  = 0;
           }
 
-          if (context->hasClient && !context->hasServer)
+          if (context->getServiceType()==CServicesManager::CLIENT)
             storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
         }
         client->sendEvent(event);
@@ -1543,7 +1546,7 @@ namespace xios {
           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
           {
             storeIndex_toSrv_[client].insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
-            if (context->hasClient && !context->hasServer)
+            if (context->getServiceType()==CServicesManager::CLIENT)
               storeIndex_fromSrv_.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
             
             listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
@@ -1643,19 +1646,18 @@ namespace xios {
       *buffer >> gridId;
       buffers.push_back(buffer);
     }
-    get(gridId)->recvIndex(ranks, buffers);
+    get(gridId)->recvIndex(ranks, buffers, event.getContextServer());
   }
   CATCH
 
-  void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
+  void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers, CContextServer* server)
   TRY
   {
     CContext* context = CContext::getCurrent();
     connectedServerRankRead_ = ranks;
 
     nbReadSenders_.clear();
-    CContextServer* server = context->server  ;
-    CContextClient* client = context->client;   
+    CContextClient* client = server->getAssociatedClient();   
       
     int idx = 0, numElement = axis_domain_order.numElements();
     int ssize = numElement;
@@ -1810,7 +1812,8 @@ namespace xios {
 
     if (isScalarGrid()) return;
 
-    nbReadSenders_[client] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
+    nbReadSenders_[client] = CClientServerMappingDistributed::computeConnectedClients(client->serverSize, client->clientSize,
+                                                                                      client->intraComm, ranks);
 
   }
   CATCH_DUMP_ATTR
@@ -2221,7 +2224,7 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CDomain* pDom = CDomain::get(*it);
-      if (context->hasClient && !context->hasServer)      
+      if (context->getServiceType()==CServicesManager::CLIENT)
       {
         pDom->solveRefInheritance(apply);
         pDom->solveInheritanceTransformation();
@@ -2233,7 +2236,7 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CAxis* pAxis = CAxis::get(*it);
-      if (context->hasClient && !context->hasServer)
+      if (context->getServiceType()==CServicesManager::CLIENT)
       {
         pAxis->solveRefInheritance(apply);
         pAxis->solveInheritanceTransformation();
@@ -2245,7 +2248,7 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CScalar* pScalar = CScalar::get(*it);
-      if (context->hasClient && !context->hasServer)
+      if (context->getServiceType()==CServicesManager::CLIENT)
       {
         pScalar->solveRefInheritance(apply);
         pScalar->solveInheritanceTransformation();

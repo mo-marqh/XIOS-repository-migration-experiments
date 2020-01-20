@@ -225,7 +225,6 @@ namespace xios {
    {
       CContext* context = CContext::getCurrent();
       const CDate& currentDate = context->calendar->getCurrentDate();
-      CContextServer* server = context->server;
 
       lastSync  = currentDate;
       lastSplit = currentDate;
@@ -293,7 +292,6 @@ namespace xios {
     TRY
     {
       CContext* context = CContext::getCurrent();
-      CContextServer* server = context->server;
 
       // create sub communicator for file
       allZoneEmpty = true;      
@@ -306,7 +304,7 @@ namespace xios {
       }
 
       int color = allZoneEmpty ? 0 : 1;
-      MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
+      MPI_Comm_split(context->intraComm_, color, context->intraCommRank_, &fileComm);
       if (allZoneEmpty) MPI_Comm_free(&fileComm);
     }
     CATCH_DUMP_ATTR
@@ -442,8 +440,7 @@ namespace xios {
    TRY
    {
       CContext* context = CContext::getCurrent();
-      CContextServer* server = context->server;
-
+      
       if (!allZoneEmpty)
       {
          StdString filename = getFileOutputName();
@@ -559,7 +556,7 @@ namespace xios {
             MPI_Comm_size(fileComm, &commSize);
             MPI_Comm_rank(fileComm, &commRank);
 
-            if (server->intraCommSize > 1)
+            if (context->intraCommSize_ > 1)
             {
               oss << "_" ;
               int width=0; int n = commSize-1;
@@ -635,7 +632,6 @@ namespace xios {
   TRY
   {
     CContext* context = CContext::getCurrent();
-    CContextServer* server = context->server;
     MPI_Comm readComm = this->fileComm;
 
     if (!allZoneEmpty)
@@ -682,7 +678,7 @@ namespace xios {
         MPI_Comm_size(readComm, &commSize);
         MPI_Comm_rank(readComm, &commRank);
 
-        if (server->intraCommSize > 1)
+        if (context->intraCommSize_ > 1)
         {
           oss << "_";
           int width = 0, n = commSize - 1;
@@ -698,7 +694,7 @@ namespace xios {
 
       bool isCollective = par_access.isEmpty() || par_access == par_access_attr::collective;
       bool readMetaDataPar = true;
-      if (!context->hasServer) readMetaDataPar = (read_metadata_par.isEmpty()) ? false : read_metadata_par;
+      if (context->getServiceType()==CServicesManager::CLIENT) readMetaDataPar = (read_metadata_par.isEmpty()) ? false : read_metadata_par;
 
       if (isOpen) data_out->closeFile();
       bool ugridConvention = !convention.isEmpty() ? (convention == convention_attr::UGRID) : false;
@@ -1004,7 +1000,7 @@ namespace xios {
 
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
-       this->enabledFields[i]->sendReadDataRequest(CContext::getCurrent()->getCalendar()->getCurrentDate());
+       this->enabledFields[i]->sendReadDataRequest(CContext::getCurrent()->getCalendar()->getCurrentDate(), getContextClient());
    }
    CATCH_DUMP_ATTR
 

@@ -13,7 +13,7 @@
 namespace xios
 {
   class CContext;
-
+  class CContextServer ;
   /*!
   \class CContextClient
   A context can be both on client and on server side. In order to differenciate the role of
@@ -66,7 +66,12 @@ namespace xios
 
       int getRemoteSize(void) {return serverSize;}
       int getServerSize(void) {return serverSize;}
-      
+
+      /*! set the associated server (dual chanel client/server) */      
+      void setAssociatedServer(CContextServer* associatedServer) { associatedServer=associatedServer_;}
+      /*! get the associated server (dual chanel client/server) */      
+      CContextServer* getAssociatedServer(void) { return associatedServer_;}
+
     public:
       CContext* context; //!< Context for client
 
@@ -112,6 +117,7 @@ namespace xios
 
       std::vector<std::vector<MPI_Win> >windows ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
       bool isAttached_ ;
+      CContextServer* associatedServer_ ; //!< The server associated to the pair client/server
 
   };
 }

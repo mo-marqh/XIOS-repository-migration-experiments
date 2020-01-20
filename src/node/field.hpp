@@ -45,6 +45,7 @@ namespace xios {
 #  include "field_attribute.conf"
    END_DECLARE_ATTRIBUTE_MAP(CField)
 
+   class CContextClient ;
    ///--------------------------------------------------------------
    class CField
       : public CObjectTemplate<CField>
@@ -166,10 +167,10 @@ namespace xios {
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
         void writeField(void);
-        bool sendReadDataRequest(const CDate& tsDataRequested);
+        bool sendReadDataRequest(const CDate& tsDataRequested, CContextClient* client);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
-        void recvReadDataRequest(void);
+        void recvReadDataRequest(CContextServer* server);
         EReadField readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);

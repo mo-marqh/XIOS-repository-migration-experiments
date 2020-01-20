@@ -9,6 +9,7 @@
 namespace xios
 {
   class CContext ;
+  class CContextClient;
 
   class CContextServer
   {
@@ -59,6 +60,9 @@ namespace xios
          
     size_t hashId ;
 
+    void setAssociatedClient(CContextClient* associatedClient) {associatedClient_=associatedClient ;}
+    CContextClient* getAssociatedClient(void) { return associatedClient_ ;}
+
     ~CContextServer() ;
 
     private:
@@ -66,6 +70,7 @@ namespace xios
       vector<MPI_Win> windows ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
       CEventScheduler* eventScheduler_ ;
       bool isProcessingEvent_ ;
+      CContextClient* associatedClient_ ;
   } ;
 
 }

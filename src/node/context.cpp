@@ -431,6 +431,8 @@ namespace xios {
     // attached_mode=parentServerContext_->isAttachedMode() ; //ym probably inherited from source context
     server = new CContextServer(this,intraComm_, interCommServer); // check if we need to dupl. intraComm_ ?
     client = new CContextClient(this,intraCommClient,interCommClient);
+    client->setAssociatedServer(server) ;  
+    server->setAssociatedClient(client) ;  
 
   }
   CATCH_DUMP_ATTR
@@ -491,7 +493,8 @@ namespace xios {
       MPI_Comm_dup(intraComm_, &intraCommServer) ;
       client = new CContextClient(this, intraCommClient, interCommClient);
       server = new CContextServer(this, intraCommServer, interCommServer);
-    
+      client->setAssociatedServer(server) ;
+      server->setAssociatedClient(client) ;
     }
     
     if (serviceType_ == CServicesManager::GATHERER)
@@ -525,9 +528,13 @@ namespace xios {
         intraCommClient=intraComm_ ;
         MPI_Comm_dup(intraComm_, &intraCommServer) ;
 
+        CContextClient* client = new CContextClient(this, intraCommClient, interCommClient) ;
+        CContextServer* server = new CContextServer(this, intraCommServer, interCommServer) ;
+        client->setAssociatedServer(server) ;
+        server->setAssociatedClient(client) ;
+        clientPrimServer.push_back(client);
+        serverPrimServer.push_back(server);  
 
-        clientPrimServer.push_back(new CContextClient(this, intraCommClient, interCommClient));
-        serverPrimServer.push_back(new CContextServer(this, intraCommServer, interCommServer));  
       
       }
     }
@@ -591,6 +598,8 @@ namespace xios {
          MPI_Comm_dup(interComm, &interCommServer) ;
          CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
          CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
+         client->setAssociatedServer(server) ;
+         server->setAssociatedClient(client) ;
        }
        else
        {
@@ -598,6 +607,8 @@ namespace xios {
           MPI_Comm_dup(interComm, &interCommClient) ;
           CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
           CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
+          client->setAssociatedServer(server) ;
+          server->setAssociatedClient(client) ;
        }
        MPI_Comm_free(&interComm) ;
 
@@ -632,7 +643,7 @@ namespace xios {
       registryOut->hierarchicalGatherRegistry() ;
       if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
 
-      if (hasClient && !hasServer)
+      if (serviceType_==CServicesManager::CLIENT)
       {
         doPreTimestepOperationsForEnabledReadModeFiles(); // For now we only use server level 1 to read data
 
@@ -649,7 +660,7 @@ namespace xios {
         client->releaseBuffers();
         info(100)<<"DEBUG: context "<<getId()<<" release client ok"<<endl ;
       }
-      else if (hasClient && hasServer)
+      else if (serviceType_==CServicesManager::GATHERER)
       {
          for (int i = 0; i < clientPrimServer.size(); ++i)
          {
@@ -671,7 +682,7 @@ namespace xios {
          closeAllFile();
 
       }
-      else if (!hasClient && hasServer)
+      else if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)
       {
         closeAllFile();
       }
@@ -723,14 +734,14 @@ namespace xios {
      // Check grid and calculate its distribution
      checkGridEnabledFields();
 
-     setClientServerBuffer(client, (hasClient && !hasServer));
+     setClientServerBuffer(client, (serviceType_==CServicesManager::CLIENT) ) ;
      for (int i = 0; i < clientPrimServer.size(); ++i)
          setClientServerBuffer(clientPrimServer[i], true);
 
     
-     if (hasClient)
+     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
      { 
-       if (hasServer)
+       if (serviceType_==CServicesManager::GATHERER)
        { 
          for (auto it=clientPrimServer.begin(); it!=clientPrimServer.end();++it) 
          {
@@ -738,7 +749,7 @@ namespace xios {
            CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(*it); // Send all attributes of current calendar
          }
        }
-       else
+       else 
        {
          this->sendAllAttributesToServer(client);   // Send all attributes of current context to server
          CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current calendar
@@ -749,19 +760,18 @@ namespace xios {
       // First of all, send all enabled files
       sendEnabledFiles(this->enabledWriteModeFiles);
       // We only use server-level 1 (for now) to read data
-      if (!hasServer)
-        sendEnabledFiles(this->enabledReadModeFiles);
+      if (serviceType_==CServicesManager::CLIENT)  sendEnabledFiles(this->enabledReadModeFiles);
 
       // Then, send all enabled fields      
       sendEnabledFieldsInFiles(this->enabledWriteModeFiles);
-      if (!hasServer)
-        sendEnabledFieldsInFiles(this->enabledReadModeFiles);
+      
+      if (serviceType_==CServicesManager::CLIENT) sendEnabledFieldsInFiles(this->enabledReadModeFiles);
 
       // Then, check whether we have domain_ref, axis_ref or scalar_ref attached to the enabled fields
       // If any, so send them to server
-       sendRefDomainsAxisScalars(this->enabledWriteModeFiles);
-      if (!hasServer)
-        sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
+       sendRefDomainsAxisScalars(this->enabledWriteModeFiles); 
+     
+      if (serviceType_==CServicesManager::CLIENT) sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
 
        // Check whether enabled fields have grid_ref, if any, send this info to server
       sendRefGrid(this->enabledFiles);
@@ -779,8 +789,9 @@ namespace xios {
        
       // Finally, we send information of grid itself to server 
       sendGridEnabledFieldsInFiles(this->enabledWriteModeFiles);       
-      if (!hasServer)
-        sendGridEnabledFieldsInFiles(this->enabledReadModeFiles);       
+     
+      if (serviceType_==CServicesManager::CLIENT) sendGridEnabledFieldsInFiles(this->enabledReadModeFiles);       
+     
      }
      allProcessed = true;
    }
@@ -789,12 +800,18 @@ namespace xios {
    void CContext::sendPostProcessingGlobalAttributes()
    TRY
    {
-      // Use correct context client to send message
-     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
-    int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
-     for (int i = 0; i < nbSrvPools; ++i)
+
+    int nbSrvPools ;
+    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
+    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
+    else nbSrvPools = 0 ;
+    CContextClient* contextClientTmp ;
+
+    for (int i = 0; i < nbSrvPools; ++i)
      {
-       CContextClient* contextClientTmp = (0 != clientPrimServer.size()) ? clientPrimServer[i] : client;
+       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
+       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
+      
        CEventClient event(getType(),EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES);
 
        if (contextClientTmp->isServerLeader())
@@ -843,12 +860,12 @@ namespace xios {
     //
     postProcessingGlobalAttributes();
 
-    if (hasClient) sendPostProcessingGlobalAttributes();
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendPostProcessingGlobalAttributes();
 
     // There are some processings that should be done after all of above. For example: check mask or index
     this->buildFilterGraphOfEnabledFields();
     
-     if (hasClient && !hasServer)
+     if (serviceType_==CServicesManager::CLIENT)
     {
       buildFilterGraphOfFieldsWithReadAccess();
       postProcessFilterGraph(); // For coupling in, modify this later
@@ -856,17 +873,15 @@ namespace xios {
     
     checkGridEnabledFields();   
 
-    if (hasClient) this->sendProcessingGridOfEnabledFields();
-    if (hasClient) this->sendCloseDefinition();
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendProcessingGridOfEnabledFields();
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendCloseDefinition();
 
     // Nettoyage de l'arborescence
-    if (hasClient) CleanTree(); // Only on client side??
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) CleanTree(); // Only on client side??
 
-    if (hasClient)
-    {
-      sendCreateFileHeader();
-      if (!hasServer) startPrefetchingOfEnabledReadModeFiles();
-    }
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendCreateFileHeader();
+    if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
+    
     CTimer::get("Context : close definition").suspend() ;
    }
    CATCH_DUMP_ATTR
@@ -1108,8 +1123,7 @@ namespace xios {
       const vector<CCouplerOut*> allCouplerOut=CCouplerOut::getAll();
       const vector<CGrid*> allGrids= CGrid::getAll();
 
-      if (hasClient && !hasServer)
-      //if (hasClient)
+      if (serviceType_==CServicesManager::CLIENT)
       {
         for (unsigned int i = 0; i < allFiles.size(); i++)
           allFiles[i]->solveFieldRefInheritance(apply);
@@ -1228,8 +1242,7 @@ namespace xios {
    {
      double eps=std::numeric_limits<double>::epsilon()*10 ;
      
-     // If primary server
-     if (hasServer && hasClient)
+     if (serviceType_==CServicesManager::GATHERER)
      {
        std::ofstream ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
        int nbPools = clientPrimServer.size();
@@ -1309,8 +1322,7 @@ namespace xios {
    void CContext::distributeFileOverMemoryBandwith(void)
    TRY
    {
-     // If primary server
-     if (hasServer && hasClient)
+     if (serviceType_==CServicesManager::GATHERER)
      {
        int nbPools = clientPrimServer.size();
        double ratio=0.5 ;
@@ -1501,11 +1513,16 @@ namespace xios {
    void CContext::sendCloseDefinition(void)
    TRY
    {
-     // Use correct context client to send message
-     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
-     for (int i = 0; i < nbSrvPools; ++i)
+    int nbSrvPools ;
+    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
+    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
+    else nbSrvPools = 0 ;
+    CContextClient* contextClientTmp ;
+
+    for (int i = 0; i < nbSrvPools; ++i)
      {
-       CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
+       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
+       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
        CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION);
        if (contextClientTmp->isServerLeader())
        {
@@ -1533,20 +1550,22 @@ namespace xios {
    void CContext::sendUpdateCalendar(int step)
    TRY
    {
-     // Use correct context client to send message
-    int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
-     for (int i = 0; i < nbSrvPools; ++i)
-     {
-       CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
+    int nbSrvPools ;
+    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
+    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
+    else nbSrvPools = 0 ;
+    CContextClient* contextClientTmp ;
+
+    for (int i = 0; i < nbSrvPools; ++i)
+    {
+       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
+       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
        CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
 
          if (contextClientTmp->isServerLeader())
          {
            CMessage msg;
-           if (hasServer)
-             msg<<step;
-           else
-             msg<<step;
+           msg<<step;
            const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
              event.push(*itRank,1,msg);
@@ -1573,7 +1592,7 @@ namespace xios {
       int step;
       buffer>>step;
       updateCalendar(step);
-      if (hasClient && hasServer)
+      if (serviceType_==CServicesManager::GATHERER)
       {        
         sendUpdateCalendar(step);
       }
@@ -1584,12 +1603,16 @@ namespace xios {
    void CContext::sendCreateFileHeader(void)
    TRY
    {
-     // Use correct context client to send message
-     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
-     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
+     int nbSrvPools ;
+     if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
+     else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
+     else nbSrvPools = 0 ;
+     CContextClient* contextClientTmp ;
+
      for (int i = 0; i < nbSrvPools; ++i)
      {
-       CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
+       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
+       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
        CEventClient event(getType(),EVENT_ID_CREATE_FILE_HEADER);
 
        if (contextClientTmp->isServerLeader())
@@ -1618,7 +1641,7 @@ namespace xios {
    void CContext::recvCreateFileHeader(CBufferIn& buffer)
    TRY
    {
-      if (!hasClient && hasServer) 
+      if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER) 
         createFileHeader();
    }
    CATCH_DUMP_ATTR
@@ -1627,11 +1650,17 @@ namespace xios {
    void CContext::sendProcessingGridOfEnabledFields()
    TRY
    {
-      // Use correct context client to send message
-     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
+     int nbSrvPools ;
+     if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
+     else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
+     else nbSrvPools = 0 ;
+     CContextClient* contextClientTmp ;
+
      for (int i = 0; i < nbSrvPools; ++i)
      {
-       CContextClient* contextClientTmp = (0 != clientPrimServer.size()) ? clientPrimServer[i] : client;
+       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
+       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
+
        CEventClient event(getType(),EVENT_ID_PROCESS_GRID_ENABLED_FIELDS);
 
        if (contextClientTmp->isServerLeader())
@@ -1660,12 +1689,16 @@ namespace xios {
    void CContext::sendPostProcessing()
    TRY
    {
-      // Use correct context client to send message
-     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
-     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
+     int nbSrvPools ;
+     if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
+     else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
+     else nbSrvPools = 0 ;
+     CContextClient* contextClientTmp ;
+
      for (int i = 0; i < nbSrvPools; ++i)
      {
-       CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
+       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
+       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
        CEventClient event(getType(),EVENT_ID_POST_PROCESS);
        if (contextClientTmp->isServerLeader())
        {
@@ -1731,7 +1764,8 @@ namespace xios {
       // Warning: This must be done after solving the inheritance and before the rest of post-processing      
 
       // The timeseries should only be prepared in client
-      if (hasClient && !hasServer) prepareTimeseries();
+
+      if (serviceType_==CServicesManager::CLIENT) prepareTimeseries();
 
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       findEnabledFiles();
@@ -1753,7 +1787,7 @@ namespace xios {
       // if (hasClient && !hasServer) 
       //   findAllEnabledFieldsInFiles(this->enabledReadModeFiles);      
 
-      if (hasClient && !hasServer)
+      if (serviceType_==CServicesManager::CLIENT)
       {
         initReadFiles();
         // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
@@ -1767,9 +1801,9 @@ namespace xios {
       this->solveAllRefOfEnabledFieldsAndTransform();
 
       // Find all fields with read access from the public API
-      if (hasClient && !hasServer) findFieldsWithReadAccess();
+      if (serviceType_==CServicesManager::CLIENT) findFieldsWithReadAccess();
       // and solve the all reference for them
-      if (hasClient && !hasServer) solveAllRefOfFieldsWithReadAccess();
+      if (serviceType_==CServicesManager::CLIENT) solveAllRefOfFieldsWithReadAccess();
 
       isPostProcessed = true;
    }
@@ -1919,7 +1953,7 @@ namespace xios {
    void CContext::checkAxisDomainsGridsEligibilityForCompressedOutput()
    TRY
    {
-     if (!hasClient) return;
+     if (!(serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)) return;
 
      const vector<CAxis*> allAxis = CAxis::getAll();
      for (vector<CAxis*>::const_iterator it = allAxis.begin(); it != allAxis.end(); it++)
@@ -1939,7 +1973,7 @@ namespace xios {
    void CContext::prepareTimeseries()
    TRY
    {
-     if (!hasClient) return;
+     if (!(serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)) return;
 
      const std::vector<CFile*> allFiles = CFile::getAll();
      for (size_t i = 0; i < allFiles.size(); i++)
@@ -2145,7 +2179,7 @@ namespace xios {
 
       if (prevStep < step)
       {
-        if (hasClient && !hasServer) // For now we only use server level 1 to read data
+        if (serviceType_==CServicesManager::CLIENT) // For now we only use server level 1 to read data
         {
           doPreTimestepOperationsForEnabledReadModeFiles();
         }
@@ -2157,7 +2191,7 @@ namespace xios {
         info(50) << " Current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte, at timestep "<<step<<" of context "<<this->getId()<<endl ;
   #endif
 
-        if (hasClient && !hasServer) // For now we only use server level 1 to read data
+        if (serviceType_==CServicesManager::CLIENT) // For now we only use server level 1 to read data
         {
           doPostTimestepOperationsForEnabledReadModeFiles();
           garbageCollector.invalidate(calendar->getCurrentDate());
@@ -2267,22 +2301,28 @@ namespace xios {
   {
     registryOut->hierarchicalGatherRegistry() ;
 
-    // Use correct context client to send message
-    int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
+    int nbSrvPools ;
+    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
+    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
+    else nbSrvPools = 0 ;
+    CContextClient* contextClientTmp ;
+
     for (int i = 0; i < nbSrvPools; ++i)
     {
-      CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
+      if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
+      else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
+
       CEventClient event(CContext::GetType(), CContext::EVENT_ID_SEND_REGISTRY);
-        if (contextClientTmp->isServerLeader())
-        {
-           CMessage msg ;
-           if (contextClientTmp->clientRank==0) msg<<*registryOut ;
-           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+      if (contextClientTmp->isServerLeader())
+      {
+        CMessage msg ;
+        if (contextClientTmp->clientRank==0) msg<<*registryOut ;
+        const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
              event.push(*itRank,1,msg);
-           contextClientTmp->sendEvent(event);
-         }
-         else contextClientTmp->sendEvent(event);
+        contextClientTmp->sendEvent(event);
+      }
+      else contextClientTmp->sendEvent(event);
     }
   }
   CATCH_DUMP_ATTR

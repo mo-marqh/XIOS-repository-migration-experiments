@@ -21,7 +21,7 @@ namespace xios
     \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode).
     */
     CContextClient::CContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
-     : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4)
+     : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4), associatedServer_(nullptr)
     {
       
       context = parent;

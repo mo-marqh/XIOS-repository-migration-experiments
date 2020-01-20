@@ -1726,11 +1726,11 @@ namespace xios {
      CContext* context=CContext::getCurrent() ;
 
      if (this->isClientAfterTransformationChecked) return;
-     if (context->hasClient)
+     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
      {
       this->computeConnectedClients();
        if (hasLonLat)
-         if (!context->hasServer)
+         if (context->getServiceType()==CServicesManager::CLIENT)
            this->completeLonLatClient();
      }
 
@@ -1747,7 +1747,7 @@ namespace xios {
      if (this->isClientChecked) return;
      CContext* context=CContext::getCurrent();
 
-      if (context->hasClient && !context->hasServer)
+      if (context->getServiceType()==CServicesManager::CLIENT)
       {
         this->checkDomain();
         this->checkBounds();
@@ -1755,7 +1755,7 @@ namespace xios {
         this->checkLonLat();
       }
 
-      if (context->hasClient && !context->hasServer)
+      if (context->getServiceType()==CServicesManager::CLIENT)
       { // Ct client uniquement
          this->checkMask();
          this->checkDomainData();
@@ -1779,7 +1779,7 @@ namespace xios {
      CContext* context=CContext::getCurrent() ;
 
      if (this->isChecked) return;
-     if (context->hasClient)
+     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
      {
        sendAttributes();
      }
@@ -1798,7 +1798,7 @@ namespace xios {
       this->checkBounds();
       this->checkArea();
 
-      if (context->hasClient)
+      if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
       { // Ct client uniquement
          this->checkMask();
          this->checkDomainData();
@@ -1810,7 +1810,7 @@ namespace xios {
       { // Ct serveur uniquement
       }
 
-      if (context->hasClient)
+      if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
       {
         this->computeConnectedClients();
         this->completeLonLatClient();
@@ -1971,14 +1971,13 @@ namespace xios {
       computedWrittenIndex_ = true;
 
       CContext* context=CContext::getCurrent();      
-      CContextServer* server = context->server;  
 
       std::vector<int> nBegin(2), nSize(2), nBeginGlobal(2), nGlob(2);
       nBegin[0]       = ibegin;  nBegin[1] = jbegin;
       nSize[0]        = ni;      nSize[1]  = nj;
       nBeginGlobal[0] = 0; nBeginGlobal[1] = 0;
       nGlob[0]        = ni_glo;   nGlob[1] = nj_glo;
-      CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
+      CDistributionServer srvDist(context->intraCommSize_, nBegin, nSize, nBeginGlobal, nGlob); 
       const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
 
       size_t nbWritten = 0, indGlo;      
@@ -2017,14 +2016,13 @@ namespace xios {
     {
       size_t nbWritten = 0, indGlo;
       CContext* context=CContext::getCurrent();      
-      CContextServer* server = context->server;  
 
       std::vector<int> nBegin(2), nSize(2), nBeginGlobal(2), nGlob(2);
       nBegin[0]       = ibegin;  nBegin[1] = jbegin;
       nSize[0]        = ni;      nSize[1]  = nj;
       nBeginGlobal[0] = 0; nBeginGlobal[1] = 0;
       nGlob[0]        = ni_glo;   nGlob[1] = nj_glo;
-      CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
+      CDistributionServer srvDist(context->intraCommSize_, nBegin, nSize, nBeginGlobal, nGlob); 
       const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
 
       std::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),

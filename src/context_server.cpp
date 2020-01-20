@@ -29,7 +29,8 @@ namespace xios
 {
   using namespace std ;
 
-  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) : eventScheduler_(nullptr), isProcessingEvent_(false)
+  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) 
+    : eventScheduler_(nullptr), isProcessingEvent_(false), associatedClient_(nullptr)
   {
     context=parent;
     intraComm=intraComm_;
@@ -287,7 +288,7 @@ namespace xios
       CBufferIn newBuffer(startBuffer,buffer.remain());
       newBuffer>>size>>timeLine;
       it=events.find(timeLine);
-      if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer)).first;
+      if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
       it->second->push(rank,buffers[rank],startBuffer,size);
 
       buffer.advance(size);

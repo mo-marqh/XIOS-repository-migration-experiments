@@ -7,6 +7,7 @@
 
 namespace xios
 {
+  class CContextServer ;
 
   class CEventServer
   {
@@ -16,9 +17,11 @@ namespace xios
     int type ;
     int nbSender ;
 
+    CEventServer(CContextServer* contextServer) : contextServer_(contextServer) {}
 
     void push(int rank,CServerBuffer* serverBuffer ,char* startBuffer,int size) ;
-
+    CContextServer* getContextServer(void) { return contextServer_ ;}
+    
     struct SSubEvent
     {
       int rank ;
@@ -31,6 +34,9 @@ namespace xios
     
     bool isFull(void) ;
     ~CEventServer() ; 
+    private :
+
+    CContextServer* contextServer_ ;
   } ;
 
 }
