@@ -220,11 +220,11 @@ namespace xios
         MPI_Comm inter ;
         MPI_Intercomm_merge(contextInterComm,0,&inter) ;
         MPI_Barrier(inter) ;
+        MPI_Comm_free(&inter);
 
         context->initClient(contextComm,contextInterComm) ;
 
         contextInterComms.push_back(contextInterComm);
-        MPI_Comm_free(&inter);
         delete [] buff ;
 
       }
