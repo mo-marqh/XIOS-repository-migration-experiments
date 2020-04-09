@@ -17,11 +17,11 @@ namespace xios
   class COutputPin : public InvalidableObject
   {
     public:
-      int tag;
-      Time start_graph;
-      Time end_graph;
-      CField *field;
-      int distance;
+      int tag = 0;
+      Time start_graph = 0;
+      Time end_graph = 0;
+      CField *field = nullptr;
+      int distance = 0;
 
 
 
