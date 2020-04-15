@@ -85,8 +85,7 @@ namespace xios {
          void addRelFile(const StdString & filename);
          void addRelFileCompressed(const StdString& filename);
 
-         /// Vérifications ///
-         void checkAttributes(void);
+         
 
          /// Destructeur ///
          virtual ~CAxis(void);
@@ -101,6 +100,10 @@ namespace xios {
          static ENodeType GetType(void);
 
          static bool dispatchEvent(CEventServer& event);         
+        
+         /// Vérifications ///
+         void checkAttributes(void);
+         bool checkAttributes_done_ = false ;
          
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
@@ -120,12 +123,21 @@ namespace xios {
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
          bool isEqual(CAxis* axis);
 
+         bool checkIfCompleted(void) ;
+         void setCompleted(void) ;
+         void setUncompleted(void) ;
+
       public: 
         bool hasValue;        
         bool hasBounds;
         bool hasLabel;
 
         CArray<int,1> localIndexToWriteOnServer;
+         
+         void computeConnectedClients(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid);
+         private: std::set<CContextClient*> computeConnectedClients_done_ ; public :
+         /** The number of server of a context client. Avoid to re-compute indice computed in a previous computeConnectedClient */
+         private: std::set<int> listNbServer_ ; public:
 
       private:
          void checkData();
@@ -136,8 +148,7 @@ namespace xios {
                              CServerDistributionDescription::ServerDistributionType distType);
          void sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType);
-         void computeConnectedClients(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                     CServerDistributionDescription::ServerDistributionType distType);
+         
 
          void sendNonDistributedAttributes(void);
          void sendDistributedAttributes(void);
@@ -157,6 +168,10 @@ namespace xios {
          std::list<CContextClient*> clients;
          std::set<CContextClient*> clientsSet;
 
+         /** define if the axis is completed or not ie all attributes have been received before in case 
+             of grid reading from file or coupling */ 
+         bool isCompleted_=true ;  
+
          bool isChecked;
          bool areClientAttributesChecked_;
          bool isClientAfterTransformationChecked;
@@ -164,6 +179,7 @@ namespace xios {
          TransMapTypes transformationMap_;         
          //! True if and only if the data defined on the axis can be outputted in a compressed way
          bool isCompressible_;
+
          std::map<int, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
          std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
          // std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server

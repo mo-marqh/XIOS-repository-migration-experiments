@@ -419,6 +419,18 @@ namespace xios
      return CObjectFactory::CreateObject<T>(id).get();
    }   ///--------------------------------------------------------------
 
+   template <typename T>
+   T* CObjectTemplate<T>::createAlias(const string & id, const string& alias)
+   {
+     return CObjectFactory::CreateAlias<T>(id, alias).get();
+   }   ///--------------------------------------------------------------
+
+   template <typename T>
+   void CObjectTemplate<T>::createAlias(const string& alias)
+   {
+     get()->createAlias(getId(),alias) ;
+   }   //
+
   template <typename T>
   T* CObjectTemplate<T>::get(void)
   {

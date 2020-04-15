@@ -70,7 +70,7 @@ namespace xios {
 
          void checkEligibilityForCompressedOutput();
 
-         void solveDomainAxisRef(bool areAttributesChecked);
+
 
          void checkMaskIndex(bool doCalculateIndex);
 
@@ -88,17 +88,17 @@ namespace xios {
          /// Accesseurs ///
          StdSize getDimension(void);
 
-         StdSize  getDataSize(void) const;
+         StdSize  getDataSize(void) ;
 
          /// Entrees-sorties de champs
          template <int n>
-         void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
+         void inputField(const CArray<double,n>& field, CArray<double,1>& stored) ;
          template <int n>
-         void maskField(const CArray<double,n>& field, CArray<double,1>& stored) const;
+         void maskField(const CArray<double,n>& field, CArray<double,1>& stored) ;
          template <int n>
-         void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;  
+         void outputField(const CArray<double,1>& stored, CArray<double,n>& field) ;  
          template <int n>
-         void uncompressField(const CArray<double,n>& data, CArray<double,1>& outData) const; 
+         void uncompressField(const CArray<double,n>& data, CArray<double,1>& outData) ; 
 
          virtual void parse(xml::CXMLNode& node);
 
@@ -132,12 +132,14 @@ namespace xios {
          void computeIndex(void);
          void computeIndexScalarGrid();
          void computeWrittenIndex();
+         void solveDomainAxisRef(bool areAttributesChecked);
+         void checkElementsAttributes(void) ;
 
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);
          void solveScalarRef(bool checkAtt);
-         void solveDomainAxisRefInheritance(bool apply = true);
-         void solveTransformations();
+         void solveElementsRefInheritance(bool apply = true);
+        // void solveTransformations();
          void solveDomainAxisBaseRef();
 
          CDomain* addDomain(const std::string& id=StdString());
@@ -194,6 +196,15 @@ namespace xios {
          CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformGridSrc);
+         
+         void prepareTransformGrid(CGrid* transformGridSrc);
+         bool prepareTransformGrid_done_ = false ;
+
+         void makeTransformGrid(void); 
+         bool makeTransformGrid_done_ = false ;
+         
+         std::vector<std::string> getAuxInputTransformGrid(void) ; 
+
          void completeGrid(CGrid* transformGridSrc = 0);
          void doAutoDistribution(CGrid* transformGridSrc);
          bool isTransformed();
@@ -204,6 +215,8 @@ namespace xios {
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
          size_t getGlobalWrittenSize(void) ;
+         bool checkIfCompleted(void) ;
+
 
          bool hasMask(void) const;
          void checkMask(void);
@@ -216,7 +229,12 @@ namespace xios {
                                          const std::vector<CScalar*>& scalars,
                                          const CArray<int,1>& axisDomainOrder);
 
+         void computeGridIndexToFileServer(CContextClient* client) ;
+
       private:
+       void computeClientDistribution(void) ;
+       bool computeClientDistribution_done_ = false ;
+
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
                           const std::vector<CArray<bool,1>* >& domainMasks,
@@ -229,10 +247,10 @@ namespace xios {
         template<int N>
         void modifyGridMaskSize(CArray<bool,N>& gridMask, const std::vector<int>& eachDimSize, bool newValue);
 
-        void storeField_arr(const double* const data, CArray<double, 1>& stored) const;
-        void restoreField_arr(const CArray<double, 1>& stored, double* const data) const;
-        void uncompressField_arr(const double* const data, CArray<double, 1>& outData) const;
-        void maskField_arr(const double* const data, CArray<double, 1>& stored) const;
+        void storeField_arr(const double* const data, CArray<double, 1>& stored) ;
+        void restoreField_arr(const CArray<double, 1>& stored, double* const data) ;
+        void uncompressField_arr(const double* const data, CArray<double, 1>& outData) ;
+        void maskField_arr(const double* const data, CArray<double, 1>& stored) ;
 
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
@@ -258,23 +276,36 @@ namespace xios {
                                        const CArray<int,1>& axisDomainOrder);
         int getDistributedDimension();
 
+       
         void computeClientIndex();
-        void computeConnectedClients();
-        void computeClientIndexScalarGrid(); 
-        void computeConnectedClientsScalarGrid(); 
+        bool computeClientIndex_done_ = false ;
+        
+        void computeConnectedClients(CContextClient* client);
+        set<CContextClient*> computeConnectedClients_done_ ;
 
+        void computeClientIndexScalarGrid(); 
+        bool computeClientIndexScalarGrid_done_ = false ;
+
+        void computeConnectedClientsScalarGrid(CContextClient* client); 
+        set<CContextClient*> computeConnectedClientsScalarGrid_done_ ;
 
       public:
 /** Array containing the local index of the grid
  *  storeIndex_client[local_workflow_grid_index] -> local_model_grid_index. 
  *  Used to store field from model into the worklow, or to return field into models.  
  *  The size of the array is the number of local index of the workflow grid */        
-         CArray<int, 1> storeIndex_client_;
+        CArray<int, 1> storeIndex_client_;
+        void computeStoreIndex_client(void) ;
+        bool computeStoreIndex_client_done_ = false ;
+        CArray<int, 1>& getStoreIndex_client(void) { if (!computeStoreIndex_client_done_) computeStoreIndex_client() ; return storeIndex_client_ ;}
 
 /** Array containing the grid mask masked defined by the mask_nd grid attribute.        
   * The corresponding masked field value provided by the model will be replaced by a NaN value
   * in the workflow.  */
-         CArray<bool, 1> storeMask_client_;
+        CArray<bool, 1> storeMask_client_;
+        void computeStoreMask_client(void) ;
+        bool computeStoreMask_client_done_ = false ;
+        CArray<bool, 1>& getStoreMask_client(void) { if (!computeStoreMask_client_done_) computeStoreMask_client() ; return storeMask_client_ ;}
 
 /** Map containing the indexes on client side that will be sent to each connected server.
   * storeIndex_toSrv[&contextClient] -> map concerning the contextClient for which the data will be sent (client side)
@@ -418,7 +449,7 @@ namespace xios {
    ///--------------------------------------------------------------
 
    template <int n>
-   void CGrid::inputField(const CArray<double,n>& field, CArray<double,1>& stored) const
+   void CGrid::inputField(const CArray<double,n>& field, CArray<double,1>& stored)
    TRY
    {
 //#ifdef __XIOS_DEBUG
@@ -434,7 +465,7 @@ namespace xios {
    CATCH
 
    template <int n>
-   void CGrid::maskField(const CArray<double,n>& field, CArray<double,1>& stored) const
+   void CGrid::maskField(const CArray<double,n>& field, CArray<double,1>& stored)
    {
 //#ifdef __XIOS_DEBUG
       if (this->getDataSize() != field.numElements())
@@ -448,7 +479,7 @@ namespace xios {
    }
 
    template <int n>
-   void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field) const
+   void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field)
    TRY
    {
 //#ifdef __XIOS_DEBUG
@@ -470,7 +501,7 @@ namespace xios {
      \outData data without masking effect
    */
    template <int N>
-   void CGrid::uncompressField(const CArray<double,N>& data, CArray<double,1>& outData) const
+   void CGrid::uncompressField(const CArray<double,N>& data, CArray<double,1>& outData)
    TRY
    {      
      uncompressField_arr(data.dataFirst(), outData);

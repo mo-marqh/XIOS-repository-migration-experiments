@@ -75,6 +75,8 @@ namespace xios {
 
          /// Vérifications ///
          void checkAttributes(void);
+         bool checkAttributes_done_ = false ;
+
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation();
          void checkEligibilityForCompressedOutput(void);
@@ -108,6 +110,10 @@ namespace xios {
          bool isEqual(CDomain* domain);
 
          static bool dispatchEvent(CEventServer& event);
+
+         bool checkIfCompleted(void) ;
+         void setCompleted(void) ;
+         void setUncompleted(void) ;
 
       public:
          /// Mutateur ///
@@ -156,6 +162,12 @@ namespace xios {
          bool hasBoundsLonInReadFile_ ; // specify if longitude boundaries are defined on read file, so it can be read later when grid distribution will be defined
 
          void computeLocalMask(void) ;
+      
+         void computeConnectedClients(CContextClient* client);  
+         private: std::set<CContextClient*> computeConnectedClients_done_; public:
+         /** The number of server of a context client. Avoid to re-compute indice computed in a previous computeConnectedClient */
+         private: std::set<int> listNbServer_ ; public:
+         
       private:
          void checkDomain(void);
          void checkLocalIDomain(void);
@@ -196,8 +208,8 @@ namespace xios {
          void recvDataIndex(std::map<int, CBufferIn*>& rankBuffers);
 
          void completeLonLatClient(void);  
-         void computeConnectedClients();    
-
+         
+         
        private:         
 
 /** Clients that have to send a domain. There can be multiple clients in case of secondary server, otherwise only one client. */
@@ -208,6 +220,10 @@ namespace xios {
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          bool isClientAfterTransformationChecked;
+         
+         /** define if the domain is completed or not ie all attributes have been received before in case 
+             of grid reading from file or coupling */ 
+         bool isCompleted_=true ;  
 
 /** global index of the domain on server side, sent by the clients. This is global index for lon, lat, mask elements (ie non masked elements)
     indGlobs_[rank] -> array of global index received from the client of rank "rank"

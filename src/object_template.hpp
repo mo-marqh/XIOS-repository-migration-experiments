@@ -82,6 +82,9 @@ namespace xios
          static std::shared_ptr<T> getShared(const T* ptr) ;
 
          static T* create(const string& id=string("")) ;
+         static T* createAlias(const string& id, const string& alias) ;
+         void createAlias(const string& alias) ;
+         
          static const vector<T*> getAll() ;
          static const vector<T*> getAll(const string& contextId) ;
 

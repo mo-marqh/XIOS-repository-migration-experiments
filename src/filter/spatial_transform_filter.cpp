@@ -173,7 +173,7 @@ namespace xios
         for (size_t idx = 0; idx < dataAuxInputs.size(); ++idx) dataAuxInputs[idx] = &(data[idx+1]->data);
         gridTransformation->computeAll(dataAuxInputs, packet->timestamp);
       }
-      packet->data.resize(gridTransformation->getGridDestination()->storeIndex_client_.numElements());
+      packet->data.resize(gridTransformation->getGridDestination()->getDataSize());
       if (0 != packet->data.numElements())
         (packet->data)(0) = defaultValue;
       apply(data[0]->data, packet->data);

@@ -257,7 +257,7 @@ CONTAINS
     ENDIF
     
     ok_field3D_recv_W=xios_is_valid_field("field3D_recv_W").AND.xios_is_valid_field("field3D_resend_W") ;
-    IF (ok_field3D_recv) THEN
+    IF (ok_field3D_recv_W) THEN
       CALL xios_is_defined_field_attr("field3D_recv_W",freq_op=ok)
       IF (ok) THEN
         CALL xios_get_field_attr("field3D_recv_W",freq_op=freq_op_recv)
@@ -462,7 +462,7 @@ CONTAINS
     ENDIF
     
     ok_other_field3D_recv_W=xios_is_valid_field("other_field3D_recv_W").AND.xios_is_valid_field("other_field3D_resend_W") ;
-    IF (ok_other_field3D_recv) THEN
+    IF (ok_other_field3D_recv_W) THEN
       CALL xios_is_defined_field_attr("other_field3D_recv_W",freq_op=ok)
       IF (ok) THEN
         CALL xios_get_field_attr("other_field3D_recv_W",freq_op=freq_op_recv)

@@ -1720,21 +1720,20 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CDomain::checkAttributesOnClientAfterTransformation()
+   void CDomain::checkAttributes(void)
    TRY
    {
-     CContext* context=CContext::getCurrent() ;
-
-     if (this->isClientAfterTransformationChecked) return;
-     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
-     {
-      this->computeConnectedClients();
-       if (hasLonLat)
-         if (context->getServiceType()==CServicesManager::CLIENT)
-           this->completeLonLatClient();
-     }
-
-     this->isClientAfterTransformationChecked = true;
+      if (this->checkAttributes_done_) return;
+      this->checkDomain();
+      this->checkLonLat();
+      this->checkBounds();
+      this->checkArea();
+      this->checkMask();
+      this->checkDomainData();
+      this->checkCompression();
+      this->computeLocalMask() ;
+      this->completeLonLatClient();
+      this->checkAttributes_done_ = true;
    }
    CATCH_DUMP_ATTR
 
@@ -1769,8 +1768,27 @@ namespace xios {
       this->isClientChecked = true;
    }
    CATCH_DUMP_ATTR
+   
+   // ym obselete, to be removed
+   void CDomain::checkAttributesOnClientAfterTransformation()
+   TRY
+   {
+     CContext* context=CContext::getCurrent() ;
 
-   // Send all checked attributes to server
+     if (this->isClientAfterTransformationChecked) return;
+     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
+     {
+       // this->computeConnectedClients();
+       if (hasLonLat)
+         if (context->getServiceType()==CServicesManager::CLIENT)
+           this->completeLonLatClient();
+     }
+
+     this->isClientAfterTransformationChecked = true;
+   }
+   CATCH_DUMP_ATTR
+
+      // Send all checked attributes to server
    void CDomain::sendCheckedAttributes()
    TRY
    {
@@ -1787,6 +1805,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+/* old version
    void CDomain::checkAttributes(void)
    TRY
    {
@@ -1819,141 +1838,129 @@ namespace xios {
       this->isChecked = true;
    }
    CATCH_DUMP_ATTR
-
+*/
+   
   /*!
      Compute the connection of a client to other clients to determine which clients to send attributes to.
      The sending clients are supposed to already know the distribution of receiving clients (In simple cases, it's band)
      The connection among clients is calculated by using global index. 
      A client connects to other clients which holds the same global index as it.     
   */
-  void CDomain::computeConnectedClients()
+  void CDomain::computeConnectedClients(CContextClient* client)
   TRY
   {
+    if (computeConnectedClients_done_.count(client)==0) return ;
+    else computeConnectedClients_done_.insert(client) ;
+    
     CContext* context=CContext::getCurrent() ;
-    set<int> listNbServer ;
-
-    for (auto client : clients)
-    {
-
-      int nbServer = client->serverSize;
-      int nbClient = client->clientSize;
-      int rank     = client->clientRank;
-      bool doComputeGlobalIndexServer = true;
    
-      if (listNbServer.find(nbServer)==listNbServer.end())
-      {
-        listNbServer.insert(nbServer) ;
+    int nbServer = client->serverSize;
+    int nbClient = client->clientSize;
+    int rank     = client->clientRank;
+        
+    if (listNbServer_.count(nbServer) == 0)
+    {
+      listNbServer_.insert(nbServer) ;
  
-        if (connectedServerRank_.find(nbServer) != connectedServerRank_.end())
+      if (connectedServerRank_.find(nbServer) != connectedServerRank_.end())
+      {
+        nbSenders.erase(nbServer);
+        connectedServerRank_.erase(nbServer);
+      }
+
+      if (indSrv_.find(nbServer) == indSrv_.end())
+      {
+        int i,j,i_ind,j_ind, nbIndex=i_index.numElements();
+        int globalIndexCount = i_index.numElements();
+        // Fill in index
+        CArray<size_t,1> globalIndexDomain(nbIndex);
+        size_t globalIndex;
+
+        for (i = 0; i < nbIndex; ++i)
         {
-          nbSenders.erase(nbServer);
-          connectedServerRank_.erase(nbServer);
+          i_ind=i_index(i);
+          j_ind=j_index(i);
+          globalIndex = i_ind + j_ind * ni_glo;
+          globalIndexDomain(i) = globalIndex;
         }
 
-        if (indSrv_.find(nbServer) == indSrv_.end())
+        if (globalLocalIndexMap_.empty()) 
+          for (i = 0; i < nbIndex; ++i)  globalLocalIndexMap_[globalIndexDomain(i)] = i;
+          
+
+        size_t globalSizeIndex = 1, indexBegin, indexEnd;
+        int range, clientSize = client->clientSize;
+        std::vector<int> nGlobDomain(2);
+        nGlobDomain[0] = this->ni_glo;
+        nGlobDomain[1] = this->nj_glo;
+        for (int i = 0; i < nGlobDomain.size(); ++i) globalSizeIndex *= nGlobDomain[i];
+        indexBegin = 0;
+        if (globalSizeIndex <= clientSize)
         {
-          int i,j,i_ind,j_ind, nbIndex=i_index.numElements();
-          int globalIndexCount = i_index.numElements();
-          // Fill in index
-          CArray<size_t,1> globalIndexDomain(nbIndex);
-          size_t globalIndex;
-
-          for (i = 0; i < nbIndex; ++i)
-          {
-            i_ind=i_index(i);
-            j_ind=j_index(i);
-            globalIndex = i_ind + j_ind * ni_glo;
-            globalIndexDomain(i) = globalIndex;
-          }
-
-          if (globalLocalIndexMap_.empty())
-          {
-            for (i = 0; i < nbIndex; ++i)
-              globalLocalIndexMap_[globalIndexDomain(i)] = i;
-          }
-
-          size_t globalSizeIndex = 1, indexBegin, indexEnd;
-          int range, clientSize = client->clientSize;
-          std::vector<int> nGlobDomain(2);
-          nGlobDomain[0] = this->ni_glo;
-          nGlobDomain[1] = this->nj_glo;
-          for (int i = 0; i < nGlobDomain.size(); ++i) globalSizeIndex *= nGlobDomain[i];
-          indexBegin = 0;
-          if (globalSizeIndex <= clientSize)
-          {
-            indexBegin = rank%globalSizeIndex;
-            indexEnd = indexBegin;
-          }
-          else
-          {
-            for (int i = 0; i < clientSize; ++i)
-            {
-              range = globalSizeIndex / clientSize;
-              if (i < (globalSizeIndex%clientSize)) ++range;
-              if (i == client->clientRank) break;
-              indexBegin += range;
-            }
-            indexEnd = indexBegin + range - 1;
-          }
-
-          // Even if servers have no index, they must received something from client
-          // We only use several client to send "empty" message to these servers
-          CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
-          std::vector<int> serverZeroIndex;
-          if (isUnstructed_) serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
-          else serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 1);
-
-          std::list<int> serverZeroIndexLeader;
-          std::list<int> serverZeroIndexNotLeader;
-          CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
-          for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-            *it = serverZeroIndex[*it];
-
-          CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
-          clientServerMap->computeServerIndexMapping(globalIndexDomain, nbServer);
-          CClientServerMapping::GlobalIndexMap& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
-
-          CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(),
-                 ite = globalIndexDomainOnServer.end();
-          indSrv_[nbServer].swap(globalIndexDomainOnServer);
-          connectedServerRank_[nbServer].clear();
-          for (it = indSrv_[nbServer].begin(); it != ite; ++it)
-            connectedServerRank_[nbServer].push_back(it->first);
-
-          for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-            connectedServerRank_[nbServer].push_back(*it);
-
-          // Even if a client has no index, it must connect to at least one server and
-          // send an "empty" data to this server
-          if (connectedServerRank_[nbServer].empty())
-            connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
-
-          // Now check if all servers have data to receive. If not, master client will send empty data.
-          // This ensures that all servers will participate in collective calls upon receiving even if they have no date to receive.
-          std::vector<int> counts (clientSize);
-          std::vector<int> displs (clientSize);
-          displs[0] = 0;
-          int localCount = connectedServerRank_[nbServer].size() ;
-          MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
-          for (int i = 0; i < clientSize-1; ++i)
-          {
-            displs[i+1] = displs[i] + counts[i];
-          }
-          std::vector<int> allConnectedServers(displs[clientSize-1]+counts[clientSize-1]);
-          MPI_Gatherv(&(connectedServerRank_[nbServer])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
-
-          if ((allConnectedServers.size() != nbServer) && (rank == 0))
-          {
-            std::vector<bool> isSrvConnected (nbServer, false);
-            for (int i = 0; i < allConnectedServers.size(); ++i) isSrvConnected[allConnectedServers[i]] = true;
-            for (int i = 0; i < nbServer; ++i)
-            {
-              if (!isSrvConnected[i]) connectedServerRank_[nbServer].push_back(i);
-            }
-          }
-          nbSenders[nbServer] = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
-          delete clientServerMap;
+          indexBegin = rank%globalSizeIndex;
+          indexEnd = indexBegin;
         }
+        else
+        {
+          for (int i = 0; i < clientSize; ++i)
+          {
+            range = globalSizeIndex / clientSize;
+            if (i < (globalSizeIndex%clientSize)) ++range;
+            if (i == client->clientRank) break;
+            indexBegin += range;
+          }
+          indexEnd = indexBegin + range - 1;
+        }
+
+        // Even if servers have no index, they must received something from client
+        // We only use several client to send "empty" message to these servers
+        CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
+        std::vector<int> serverZeroIndex;
+        if (isUnstructed_) serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
+        else serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 1);
+
+        std::list<int> serverZeroIndexLeader;
+        std::list<int> serverZeroIndexNotLeader;
+        CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
+        for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+          *it = serverZeroIndex[*it];
+
+        CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
+        clientServerMap->computeServerIndexMapping(globalIndexDomain, nbServer);
+        CClientServerMapping::GlobalIndexMap& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
+
+        CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(), ite = globalIndexDomainOnServer.end();
+        indSrv_[nbServer].swap(globalIndexDomainOnServer);
+        connectedServerRank_[nbServer].clear();
+        for (it = indSrv_[nbServer].begin(); it != ite; ++it) connectedServerRank_[nbServer].push_back(it->first);
+
+        for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+          connectedServerRank_[nbServer].push_back(*it);
+
+        // Even if a client has no index, it must connect to at least one server and
+        // send an "empty" data to this server
+        if (connectedServerRank_[nbServer].empty())
+          connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
+
+        // Now check if all servers have data to receive. If not, master client will send empty data.
+        // This ensures that all servers will participate in collective calls upon receiving even if they have no date to receive.
+        std::vector<int> counts (clientSize);
+        std::vector<int> displs (clientSize);
+        displs[0] = 0;
+        int localCount = connectedServerRank_[nbServer].size() ;
+        MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
+        for (int i = 0; i < clientSize-1; ++i) displs[i+1] = displs[i] + counts[i];
+        std::vector<int> allConnectedServers(displs[clientSize-1]+counts[clientSize-1]);
+        MPI_Gatherv(&(connectedServerRank_[nbServer])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
+
+        if ((allConnectedServers.size() != nbServer) && (rank == 0))
+        {
+          std::vector<bool> isSrvConnected (nbServer, false);
+          for (int i = 0; i < allConnectedServers.size(); ++i) isSrvConnected[allConnectedServers[i]] = true;
+          for (int i = 0; i < nbServer; ++i) if (!isSrvConnected[i]) connectedServerRank_[nbServer].push_back(i);
+        }
+        nbSenders[nbServer] = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
+        delete clientServerMap;
       }
     }
   }
@@ -3023,6 +3030,41 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
+  /*!
+  \brief Check if a domain is completed
+  Before make any domain processing, we must be sure that all domain informations have
+  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+  other context (coupling). So all direct reference of the domain (domain_ref) must be also completed
+  \return true if domain and domain reference are completed
+  */
+  bool CDomain::checkIfCompleted(void)
+  {
+    if (hasDirectDomainReference()) if (!getDirectDomainReference()->checkIfCompleted()) return false;
+    return isCompleted_ ;
+  }
+
+  /*!
+  \brief Set a domain as completed
+   When all information about a domain have been received, the domain is tagged as completed and is
+   suitable for processing
+  */
+  void CDomain::setCompleted(void)
+  {
+    if (hasDirectDomainReference()) getDirectDomainReference()->setCompleted() ;
+    isCompleted_=true ;
+  }
+
+  /*!
+  \brief Set a domain as uncompleted
+   When informations about a domain are expected from a grid reading from file or coupling, the domain is 
+   tagged as uncompleted and is not suitable for processing
+  */
+  void CDomain::setUncompleted(void)
+  {
+    if (hasDirectDomainReference()) getDirectDomainReference()->setUncompleted() ;
+    isCompleted_=false ;
+  }
+  
   /*!
    * Go through the hierarchy to find the domain from which the transformations must be inherited
    */

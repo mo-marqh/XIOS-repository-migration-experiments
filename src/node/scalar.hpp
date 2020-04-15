@@ -65,10 +65,16 @@ namespace xios
 
          public:
             void checkAttributes(void);
+            bool checkAttributes_done_ = false ;
+            
             void addRelFile(const StdString& filename);
             bool IsWritten(const StdString& filename) const;
             void checkAttributesOnClient();
             virtual void parse(xml::CXMLNode & node);
+
+            bool checkIfCompleted(void) ;
+            void setCompleted(void) ;
+            void setUncompleted(void) ;
 
          public:
            bool hasTransformation();
@@ -89,6 +95,9 @@ namespace xios
            static std::map<StdString, ETranformationType> transformationMapList_;
            static bool dummyTransformationMapList_;
 
+           /** define if the scalar is completed or not ie all attributes have been received before in case 
+               of grid reading from file or coupling */ 
+           bool isCompleted_=true ;  
 
             DECLARE_REF_FUNC(Scalar,scalar)
 

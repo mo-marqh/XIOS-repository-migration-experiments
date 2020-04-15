@@ -1804,7 +1804,7 @@ namespace xios
         CContext* context = CContext::getCurrent() ;
 
         std::vector<StdString> dims, coodinates;
-        CGrid* grid = field->grid;
+        CGrid* grid = field->getGrid();
         if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type==MULTI_FILE) return ;
 
@@ -2345,7 +2345,7 @@ namespace xios
       void CNc4DataOutput::writeFieldData_ (CField*  field)
       {
         CContext* context = CContext::getCurrent();
-        CGrid* grid = field->grid;
+        CGrid* grid = field->getGrid();
 
         if (field->getNStep()<1) 
         {

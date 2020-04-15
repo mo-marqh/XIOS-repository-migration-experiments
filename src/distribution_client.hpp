@@ -46,6 +46,7 @@ public:
     const std::vector<bool>& getLocalMaskIndexOnClient();
     const std::vector<int>& getLocalMaskedDataIndexOnClient();
 
+    size_t getLocalDataSize(void) { if (!isComputed_) createGlobalIndexSendToServer(); return localDataSize_ ;}
     std::vector<int> getNGlob() { return nGlob_; }
     std::vector<int> getDataNIndex() { return dataNIndex_; }
 
@@ -98,6 +99,8 @@ public:
     std::vector<bool> localMaskIndex_;
 
     std::vector<int> localMaskedDataIndex_;
+    //!< the size of local data of the grid
+    size_t localDataSize_ ;
 
   private:
     /*! Domains and axis are considered elements.

@@ -245,7 +245,8 @@ TRY
     }
   }
 
-  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, elementOrder);  
+  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, elementOrder); 
+  tmpGridDestination_-> solveElementsRefInheritance() ; // ym not sure 
   tempGridDests_.push_back(tmpGridDestination_);
 }
 CATCH
@@ -291,7 +292,7 @@ TRY
         CDomain* domain = CDomain::createDomain();
         domain->domain_ref.setValue(domListDestP[elementIndex]->getId());
         domain->solveRefInheritance(true);
-        domain->checkAttributesOnClient();
+        domain->checkAttributes();
         domainSrc.push_back(domain);
       }
       else if (1 == dimElementDst)
@@ -299,7 +300,7 @@ TRY
         CAxis* axis = CAxis::createAxis();
         axis->axis_ref.setValue(axisListDestP[elementIndex]->getId());
         axis->solveRefInheritance(true);
-        axis->checkAttributesOnClient();
+        axis->checkAttributes();
         axisSrc.push_back(axis); 
       }
       else
@@ -307,7 +308,7 @@ TRY
         CScalar* scalar = CScalar::createScalar();
         scalar->scalar_ref.setValue(scalarListDestP[elementIndex]->getId());
         scalar->solveRefInheritance(true);
-        scalar->checkAttributesOnClient();
+        scalar->checkAttributes();
         scalarSrc.push_back(scalar);
       }
     }
@@ -333,6 +334,7 @@ TRY
   }
 
   gridSource_ = CGrid::createGrid(domainSrc, axisSrc, scalarSrc, tmpGridDestination_->axis_domain_order);  
+  gridSource_->solveElementsRefInheritance() ; // ym not sure
 
   tempGridSrcs_.push_back(gridSource_);
 }

@@ -112,6 +112,33 @@ namespace xios
    }
 
    template <typename U>
+   std::shared_ptr<U> CObjectFactory::CreateAlias(const StdString& id, const StdString& alias)
+   {
+      if (CurrContext.empty())
+         ERROR("CObjectFactory::CreateAlias(const StdString& id, const StdString& alias)",
+               << "[ id = " << id << " alias = "<<alias<<" ] please define current context id !");
+
+      if (CObjectFactory::HasObject<U>(alias))
+      {
+         return CObjectFactory::GetObject<U>(alias);
+      }
+      else
+      {
+        if (! CObjectFactory::HasObject<U>(id))
+        {
+            ERROR("CObjectFactory::CreateAlias(const StdString& id, const StdString& alias)",
+               << "[ id = " << id << " alias = "<<alias<<" ] object id doesn't exist"); 
+        }
+        else  
+        {
+          std::shared_ptr<U> value = CObjectFactory::GetObject<U>(id);  
+          U::AllMapObj[CObjectFactory::CurrContext].insert(std::make_pair(alias, value));
+          return value;
+         }
+      }
+   }
+
+   template <typename U>
       const std::vector<std::shared_ptr<U> > &
          CObjectFactory::GetObjectVector(const StdString & context)
    {

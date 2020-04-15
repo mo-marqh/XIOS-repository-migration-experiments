@@ -49,7 +49,10 @@ namespace xios
          /// Instanciateur ///
          template <typename U>
             static  std::shared_ptr<U> CreateObject(const StdString & id = StdString(""));
-
+ 
+         template <typename U>
+             static std::shared_ptr<U> CreateAlias(const StdString& id, const StdString& alias) ;
+         
          template <typename U> static const StdString& GetUIdBase(void);
          template <typename U> static StdString GenUId(void);
          template <typename U> static bool IsGenUId(const StdString& id);

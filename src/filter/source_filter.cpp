@@ -33,7 +33,7 @@ namespace xios
     packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
 
-    packet->data.resize(grid->storeIndex_client_.numElements());    
+    packet->data.resize(grid->getStoreIndex_client().numElements());    
     
     if (compression)
     {
@@ -84,7 +84,7 @@ namespace xios
             << "Incoherent data received from servers,"
             << " expected " << grid->storeIndex_fromSrv_.size() << " chunks but " << data.size() << " were given.");
 
-    packet->data.resize(grid->storeIndex_client_.numElements());
+    packet->data.resize(grid->getStoreIndex_client().numElements());
     std::map<int, CArray<double, 1> >::const_iterator it, itEnd = data.end();
     for (it = data.begin(); it != itEnd; it++)
     {      

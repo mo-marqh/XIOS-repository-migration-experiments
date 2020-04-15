@@ -312,7 +312,7 @@ TRY
   else
   {
     CField* field = CField::get(coordinate_);
-    CGrid* grid = field->grid;
+    CGrid* grid = field->getGrid();
 
     std::vector<CDomain*> domListP = grid->getDomains();
     std::vector<CAxis*> axisListP = grid->getAxis();

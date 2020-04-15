@@ -89,13 +89,13 @@ namespace xios {
 
    //---------------------------------------------------------------
 
-   StdSize CGrid::getDataSize(void) const
+   StdSize CGrid::getDataSize(void) 
    TRY
    {
      StdSize retvalue = 1;
      if (!isScalarGrid())
      {
-       std::vector<int> dataNindex = clientDistribution_->getDataNIndex();
+       std::vector<int> dataNindex = getDistributionClient()->getDataNIndex();
        for (int i = 0; i < dataNindex.size(); ++i) retvalue *= dataNindex[i];       
      }
      return retvalue;
@@ -633,7 +633,7 @@ namespace xios {
       }
 
       size_t nbWritten = 0, indGlo;
-      CDistributionClient::GlobalLocalDataMap& globalDataIndex = clientDistribution_->getGlobalDataIndexOnClient();
+      CDistributionClient::GlobalLocalDataMap& globalDataIndex = getDistributionClient()->getGlobalDataIndexOnClient();
       CDistributionClient::GlobalLocalDataMap::const_iterator itb = globalDataIndex.begin(),
                                                               ite = globalDataIndex.end(), it;    
       const CDistributionServer::GlobalLocalMap& globalLocalIndex = serverDistribution_->getGlobalLocalIndex();                                                              
@@ -676,7 +676,95 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   
+
+   /*!
+     Compute the global index of grid to send to server as well as the connected server of the current client.
+     First of all, from the local data on each element of grid, we can calculate their local index which also allows us to know
+     their global index. We can have a map of global index of grid and local index that each client holds
+     Then, each client holds a piece of information about the distribution of servers, which permits to compute the connected server(s)
+     of the current client.
+   */
+   void CGrid::computeGridIndexToFileServer(CContextClient* client)
+   {
+     if (isScalarGrid())
+     {
+       computeClientIndexScalarGrid();
+       computeConnectedClientsScalarGrid(client);
+     }
+     else
+     {
+       computeClientIndex();
+       computeConnectedClients(client);
+     }
+
+     // compute indices for client/server transfer for domain
+     for (const auto& domainId : domList_) CDomain::get(domainId)->computeConnectedClients(client);
+   
+   
+     // compute indices for client/server transfer for axis
+     std::vector<CAxis*> axisList = this->getAxis();
+     std::vector<int> axisPosInGrid ;
+     // compute axis position in grid     
+     int idx=0 ;
+     for (int i = 0 ; i < axis_domain_order.numElements(); ++i)
+     {
+       if (axis_domain_order(i) == 0)  idx += 0 ;
+       else if (axis_domain_order(i) == 1) { axisPosInGrid.push_back(idx) ; ++idx; }
+       else if (axis_domain_order(i) == 2) idx += 2;
+     }
+     for(int i=0 ; i<axisList.size(); i++) axisList[i] -> computeConnectedClients(client, getGlobalDimension(),axisPositionInGrid_[i]) ;
+   }
    //---------------------------------------------------------------
+
+   
+   void CGrid::computeClientDistribution(void)
+   {
+     if (computeClientDistribution_done_) return ;
+     else computeClientDistribution_done_ = true ;
+
+     CContext* context = CContext::getCurrent();
+     int rank = context-> getIntraCommRank();
+     clientDistribution_ = new CDistributionClient(rank, this);
+   }
+
+   void CGrid::computeStoreIndex_client(void)
+   {
+     if (computeStoreIndex_client_done_) return ;
+     else computeStoreIndex_client_done_ = true ;
+     if (isScalarGrid())
+     {
+       storeIndex_client_.resize(1);
+       storeIndex_client_(0) = 0;
+     }
+     else
+     {
+       CDistributionClient* clientDistribution = getDistributionClient() ;
+       const std::vector<int>& localDataIndex = clientDistribution->getLocalDataIndexOnClient() ;
+       int nbStoreIndex = localDataIndex.size() ;
+       storeIndex_client_.resize(nbStoreIndex);
+       for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client_(idx) = localDataIndex[idx];
+     }
+   }
+
+   void CGrid::computeStoreMask_client(void)
+   {
+     if (computeStoreMask_client_done_) return ;
+     else computeStoreMask_client_done_ = true ;
+     if (isScalarGrid())
+     {
+       storeMask_client_.resize(1);
+       storeMask_client_(0) = true;
+     }
+     else
+     {
+       CDistributionClient* clientDistribution = getDistributionClient() ;
+       const std::vector<bool>& localMaskIndex = clientDistribution->getLocalMaskIndexOnClient() ;
+       int nbMaskIndex = localMaskIndex.size() ;
+       storeMask_client_.resize(nbMaskIndex);
+       for (int idx = 0; idx < nbMaskIndex; ++idx) storeMask_client_(idx) = localMaskIndex[idx];
+     }
+   }
 
    /*
      Compute the global index and its local index taking account mask and data index.
@@ -687,26 +775,26 @@ namespace xios {
    void CGrid::computeClientIndex()
    TRY
    {
+     if (computeClientIndex_done_) return ;
+
      CContext* context = CContext::getCurrent();
+     int rank = context-> getIntraCommRank();
 
-     CContextClient* client = context->client;
-     int rank = client->clientRank;
-
-     clientDistribution_ = new CDistributionClient(rank, this);
+     auto clientDistribution = getDistributionClient();
      // Get local data index on client
-     int nbStoreIndex = clientDistribution_->getLocalDataIndexOnClient().size();
-     int nbStoreGridMask = clientDistribution_->getLocalMaskIndexOnClient().size();
+     int nbStoreIndex = clientDistribution->getLocalDataIndexOnClient().size();
+     int nbStoreGridMask = clientDistribution->getLocalMaskIndexOnClient().size();
      // nbStoreGridMask = nbStoreIndex if grid mask is defined, and 0 otherwise
      storeIndex_client_.resize(nbStoreIndex);
      storeMask_client_.resize(nbStoreGridMask);
-     for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client_(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
-     for (int idx = 0; idx < nbStoreGridMask; ++idx) storeMask_client_(idx) = (clientDistribution_->getLocalMaskIndexOnClient())[idx];
+     for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client_(idx) = (clientDistribution->getLocalDataIndexOnClient())[idx];
+     for (int idx = 0; idx < nbStoreGridMask; ++idx) storeMask_client_(idx) = (clientDistribution->getLocalMaskIndexOnClient())[idx];
 
-     if (0 == serverDistribution_) isDataDistributed_= clientDistribution_->isDataDistributed();
+     if (0 == serverDistribution_) isDataDistributed_= clientDistribution->isDataDistributed();
      else
      {
         // Mapping global index received from clients to the storeIndex_client_
-        CDistributionClient::GlobalLocalDataMap& globalDataIndex = clientDistribution_->getGlobalDataIndexOnClient();
+        CDistributionClient::GlobalLocalDataMap& globalDataIndex = clientDistribution->getGlobalDataIndexOnClient();
         CDistributionClient::GlobalLocalDataMap::const_iterator itGloe = globalDataIndex.end();
         map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient_.begin(),
                                                ite = outGlobalIndexFromClient_.end(), it;
@@ -745,138 +833,129 @@ namespace xios {
           }
         }
       }
+      computeClientIndex_done_ = true ;
    }
    CATCH_DUMP_ATTR
 
    /*!
      Compute connected receivers and indexes to be sent to these receivers.
    */
-   void CGrid::computeConnectedClients()
+   void CGrid::computeConnectedClients(CContextClient* client)
    TRY
    {
+     if (computeConnectedClients_done_.count(client)!=0) return ;
+
      CContext* context = CContext::getCurrent();
      
      set<int> listReceiverSize ;
-     for (auto it=clients.begin(); it!=clients.end(); ++it)
-     {
-       
-       CContextClient* client = *it ;
-
-       int receiverSize = client->serverSize;
+     int receiverSize = client->serverSize;
       
-       if (listReceiverSize.find(receiverSize)==listReceiverSize.end())
+     if (listReceiverSize.find(receiverSize)==listReceiverSize.end())
+     {
+       listReceiverSize.insert(receiverSize) ;
+       if (connectedServerRank_.find(receiverSize) != connectedServerRank_.end())
        {
-         listReceiverSize.insert(receiverSize) ;
-         if (connectedServerRank_.find(receiverSize) != connectedServerRank_.end())
-         {
-            // delete corresponding map in case of recompute, probably because a grid could has been modifiedd 
-            // by a transformation
-            connectedServerRank_.erase(receiverSize);
-            connectedDataSize_.erase(receiverSize);
-            globalIndexOnServer_.erase(receiverSize);
-            nbSenders_.erase(receiverSize);
-         }
+          // delete corresponding map in case of recompute, probably because a grid could has been modifiedd 
+          // by a transformation
+          connectedServerRank_.erase(receiverSize);
+          connectedDataSize_.erase(receiverSize);
+          globalIndexOnServer_.erase(receiverSize);
+          nbSenders_.erase(receiverSize);
+       }
 
-         if (!doGridHaveDataDistributed(client))
-         {
-            if (client->isServerLeader())
+       if (!doGridHaveDataDistributed(client))
+       {
+          if (client->isServerLeader())
+          {
+            size_t ssize = getDistributionClient()->getLocalDataIndexOnClient().size();
+            const std::list<int>& ranks = client->getRanksServerLeader();
+            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
             {
-              size_t ssize = clientDistribution_->getLocalDataIndexOnClient().size();
-              const std::list<int>& ranks = client->getRanksServerLeader();
-              for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-              {
-                connectedServerRank_[receiverSize].push_back(*itRank);
-                connectedDataSize_[receiverSize][*itRank] = ssize;
-              }
+              connectedServerRank_[receiverSize].push_back(*itRank);
+              connectedDataSize_[receiverSize][*itRank] = ssize;
             }
-            return;
-         }
+          }
+          return;
+       }
 
-         // Compute mapping between client and server
-         std::vector<std::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
-         CServerDistributionDescription serverDistributionDescription(getGlobalDimension(), client->serverSize);
-         std::vector<int> serverZeroIndex = serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
+       // Compute mapping between client and server
+       std::vector<std::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
+       CServerDistributionDescription serverDistributionDescription(getGlobalDimension(), client->serverSize);
+       std::vector<int> serverZeroIndex = serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
                                                                                                     client->clientRank,
                                                                                                     client->clientSize,
                                                                                                     axis_domain_order,
                                                                                                     getDistributedDimension());
 
-         // Even if servers have no index, they must received something from client
-         // We only use several client to send "empty" message to these servers
-         std::list<int> serverZeroIndexLeader;
-         std::list<int> serverZeroIndexNotLeader;
-         CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
-         for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-           *it = serverZeroIndex[*it];
+       // Even if servers have no index, they must received something from client
+       // We only use several client to send "empty" message to these servers
+       std::list<int> serverZeroIndexLeader;
+       std::list<int> serverZeroIndexNotLeader;
+       CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
+       for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+         *it = serverZeroIndex[*it];
 
-         if (globalIndexOnServer_.find(receiverSize) == globalIndexOnServer_.end())
-           computeIndexByElement(indexServerOnElement, client, globalIndexOnServer_[receiverSize]);
+       if (globalIndexOnServer_.find(receiverSize) == globalIndexOnServer_.end())
+         computeIndexByElement(indexServerOnElement, client, globalIndexOnServer_[receiverSize]);
 
-         const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
-         CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
-         CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-         itbGlobalMap = globalIndexOnServer_[receiverSize].begin();
-         iteGlobalMap = globalIndexOnServer_[receiverSize].end();
+       const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getDistributionClient()->getGlobalLocalDataSendToServer();
+       CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
+       CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
+       itbGlobalMap = globalIndexOnServer_[receiverSize].begin();
+       iteGlobalMap = globalIndexOnServer_[receiverSize].end();
 
-         for (itGlobalMap  = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+       for (itGlobalMap  = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+       {
+         int serverRank = itGlobalMap->first;
+         int indexSize = itGlobalMap->second.size();
+         const std::vector<size_t>& indexVec = itGlobalMap->second;
+         for (int idx = 0; idx < indexSize; ++idx)
          {
-           int serverRank = itGlobalMap->first;
-           int indexSize = itGlobalMap->second.size();
-           const std::vector<size_t>& indexVec = itGlobalMap->second;
-           for (int idx = 0; idx < indexSize; ++idx)
-           {
-              itGlobalLocalIndexMap = globalLocalIndexSendToServer.find(indexVec[idx]);
-              if (iteGlobalLocalIndexMap != itGlobalLocalIndexMap)
-              {
-                if (connectedDataSize_[receiverSize].end() == connectedDataSize_[receiverSize].find(serverRank))
-                  connectedDataSize_[receiverSize][serverRank] = 1;
-                else
-                  ++connectedDataSize_[receiverSize][serverRank];
-              }
-           }
+            itGlobalLocalIndexMap = globalLocalIndexSendToServer.find(indexVec[idx]);
+            if (iteGlobalLocalIndexMap != itGlobalLocalIndexMap)
+            {
+              if (connectedDataSize_[receiverSize].end() == connectedDataSize_[receiverSize].find(serverRank))
+                connectedDataSize_[receiverSize][serverRank] = 1;
+              else
+                ++connectedDataSize_[receiverSize][serverRank];
+            }
          }
-
-         // Connected servers which really have index
-         for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
-           connectedServerRank_[receiverSize].push_back(itGlobalMap->first);
-         }
-
-         // Connected servers which have no index at all
-         for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-           connectedServerRank_[receiverSize].push_back(*it);
-
-         // Even if a client has no index, it must connect to at least one server and
-         // send an "empty" data to this server
-         if (connectedServerRank_[receiverSize].empty())
-          connectedServerRank_[receiverSize].push_back(client->clientRank % client->serverSize);
-
-         // Now check if all servers have data to receive. If not, master client will send empty data.
-         // This ensures that all servers will participate in collective calls upon receiving even if they have no date to receive.
-         std::vector<int> counts (client->clientSize);
-         std::vector<int> displs (client->clientSize);
-         displs[0] = 0;
-         int localCount = connectedServerRank_[receiverSize].size() ;
-         MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
-         for (int i = 0; i < client->clientSize-1; ++i)
-         {
-           displs[i+1] = displs[i] + counts[i];
-         }
-         std::vector<int> allConnectedServers(displs[client->clientSize-1]+counts[client->clientSize-1]);
-         MPI_Gatherv(&(connectedServerRank_[receiverSize])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
-
-         if ((allConnectedServers.size() != receiverSize) && (client->clientRank == 0))
-         {
-           std::vector<bool> isSrvConnected (receiverSize, false);
-           for (int i = 0; i < allConnectedServers.size(); ++i) isSrvConnected[allConnectedServers[i]] = true;
-           for (int i = 0; i < receiverSize; ++i)
-           {
-             if (!isSrvConnected[i]) connectedServerRank_[receiverSize].push_back(i);
-           }
-         }
-
-         nbSenders_[receiverSize] = clientServerMap_->computeConnectedClients(receiverSize, client->clientSize, client->intraComm, connectedServerRank_[receiverSize]);
        }
+
+       // Connected servers which really have index
+       for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) 
+         connectedServerRank_[receiverSize].push_back(itGlobalMap->first);
+     
+       // Connected servers which have no index at all
+       for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+         connectedServerRank_[receiverSize].push_back(*it);
+
+       // Even if a client has no index, it must connect to at least one server and
+       // send an "empty" data to this server
+       if (connectedServerRank_[receiverSize].empty())
+         connectedServerRank_[receiverSize].push_back(client->clientRank % client->serverSize);
+ 
+       // Now check if all servers have data to receive. If not, master client will send empty data.
+       // This ensures that all servers will participate in collective calls upon receiving even if they have no date to receive.
+       std::vector<int> counts (client->clientSize);
+       std::vector<int> displs (client->clientSize);
+       displs[0] = 0;
+       int localCount = connectedServerRank_[receiverSize].size() ;
+       MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
+       for (int i = 0; i < client->clientSize-1; ++i) displs[i+1] = displs[i] + counts[i];
+       std::vector<int> allConnectedServers(displs[client->clientSize-1]+counts[client->clientSize-1]);
+       MPI_Gatherv(&(connectedServerRank_[receiverSize])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
+
+       if ((allConnectedServers.size() != receiverSize) && (client->clientRank == 0))
+       {
+         std::vector<bool> isSrvConnected (receiverSize, false);
+         for (int i = 0; i < allConnectedServers.size(); ++i) isSrvConnected[allConnectedServers[i]] = true;
+         for (int i = 0; i < receiverSize; ++i) if (!isSrvConnected[i]) connectedServerRank_[receiverSize].push_back(i);
+       }
+
+       nbSenders_[receiverSize] = CClientServerMapping::computeConnectedClients(receiverSize, client->clientSize, client->intraComm, connectedServerRank_[receiverSize]);
      }
+     computeConnectedClients_done_.insert(client) ;
    }
    CATCH_DUMP_ATTR
 
@@ -887,16 +966,18 @@ namespace xios {
      Then, each client holds a piece of information about the distribution of servers, which permits to compute the connected server(s)
      of the current client.
    */
+   // ym obsolete : to be removed....
    void CGrid::computeIndex(void)
    TRY
    {
+    // old interface
      CContext* context = CContext::getCurrent();
      if (isScalarGrid())
      {
        computeClientIndexScalarGrid();
        if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
        {
-         computeConnectedClientsScalarGrid();
+         // ym computeConnectedClientsScalarGrid();
        }
      }
      else
@@ -904,7 +985,7 @@ namespace xios {
        computeClientIndex();
        if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
        {
-         computeConnectedClients();
+         //computeConnectedClients();
        }
      }
 //ym     if (CServer::serverLevel==2)
@@ -1177,7 +1258,7 @@ namespace xios {
         grid->axis_domain_order = axisDomainOrder;
       }
 
-      grid->solveDomainAxisRefInheritance(true);
+ //     grid->solveElementsRefInheritance(true);
 
       return grid;
    }
@@ -1309,41 +1390,46 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   void CGrid::storeField_arr(const double* const data, CArray<double, 1>& stored) const
+   void CGrid::storeField_arr(const double* const data, CArray<double, 1>& stored) 
    TRY
    {
-      const StdSize size = storeIndex_client_.numElements();
+      auto& storeIndex_client = getStoreIndex_client() ;
+      const StdSize size = storeIndex_client.numElements();
 
       stored.resize(size);
-      for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client_(i)];
+      for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
    }
    CATCH
 
-   void CGrid::restoreField_arr(const CArray<double, 1>& stored, double* const data) const
+   void CGrid::restoreField_arr(const CArray<double, 1>& stored, double* const data) 
    TRY
    {
-      const StdSize size = storeIndex_client_.numElements();
+      auto& storeIndex_client=getStoreIndex_client() ;
+      const StdSize size = storeIndex_client.numElements();
 
-      for(StdSize i = 0; i < size; i++) data[storeIndex_client_(i)] = stored(i);
+      for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
    }
    CATCH
 
-   void CGrid::maskField_arr(const double* const data, CArray<double, 1>& stored) const
+   void CGrid::maskField_arr(const double* const data, CArray<double, 1>& stored) 
    {
-      const StdSize size = storeIndex_client_.numElements();
+      auto& storeIndex_client=getStoreIndex_client() ;
+      auto& storeMask_client=getStoreMask_client() ;
+        
+      const StdSize size = storeIndex_client.numElements();
       stored.resize(size);
       const double nanValue = std::numeric_limits<double>::quiet_NaN();
 
-      if (storeMask_client_.numElements() != 0)
-        for(StdSize i = 0; i < size; i++) stored(i) = (storeMask_client_(i)) ? data[storeIndex_client_(i)] : nanValue;
+      if (storeMask_client.numElements() != 0)
+        for(StdSize i = 0; i < size; i++) stored(i) = (storeMask_client(i)) ? data[storeIndex_client(i)] : nanValue;
       else
-        for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client_(i)];
+        for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
    }
 
-   void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) const
+   void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) 
    TRY
    {
-      const std::vector<int>& localMaskedDataIndex = clientDistribution_->getLocalMaskedDataIndexOnClient();
+      const std::vector<int>& localMaskedDataIndex = getDistributionClient()->getLocalMaskedDataIndexOnClient();
       const int size = localMaskedDataIndex.size();
       for(int i = 0; i < size; ++i) out(localMaskedDataIndex[i]) = data[i];
    }
@@ -1352,11 +1438,13 @@ namespace xios {
   void CGrid::computeClientIndexScalarGrid()
   TRY
   {
+    if (computeClientIndexScalarGrid_done_) return ;
+
     CContext* context = CContext::getCurrent();    
     {
       int rank = context->intraCommRank_;
 
-      clientDistribution_ = new CDistributionClient(rank, this);
+      auto clientDistribution = getDistributionClient();
 
       storeIndex_client_.resize(1);
       storeIndex_client_(0) = 0;      
@@ -1381,63 +1469,61 @@ namespace xios {
         }
       }
     }
+    computeClientIndexScalarGrid_done_ = true ;
   }
   CATCH_DUMP_ATTR
 
-  void CGrid::computeConnectedClientsScalarGrid()
+  void CGrid::computeConnectedClientsScalarGrid(CContextClient* client)
   TRY
   {
+    if (computeConnectedClientsScalarGrid_done_.count(client)!=0) return ;
 
     CContext* context = CContext::getCurrent();
      
     set<int> listReceiverSize ;
-    for (auto it=clients.begin(); it!=clients.end(); ++it)
-    {
-       
-      CContextClient* client = *it ;
 
-      int receiverSize = client->serverSize;
+    int receiverSize = client->serverSize;
       
-      if (listReceiverSize.find(receiverSize)==listReceiverSize.end())
+    if (listReceiverSize.find(receiverSize)==listReceiverSize.end())
+    {
+      listReceiverSize.insert(receiverSize) ;
+      if (connectedServerRank_.find(receiverSize) != connectedServerRank_.end())
       {
-        listReceiverSize.insert(receiverSize) ;
-        if (connectedServerRank_.find(receiverSize) != connectedServerRank_.end())
-        {
-           // delete corresponding map in case of recompute, probably because a grid could has been modifiedd 
-           // by a transformation
-          connectedServerRank_.erase(receiverSize);
-          connectedDataSize_.erase(receiverSize);
-          globalIndexOnServer_.erase(receiverSize);
-          nbSenders_.erase(receiverSize);
-        }
+         // delete corresponding map in case of recompute, probably because a grid could has been modifiedd 
+         // by a transformation
+        connectedServerRank_.erase(receiverSize);
+        connectedDataSize_.erase(receiverSize);
+        globalIndexOnServer_.erase(receiverSize);
+        nbSenders_.erase(receiverSize);
+      }
 
-        if (client->isServerLeader())
+      if (client->isServerLeader())
+      {
+        const std::list<int>& ranks = client->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
         {
-          const std::list<int>& ranks = client->getRanksServerLeader();
-          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-          {
-            int rank = *itRank;
-            int nb = 1;
-            connectedServerRank_[receiverSize].push_back(rank);
-            connectedDataSize_[receiverSize][rank] = nb;
-            nbSenders_[receiverSize][rank] = nb;
-          }
-        }
-        else
-        {
-          const std::list<int>& ranks = client->getRanksServerNotLeader();
-          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-          {
-            int rank = *itRank;
-            int nb = 1;
-            connectedServerRank_[receiverSize].push_back(rank);
-            connectedDataSize_[receiverSize][rank] = nb;
-            nbSenders_[receiverSize][rank] = nb;
-          }
+          int rank = *itRank;
+          int nb = 1;
+          connectedServerRank_[receiverSize].push_back(rank);
+          connectedDataSize_[receiverSize][rank] = nb;
+          nbSenders_[receiverSize][rank] = nb;
         }
       }
-      isDataDistributed_ = false;
+      else
+      {
+        const std::list<int>& ranks = client->getRanksServerNotLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        {
+          int rank = *itRank;
+          int nb = 1;
+          connectedServerRank_[receiverSize].push_back(rank);
+          connectedDataSize_[receiverSize][rank] = nb;
+          nbSenders_[receiverSize][rank] = nb;
+        }
+      }
     }
+    isDataDistributed_ = false;
+    computeConnectedClientsScalarGrid_done_.insert(client) ;
   }
   CATCH_DUMP_ATTR
 
@@ -1524,7 +1610,7 @@ namespace xios {
       int rank;
       list<CMessage> listMsg;
       list<CArray<size_t,1> > listOutIndex;
-      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
+      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getDistributionClient()->getGlobalLocalDataSendToServer();
       CDistributionClient::GlobalLocalDataMap::const_iterator itbIndex = globalLocalIndexSendToServer.begin(), itIndex,
                                                               iteIndex = globalLocalIndexSendToServer.end();
       itIndex = itbIndex;                                                              
@@ -1970,6 +2056,7 @@ namespace xios {
   CDistributionClient* CGrid::getDistributionClient()
   TRY
   {
+    if (!computeClientDistribution_done_) computeClientDistribution() ;
     return clientDistribution_;
   }
   CATCH_DUMP_ATTR
@@ -2208,52 +2295,71 @@ namespace xios {
    CATCH_DUMP_ATTR
 
   /*!
+  \brief Check if all elements of the grid are complete
+  Before make any grid processing, we must be sure that all grid information elements have
+  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+  other context (coupling)
+  */
+  bool CGrid::checkIfCompleted(void)
+  {
+    setDomainList();
+    for (auto domainId : domList_) if (!CDomain::get(domainId)->checkIfCompleted()) return false ;
+    setAxisList() ;
+    for (auto axisId : axisList_) if (!CAxis::get(axisId)->checkIfCompleted()) return false ;
+    setScalarList() ;
+    for (auto scalarId : scalarList_) if (!CScalar::get(scalarId)->checkIfCompleted()) return false ;
+    return true ;
+  }
+
+  /*!
   \brief Solve domain and axis references
   As field, domain and axis can refer to other domains or axis. In order to inherit correctly
   all attributes from their parents, they should be processed with this function
   \param[in] apply inherit all attributes of parents (true)
   */
-  void CGrid::solveDomainAxisRefInheritance(bool apply)
+  void CGrid::solveElementsRefInheritance(bool apply)
   TRY
   {
-    CContext* context = CContext::getCurrent();
-    unsigned int vecSize, i;
-    std::vector<StdString>::iterator it, itE;
     setDomainList();
-    it = domList_.begin(); itE = domList_.end();
-    for (; it != itE; ++it)
+    for (auto domainId : domList_)
     {
-      CDomain* pDom = CDomain::get(*it);
-      if (context->getServiceType()==CServicesManager::CLIENT)
-      {
-        pDom->solveRefInheritance(apply);
-        pDom->solveInheritanceTransformation();
-      }
+      CDomain* pDom = CDomain::get(domainId);
+      pDom->solveRefInheritance(apply);
+      pDom->solveInheritanceTransformation();
     }
 
     setAxisList();
-    it = axisList_.begin(); itE = axisList_.end();
-    for (; it != itE; ++it)
+    for (auto axisId : axisList_)
     {
-      CAxis* pAxis = CAxis::get(*it);
-      if (context->getServiceType()==CServicesManager::CLIENT)
-      {
-        pAxis->solveRefInheritance(apply);
-        pAxis->solveInheritanceTransformation();
-      }
+      CAxis* pAxis = CAxis::get(axisId);
+      pAxis->solveRefInheritance(apply);
+      pAxis->solveInheritanceTransformation();
     }
 
     setScalarList();
-    it = scalarList_.begin(); itE = scalarList_.end();
-    for (; it != itE; ++it)
+    for (auto scalarId : scalarList_)
     {
-      CScalar* pScalar = CScalar::get(*it);
-      if (context->getServiceType()==CServicesManager::CLIENT)
-      {
-        pScalar->solveRefInheritance(apply);
-        pScalar->solveInheritanceTransformation();
-      }
+      CScalar* pScalar = CScalar::get(scalarId);
+      pScalar->solveRefInheritance(apply);
+      pScalar->solveInheritanceTransformation();
     }
+  }
+  CATCH_DUMP_ATTR
+
+ /*!
+  \brief check attributes of all elements of the grid
+  */
+  void CGrid::checkElementsAttributes(void)
+  TRY
+  {
+    setDomainList();
+    for (auto domainId : domList_) CDomain::get(domainId)->checkAttributes();
+
+    setAxisList();
+    for (auto axisId : axisList_) CAxis::get(axisId)->checkAttributes();
+    
+    setScalarList();
+    for (auto scalarId : scalarList_) CScalar::get(scalarId)->checkAttributes();
   }
   CATCH_DUMP_ATTR
 
@@ -2300,7 +2406,7 @@ namespace xios {
   void CGrid::completeGrid(CGrid* transformGridSrc)
   TRY
   {
-    if (0 != transformGridSrc)
+    if (nullptr != transformGridSrc)
     {
       if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
       {
@@ -2361,6 +2467,63 @@ namespace xios {
     transformGridSrc->checkMaskIndex(false);
   }
   CATCH_DUMP_ATTR
+
+
+
+
+  void CGrid::prepareTransformGrid(CGrid* transformGridSrc)
+  TRY
+  {
+    if (prepareTransformGrid_done_) return ;
+
+    if (!transformGridSrc)
+      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+            << "Impossible to transform grid '" << getId() << "', the source grid is null.");
+
+    if (isTransformed()) return;
+    setTransformed();
+    if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
+    {
+      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+           << "Two grids have different number of elements. " << std::endl
+           << "Number of element of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
+           << "Number of element of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
+    }
+    else
+    {
+    }
+
+    transformations_ = new CGridTransformation(this, transformGridSrc);
+    if (0 < transformations_->getNbAlgo()) hasTransform_ = true;
+
+    prepareTransformGrid_done_ = true; 
+  }
+  CATCH_DUMP_ATTR
+
+
+  void CGrid::makeTransformGrid(void)
+  TRY
+  {
+    if (makeTransformGrid_done_) return ;
+    transformations_->computeAll();
+
+    makeTransformGrid_done_ = true ; 
+  }
+  CATCH_DUMP_ATTR
+
+
+  vector<std::string> CGrid::getAuxInputTransformGrid(void)
+  TRY
+  {
+    if (transformations_ != nullptr) return transformations_->getAuxInputs() ;
+  }
+  CATCH_DUMP_ATTR
+
+
+
+
+
+
 
   bool CGrid::hasTransform()
   TRY

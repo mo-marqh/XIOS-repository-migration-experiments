@@ -395,6 +395,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
   size_t ssize = 1;
 
   for (int i = 0; i < numElement_; ++i) ssize *= eachElementSize[i];
+  localDataSize_=ssize ;
 
   localDataIndex_.resize(ssize);
   if (!gridMask_.isEmpty()) localMaskIndex_.resize(ssize);

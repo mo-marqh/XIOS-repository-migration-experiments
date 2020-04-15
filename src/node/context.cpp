@@ -729,7 +729,7 @@ namespace xios {
      postProcessing();
 
      // Distribute files between secondary servers according to the data size
-     distributeFiles();
+     distributeFiles(this->enabledWriteModeFiles);
 
      // Check grid and calculate its distribution
      checkGridEnabledFields();
@@ -851,8 +851,213 @@ namespace xios {
    the only information that it needs is the enabled files
    and the active fields (fields will be written onto active files)
    */
+  void CContext::closeDefinition(void)
+   TRY
+   {
+     CTimer::get("Context : close definition").resume() ;
+     
+     // create intercommunicator with servers. 
+     // not sure it is the good place to be called here 
+     createServerInterComm() ;
 
-   void CContext::closeDefinition(void)
+
+     // After xml is parsed, there are some more works with post processing
+//     postProcessing();
+
+    // Make sure the calendar was correctly created
+    if (!calendar)
+      ERROR("CContext::postProcessing()", << "A calendar must be defined for the context \"" << getId() << "!\"")
+    else if (calendar->getTimeStep() == NoneDu)
+      ERROR("CContext::postProcessing()", << "A timestep must be defined for the context \"" << getId() << "!\"")
+    // Calendar first update to set the current date equals to the start date
+    calendar->update(0);
+
+    // Résolution des héritages descendants (càd des héritages de groupes)
+    // pour chacun des contextes.
+    solveDescInheritance(true);
+ 
+    // Solve inheritance for field to know if enabled or not.
+    for (auto field : CField::getAll()) field->solveRefInheritance();
+
+    // Check if some axis, domains or grids are eligible to for compressed indexed output.
+    // Warning: This must be done after solving the inheritance and before the rest of post-processing
+    // --> later ????    checkAxisDomainsGridsEligibilityForCompressedOutput();      
+
+      // Check if some automatic time series should be generated
+      // Warning: This must be done after solving the inheritance and before the rest of post-processing      
+
+    // The timeseries should only be prepared in client
+    prepareTimeseries();
+
+    //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
+    findEnabledFiles();
+    findEnabledWriteModeFiles();
+    findEnabledReadModeFiles();
+    findEnabledCouplerIn();
+    findEnabledCouplerOut();
+    createCouplerInterCommunicator() ;
+
+    // Find all enabled fields of each file      
+    const vector<CField*>&& fileOutField = findAllEnabledFieldsInFileOut(this->enabledWriteModeFiles);
+    const vector<CField*>&& fileInField = findAllEnabledFieldsInFileIn(this->enabledReadModeFiles);
+    const vector<CField*>&& CouplerOutField = findAllEnabledFieldsCouplerOut(this->enabledCouplerOut);
+    const vector<CField*>&& CouplerInField = findAllEnabledFieldsCouplerIn(this->enabledCouplerIn);
+    findFieldsWithReadAccess();
+    const vector<CField*>& fieldWithReadAccess = fieldsWithReadAccess_ ;
+      
+// find all field potentially at workflow end
+    vector<CField*> endWorkflowFields ;
+    endWorkflowFields.reserve(fileOutField.size()+CouplerOutField.size()+fieldWithReadAccess.size()) ;
+    endWorkflowFields.insert(endWorkflowFields.end(),fileOutField.begin(), fileOutField.end()) ;
+    endWorkflowFields.insert(endWorkflowFields.end(),CouplerOutField.begin(), CouplerOutField.end()) ;
+    endWorkflowFields.insert(endWorkflowFields.end(),fieldWithReadAccess.begin(), fieldWithReadAccess.end()) ;
+
+    for(auto endWorkflowField : endWorkflowFields) endWorkflowField->buildWorkflowGraph(garbageCollector) ;
+    
+    // Distribute files between secondary servers according to the data size => assign a context to a file
+    if (serviceType_==CServicesManager::GATHERER) distributeFiles(this->enabledWriteModeFiles);
+    else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
+
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
+    {
+      for(auto field : fileOutField) 
+      {
+        field->connectToFileServer(garbageCollector) ; // connect the field to server filter
+        field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
+      }
+    }
+    
+
+
+
+
+    // For now, only read files with client and only one level server
+    // if (hasClient && !hasServer) findEnabledReadModeFiles();      
+
+    // Find all enabled fields of each file      
+    findAllEnabledFieldsInFiles(this->enabledWriteModeFiles);
+    findAllEnabledFieldsInFiles(this->enabledReadModeFiles);
+
+    // For now, only read files with client and only one level server
+    // if (hasClient && !hasServer) 
+    //   findAllEnabledFieldsInFiles(this->enabledReadModeFiles);      
+
+    if (serviceType_==CServicesManager::CLIENT)
+    {
+      initReadFiles();
+      // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
+      this->readAttributesOfEnabledFieldsInReadModeFiles();
+    }
+
+    // Only search and rebuild all reference objects of enable fields, don't transform
+    this->solveOnlyRefOfEnabledFields();
+
+    // Search and rebuild all reference object of enabled fields, and transform
+    this->solveAllRefOfEnabledFieldsAndTransform();
+
+    // Find all fields with read access from the public API
+    if (serviceType_==CServicesManager::CLIENT) findFieldsWithReadAccess();
+    // and solve the all reference for them
+    if (serviceType_==CServicesManager::CLIENT) solveAllRefOfFieldsWithReadAccess();
+
+    isPostProcessed = true;
+
+
+
+    // Distribute files between secondary servers according to the data size
+    distributeFiles(this->enabledWriteModeFiles);
+
+    // Check grid and calculate its distribution
+    checkGridEnabledFields();
+
+    setClientServerBuffer(client, (serviceType_==CServicesManager::CLIENT) ) ;
+    for (int i = 0; i < clientPrimServer.size(); ++i)
+         setClientServerBuffer(clientPrimServer[i], true);
+
+    
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
+    { 
+      if (serviceType_==CServicesManager::GATHERER)
+      { 
+        for (auto it=clientPrimServer.begin(); it!=clientPrimServer.end();++it) 
+        {
+          this->sendAllAttributesToServer(*it); // Send all attributes of current context to server
+          CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(*it); // Send all attributes of current calendar
+        }
+      }
+      else 
+      {
+        this->sendAllAttributesToServer(client);   // Send all attributes of current context to server
+        CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current calendar
+      }
+
+      // We have enough information to send to server
+      // First of all, send all enabled files
+      sendEnabledFiles(this->enabledWriteModeFiles);
+      // We only use server-level 1 (for now) to read data
+      if (serviceType_==CServicesManager::CLIENT)  sendEnabledFiles(this->enabledReadModeFiles);
+
+      // Then, send all enabled fields      
+      sendEnabledFieldsInFiles(this->enabledWriteModeFiles);
+      
+      if (serviceType_==CServicesManager::CLIENT) sendEnabledFieldsInFiles(this->enabledReadModeFiles);
+
+      // Then, check whether we have domain_ref, axis_ref or scalar_ref attached to the enabled fields
+      // If any, so send them to server
+      sendRefDomainsAxisScalars(this->enabledWriteModeFiles); 
+     
+      if (serviceType_==CServicesManager::CLIENT) sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
+
+      // Check whether enabled fields have grid_ref, if any, send this info to server
+      sendRefGrid(this->enabledFiles);
+      // This code may be useful in the future when we want to seperate completely read and write
+      // sendRefGrid(this->enabledWriteModeFiles);
+      // if (!hasServer)
+      //   sendRefGrid(this->enabledReadModeFiles);
+      
+      // A grid of enabled fields composed of several components which must be checked then their
+      // checked attributes should be sent to server
+      sendGridComponentEnabledFieldsInFiles(this->enabledFiles); // This code can be seperated in two (one for reading, another for writing)
+
+      // We have a xml tree on the server side and now, it should be also processed
+      sendPostProcessing();
+       
+      // Finally, we send information of grid itself to server 
+      sendGridEnabledFieldsInFiles(this->enabledWriteModeFiles);       
+     
+      if (serviceType_==CServicesManager::CLIENT) sendGridEnabledFieldsInFiles(this->enabledReadModeFiles);       
+    }
+    allProcessed = true;
+
+
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendPostProcessingGlobalAttributes();
+
+    // There are some processings that should be done after all of above. For example: check mask or index
+    this->buildFilterGraphOfEnabledFields();
+    
+     if (serviceType_==CServicesManager::CLIENT)
+    {
+      buildFilterGraphOfFieldsWithReadAccess();
+      postProcessFilterGraph(); // For coupling in, modify this later
+    }
+    
+    checkGridEnabledFields();   
+
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendProcessingGridOfEnabledFields();
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendCloseDefinition();
+
+    // Nettoyage de l'arborescence
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) CleanTree(); // Only on client side??
+
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendCreateFileHeader();
+    if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
+    
+    CTimer::get("Context : close definition").suspend() ;
+  }
+  CATCH_DUMP_ATTR
+
+
+   void CContext::closeDefinition_old(void)
    TRY
    {
      CTimer::get("Context : close definition").resume() ;
@@ -886,13 +1091,76 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CContext::findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   vector<CField*> CContext::findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
    TRY
    {
+     vector<CField*> fields ;
      for (unsigned int i = 0; i < activeFiles.size(); i++)
-     (void)activeFiles[i]->getEnabledFields();
+     {
+        const vector<CField*>&& field=activeFiles[i]->getEnabledFields() ;
+        fields.insert(fields.end(),field.begin(),field.end());
+     }
+     return fields ;
    }
    CATCH_DUMP_ATTR
+
+   vector<CField*> CContext::findAllEnabledFieldsInFileOut(const std::vector<CFile*>& activeFiles)
+   TRY
+   {
+     vector<CField*> fields ;
+     for(auto file : activeFiles)
+     {
+        const vector<CField*>&& fieldList=file->getEnabledFields() ;
+        for(auto field : fieldList) field->setFileOut(file) ;
+        fields.insert(fields.end(),fieldList.begin(),fieldList.end());
+     }
+     return fields ;
+   }
+   CATCH_DUMP_ATTR
+
+   vector<CField*> CContext::findAllEnabledFieldsInFileIn(const std::vector<CFile*>& activeFiles)
+   TRY
+   {
+     vector<CField*> fields ;
+     for(auto file : activeFiles)
+     {
+        const vector<CField*>&& fieldList=file->getEnabledFields() ;
+        for(auto field : fieldList) field->setFileIn(file) ;
+        fields.insert(fields.end(),fieldList.begin(),fieldList.end());
+     }
+     return fields ;
+   }
+   CATCH_DUMP_ATTR
+
+   vector<CField*> CContext::findAllEnabledFieldsCouplerOut(const std::vector<CCouplerOut*>& activeCouplerOut)
+   TRY
+   {
+     vector<CField*> fields ;
+     for (auto couplerOut :activeCouplerOut)
+     {
+        const vector<CField*>&& fieldList=couplerOut->getEnabledFields() ;
+        for(auto field : fieldList) field->setCouplerOut(couplerOut) ;
+        fields.insert(fields.end(),fieldList.begin(),fieldList.end());
+     }
+     return fields ;
+   }
+   CATCH_DUMP_ATTR
+
+   vector<CField*> CContext::findAllEnabledFieldsCouplerIn(const std::vector<CCouplerIn*>& activeCouplerIn)
+   TRY
+   {
+     vector<CField*> fields ;
+     for (auto couplerIn :activeCouplerIn)
+     {
+        const vector<CField*>&& fieldList=couplerIn->getEnabledFields() ;
+        for(auto field : fieldList) field->setCouplerIn(couplerIn) ;
+        fields.insert(fields.end(),fieldList.begin(),fieldList.end());
+     }
+     return fields ;
+   }
+   CATCH_DUMP_ATTR
+
+
 
    void CContext::readAttributesOfEnabledFieldsInReadModeFiles()
    TRY
@@ -1080,16 +1348,16 @@ namespace xios {
   void CContext::findFieldsWithReadAccess(void)
   TRY
   {
-    fieldsWithReadAccess.clear();
+    fieldsWithReadAccess_.clear();
     const vector<CField*> allFields = CField::getAll();
     for (size_t i = 0; i < allFields.size(); ++i)
     {
       CField* field = allFields[i];
-
-      if (field->file && !field->file->mode.isEmpty() && field->file->mode == CFile::mode_attr::read)
-        field->read_access = true;
-      else if (!field->read_access.isEmpty() && field->read_access && (field->enabled.isEmpty() || field->enabled))
-        fieldsWithReadAccess.push_back(field);
+      if (!field->read_access.isEmpty() && field->read_access && (field->enabled.isEmpty() || field->enabled))
+      {
+        fieldsWithReadAccess_.push_back(field);
+        field->setModelOut() ;
+      }
     }
   }
   CATCH_DUMP_ATTR
@@ -1097,16 +1365,16 @@ namespace xios {
   void CContext::solveAllRefOfFieldsWithReadAccess()
   TRY
   {
-    for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
-      fieldsWithReadAccess[i]->solveAllReferenceEnabledField(false);
+    for (size_t i = 0; i < fieldsWithReadAccess_.size(); ++i)
+      fieldsWithReadAccess_[i]->solveAllReferenceEnabledField(false);
   }
   CATCH_DUMP_ATTR
 
   void CContext::buildFilterGraphOfFieldsWithReadAccess()
   TRY
   {
-    for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
-      fieldsWithReadAccess[i]->buildFilterGraph(garbageCollector, true);
+    for (size_t i = 0; i < fieldsWithReadAccess_.size(); ++i)
+      fieldsWithReadAccess_[i]->buildFilterGraph(garbageCollector, true);
   }
   CATCH_DUMP_ATTR
 
@@ -1138,7 +1406,7 @@ namespace xios {
       unsigned int vecSize = allGrids.size();
       unsigned int i = 0;
       for (i = 0; i < vecSize; ++i)
-        allGrids[i]->solveDomainAxisRefInheritance(apply);
+        allGrids[i]->solveElementsRefInheritance(apply);
 
    }
   CATCH_DUMP_ATTR
@@ -1226,190 +1494,163 @@ namespace xios {
 
 
 
-   void CContext::distributeFiles(void)
+   void CContext::distributeFiles(const vector<CFile*>& files)
    TRY
    {
      bool distFileMemory=false ;
      distFileMemory=CXios::getin<bool>("server2_dist_file_memory", distFileMemory);
 
-     if (distFileMemory) distributeFileOverMemoryBandwith() ;
-     else distributeFileOverBandwith() ;
+     if (distFileMemory) distributeFileOverMemoryBandwith(files) ;
+     else distributeFileOverBandwith(files) ;
    }
    CATCH_DUMP_ATTR
 
-   void CContext::distributeFileOverBandwith(void)
+   void CContext::distributeFileOverBandwith(const vector<CFile*>& files)
    TRY
    {
      double eps=std::numeric_limits<double>::epsilon()*10 ;
      
-     if (serviceType_==CServicesManager::GATHERER)
+     std::ofstream ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
+     int nbPools = clientPrimServer.size();
+
+     // (1) Find all enabled files in write mode
+     // for (int i = 0; i < this->enabledFiles.size(); ++i)
+     // {
+     //   if (enabledFiles[i]->mode.isEmpty() || (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
+     //    enabledWriteModeFiles.push_back(enabledFiles[i]);
+     // }
+
+     // (2) Estimate the data volume for each file
+     int size = files.size();
+     std::vector<std::pair<double, CFile*> > dataSizeMap;
+     double dataPerPool = 0;
+     int nfield=0 ;
+     ofs<<size<<endl ;
+     for (size_t i = 0; i < size; ++i)
      {
-       std::ofstream ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
-       int nbPools = clientPrimServer.size();
-
-       // (1) Find all enabled files in write mode
-       // for (int i = 0; i < this->enabledFiles.size(); ++i)
-       // {
-       //   if (enabledFiles[i]->mode.isEmpty() || (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
-       //    enabledWriteModeFiles.push_back(enabledFiles[i]);
-       // }
-
-       // (2) Estimate the data volume for each file
-       int size = this->enabledWriteModeFiles.size();
-       std::vector<std::pair<double, CFile*> > dataSizeMap;
-       double dataPerPool = 0;
-       int nfield=0 ;
-       ofs<<size<<endl ;
-       for (size_t i = 0; i < size; ++i)
+       CFile* file = files[i];
+       ofs<<file->getId()<<endl ;
+       StdSize dataSize=0;
+       std::vector<CField*> enabledFields = file->getEnabledFields();
+       size_t numEnabledFields = enabledFields.size();
+       ofs<<numEnabledFields<<endl ;
+       for (size_t j = 0; j < numEnabledFields; ++j)
        {
-         CFile* file = this->enabledWriteModeFiles[i];
-         ofs<<file->getId()<<endl ;
-         StdSize dataSize=0;
-         std::vector<CField*> enabledFields = file->getEnabledFields();
-         size_t numEnabledFields = enabledFields.size();
-         ofs<<numEnabledFields<<endl ;
-         for (size_t j = 0; j < numEnabledFields; ++j)
-         {
-           dataSize += enabledFields[j]->getGlobalWrittenSize() ;
-           ofs<<enabledFields[j]->grid->getId()<<endl ;
-           ofs<<enabledFields[j]->getGlobalWrittenSize()<<endl ;
-         }
-         double outFreqSec = (Time)(calendar->getCurrentDate()+file->output_freq)-(Time)(calendar->getCurrentDate()) ;
-         double dataSizeSec= dataSize/ outFreqSec;
-         ofs<<dataSizeSec<<endl ;
-         nfield++ ;
-// add epsilon*nField to dataSizeSec in order to  preserve reproductive ordering when sorting
-         dataSizeMap.push_back(make_pair(dataSizeSec + dataSizeSec * eps * nfield , file));
-         dataPerPool += dataSizeSec;
+         dataSize += enabledFields[j]->getGlobalWrittenSize() ;
+         ofs<<enabledFields[j]->getGrid()->getId()<<endl ;
+         ofs<<enabledFields[j]->getGlobalWrittenSize()<<endl ;
        }
-       dataPerPool /= nbPools;
-       std::sort(dataSizeMap.begin(), dataSizeMap.end());
+       double outFreqSec = (Time)(calendar->getCurrentDate()+file->output_freq)-(Time)(calendar->getCurrentDate()) ;
+       double dataSizeSec= dataSize/ outFreqSec;
+       ofs<<dataSizeSec<<endl ;
+       nfield++ ;
+// add epsilon*nField to dataSizeSec in order to  preserve reproductive ordering when sorting
+       dataSizeMap.push_back(make_pair(dataSizeSec + dataSizeSec * eps * nfield , file));
+       dataPerPool += dataSizeSec;
+     }
+     dataPerPool /= nbPools;
+     std::sort(dataSizeMap.begin(), dataSizeMap.end());
 
-       // (3) Assign contextClient to each enabled file
+     // (3) Assign contextClient to each enabled file
 
-       std::multimap<double,int> poolDataSize ;
+     std::multimap<double,int> poolDataSize ;
 // multimap is not garanty to preserve stable sorting in c++98 but it seems it does for c++11
 
-       int j;
-       double dataSize ;
-       for (j = 0 ; j < nbPools ; ++j) poolDataSize.insert(std::pair<double,int>(0.,j)) ;  
-              
-       for (int i = dataSizeMap.size()-1; i >= 0; --i)
-       {
-         dataSize=(*poolDataSize.begin()).first ;
-         j=(*poolDataSize.begin()).second ;
-         dataSizeMap[i].second->setContextClient(clientPrimServer[j]);
-         dataSize+=dataSizeMap[i].first;
-         poolDataSize.erase(poolDataSize.begin()) ;
-         poolDataSize.insert(std::pair<double,int>(dataSize,j)) ; 
-       }
-
-       for (std::multimap<double,int>:: iterator it=poolDataSize.begin() ; it!=poolDataSize.end(); ++it) info(30)<<"Load Balancing for servers (perfect=1) : "<<it->second<<" :  ratio "<<it->first*1./dataPerPool<<endl ;
- 
-       for (int i = 0; i < this->enabledReadModeFiles.size(); ++i)
-       {
-         enabledReadModeFiles[i]->setContextClient(client);          
-       }
-     }
-     else
+     int j;
+     double dataSize ;
+     for (j = 0 ; j < nbPools ; ++j) poolDataSize.insert(std::pair<double,int>(0.,j)) ;  
+             
+     for (int i = dataSizeMap.size()-1; i >= 0; --i)
      {
-       for (int i = 0; i < this->enabledFiles.size(); ++i)
-         enabledFiles[i]->setContextClient(client);
+       dataSize=(*poolDataSize.begin()).first ;
+       j=(*poolDataSize.begin()).second ;
+       dataSizeMap[i].second->setContextClient(clientPrimServer[j]);
+       dataSize+=dataSizeMap[i].first;
+       poolDataSize.erase(poolDataSize.begin()) ;
+       poolDataSize.insert(std::pair<double,int>(dataSize,j)) ; 
      }
+
+     for (std::multimap<double,int>:: iterator it=poolDataSize.begin() ; it!=poolDataSize.end(); ++it) info(30)<<"Load Balancing for servers (perfect=1) : "<<it->second<<" :  ratio "<<it->first*1./dataPerPool<<endl ;
    }
    CATCH_DUMP_ATTR
 
-   void CContext::distributeFileOverMemoryBandwith(void)
+   void CContext::distributeFileOverMemoryBandwith(const vector<CFile*>& filesList)
    TRY
    {
-     if (serviceType_==CServicesManager::GATHERER)
+     int nbPools = clientPrimServer.size();
+     double ratio=0.5 ;
+     ratio=CXios::getin<double>("server2_dist_file_memory_ratio", ratio);
+
+     int nFiles = filesList.size();
+     vector<SDistFile> files(nFiles);
+     vector<SDistGrid> grids;
+     map<string,int> gridMap ;
+     string gridId; 
+     int gridIndex=0 ;
+
+     for (size_t i = 0; i < nFiles; ++i)
      {
-       int nbPools = clientPrimServer.size();
-       double ratio=0.5 ;
-       ratio=CXios::getin<double>("server2_dist_file_memory_ratio", ratio);
+       StdSize dataSize=0;
+       CFile* file = filesList[i];
+       std::vector<CField*> enabledFields = file->getEnabledFields();
+       size_t numEnabledFields = enabledFields.size();
 
-       int nFiles = this->enabledWriteModeFiles.size();
-       vector<SDistFile> files(nFiles);
-       vector<SDistGrid> grids;
-       map<string,int> gridMap ;
-       string gridId; 
-       int gridIndex=0 ;
-
-       for (size_t i = 0; i < nFiles; ++i)
-       {
-         StdSize dataSize=0;
-         CFile* file = this->enabledWriteModeFiles[i];
-         std::vector<CField*> enabledFields = file->getEnabledFields();
-         size_t numEnabledFields = enabledFields.size();
-
-         files[i].id_=file->getId() ;
-         files[i].nbGrids_=numEnabledFields;
-         files[i].assignedGrid_ = new int[files[i].nbGrids_] ;
+       files[i].id_=file->getId() ;
+       files[i].nbGrids_=numEnabledFields;
+       files[i].assignedGrid_ = new int[files[i].nbGrids_] ;
          
-         for (size_t j = 0; j < numEnabledFields; ++j)
+       for (size_t j = 0; j < numEnabledFields; ++j)
+       {
+         gridId=enabledFields[j]->getGrid()->getId() ;
+         if (gridMap.find(gridId)==gridMap.end())
          {
-           gridId=enabledFields[j]->grid->getId() ;
-           if (gridMap.find(gridId)==gridMap.end())
-           {
-              gridMap[gridId]=gridIndex  ;
-              SDistGrid newGrid; 
-              grids.push_back(newGrid) ;
-              gridIndex++ ;
-           }
-           files[i].assignedGrid_[j]=gridMap[gridId] ;
-           grids[files[i].assignedGrid_[j]].size_=enabledFields[j]->getGlobalWrittenSize() ;
-           dataSize += enabledFields[j]->getGlobalWrittenSize() ; // usefull
+            gridMap[gridId]=gridIndex  ;
+            SDistGrid newGrid; 
+            grids.push_back(newGrid) ;
+            gridIndex++ ;
          }
-         double outFreqSec = (Time)(calendar->getCurrentDate()+file->output_freq)-(Time)(calendar->getCurrentDate()) ;
-         files[i].bandwith_= dataSize/ outFreqSec ;
+         files[i].assignedGrid_[j]=gridMap[gridId] ;
+         grids[files[i].assignedGrid_[j]].size_=enabledFields[j]->getGlobalWrittenSize() ;
+         dataSize += enabledFields[j]->getGlobalWrittenSize() ; // usefull
        }
+       double outFreqSec = (Time)(calendar->getCurrentDate()+file->output_freq)-(Time)(calendar->getCurrentDate()) ;
+       files[i].bandwith_= dataSize/ outFreqSec ;
+     }
 
-       double bandwith=0 ;
-       double memory=0 ;
+     double bandwith=0 ;
+     double memory=0 ;
    
-       for(int i=0; i<nFiles; i++)  bandwith+=files[i].bandwith_ ;
-       for(int i=0; i<nFiles; i++)  files[i].bandwith_ = files[i].bandwith_/bandwith * ratio ;
+     for(int i=0; i<nFiles; i++)  bandwith+=files[i].bandwith_ ;
+     for(int i=0; i<nFiles; i++)  files[i].bandwith_ = files[i].bandwith_/bandwith * ratio ;
 
-       for(int i=0; i<grids.size(); i++)  memory+=grids[i].size_ ;
-       for(int i=0; i<grids.size(); i++)  grids[i].size_ = grids[i].size_ / memory * (1.0-ratio) ;
+     for(int i=0; i<grids.size(); i++)  memory+=grids[i].size_ ;
+     for(int i=0; i<grids.size(); i++)  grids[i].size_ = grids[i].size_ / memory * (1.0-ratio) ;
        
-       distributeFileOverServer2(nbPools, grids.size(), &grids[0], nFiles, &files[0]) ;
+     distributeFileOverServer2(nbPools, grids.size(), &grids[0], nFiles, &files[0]) ;
 
-       vector<double> memorySize(nbPools,0.) ;
-       vector< set<int> > serverGrids(nbPools) ;
-       vector<double> bandwithSize(nbPools,0.) ;
+     vector<double> memorySize(nbPools,0.) ;
+     vector< set<int> > serverGrids(nbPools) ;
+     vector<double> bandwithSize(nbPools,0.) ;
        
-       for (size_t i = 0; i < nFiles; ++i)
+     for (size_t i = 0; i < nFiles; ++i)
+     {
+       bandwithSize[files[i].assignedServer_] += files[i].bandwith_* bandwith /ratio ;
+       for(int j=0 ; j<files[i].nbGrids_;j++)
        {
-         bandwithSize[files[i].assignedServer_] += files[i].bandwith_* bandwith /ratio ;
-         for(int j=0 ; j<files[i].nbGrids_;j++)
+         if (serverGrids[files[i].assignedServer_].find(files[i].assignedGrid_[j]) == serverGrids[files[i].assignedServer_].end())
          {
-           if (serverGrids[files[i].assignedServer_].find(files[i].assignedGrid_[j]) == serverGrids[files[i].assignedServer_].end())
-           {
-             memorySize[files[i].assignedServer_]+= grids[files[i].assignedGrid_[j]].size_ * memory / (1.0-ratio);
-             serverGrids[files[i].assignedServer_].insert(files[i].assignedGrid_[j]) ;
-           }
+           memorySize[files[i].assignedServer_]+= grids[files[i].assignedGrid_[j]].size_ * memory / (1.0-ratio);
+           serverGrids[files[i].assignedServer_].insert(files[i].assignedGrid_[j]) ;
          }
-         enabledWriteModeFiles[i]->setContextClient(clientPrimServer[files[i].assignedServer_]) ;
-         delete [] files[i].assignedGrid_ ;
        }
+       filesList[i]->setContextClient(clientPrimServer[files[i].assignedServer_]) ;
+       delete [] files[i].assignedGrid_ ;
+     }
 
-       for (int i = 0; i < nbPools; ++i) info(100)<<"Pool server level2 "<<i<<"   assigned file bandwith "<<bandwithSize[i]*86400.*4./1024/1024.<<" Mb / days"<<endl ;
-       for (int i = 0; i < nbPools; ++i) info(100)<<"Pool server level2 "<<i<<"   assigned grid memory "<<memorySize[i]*100/1024./1024.<<" Mb"<<endl ;
-
-
-       for (int i = 0; i < this->enabledReadModeFiles.size(); ++i)
-       {
-         enabledReadModeFiles[i]->setContextClient(client);          
-       }
+     for (int i = 0; i < nbPools; ++i) info(100)<<"Pool server level2 "<<i<<"   assigned file bandwith "<<bandwithSize[i]*86400.*4./1024/1024.<<" Mb / days"<<endl ;
+     for (int i = 0; i < nbPools; ++i) info(100)<<"Pool server level2 "<<i<<"   assigned grid memory "<<memorySize[i]*100/1024./1024.<<" Mb"<<endl ;
 
    }
-   else
-   {
-     for (int i = 0; i < this->enabledFiles.size(); ++i)
-        enabledFiles[i]->setContextClient(client);
-   }
-}
    CATCH_DUMP_ATTR
 
    /*!
@@ -1758,14 +1999,11 @@ namespace xios {
 
       // Check if some axis, domains or grids are eligible to for compressed indexed output.
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
-      checkAxisDomainsGridsEligibilityForCompressedOutput();      
+      checkAxisDomainsGridsEligibilityForCompressedOutput();      // only for field written on IO_SERVER service ????
 
       // Check if some automatic time series should be generated
       // Warning: This must be done after solving the inheritance and before the rest of post-processing      
-
-      // The timeseries should only be prepared in client
-
-      if (serviceType_==CServicesManager::CLIENT) prepareTimeseries();
+      prepareTimeseries();
 
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       findEnabledFiles();
@@ -1773,15 +2011,19 @@ namespace xios {
       findEnabledReadModeFiles();
       findEnabledCouplerIn();
       findEnabledCouplerOut();
-      
       createCouplerInterCommunicator() ;
+
+      // Find all enabled fields of each file      
+      const vector<CField*>&& fileOutField = findAllEnabledFieldsInFiles(this->enabledWriteModeFiles);
+      const vector<CField*>&& fileInField = findAllEnabledFieldsInFiles(this->enabledReadModeFiles);
+      const vector<CField*>&& CouplerOutField = findAllEnabledFieldsCouplerOut(this->enabledCouplerOut);
+      const vector<CField*>&& CouplerInField = findAllEnabledFieldsCouplerIn(this->enabledCouplerIn);
+
+
 
       // For now, only read files with client and only one level server
       // if (hasClient && !hasServer) findEnabledReadModeFiles();      
 
-      // Find all enabled fields of each file      
-      findAllEnabledFieldsInFiles(this->enabledWriteModeFiles);
-      findAllEnabledFieldsInFiles(this->enabledReadModeFiles);
 
       // For now, only read files with client and only one level server
       // if (hasClient && !hasServer) 
@@ -1973,8 +2215,6 @@ namespace xios {
    void CContext::prepareTimeseries()
    TRY
    {
-     if (!(serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)) return;
-
      const std::vector<CFile*> allFiles = CFile::getAll();
      for (size_t i = 0; i < allFiles.size(); i++)
      {

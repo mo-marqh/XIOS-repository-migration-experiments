@@ -12,6 +12,7 @@
   template bool CObjectFactory::HasObject<U>(const StdString& id); \
   template bool CObjectFactory::HasObject<U>(const StdString& context,const StdString& id); \
   template std::shared_ptr<U> CObjectFactory::CreateObject<U>(const StdString& id ); \
+  template std::shared_ptr<U> CObjectFactory::CreateAlias<U>(const StdString& id, const StdString& alias ); \
   template const StdString& CObjectFactory::GetUIdBase<U>(void); \
   template StdString CObjectFactory::GenUId<U>(void); \
   template bool CObjectFactory::IsGenUId<U>(const StdString& id);

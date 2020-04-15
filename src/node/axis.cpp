@@ -273,6 +273,8 @@ namespace xios {
    void CAxis::checkAttributes(void)
    TRY
    {
+     if (checkAttributes_done_) return ;
+
      CContext* context=CContext::getCurrent();
 
      if (this->n_glo.isEmpty())
@@ -317,27 +319,21 @@ namespace xios {
 
       if (!this->value.isEmpty())
       {
-        // Avoid this check at writing because it fails in case of a hole
-        if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
-        {
-          StdSize true_size = value.numElements();
-          if (this->n.getValue() != true_size)
-            ERROR("CAxis::checkAttributes(void)",
-                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-                << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
-                << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
-        }
+        StdSize true_size = value.numElements();
+        if (this->n.getValue() != true_size)
+          ERROR("CAxis::checkAttributes(void)",
+              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+              << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
+              << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
         this->hasValue = true;
       }
 
       this->checkBounds();
-
-      if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
-      {
-        this->checkMask();
-        this->checkData();
-        this->checkLabel();
-      }
+      this->checkMask();
+      this->checkData();
+      this->checkLabel();
+      
+      checkAttributes_done_ = true ;
    }
    CATCH_DUMP_ATTR
 
@@ -521,6 +517,7 @@ namespace xios {
      The (spatial) transformation sometimes can change attributes of an axis (e.g zoom can change mask or generate can change whole attributes)
      Therefore, we should recheck them.
    */
+   // ym : obsolete to be removed
    void CAxis::checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                           CServerDistributionDescription::ServerDistributionType distType)
    TRY
@@ -530,9 +527,11 @@ namespace xios {
      if (this->isClientAfterTransformationChecked) return;
      if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
      {        
+       /* suppressed because of interface changed
        if (orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
          computeConnectedClients(globalDim, orderPositionInGrid, distType);
        else if (index.numElements() != n_glo) computeConnectedClients(globalDim, orderPositionInGrid,  CServerDistributionDescription::ROOT_DISTRIBUTION);
+       */
      }
 
      this->isClientAfterTransformationChecked = true;
@@ -593,130 +592,133 @@ namespace xios {
      \param [in] orderPositionInGrid the relative order of this axis in the grid (e.g grid composed of domain+axis -> orderPositionInGrid is 2)
      \param [in] distType distribution type of the server. For now, we only have band distribution.
   */
-  void CAxis::computeConnectedClients(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                     CServerDistributionDescription::ServerDistributionType distType)
+  void CAxis::computeConnectedClients(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid)
   TRY
   {
+    if (computeConnectedClients_done_.count(client)!=0) return ;
+    else computeConnectedClients_done_.insert(client) ;
+
     CContext* context = CContext::getCurrent();
+    CServerDistributionDescription::ServerDistributionType distType ;
+    int defaultDistributedPos = CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), CServerDistributionDescription::BAND_DISTRIBUTION) ;
+    
+    if (orderPositionInGrid == defaultDistributedPos) distType =  CServerDistributionDescription::BAND_DISTRIBUTION ;
+    else if (index.numElements() != n_glo) distType =  CServerDistributionDescription::ROOT_DISTRIBUTION ;
+    else return ;
 
-    set<int> listNbServer ;
+    int nbServer = client->serverSize;
+    int range, clientSize = client->clientSize;
+    int rank = client->clientRank;
 
-    for (auto client : clients)
+    if (listNbServer_.count(nbServer) == 0)
     {
-      int nbServer = client->serverSize;
-      int range, clientSize = client->clientSize;
-      int rank = client->clientRank;
+      listNbServer_.insert(nbServer) ;
 
-      if (listNbServer.find(nbServer)==listNbServer.end())
+      if (connectedServerRank_.find(nbServer) != connectedServerRank_.end())
       {
-        listNbServer.insert(nbServer) ;
- 
-        if (connectedServerRank_.find(nbServer) != connectedServerRank_.end())
-        {
-          nbSenders.erase(nbServer);
-          connectedServerRank_.erase(nbServer);
-        }
-
-        size_t ni = this->n.getValue();
-        size_t ibegin = this->begin.getValue();
-        size_t nbIndex = index.numElements();
-
-        // First of all, we should compute the mapping of the global index and local index of the current client
-        if (globalLocalIndexMap_.empty())
-        {
-          for (size_t idx = 0; idx < nbIndex; ++idx)
-          {
-            globalLocalIndexMap_[index(idx)] = idx;
-          }
-        }
-
-        // Calculate the compressed index if any
-//        std::set<int> writtenInd;
-//        if (isCompressible_)
-//        {
-//          for (int idx = 0; idx < data_index.numElements(); ++idx)
-//          {
-//            int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
-//
-//            if (ind >= 0 && ind < ni && mask(ind))
-//            {
-//              ind += ibegin;
-//              writtenInd.insert(ind);
-//            }
-//          }
-//        }
-
-        // Compute the global index of the current client (process) hold
-        std::vector<int> nGlobAxis(1);
-        nGlobAxis[0] = n_glo.getValue();
-
-        size_t globalSizeIndex = 1, indexBegin, indexEnd;
-        for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
-        indexBegin = 0;
-        if (globalSizeIndex <= clientSize)
-        {
-          indexBegin = rank%globalSizeIndex;
-          indexEnd = indexBegin;
-        }
-        else
-        {
-          for (int i = 0; i < clientSize; ++i)
-          {
-            range = globalSizeIndex / clientSize;
-            if (i < (globalSizeIndex%clientSize)) ++range;
-            if (i == client->clientRank) break;
-            indexBegin += range;
-          }
-          indexEnd = indexBegin + range - 1;
-        }
-
-        CArray<size_t,1> globalIndex(index.numElements());
-        for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
-          globalIndex(idx) = index(idx);
-
-        // Describe the distribution of server side
-
-        CServerDistributionDescription serverDescription(nGlobAxis, nbServer, distType);
-      
-        std::vector<int> serverZeroIndex;
-        serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
-
-        std::list<int> serverZeroIndexLeader;
-        std::list<int> serverZeroIndexNotLeader; 
-        CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
-        for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-          *it = serverZeroIndex[*it];
-
-        // Find out the connection between client and server side
-        CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
-        clientServerMap->computeServerIndexMapping(globalIndex, nbServer);
-        CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
-
-        indSrv_[nbServer].swap(globalIndexAxisOnServer);
-
-        if (distType==CServerDistributionDescription::ROOT_DISTRIBUTION)
-        {
-          for(int i=1; i<nbServer; ++i) indSrv_[nbServer].insert(pair<int, vector<size_t> >(i,indSrv_[nbServer][0]) ) ;
-          serverZeroIndexLeader.clear() ;
-        }
-         
-        CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[nbServer].begin(),
-                                                             ite = indSrv_[nbServer].end();
-
-        for (it = indSrv_[nbServer].begin(); it != ite; ++it) connectedServerRank_[nbServer].push_back(it->first);
-
-        for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-          connectedServerRank_[nbServer].push_back(*it);
-
-         // Even if a client has no index, it must connect to at least one server and 
-         // send an "empty" data to this server
-         if (connectedServerRank_[nbServer].empty())
-          connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
-
-        nbSenders[nbServer] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
-
-        delete clientServerMap;
+        nbSenders.erase(nbServer);
+        connectedServerRank_.erase(nbServer);
       }
+
+      size_t ni = this->n.getValue();
+      size_t ibegin = this->begin.getValue();
+      size_t nbIndex = index.numElements();
+
+      // First of all, we should compute the mapping of the global index and local index of the current client
+      if (globalLocalIndexMap_.empty())
+      {
+        for (size_t idx = 0; idx < nbIndex; ++idx)
+        {
+          globalLocalIndexMap_[index(idx)] = idx;
+        }
+      }
+
+      // Calculate the compressed index if any
+      //        std::set<int> writtenInd;
+      //        if (isCompressible_)
+      //        {
+      //          for (int idx = 0; idx < data_index.numElements(); ++idx)
+      //          {
+      //            int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni); 
+      //
+      //            if (ind >= 0 && ind < ni && mask(ind))
+      //            {
+      //              ind += ibegin;
+      //              writtenInd.insert(ind);
+      //            }
+      //          }
+      //        }
+
+      // Compute the global index of the current client (process) hold
+      std::vector<int> nGlobAxis(1);
+      nGlobAxis[0] = n_glo.getValue();
+
+      size_t globalSizeIndex = 1, indexBegin, indexEnd;
+      for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
+      indexBegin = 0;
+      if (globalSizeIndex <= clientSize)
+      {
+        indexBegin = rank%globalSizeIndex;
+        indexEnd = indexBegin;
+      }
+      else
+      {
+        for (int i = 0; i < clientSize; ++i)
+        {
+          range = globalSizeIndex / clientSize;
+          if (i < (globalSizeIndex%clientSize)) ++range;
+          if (i == client->clientRank) break;
+          indexBegin += range;
+        }
+        indexEnd = indexBegin + range - 1;
+      }
+
+      CArray<size_t,1> globalIndex(index.numElements());
+      for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
+        globalIndex(idx) = index(idx);
+
+      // Describe the distribution of server side
+
+      CServerDistributionDescription serverDescription(nGlobAxis, nbServer, distType);
+    
+      std::vector<int> serverZeroIndex;
+      serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
+
+      std::list<int> serverZeroIndexLeader;
+      std::list<int> serverZeroIndexNotLeader; 
+      CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
+      for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+        *it = serverZeroIndex[*it];
+
+      // Find out the connection between client and server side
+      CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
+      clientServerMap->computeServerIndexMapping(globalIndex, nbServer);
+      CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
+
+      indSrv_[nbServer].swap(globalIndexAxisOnServer);
+
+      if (distType==CServerDistributionDescription::ROOT_DISTRIBUTION)
+      {
+        for(int i=1; i<nbServer; ++i) indSrv_[nbServer].insert(pair<int, vector<size_t> >(i,indSrv_[nbServer][0]) ) ;
+        serverZeroIndexLeader.clear() ;
+      }
+       
+      CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[nbServer].begin(),
+                                                           ite = indSrv_[nbServer].end();
+
+      for (it = indSrv_[nbServer].begin(); it != ite; ++it) connectedServerRank_[nbServer].push_back(it->first);
+
+      for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+        connectedServerRank_[nbServer].push_back(*it);
+
+       // Even if a client has no index, it must connect to at least one server and 
+       // send an "empty" data to this server
+       if (connectedServerRank_[nbServer].empty())
+        connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
+
+      nbSenders[nbServer] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
+
+      delete clientServerMap;
     }
   }
   CATCH_DUMP_ATTR
@@ -1429,6 +1431,43 @@ namespace xios {
     }
   }
   CATCH_DUMP_ATTR
+
+/*!
+  \brief Check if a axis is completed
+  Before make any axis processing, we must be sure that all axis informations have
+  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+  other context (coupling). So all direct reference of the axis (axis_ref) must be also completed
+  \return true if axis and axis reference are completed
+  */
+  bool CAxis::checkIfCompleted(void)
+  {
+    if (hasDirectAxisReference()) if (!getDirectAxisReference()->checkIfCompleted()) return false;
+    return isCompleted_ ;
+  }
+
+  /*!
+  \brief Set a axis as completed
+   When all information about a axis have been received, the axis is tagged as completed and is
+   suitable for processing
+  */
+  void CAxis::setCompleted(void)
+  {
+    if (hasDirectAxisReference()) getDirectAxisReference()->setCompleted() ;
+    isCompleted_=true ;
+  }
+
+  /*!
+  \brief Set a axis as uncompleted
+   When informations about a axis are expected from a grid reading from file or coupling, the axis is 
+   tagged as uncompleted and is not suitable for processing
+  */
+  void CAxis::setUncompleted(void)
+  {
+    if (hasDirectAxisReference()) getDirectAxisReference()->setUncompleted() ;
+    isCompleted_=false ;
+  }
+
+
 
   /*!
    * Go through the hierarchy to find the axis from which the transformations must be inherited

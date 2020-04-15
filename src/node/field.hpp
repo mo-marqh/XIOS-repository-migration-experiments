@@ -16,6 +16,9 @@
 #include "transformation_enum.hpp"
 #include "variable.hpp"
 #include "context_client.hpp"
+#include "pass_through_filter.hpp"
+#include "temporal_filter.hpp"
+
 
 
 namespace xios {
@@ -27,6 +30,8 @@ namespace xios {
    class CField;
 
    class CFile;
+   class CCouplerIn ;
+   class CCouplerOut ;
    class CGrid;
    class CContext;
    class CGenericFilter;
@@ -46,6 +51,7 @@ namespace xios {
    END_DECLARE_ATTRIBUTE_MAP(CField)
 
    class CContextClient ;
+
    ///--------------------------------------------------------------
    class CField
       : public CObjectTemplate<CField>
@@ -140,6 +146,10 @@ namespace xios {
          void checkTimeAttributes(CDuration* freqOp=NULL);
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
+
+         bool buildWorkflowGraph(CGarbageCollector& gc) ;
+         bool buildWorkflowGraphDone_ = false ;
+
          size_t getGlobalWrittenSize(void) ;
          
          
@@ -210,13 +220,53 @@ namespace xios {
         bool hasExpression(void) const;
 
         bool hasGridMask(void) const;
+        CGrid* getGrid(void) { return grid_; } 
+
+        void connectToFileServer(CGarbageCollector& gc) ;
+        void computeGridIndexToFileServer(void) ;
+      private:
+        std::vector<CGrid*> getGridPath(void) ;
 
       public:
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup;
 
-         CGrid*  grid;
+         CGrid*  grid_=nullptr;
          CFile*  file;
+         
+         CFile* fileIn_ = nullptr ; //<! pointer to input related file
+         bool hasFileIn(void) { fileIn_==nullptr ? false : true ;}
+         CFile* getFileIn(void) {return fileIn_;}
+         void setFileIn(CFile* fileIn) { fileIn_ = fileIn ;}
+         void unsetFileIn(void) { fileIn_ = nullptr ;}
+
+         CFile* fileOut_ = nullptr ; //<! pointer to output related file
+         bool hasFileOut(void) { fileOut_==nullptr ? false : true ;}
+         CFile* getFileOut(void) {return fileOut_;}
+         void setFileOut(CFile* fileOut) { fileOut_ = fileOut ;}
+         void unsetFileOut(void) { fileOut_ = nullptr ;}
+
+         CCouplerIn* couplerIn_ = nullptr ; //<!pointer to input related coupler
+         bool hasCouplerIn(void) { couplerIn_==nullptr ? false : true ;}
+         CCouplerIn* getCouplerIn(void) {return couplerIn_;}
+         void setCouplerIn(CCouplerIn* couplerIn) { couplerIn_ = couplerIn ;}
+         void unsetCouplerIn(void) { couplerIn_ = nullptr ;}
+
+         CCouplerOut* couplerOut_ = nullptr ; //<!pointer to output related coupler
+         bool hasCouplerOut(void) { couplerOut_==nullptr ? false : true ;}
+         CCouplerOut* getCouplerOut(void) {return couplerOut_;}
+         void setCouplerOut(CCouplerOut* couplerOut) { couplerOut_ = couplerOut ;}
+         void unsetCouplerOut(void) { couplerOut_ = nullptr ;}
+
+         bool modelIn_ = false ; //<! field can be received from model == true 
+         bool getModelIn(void) { return modelIn_ ;}
+         void setModelIn(void) { modelIn_ = true ;}
+         void unsetModelIn(void) { modelIn_ = false ;}
+         
+         bool modelOut_ = false ; //<! field can be retrieve to model == true
+         bool getModelOut(void) { return modelOut_ ;}
+         void setModelOut(void) { modelOut_ = true ;}
+         void unsetModelOut(void) { modelOut_ = false ;}
 
          CDuration freq_operation_srv, freq_write_srv;
 
@@ -245,7 +295,7 @@ namespace xios {
 
 
          DECLARE_REF_FUNC(Field,field)
-
+        
       private:
          CContextClient* client;
 
@@ -255,24 +305,47 @@ namespace xios {
          bool isGridChecked;
          bool nstepMaxRead;
 
+       private: 
+         //! define if the field is part of the active workflow. It will be tagged to true when CField::buildWorkflowGraph is successfull 
+         bool workflowEnabled_ = false ;
+       public: 
+         /*! workflowEnabled_ public accessor
+          * \return Value of workflowEnabled_ */
+         bool getWorkflowEnabled(void) { return  workflowEnabled_; }
+ 
+
       private:
+     
          //! The type of operation attached to the field
          func::CFunctor::ETimeType operationTimeType;
 
+         //! The output pin of the input filter of the field
+         std::shared_ptr<CPassThroughFilter> inputFilter;
+
+         //! The self temporal data filter
+         std::shared_ptr<CTemporalFilter> selfTemporalDataFilter ;
+         
          //! The output pin of the filter providing the instant data for the field
          std::shared_ptr<COutputPin> instantDataFilter;
+         
          //! The output pin of the filters providing the result of the field's temporal operation
          std::map<CDuration, std::shared_ptr<COutputPin>, DurationFakeLessComparator> temporalDataFilters;
+         
          //! The output pin of the filter providing the instant data for self references
-         std::shared_ptr<COutputPin> selfReferenceFilter;
+         std::shared_ptr<COutputPin> selfReferenceFilter; // probably redondant with inputFilter
+
          //! The source filter for data provided by the client
          std::shared_ptr<CSourceFilter> clientSourceFilter;
+         
          //! The source filter for data provided by the server
          std::shared_ptr<CSourceFilter> serverSourceFilter;
+         
          //! The terminal filter which stores the instant data
          std::shared_ptr<CStoreFilter> storeFilter;
+        
          //! The terminal filter which writes the data to file
          std::shared_ptr<CFileWriterFilter> fileWriterFilter;
+        
          //! The terminal filter which writes data to file
          std::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
    }; // class CField

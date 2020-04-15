@@ -99,7 +99,7 @@ extern "C"
   TRY
   {
      CTimer::get("XIOS").resume() ;
-     *domain_hdl_ret = field_hdl->grid->getDomain(domainIndex);
+     *domain_hdl_ret = field_hdl->getGrid()->getDomain(domainIndex);
      CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK
@@ -108,7 +108,7 @@ extern "C"
   TRY
   {
      CTimer::get("XIOS").resume() ;
-     *axis_hdl_ret = field_hdl->grid->getAxis(axisIndex);
+     *axis_hdl_ret = field_hdl->getGrid()->getAxis(axisIndex);
      CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK
@@ -117,7 +117,7 @@ extern "C"
   TRY
   {
      CTimer::get("XIOS").resume() ;
-     *scalar_hdl_ret = field_hdl->grid->getScalar(scalarIndex);
+     *scalar_hdl_ret = field_hdl->getGrid()->getScalar(scalarIndex);
      CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK

@@ -144,11 +144,9 @@ namespace xios {
                                                 bool default_enabled)
    TRY
    {
-      if (!this->enabledFields.empty())
-         return (this->enabledFields);
+      if (!this->enabledFields.empty()) return (this->enabledFields);
 
-      const int _outputlevel =
-         (!output_level.isEmpty()) ? output_level.getValue() : default_outputlevel;
+      const int _outputlevel = (!output_level.isEmpty()) ? output_level.getValue() : default_outputlevel;
       std::vector<CField*>::iterator it;
       this->enabledFields = this->getAllFields();
 
@@ -175,8 +173,6 @@ namespace xios {
          }
 
          newEnabledFields.push_back(*it);
-         // Le champ est finalement actif, on y ajoute la rfrence au champ de base.
-         (*it)->setRelFile(CFile::get(this));
       }
       enabledFields = newEnabledFields;
 
@@ -255,10 +251,10 @@ namespace xios {
       for (it = this->enabledFields.begin(); it != end; it++)
       {
          CField* field = *it;         
-         std::vector<CAxis*> vecAxis = field->grid->getAxis();
+         std::vector<CAxis*> vecAxis = field->getGrid()->getAxis();
          for (size_t i = 0; i < vecAxis.size(); ++i)
            setAxis.insert(vecAxis[i]->getAxisOutputName());
-         std::vector<CDomain*> vecDomains = field->grid->getDomains();
+         std::vector<CDomain*> vecDomains = field->getGrid()->getDomains();
          for (size_t i = 0; i < vecDomains.size(); ++i)
            setDomains.insert(vecDomains[i]->getDomainOutputName());
 
@@ -299,8 +295,8 @@ namespace xios {
       for (it = this->enabledFields.begin(); it != end; it++)
       {
          CField* field = *it;
-         bool nullGrid = (0 == field->grid);
-         allZoneEmpty &= nullGrid ? false : !field->grid->doGridHaveDataToWrite();
+         bool nullGrid = (nullptr == field->getGrid());
+         allZoneEmpty &= nullGrid ? false : !field->getGrid()->doGridHaveDataToWrite();
       }
 
       int color = allZoneEmpty ? 0 : 1;

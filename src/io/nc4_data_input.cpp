@@ -47,7 +47,7 @@ namespace xios
   {
     CContext* context = CContext::getCurrent();
 
-    CGrid* grid = field->grid;
+    CGrid* grid = field->getGrid();
 
     if (!grid->doGridHaveDataToWrite())
       if (SuperClass::type==MULTI_FILE || !isCollective) return;
@@ -129,7 +129,7 @@ namespace xios
   {
     StdString fieldId = field->getFieldOutputName();
 
-    CGrid* grid = field->grid;
+    CGrid* grid = field->getGrid();
 
     std::vector<CDomain*> domainP = grid->getDomains();
     std::vector<CAxis*> axisP = grid->getAxis();

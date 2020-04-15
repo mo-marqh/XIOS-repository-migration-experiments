@@ -113,9 +113,15 @@ namespace xios {
          bool isFinalized(void);
 
          void closeDefinition(void);
+         void closeDefinition_old(void);
 
+         // to be removed     
+         std::vector<CField*> findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
          // Some functions to process context
-         void findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
+         std::vector<CField*> findAllEnabledFieldsInFileOut(const std::vector<CFile*>& activeFiles);
+         std::vector<CField*> findAllEnabledFieldsInFileIn(const std::vector<CFile*>& activeFiles);
+         std::vector<CField*> findAllEnabledFieldsCouplerOut(const std::vector<CCouplerOut*>& activeCouplerOut);
+         std::vector<CField*> findAllEnabledFieldsCouplerIn(const std::vector<CCouplerIn*>& activeCouplerIn);
          // void findAllEnabledFields(void);
          // void findAllEnabledFieldsInReadModeFiles(void);
          void readAttributesOfEnabledFieldsInReadModeFiles();
@@ -155,9 +161,9 @@ namespace xios {
          void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false);
 
          // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
-         void distributeFiles(void);
-         void distributeFileOverBandwith() ;
-         void distributeFileOverMemoryBandwith() ;
+         void distributeFiles(const std::vector<CFile*>& files);
+         void distributeFileOverBandwith(const std::vector<CFile*>& files) ;
+         void distributeFileOverMemoryBandwith(const std::vector<CFile*>& files) ;
          
          // Send context close definition
          void sendCloseDefinition(void);
@@ -243,7 +249,9 @@ namespace xios {
          bool isProcessingEvent(void) {return isProcessingEvent_;}
          bool setProcessingEvent(void) {isProcessingEvent_=true ;}
          bool unsetProcessingEvent(void) {isProcessingEvent_=false ;}
-         MPI_Comm getIntraComm(void) { return intraComm_ ;}
+         MPI_Comm getIntraComm(void) {return intraComm_ ;}
+         int getIntraCommRank(void) {return intraCommRank_;}
+         int getIntraCommSize(void) {return intraCommSize_;}
 
          void addCouplingChanel(const std::string& contextId, bool out) ;
 
@@ -264,7 +272,7 @@ namespace xios {
 
          // List of all enabled fields whose instant data is accessible from the public API
          // but which are not part of a file
-         std::vector<CField*> fieldsWithReadAccess;
+         std::vector<CField*> fieldsWithReadAccess_;
 
          // Context root
          static std::shared_ptr<CContextGroup> root;

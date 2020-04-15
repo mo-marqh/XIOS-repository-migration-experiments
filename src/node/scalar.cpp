@@ -58,12 +58,53 @@ namespace xios {
 
    void CScalar::checkAttributes(void)
    {
+      if (checkAttributes_done_) return ;
+
+      checkAttributes_done_ = true ; 
    }
 
   void CScalar::checkAttributesOnClient()
   {
 
   }
+
+  /*!
+  \brief Check if a scalar is completed
+  Before make any scalar processing, we must be sure that all scalar informations have
+  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+  other context (coupling). So all direct reference of the scalar (scalar_ref) must be also completed
+  \return true if scalar and scalar reference are completed
+  */
+  bool CScalar::checkIfCompleted(void)
+  {
+    if (hasDirectScalarReference()) if (!getDirectScalarReference()->checkIfCompleted()) return false;
+    return isCompleted_ ;
+  }
+
+  /*!
+  \brief Set a scalar as completed
+   When all information about a scalar have been received, the scalar is tagged as completed and is
+   suitable for processing
+  */
+  void CScalar::setCompleted(void)
+  {
+    if (hasDirectScalarReference()) getDirectScalarReference()->setCompleted() ;
+    isCompleted_=true ;
+  }
+
+  /*!
+  \brief Set a scalar as uncompleted
+   When informations about a scalar are expected from a grid reading from file or coupling, the scalar is 
+   tagged as uncompleted and is not suitable for processing
+  */
+  void CScalar::setUncompleted(void)
+  {
+    if (hasDirectScalarReference()) getDirectScalarReference()->setUncompleted() ;
+    isCompleted_=false ;
+  }
+
+
+
 
   /*!
     Compare two scalar objects. 
