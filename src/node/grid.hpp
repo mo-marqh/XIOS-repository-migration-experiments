@@ -145,6 +145,13 @@ namespace xios {
          CDomain* addDomain(const std::string& id=StdString());
          CAxis* addAxis(const std::string& id=StdString());
          CScalar* addScalar(const std::string& id=StdString());
+
+      public:
+         void sendGridToFileServer(CContextClient* client) ;
+      private:
+         std::set<CContextClient*> sendGridToFileServer_done_ ;
+      
+      public:
          void sendAddDomain(const std::string& id,CContextClient* contextClient);
          void sendAddAxis(const std::string& id,CContextClient* contextClient);
          void sendAddScalar(const std::string& id,CContextClient* contextClient);
@@ -192,7 +199,6 @@ namespace xios {
          int getOffsetWrittenIndexes() const;
 
          CDistributionServer* getDistributionServer();
-         CDistributionClient* getDistributionClient();
          CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformGridSrc);
@@ -230,11 +236,18 @@ namespace xios {
                                          const CArray<int,1>& axisDomainOrder);
 
          void computeGridIndexToFileServer(CContextClient* client) ;
-
-      private:
+ 
+     private:
+        /** Client-like distribution calculated based on the knowledge of the entire grid */
+       CDistributionClient* clientDistribution_;
+     public: 
        void computeClientDistribution(void) ;
+     private:
        bool computeClientDistribution_done_ = false ;
+     public:
+       CDistributionClient* getClientDistribution(void); 
 
+     private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
                           const std::vector<CArray<bool,1>* >& domainMasks,
@@ -276,15 +289,8 @@ namespace xios {
                                        const CArray<int,1>& axisDomainOrder);
         int getDistributedDimension();
 
-       
-        void computeClientIndex();
-        bool computeClientIndex_done_ = false ;
-        
         void computeConnectedClients(CContextClient* client);
         set<CContextClient*> computeConnectedClients_done_ ;
-
-        void computeClientIndexScalarGrid(); 
-        bool computeClientIndexScalarGrid_done_ = false ;
 
         void computeConnectedClientsScalarGrid(CContextClient* client); 
         set<CContextClient*> computeConnectedClientsScalarGrid_done_ ;
@@ -345,16 +351,24 @@ namespace xios {
 // In this way, store_clientIndex can be used as an input of a source filter
 // Maybe we need a flag to determine whether a client wants to write. TODO "
 
-/** Map storing received data on server side. This map is the equivalent to the storeIndex_client, but for data received from client
-  * instead that from model. This map is used to concatenate data received from several clients into a single array on server side
-  * which match the local workflow grid.
-  * outLocalIndexStoreOnClient_[client_rank] -> Array of index from client of rank "client_rank"
-  * outLocalIndexStoreOnClient_[client_rank](index of buffer from client) -> local index of the workflow grid
-  * The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData().
-  * Symetrically it is also used to send data from a server to several client for reading case. */
-         map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient_; 
+      private:
+       /** Map storing received data on server side. This map is the equivalent to the storeIndex_client, but for data received from client
+        * instead that from model. This map is used to concatenate data received from several clients into a single array on server side
+        * which match the local workflow grid.
+        * outLocalIndexStoreOnClient_[client_rank] -> Array of index from client of rank "client_rank"
+        * outLocalIndexStoreOnClient_[client_rank](index of buffer from client) -> local index of the workflow grid
+        * The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData().
+        * Symetrically it is also used to send data from a server to several client for reading case. */
+        map<int, CArray<size_t, 1>> outLocalIndexStoreOnClient_; 
+      public:
+         void computeOutLocalIndexStoreOnClient(void) ;
+      private:
+         bool computeOutLocalIndexStoreOnClient_done_ = false ;  
+      public:   
+         map<int, CArray<size_t, 1>>& getOutLocalIndexStoreOnClient(void) 
+         { if (!computeOutLocalIndexStoreOnClient_done_) computeOutLocalIndexStoreOnClient(); return outLocalIndexStoreOnClient_ ; }
 
-
+      public:
 /** Indexes calculated based on server-like distribution.
  *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
  *  Along with localIndexToWriteOnClient, these indexes are used to correctly place incoming data. 
@@ -369,19 +383,25 @@ namespace xios {
   * localIndexToWriteOnClient_(compressed_written_index) -> local index of the workflow grid*/
          CArray<size_t,1> localIndexToWriteOnClient_;
 
+      public: 
+        bool isDataDistributed(void) ; 
       private:
 
 /** Clients that have to send a grid. There can be multiple clients in case of secondary server, otherwise only one client. */
         std::list<CContextClient*> clients;
         std::set<CContextClient*> clientsSet;
 
-/** Map storing received indexes on server side sent by clients. Key = sender rank, value = global index array. 
-    Later, the global indexes received will be mapped onto local index computed with the local distribution.
-    outGlobalIndexFromClient_[rank] -> array of global index send by client of rank "rank"
-    outGlobalIndexFromClient_[rank](n) -> global index of datav n sent by client
-*/
+      private:  
+        /** Map storing received indexes on server side sent by clients. Key = sender rank, value = global index array. 
+            Later, the global indexes received will be mapped onto local index computed with the local distribution.
+            outGlobalIndexFromClient_[rank] -> array of global index send by client of rank "rank"
+            outGlobalIndexFromClient_[rank](n) -> global index of datav n sent by client
+        */      
         map<int, CArray<size_t, 1> > outGlobalIndexFromClient_;
+      public:  
+        map<int, CArray<size_t, 1> >& getOutGlobalIndexFromClient() { return outGlobalIndexFromClient_ ;}
 
+      private:
         bool isChecked;
         bool isDomainAxisChecked;
         bool isIndexSent;
@@ -391,9 +411,6 @@ namespace xios {
         CScalarGroup* vScalarGroup_;
         std::vector<std::string> axisList_, domList_, scalarList_;
         bool isAxisListSet, isDomListSet, isScalarListSet;
-
-/** Client-like distribution calculated based on the knowledge of the entire grid */
-        CDistributionClient* clientDistribution_;
 
 /** Server-like distribution calculated upon receiving indexes */
         CDistributionServer* serverDistribution_;
@@ -415,15 +432,19 @@ namespace xios {
 
 /** Size of data to be send in case of reading. It is calculated in recvIndex(). */
         std::map<int,size_t> connectedDataSizeRead_;
-
-        bool isDataDistributed_;        
+      
          //! True if and only if the data defined on the grid can be outputted in a compressed way
         bool isCompressible_;
         std::set<std::string> relFilesCompressed;
 
         bool isTransformed_, isGenerated_;
         bool computedWrittenIndex_;
+        
         std::vector<int> axisPositionInGrid_;
+        void computeAxisPositionInGrid(void) ;
+        bool computeAxisPositionInGrid_done_ = false ;
+        std::vector<int>& getAxisPositionInGrid(void) { if (!computeAxisPositionInGrid_done_) computeAxisPositionInGrid() ; return axisPositionInGrid_ ;}
+
         CGridTransformation* transformations_;
         bool hasDomainAxisBaseRef_;        
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;

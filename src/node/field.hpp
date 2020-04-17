@@ -142,6 +142,8 @@ namespace xios {
          void sendGridOfEnabledFields();
          void sendGridComponentOfEnabledFields();
 
+         void sendFieldToFileServer(void) ;
+
          /// Vérifications ///
          void checkTimeAttributes(CDuration* freqOp=NULL);
 
@@ -223,7 +225,15 @@ namespace xios {
         CGrid* getGrid(void) { return grid_; } 
 
         void connectToFileServer(CGarbageCollector& gc) ;
+        void connectToModelInput(CGarbageCollector& gc) ;
         void computeGridIndexToFileServer(void) ;
+
+        void setContextClientDataBufferSize(map<CContextClient*,map<int,size_t>>& bufferSize, 
+                                        map<CContextClient*,map<int,size_t>>& maxEventSize, 
+                                        bool bufferForWriting) ;
+        void setContextClientAttributesBufferSize(map<CContextClient*,map<int,size_t>>& bufferSize, 
+                                                 map<CContextClient*,map<int,size_t>>& maxEventSize, 
+                                                 bool bufferForWriting) ;
       private:
         std::vector<CGrid*> getGridPath(void) ;
 

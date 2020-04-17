@@ -351,7 +351,7 @@ TRY
     this->transformationWeight_.resize(vecAxisValueSizeWithMask);
     this->transformationPosition_.resize(vecAxisValueSizeWithMask);
 
-    const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = grid->getDistributionClient()->getGlobalLocalDataSendToServer();
+    const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = grid->getClientDistribution()->getGlobalLocalDataSendToServer();
     CDistributionClient::GlobalLocalDataMap::const_iterator itIndex, iteIndex = globalLocalIndexSendToServer.end();
     size_t axisSrcSize = axisSrc_->index.numElements();
     std::vector<int> globalDimension = grid->getGlobalDimension();

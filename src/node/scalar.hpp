@@ -75,6 +75,11 @@ namespace xios
             bool checkIfCompleted(void) ;
             void setCompleted(void) ;
             void setUncompleted(void) ;
+         
+         public:
+            void sendScalarToFileServer(CContextClient* client) ;
+         private:
+            std::set<CContextClient*> sendScalarToFileServer_done_ ;
 
          public:
            bool hasTransformation();

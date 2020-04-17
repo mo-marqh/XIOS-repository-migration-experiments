@@ -32,7 +32,7 @@ namespace xios {
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
-	  , isDataDistributed_(true), isCompressible_(false)
+	    , isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
@@ -53,7 +53,7 @@ namespace xios {
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
-	  , isDataDistributed_(true), isCompressible_(false)
+	    , isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
@@ -95,7 +95,7 @@ namespace xios {
      StdSize retvalue = 1;
      if (!isScalarGrid())
      {
-       std::vector<int> dataNindex = getDistributionClient()->getDataNIndex();
+       std::vector<int> dataNindex = getClientDistribution()->getDataNIndex();
        for (int i = 0; i < dataNindex.size(); ++i) retvalue *= dataNindex[i];       
      }
      return retvalue;
@@ -127,7 +127,7 @@ namespace xios {
      std::vector<CAxis*> axisList = getAxis();
      for (size_t i = 0; i < axisList.size(); ++i)
      {
-       std::map<int, StdSize> axisAttBuffSize = axisList[i]->getAttributesBufferSize(client, getGlobalDimension(),axisPositionInGrid_[i]);
+       std::map<int, StdSize> axisAttBuffSize = axisList[i]->getAttributesBufferSize(client, getGlobalDimension(),getAxisPositionInGrid()[i]);
        for (it = axisAttBuffSize.begin(), itE = axisAttBuffSize.end(); it != itE; ++it)
        {
          it->second += 2 * sizeof(bool);
@@ -201,32 +201,31 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
    
+
+   void CGrid::computeAxisPositionInGrid(void)
+   {
+     axisPositionInGrid_.resize(0);
+     int idx = 0;
+     for (int i = 0; i < axis_domain_order.numElements(); ++i)
+     {
+       int elementDimension = axis_domain_order(i);
+       if (1 == elementDimension)
+       {
+         axisPositionInGrid_.push_back(idx);
+         ++idx;
+       }
+       else if (2 == elementDimension) idx += 2;
+     }
+   }
+
    void CGrid::checkAttributesAfterTransformation()
    TRY
    {
       setAxisList();
       std::vector<CAxis*> axisListP = this->getAxis();
-      if (!axisListP.empty())
-      {
-        int idx = 0;
-        axisPositionInGrid_.resize(0);
-        for (int i = 0; i < axis_domain_order.numElements(); ++i)
-        {
-          int elementDimension = axis_domain_order(i);
-          if (1 == elementDimension)
-          {
-            axisPositionInGrid_.push_back(idx);
-            ++idx;
-          }
-          else if (2 == elementDimension) idx += 2;
-        }
-
-        for (int i = 0; i < axisListP.size(); ++i)
-        {
-          axisListP[i]->checkAttributesOnClientAfterTransformation(getGlobalDimension(),axisPositionInGrid_[i]);
-        }
-      }
-
+      for (int i = 0; i < axisListP.size(); ++i)
+        axisListP[i]->checkAttributesOnClientAfterTransformation(getGlobalDimension(), getAxisPositionInGrid()[i]);
+   
       setDomainList();
       std::vector<CDomain*> domListP = this->getDomains();
       if (!domListP.empty())
@@ -567,23 +566,10 @@ namespace xios {
       std::vector<CAxis*> axisListP = this->getAxis();
       if (!axisListP.empty())
       {
-        int idx = 0;
-        axisPositionInGrid_.resize(0);
-        for (int i = 0; i < axis_domain_order.numElements(); ++i)
-        {
-          int elementDimension = axis_domain_order(i);
-          if (1 == elementDimension)
-          {
-            axisPositionInGrid_.push_back(idx);
-            ++idx;
-          }
-          else if (2 == elementDimension) idx += 2;
-        }
-
         for (int i = 0; i < axisListP.size(); ++i)
         {
           if (sendAtt)
-            axisListP[i]->sendCheckedAttributes(getGlobalDimension(),axisPositionInGrid_[i]);
+            axisListP[i]->sendCheckedAttributes(getGlobalDimension(),getAxisPositionInGrid()[i]);
           else
             axisListP[i]->checkAttributesOnClient();
         }
@@ -633,7 +619,7 @@ namespace xios {
       }
 
       size_t nbWritten = 0, indGlo;
-      CDistributionClient::GlobalLocalDataMap& globalDataIndex = getDistributionClient()->getGlobalDataIndexOnClient();
+      CDistributionClient::GlobalLocalDataMap& globalDataIndex = getClientDistribution()->getGlobalDataIndexOnClient();
       CDistributionClient::GlobalLocalDataMap::const_iterator itb = globalDataIndex.begin(),
                                                               ite = globalDataIndex.end(), it;    
       const CDistributionServer::GlobalLocalMap& globalLocalIndex = serverDistribution_->getGlobalLocalIndex();                                                              
@@ -650,7 +636,7 @@ namespace xios {
       
       {
         numberWrittenIndexes_ = nbWritten;
-        if (isDataDistributed_)
+        if (isDataDistributed())
         {
           CContext* context = CContext::getCurrent();      
           MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, context->intraComm_);
@@ -687,33 +673,16 @@ namespace xios {
    */
    void CGrid::computeGridIndexToFileServer(CContextClient* client)
    {
-     if (isScalarGrid())
-     {
-       computeClientIndexScalarGrid();
-       computeConnectedClientsScalarGrid(client);
-     }
-     else
-     {
-       computeClientIndex();
-       computeConnectedClients(client);
-     }
-
+     if (isScalarGrid()) computeConnectedClientsScalarGrid(client);
+     else computeConnectedClients(client);
+    
      // compute indices for client/server transfer for domain
      for (const auto& domainId : domList_) CDomain::get(domainId)->computeConnectedClients(client);
    
    
      // compute indices for client/server transfer for axis
      std::vector<CAxis*> axisList = this->getAxis();
-     std::vector<int> axisPosInGrid ;
-     // compute axis position in grid     
-     int idx=0 ;
-     for (int i = 0 ; i < axis_domain_order.numElements(); ++i)
-     {
-       if (axis_domain_order(i) == 0)  idx += 0 ;
-       else if (axis_domain_order(i) == 1) { axisPosInGrid.push_back(idx) ; ++idx; }
-       else if (axis_domain_order(i) == 2) idx += 2;
-     }
-     for(int i=0 ; i<axisList.size(); i++) axisList[i] -> computeConnectedClients(client, getGlobalDimension(),axisPositionInGrid_[i]) ;
+     for(int i=0 ; i<axisList.size(); i++) axisList[i] -> computeConnectedClients(client, getGlobalDimension(),getAxisPositionInGrid()[i]) ;
    }
    //---------------------------------------------------------------
 
@@ -739,7 +708,7 @@ namespace xios {
      }
      else
      {
-       CDistributionClient* clientDistribution = getDistributionClient() ;
+       CDistributionClient* clientDistribution = getClientDistribution() ;
        const std::vector<int>& localDataIndex = clientDistribution->getLocalDataIndexOnClient() ;
        int nbStoreIndex = localDataIndex.size() ;
        storeIndex_client_.resize(nbStoreIndex);
@@ -758,7 +727,7 @@ namespace xios {
      }
      else
      {
-       CDistributionClient* clientDistribution = getDistributionClient() ;
+       CDistributionClient* clientDistribution = getClientDistribution() ;
        const std::vector<bool>& localMaskIndex = clientDistribution->getLocalMaskIndexOnClient() ;
        int nbMaskIndex = localMaskIndex.size() ;
        storeMask_client_.resize(nbMaskIndex);
@@ -766,76 +735,69 @@ namespace xios {
      }
    }
 
-   /*
-     Compute the global index and its local index taking account mask and data index.
-     These global indexes will be used to compute the connection of this client (sender) to its servers (receivers)
-     (via function computeConnectedClient)
-     These global indexes also correspond to data sent to servers (if any)
-   */
-   void CGrid::computeClientIndex()
-   TRY
-   {
-     if (computeClientIndex_done_) return ;
 
-     CContext* context = CContext::getCurrent();
-     int rank = context-> getIntraCommRank();
+  void CGrid::computeOutLocalIndexStoreOnClient(void)
+  {
+    if (computeOutLocalIndexStoreOnClient_done_) return ;
+    else computeOutLocalIndexStoreOnClient_done_=true ;
 
-     auto clientDistribution = getDistributionClient();
-     // Get local data index on client
-     int nbStoreIndex = clientDistribution->getLocalDataIndexOnClient().size();
-     int nbStoreGridMask = clientDistribution->getLocalMaskIndexOnClient().size();
-     // nbStoreGridMask = nbStoreIndex if grid mask is defined, and 0 otherwise
-     storeIndex_client_.resize(nbStoreIndex);
-     storeMask_client_.resize(nbStoreGridMask);
-     for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client_(idx) = (clientDistribution->getLocalDataIndexOnClient())[idx];
-     for (int idx = 0; idx < nbStoreGridMask; ++idx) storeMask_client_(idx) = (clientDistribution->getLocalMaskIndexOnClient())[idx];
-
-     if (0 == serverDistribution_) isDataDistributed_= clientDistribution->isDataDistributed();
-     else
-     {
-        // Mapping global index received from clients to the storeIndex_client_
-        CDistributionClient::GlobalLocalDataMap& globalDataIndex = clientDistribution->getGlobalDataIndexOnClient();
-        CDistributionClient::GlobalLocalDataMap::const_iterator itGloe = globalDataIndex.end();
-        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient_.begin(),
-                                               ite = outGlobalIndexFromClient_.end(), it;
-
-        for (it = itb; it != ite; ++it)
+    if (isScalarGrid())
+    {
+        auto& outGlobalIndexFromClient  = getOutGlobalIndexFromClient();
+        auto itb = outGlobalIndexFromClient.begin(), ite = outGlobalIndexFromClient.end() ;
+        for (auto it = itb; it != ite; ++it)
         {
           int rank = it->first;
-          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient_[rank];
+          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient[rank];
           outLocalIndexStoreOnClient_.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
           CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient_[rank];
-          size_t nbIndex = 0;
+          if (1 != globalIndex.numElements())
+            ERROR("void CGrid::computeClientIndexScalarGrid()",
+              << "Something wrong happened. "
+              << "Number of received global index on scalar grid should equal to 1" 
+              << "Number of received global index " << globalIndex.numElements() << ".");
 
-          // Keep this code for this moment but it should be removed (or moved to DEBUG) to improve performance
-          for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
-          {
-            if (itGloe != globalDataIndex.find(globalIndex(idx)))
-            {
-              ++nbIndex;
-            }
-          }
-
-          if (nbIndex != localIndex.numElements())
-               ERROR("void CGrid::computeClientIndex()",
-                  << "Number of local index on client is different from number of received global index"
-                  << "Rank of sent client " << rank <<"."
-                  << "Number of local index " << nbIndex << ". "
-                  << "Number of received global index " << localIndex.numElements() << ".");
-
-          nbIndex = 0;
-          for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
-          {
-            if (itGloe != globalDataIndex.find(globalIndex(idx)))
-            {
-              localIndex(idx) = globalDataIndex[globalIndex(idx)];
-            }
-          }
+          localIndex(0) = globalIndex(0);
         }
+    }
+    else
+    {
+      CDistributionClient::GlobalLocalDataMap& globalDataIndex = getClientDistribution()->getGlobalDataIndexOnClient();
+      CDistributionClient::GlobalLocalDataMap::const_iterator itGloe = globalDataIndex.end();
+      auto& outGlobalIndexFromClient  = getOutGlobalIndexFromClient();
+      auto itb = outGlobalIndexFromClient.begin(), ite = outGlobalIndexFromClient.end() ;
+    
+      for (auto it = itb; it != ite; ++it)
+      {
+         int rank = it->first;
+         CArray<size_t,1>& globalIndex = outGlobalIndexFromClient[rank];
+         outLocalIndexStoreOnClient_.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
+         CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient_[rank];
+         size_t nbIndex = 0;
+
+        // Keep this code for this moment but it should be removed (or moved to DEBUG) to improve performance
+        for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
+          if (itGloe != globalDataIndex.find(globalIndex(idx))) ++nbIndex;
+
+        if (nbIndex != localIndex.numElements())
+             ERROR("void CGrid::computeClientIndex()",
+                 << "Number of local index on client is different from number of received global index"
+                 << "Rank of sent client " << rank <<"."
+                 << "Number of local index " << nbIndex << ". "
+                 << "Number of received global index " << localIndex.numElements() << ".");
+
+        nbIndex = 0;
+        for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
+          if (itGloe != globalDataIndex.find(globalIndex(idx)))
+            localIndex(idx) = globalDataIndex[globalIndex(idx)];
       }
-      computeClientIndex_done_ = true ;
-   }
-   CATCH_DUMP_ATTR
+    }
+  }
+
+  bool CGrid::isDataDistributed(void) 
+  { 
+    return getClientDistribution()->isDataDistributed() ;
+  }
 
    /*!
      Compute connected receivers and indexes to be sent to these receivers.
@@ -844,6 +806,7 @@ namespace xios {
    TRY
    {
      if (computeConnectedClients_done_.count(client)!=0) return ;
+     else  computeConnectedClients_done_.insert(client) ;
 
      CContext* context = CContext::getCurrent();
      
@@ -867,7 +830,7 @@ namespace xios {
        {
           if (client->isServerLeader())
           {
-            size_t ssize = getDistributionClient()->getLocalDataIndexOnClient().size();
+            size_t ssize = getClientDistribution()->getLocalDataIndexOnClient().size();
             const std::list<int>& ranks = client->getRanksServerLeader();
             for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
             {
@@ -898,7 +861,7 @@ namespace xios {
        if (globalIndexOnServer_.find(receiverSize) == globalIndexOnServer_.end())
          computeIndexByElement(indexServerOnElement, client, globalIndexOnServer_[receiverSize]);
 
-       const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getDistributionClient()->getGlobalLocalDataSendToServer();
+       const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getClientDistribution()->getGlobalLocalDataSendToServer();
        CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
        CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
        itbGlobalMap = globalIndexOnServer_[receiverSize].begin();
@@ -955,7 +918,6 @@ namespace xios {
 
        nbSenders_[receiverSize] = CClientServerMapping::computeConnectedClients(receiverSize, client->clientSize, client->intraComm, connectedServerRank_[receiverSize]);
      }
-     computeConnectedClients_done_.insert(client) ;
    }
    CATCH_DUMP_ATTR
 
@@ -974,7 +936,7 @@ namespace xios {
      CContext* context = CContext::getCurrent();
      if (isScalarGrid())
      {
-       computeClientIndexScalarGrid();
+       //computeClientIndexScalarGrid();
        if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
        {
          // ym computeConnectedClientsScalarGrid();
@@ -982,7 +944,7 @@ namespace xios {
      }
      else
      {
-       computeClientIndex();
+       //computeClientIndex();
        if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
        {
          //computeConnectedClients();
@@ -1429,50 +1391,13 @@ namespace xios {
    void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) 
    TRY
    {
-      const std::vector<int>& localMaskedDataIndex = getDistributionClient()->getLocalMaskedDataIndexOnClient();
+      const std::vector<int>& localMaskedDataIndex = getClientDistribution()->getLocalMaskedDataIndexOnClient();
       const int size = localMaskedDataIndex.size();
       for(int i = 0; i < size; ++i) out(localMaskedDataIndex[i]) = data[i];
    }
    CATCH
 
-  void CGrid::computeClientIndexScalarGrid()
-  TRY
-  {
-    if (computeClientIndexScalarGrid_done_) return ;
-
-    CContext* context = CContext::getCurrent();    
-    {
-      int rank = context->intraCommRank_;
-
-      auto clientDistribution = getDistributionClient();
-
-      storeIndex_client_.resize(1);
-      storeIndex_client_(0) = 0;      
-
-      if (0 != serverDistribution_)
-      {
-        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient_.begin(),
-                                               ite = outGlobalIndexFromClient_.end(), it;
-        for (it = itb; it != ite; ++it)
-        {
-          int rank = it->first;
-          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient_[rank];
-          outLocalIndexStoreOnClient_.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
-          CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient_[rank];
-          if (1 != globalIndex.numElements())
-            ERROR("void CGrid::computeClientIndexScalarGrid()",
-              << "Something wrong happened. "
-              << "Number of received global index on scalar grid should equal to 1" 
-              << "Number of received global index " << globalIndex.numElements() << ".");
-
-          localIndex(0) = globalIndex(0);
-        }
-      }
-    }
-    computeClientIndexScalarGrid_done_ = true ;
-  }
-  CATCH_DUMP_ATTR
-
+  
   void CGrid::computeConnectedClientsScalarGrid(CContextClient* client)
   TRY
   {
@@ -1522,7 +1447,7 @@ namespace xios {
         }
       }
     }
-    isDataDistributed_ = false;
+   
     computeConnectedClientsScalarGrid_done_.insert(client) ;
   }
   CATCH_DUMP_ATTR
@@ -1566,7 +1491,7 @@ namespace xios {
             storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
 
           listMsg.push_back(CMessage());
-          listMsg.back() << getId( )<< isDataDistributed_ << isCompressible_ << listOutIndex.back();
+          listMsg.back() << getId( )<< isCompressible_ << listOutIndex.back();
 
           event.push(rank, 1, listMsg.back());
         }
@@ -1610,7 +1535,7 @@ namespace xios {
       int rank;
       list<CMessage> listMsg;
       list<CArray<size_t,1> > listOutIndex;
-      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getDistributionClient()->getGlobalLocalDataSendToServer();
+      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getClientDistribution()->getGlobalLocalDataSendToServer();
       CDistributionClient::GlobalLocalDataMap::const_iterator itbIndex = globalLocalIndexSendToServer.begin(), itIndex,
                                                               iteIndex = globalLocalIndexSendToServer.end();
       itIndex = itbIndex;                                                              
@@ -1638,7 +1563,7 @@ namespace xios {
             listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
 
             listMsg.push_back(CMessage());
-            listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
+            listMsg.back() << getId() << isCompressible_ << listOutIndex.back();
 
             event.push(*itRank, 1, listMsg.back());
           }
@@ -1706,7 +1631,7 @@ namespace xios {
 
           storeIndex_fromSrv_.insert(make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
           listMsg.push_back(CMessage());
-          listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
+          listMsg.back() << getId()  << isCompressible_ << listOutIndex.back();
 
           event.push(rank, nbSenders_[receiverSize][rank], listMsg.back());
         }
@@ -1765,7 +1690,7 @@ namespace xios {
       int rank = ranks[n];
       CBufferIn& buffer = *buffers[n];
 
-      buffer >> isDataDistributed_ >> isCompressible_;
+      buffer >>  isCompressible_;
       size_t dataSize = 0;
 
       if (0 == serverDistribution_)
@@ -2053,7 +1978,7 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-  CDistributionClient* CGrid::getDistributionClient()
+  CDistributionClient* CGrid::getClientDistribution()
   TRY
   {
     if (!computeClientDistribution_done_) computeClientDistribution() ;
@@ -2070,10 +1995,10 @@ namespace xios {
     if (isScalarGrid()) return false;
     else if (0 != client)
     {
-      return  (isDataDistributed_ ||  (1 != client->clientSize) || (1 != client->serverSize));
+      return  (isDataDistributed() ||  (1 != client->clientSize) || (1 != client->serverSize));
     }
     else
-      return isDataDistributed_;    
+      return isDataDistributed();    
   }
   CATCH_DUMP_ATTR
 
@@ -2176,6 +2101,21 @@ namespace xios {
       this->vScalarGroup_ = newVScalarGroup;
    }
    CATCH_DUMP_ATTR
+
+
+  void CGrid::sendGridToFileServer(CContextClient* client)
+  {
+    if (sendGridToFileServer_done_.count(client)!=0) return ;
+    else sendGridToFileServer_done_.insert(client) ;
+
+    StdString gridDefRoot("grid_definition");
+    CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
+    gridPtr->sendCreateChild(this->getId(),client);
+    this->sendAllAttributesToServer(client);
+    this->sendAllDomains(client);
+    this->sendAllAxis(client);
+    this->sendAllScalars(client);
+  }
 
    /*!
    \brief Send a message to create a domain on server side
@@ -2793,11 +2733,10 @@ namespace xios {
   TRY
   {
     std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
-    int dSize = domList.size();
-    for (int i = 0; i < dSize; ++i)
+    for (auto domain : domList)
     {
-      sendAddDomain(domList[i]->getId(),contextClient);
-      domList[i]->sendAllAttributesToServer(contextClient);
+      sendAddDomain(domain->getId(),contextClient);
+      domain->sendDomainToFileServer(contextClient);
     }
   }
   CATCH_DUMP_ATTR
@@ -2809,12 +2748,10 @@ namespace xios {
   TRY
   {
     std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
-    int aSize = aList.size();
-
-    for (int i = 0; i < aSize; ++i)
+    for (int i=0; i<aList.size() ; ++i)
     {
       sendAddAxis(aList[i]->getId(),contextClient);
-      aList[i]->sendAllAttributesToServer(contextClient);
+      aList[i]->sendAxisToFileServer(contextClient, getGlobalDimension(), getAxisPositionInGrid()[i]);
     }
   }
   CATCH_DUMP_ATTR
@@ -2826,12 +2763,10 @@ namespace xios {
   TRY
   {
     std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
-    int sSize = sList.size();
-
-    for (int i = 0; i < sSize; ++i)
+    for (auto scalar : sList)
     {
-      sendAddScalar(sList[i]->getId(),contextClient);
-      sList[i]->sendAllAttributesToServer(contextClient);
+      sendAddScalar(scalar->getId(),contextClient);
+      scalar->sendScalarToFileServer(contextClient);
     }
   }
   CATCH_DUMP_ATTR

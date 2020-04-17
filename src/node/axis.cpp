@@ -545,6 +545,7 @@ namespace xios {
      \param [in] distType distribution type of the server. For now, we only have band distribution.
 
    */
+   //ym obsolete : to be removed
    void CAxis::sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
    TRY
@@ -554,32 +555,45 @@ namespace xios {
      CContext* context = CContext::getCurrent();
 
      if (this->isChecked) return;
-     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER) sendAttributes(globalDim, orderPositionInGrid, distType);    
+     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER) /*sendAttributes(globalDim, orderPositionInGrid, distType)*/;    
 
      this->isChecked = true;
    }
    CATCH_DUMP_ATTR
+
+  
+   void CAxis::sendAxisToFileServer(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid)
+   {
+     if (sendAxisToFileServer_done_.count(client)!=0) return ;
+     else sendAxisToFileServer_done_.insert(client) ;
+     
+     StdString axisDefRoot("axis_definition");
+     CAxisGroup* axisPtr = CAxisGroup::get(axisDefRoot);
+     axisPtr->sendCreateChild(this->getId(),client);
+     this->sendAllAttributesToServer(client)  ; 
+     this->sendAttributes(client, globalDim, orderPositionInGrid, CServerDistributionDescription::BAND_DISTRIBUTION) ;
+   }
 
   /*!
     Send attributes from one client to other clients
     \param[in] globalDim global dimension of grid which contains this axis
     \param[in] order
   */
-  void CAxis::sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
+  void CAxis::sendAttributes(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
                              CServerDistributionDescription::ServerDistributionType distType)
   TRY
   {
-     sendDistributionAttribute(globalDim, orderPositionInGrid, distType);
+     sendDistributionAttribute(client, globalDim, orderPositionInGrid, distType);
 
      // if (index.numElements() == n_glo.getValue())
      if ((orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
          || (index.numElements() != n_glo))
      {
-       sendDistributedAttributes();       
+       sendDistributedAttributes(client);       
      }
      else
      {
-       sendNonDistributedAttributes();    
+       sendNonDistributedAttributes(client);    
      }     
   }
   CATCH_DUMP_ATTR
@@ -873,46 +887,41 @@ namespace xios {
     \param [in] orderPositionInGrid the relative order of this axis in the grid (e.g grid composed of domain+axis -> orderPositionInGrid is 2)
     \param [in] distType distribution type of the server. For now, we only have band distribution.
   */
-  void CAxis::sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
+  void CAxis::sendDistributionAttribute(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType)
   TRY
   {
-    std::list<CContextClient*>::iterator it;
-    for (it=clients.begin(); it!=clients.end(); ++it)
+    int nbServer = client->serverSize;
+
+    CServerDistributionDescription serverDescription(globalDim, nbServer);
+    serverDescription.computeServerDistribution();
+
+    std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+    std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+
+    CEventClient event(getType(),EVENT_ID_DISTRIBUTION_ATTRIBUTE);
+    if (client->isServerLeader())
     {
-      CContextClient* client = *it;
-      int nbServer = client->serverSize;
+      std::list<CMessage> msgs;
 
-      CServerDistributionDescription serverDescription(globalDim, nbServer);
-      serverDescription.computeServerDistribution();
-
-      std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-      std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-
-      CEventClient event(getType(),EVENT_ID_DISTRIBUTION_ATTRIBUTE);
-      if (client->isServerLeader())
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
-        std::list<CMessage> msgs;
+        // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+        const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
+        const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
 
-        const std::list<int>& ranks = client->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-        {
-          // Use const int to ensure CMessage holds a copy of the value instead of just a reference
-          const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
-          const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
+        msgs.push_back(CMessage());
+        CMessage& msg = msgs.back();
+        msg << this->getId();
+        msg << ni << begin;
+        msg << isCompressible_;                    
 
-          msgs.push_back(CMessage());
-          CMessage& msg = msgs.back();
-          msg << this->getId();
-          msg << ni << begin;
-          msg << isCompressible_;                    
-
-          event.push(*itRank,1,msg);
-        }
-        client->sendEvent(event);
+        event.push(*itRank,1,msg);
       }
-      else client->sendEvent(event);
+      client->sendEvent(event);
     }
+    else client->sendEvent(event);
   }
   CATCH_DUMP_ATTR
 
@@ -952,60 +961,54 @@ namespace xios {
     on supposing that these attributes are not distributed among the sending group
     In the future, if new attributes are added, they should also be processed in this function
   */
-  void CAxis::sendNonDistributedAttributes()
+  void CAxis::sendNonDistributedAttributes(CContextClient* client)
   TRY
   {
-    std::list<CContextClient*>::iterator it;
-    for (it=clients.begin(); it!=clients.end(); ++it)
-	{
-	  CContextClient* client = *it;
+    CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES);
+    size_t nbIndex = index.numElements();
+    size_t nbDataIndex = 0;
 
-      CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES);
-      size_t nbIndex = index.numElements();
-      size_t nbDataIndex = 0;
-
-      for (int idx = 0; idx < data_index.numElements(); ++idx)
-      {
-        int ind = data_index(idx);
-        if (ind >= 0 && ind < nbIndex) ++nbDataIndex;
-      }
-
-      CArray<int,1> dataIndex(nbDataIndex);
-      nbDataIndex = 0;
-      for (int idx = 0; idx < data_index.numElements(); ++idx)
-      {
-        int ind = data_index(idx);
-        if (ind >= 0 && ind < nbIndex)
-        {
-          dataIndex(nbDataIndex) = ind;
-          ++nbDataIndex;
-        }
-      }
-
-      if (client->isServerLeader())
-      {
-        std::list<CMessage> msgs;
-
-        const std::list<int>& ranks = client->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-        {
-          msgs.push_back(CMessage());
-          CMessage& msg = msgs.back();
-          msg << this->getId();
-          msg << index.getValue() << dataIndex << mask.getValue();
-          msg << hasValue;
-          if (hasValue) msg << value.getValue();
-          msg << hasBounds;
-          if (hasBounds) msg << bounds.getValue();
-          msg << hasLabel;
-          if (hasLabel) msg << label.getValue();
-
-          event.push(*itRank, 1, msg);
-        }
-        client->sendEvent(event);
-      }
-      else client->sendEvent(event);
+    for (int idx = 0; idx < data_index.numElements(); ++idx)
+    {
+      int ind = data_index(idx);
+      if (ind >= 0 && ind < nbIndex) ++nbDataIndex;
     }
+
+    CArray<int,1> dataIndex(nbDataIndex);
+    nbDataIndex = 0;
+    for (int idx = 0; idx < data_index.numElements(); ++idx)
+    {
+      int ind = data_index(idx);
+      if (ind >= 0 && ind < nbIndex)
+      {
+        dataIndex(nbDataIndex) = ind;
+        ++nbDataIndex;
+      }
+    }
+
+    if (client->isServerLeader())
+    {
+      std::list<CMessage> msgs;
+
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+      {
+        msgs.push_back(CMessage());
+        CMessage& msg = msgs.back();
+        msg << this->getId();
+        msg << index.getValue() << dataIndex << mask.getValue();
+        msg << hasValue;
+        if (hasValue) msg << value.getValue();
+        msg << hasBounds;
+        if (hasBounds) msg << bounds.getValue();
+        msg << hasLabel;
+        if (hasLabel) msg << label.getValue();
+
+        event.push(*itRank, 1, msg);
+      }
+      client->sendEvent(event);
+    }
+    else client->sendEvent(event);
   }
   CATCH_DUMP_ATTR
 
@@ -1082,110 +1085,104 @@ namespace xios {
     supposing that these attributes are distributed among the clients of the sending group
     In future, if new attributes are added, they should also be processed in this function
   */
-  void CAxis::sendDistributedAttributes(void)
+  void CAxis::sendDistributedAttributes(CContextClient* client)
   TRY
   {
     int ind, idx;
-    std::list<CContextClient*>::iterator it;
+    int nbServer = client->serverSize;
 
-    for (it=clients.begin(); it!=clients.end(); ++it)
+    CEventClient eventData(getType(), EVENT_ID_DISTRIBUTED_ATTRIBUTES);
+
+    list<CMessage> listData;
+    list<CArray<int,1> > list_indi, list_dataInd;
+    list<CArray<double,1> > list_val;
+    list<CArray<double,2> > list_bounds;
+    list<CArray<string,1> > list_label;
+
+    // Cut off the ghost points
+    int nbIndex = index.numElements();
+    CArray<int,1> dataIndex(nbIndex);
+    dataIndex = -1;
+    for (idx = 0; idx < data_index.numElements(); ++idx)
     {
-      CContextClient* client = *it;
-      int nbServer = client->serverSize;
+      if (0 <= data_index(idx) && data_index(idx) < nbIndex)
+        dataIndex(data_index(idx)) = 1;
+    }
 
-      CEventClient eventData(getType(), EVENT_ID_DISTRIBUTED_ATTRIBUTES);
+    std::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
+    iteMap = indSrv_[nbServer].end();
+    for (int k = 0; k < connectedServerRank_[nbServer].size(); ++k)
+    {
+      int nbData = 0, nbDataCount = 0;
+      int rank = connectedServerRank_[nbServer][k];
+      it = indSrv_[nbServer].find(rank);
+      if (iteMap != it)
+        nbData = it->second.size();
 
-      list<CMessage> listData;
-      list<CArray<int,1> > list_indi, list_dataInd;
-      list<CArray<double,1> > list_val;
-      list<CArray<double,2> > list_bounds;
-      list<CArray<string,1> > list_label;
+      list_indi.push_back(CArray<int,1>(nbData));
+      list_dataInd.push_back(CArray<int,1>(nbData));
 
-      // Cut off the ghost points
-      int nbIndex = index.numElements();
-      CArray<int,1> dataIndex(nbIndex);
-      dataIndex = -1;
-      for (idx = 0; idx < data_index.numElements(); ++idx)
+      if (hasValue)
+        list_val.push_back(CArray<double,1>(nbData));
+
+      if (hasBounds)        
+        list_bounds.push_back(CArray<double,2>(2,nbData));
+
+      if (hasLabel)
+        list_label.push_back(CArray<string,1>(nbData));
+
+      CArray<int,1>& indi = list_indi.back();
+      CArray<int,1>& dataIndi = list_dataInd.back();
+      dataIndi = -1;
+
+      for (int n = 0; n < nbData; ++n)
       {
-        if (0 <= data_index(idx) && data_index(idx) < nbIndex)
-          dataIndex(data_index(idx)) = 1;
-      }
+        idx = static_cast<int>(it->second[n]);
+        indi(n) = idx;
 
-      std::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_[nbServer].end();
-      for (int k = 0; k < connectedServerRank_[nbServer].size(); ++k)
-      {
-        int nbData = 0, nbDataCount = 0;
-        int rank = connectedServerRank_[nbServer][k];
-        it = indSrv_[nbServer].find(rank);
-        if (iteMap != it)
-          nbData = it->second.size();
-
-        list_indi.push_back(CArray<int,1>(nbData));
-        list_dataInd.push_back(CArray<int,1>(nbData));
+        ind = globalLocalIndexMap_[idx];
+        dataIndi(n) = dataIndex(ind);
 
         if (hasValue)
-          list_val.push_back(CArray<double,1>(nbData));
-
-        if (hasBounds)        
-          list_bounds.push_back(CArray<double,2>(2,nbData));
-
-        if (hasLabel)
-          list_label.push_back(CArray<string,1>(nbData));
-
-        CArray<int,1>& indi = list_indi.back();
-        CArray<int,1>& dataIndi = list_dataInd.back();
-        dataIndi = -1;
-
-        for (int n = 0; n < nbData; ++n)
         {
-          idx = static_cast<int>(it->second[n]);
-          indi(n) = idx;
-
-          ind = globalLocalIndexMap_[idx];
-          dataIndi(n) = dataIndex(ind);
-
-          if (hasValue)
-          {
-            CArray<double,1>& val = list_val.back();
-            val(n) = value(ind);
-          }
-
-          if (hasBounds)
-          {
-            CArray<double,2>& boundsVal = list_bounds.back();
-            boundsVal(0, n) = bounds(0,ind);
-            boundsVal(1, n) = bounds(1,ind);
-          }
-
-          if (hasLabel)
-          {
-            CArray<string,1>& labelVal = list_label.back();
-            labelVal(n) = label(ind); 
-          }
+          CArray<double,1>& val = list_val.back();
+          val(n) = value(ind);
         }
 
-        listData.push_back(CMessage());
-        listData.back() << this->getId()
-                        << list_indi.back() << list_dataInd.back();
-
-        listData.back() << hasValue;
-        if (hasValue)
-          listData.back() << list_val.back();
-
-        listData.back() << hasBounds;
         if (hasBounds)
-          listData.back() << list_bounds.back();
+        {
+          CArray<double,2>& boundsVal = list_bounds.back();
+          boundsVal(0, n) = bounds(0,ind);
+          boundsVal(1, n) = bounds(1,ind);
+        }
 
-        listData.back() << hasLabel;
         if (hasLabel)
-          listData.back() << list_label.back();
-
-        eventData.push(rank, nbSenders[nbServer][rank], listData.back());
+        {
+          CArray<string,1>& labelVal = list_label.back();
+          labelVal(n) = label(ind); 
+        }
       }
 
-      client->sendEvent(eventData);
+      listData.push_back(CMessage());
+      listData.back() << this->getId()
+                      << list_indi.back() << list_dataInd.back();
+
+      listData.back() << hasValue;
+      if (hasValue)
+        listData.back() << list_val.back();
+
+      listData.back() << hasBounds;
+      if (hasBounds)
+        listData.back() << list_bounds.back();
+
+      listData.back() << hasLabel;
+      if (hasLabel)
+        listData.back() << list_label.back();
+
+      eventData.push(rank, nbSenders[nbServer][rank], listData.back());
     }
+
+    client->sendEvent(eventData);
   }
   CATCH_DUMP_ATTR
 

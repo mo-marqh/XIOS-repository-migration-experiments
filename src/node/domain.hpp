@@ -183,12 +183,19 @@ namespace xios {
 
          void setTransformations(const TransMapTypes&);         
          void computeNGlobDomain();
-         void sendAttributes();
-         void sendIndex();
-         void sendDistributionAttributes();
-         void sendArea();
-         void sendLonLat();         
-         void sendDataIndex();
+         
+       public:
+         void sendDomainToFileServer(CContextClient* client) ;
+       private:
+         std::set<CContextClient*> sendDomainToFileServer_done_ ;
+       private:
+         
+         void sendAttributes(); // ym obsolete -> to be removed
+         void sendIndex(CContextClient* client);
+         void sendDistributionAttributes(CContextClient* client);
+         void sendArea(CContextClient* client);
+         void sendLonLat(CContextClient* client);         
+         void sendDataIndex(CContextClient* client);
          void convertLonLatValue();
          void fillInRectilinearLonLat();
          void fillInCurvilinearLonLat();

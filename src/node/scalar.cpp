@@ -187,6 +187,15 @@ namespace xios {
         refScalar[i]->setTransformations(scalar->getAllTransformations());
   }
 
+  void CScalar::sendScalarToFileServer(CContextClient* client)
+  {
+    if (sendScalarToFileServer_done_.count(client)!=0) return ;
+    else sendScalarToFileServer_done_.insert(client) ;
+
+    StdString scalarDefRoot("scalar_definition");
+    CScalarGroup* scalarPtr = CScalarGroup::get(scalarDefRoot);
+    this->sendAllAttributesToServer(client);
+  }
   /*!
     Parse children nodes of a scalar in xml file.
     \param node child node to process

@@ -270,12 +270,72 @@ namespace xios {
    ///---------------------------------------------------------------
 
 
+   void CContext::setClientServerBuffer(vector<CField*>& fields, bool bufferForWriting)
+   TRY
+   {
+      // Estimated minimum event size for small events (20 is an arbitrary constant just for safety)
+     const size_t minEventSize = CEventClient::headerSize + 20 * sizeof(int);
+      // Ensure there is at least some room for 20 of such events in the buffers
+     size_t minBufferSize = std::max(CXios::minBufferSize, 20 * minEventSize);
+
+#define DECLARE_NODE(Name_, name_)    \
+     if (minBufferSize < sizeof(C##Name_##Definition)) minBufferSize = sizeof(C##Name_##Definition);
+#define DECLARE_NODE_PAR(Name_, name_)
+#include "node_type.conf"
+#undef DECLARE_NODE
+#undef DECLARE_NODE_PAR
+
+
+     map<CContextClient*,map<int,size_t>> dataSize ;
+     map<CContextClient*,map<int,size_t>> maxEventSize ;
+     map<CContextClient*,map<int,size_t>> attributesSize ;  
+
+     for(auto field : fields)
+     {
+       field->setContextClientDataBufferSize(dataSize, maxEventSize, bufferForWriting) ;
+       field->setContextClientAttributesBufferSize(attributesSize, maxEventSize, bufferForWriting) ;
+     }
+     
+
+     for(auto& it : attributesSize)
+     {
+       auto contextClient = it.first ;
+       auto& contextDataSize =  dataSize[contextClient] ;
+       auto& contextAttributesSize =  attributesSize[contextClient] ;
+       auto& contextMaxEventSize =  maxEventSize[contextClient] ;
+   
+       for (auto& it : contextAttributesSize)
+       {
+         auto serverRank=it.first ;
+         auto& buffer = contextAttributesSize[serverRank] ;
+         if (contextDataSize[serverRank] > buffer) buffer=contextDataSize[serverRank] ;
+         buffer *= CXios::bufferSizeFactor;
+         if (buffer < minBufferSize) buffer = minBufferSize;
+         if (buffer > CXios::maxBufferSize ) buffer = CXios::maxBufferSize;
+       }
+
+       // Leaders will have to send some control events so ensure there is some room for those in the buffers
+       if (contextClient->isServerLeader())
+         for(auto& rank : contextClient->getRanksServerLeader())
+           if (!contextAttributesSize.count(rank))
+           {
+             contextAttributesSize[rank] = minBufferSize;
+             contextMaxEventSize[rank] = minEventSize;
+           }
+      
+       contextClient->setBufferSize(contextAttributesSize, contextMaxEventSize);    
+     }
+   }
+   CATCH_DUMP_ATTR
+
+
     /*!
     Sets client buffers.
     \param [in] contextClient
     \param [in] bufferForWriting True if buffers are used for sending data for writing
     This flag is only true for client and server-1 for communication with server-2
   */
+  // ym obsolete to be removed
    void CContext::setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting)
    TRY
    {
@@ -326,6 +386,98 @@ namespace xios {
      contextClient->setBufferSize(bufferSize, maxEventSize);
    }
    CATCH_DUMP_ATTR
+
+ /*!
+    * Compute the required buffer size to send the fields data.
+    * \param maxEventSize [in/out] the size of the bigger event for each connected server
+    * \param [in] contextClient
+    * \param [in] bufferForWriting True if buffers are used for sending data for writing
+      This flag is only true for client and server-1 for communication with server-2
+    */
+   std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize,
+                                                      CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
+   TRY
+   {
+     std::map<int, StdSize> dataSize;
+
+     // Find all reference domain and axis of all active fields
+     std::vector<CFile*>& fileList = bufferForWriting ? this->enabledWriteModeFiles : this->enabledReadModeFiles;
+     size_t numEnabledFiles = fileList.size();
+     for (size_t i = 0; i < numEnabledFiles; ++i)
+     {
+       CFile* file = fileList[i];
+       if (file->getContextClient() == contextClient)
+       {
+         std::vector<CField*> enabledFields = file->getEnabledFields();
+         size_t numEnabledFields = enabledFields.size();
+         for (size_t j = 0; j < numEnabledFields; ++j)
+         {
+           // const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
+           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize(contextClient,bufferForWriting);
+           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+           for (; it != itE; ++it)
+           {
+             // If dataSize[it->first] does not exist, it will be zero-initialized
+             // so we can use it safely without checking for its existance
+           if (CXios::isOptPerformance)
+               dataSize[it->first] += it->second;
+             else if (dataSize[it->first] < it->second)
+               dataSize[it->first] = it->second;
+
+           if (maxEventSize[it->first] < it->second)
+               maxEventSize[it->first] = it->second;
+           }
+         }
+       }
+     }
+     return dataSize;
+   }
+   CATCH_DUMP_ATTR
+
+/*!
+    * Compute the required buffer size to send the attributes (mostly those grid related).
+    * \param maxEventSize [in/out] the size of the bigger event for each connected server
+    * \param [in] contextClient
+    * \param [in] bufferForWriting True if buffers are used for sending data for writing
+      This flag is only true for client and server-1 for communication with server-2
+    */
+   std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize,
+                                                           CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
+   TRY
+   {
+   // As calendar attributes are sent even if there are no active files or fields, maps are initialized according the size of calendar attributes
+     std::map<int, StdSize> attributesSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
+     maxEventSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
+
+     std::vector<CFile*>& fileList = this->enabledFiles;
+     size_t numEnabledFiles = fileList.size();
+     for (size_t i = 0; i < numEnabledFiles; ++i)
+     {
+//         CFile* file = this->enabledWriteModeFiles[i];
+        CFile* file = fileList[i];
+        std::vector<CField*> enabledFields = file->getEnabledFields();
+        size_t numEnabledFields = enabledFields.size();
+        for (size_t j = 0; j < numEnabledFields; ++j)
+        {
+          const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient, bufferForWriting);
+          std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+          for (; it != itE; ++it)
+          {
+         // If attributesSize[it->first] does not exist, it will be zero-initialized
+         // so we can use it safely without checking for its existence
+             if (attributesSize[it->first] < it->second)
+         attributesSize[it->first] = it->second;
+
+         if (maxEventSize[it->first] < it->second)
+         maxEventSize[it->first] = it->second;
+          }
+        }
+     }
+     return attributesSize;
+   }
+   CATCH_DUMP_ATTR
+
+
 
    //! Verify whether a context is initialized
    bool CContext::isInitialized(void)
@@ -898,12 +1050,13 @@ namespace xios {
     createCouplerInterCommunicator() ;
 
     // Find all enabled fields of each file      
-    const vector<CField*>&& fileOutField = findAllEnabledFieldsInFileOut(this->enabledWriteModeFiles);
-    const vector<CField*>&& fileInField = findAllEnabledFieldsInFileIn(this->enabledReadModeFiles);
-    const vector<CField*>&& CouplerOutField = findAllEnabledFieldsCouplerOut(this->enabledCouplerOut);
-    const vector<CField*>&& CouplerInField = findAllEnabledFieldsCouplerIn(this->enabledCouplerIn);
+    vector<CField*>&& fileOutField = findAllEnabledFieldsInFileOut(this->enabledWriteModeFiles);
+    vector<CField*>&& fileInField = findAllEnabledFieldsInFileIn(this->enabledReadModeFiles);
+    vector<CField*>&& CouplerOutField = findAllEnabledFieldsCouplerOut(this->enabledCouplerOut);
+    vector<CField*>&& CouplerInField = findAllEnabledFieldsCouplerIn(this->enabledCouplerIn);
     findFieldsWithReadAccess();
-    const vector<CField*>& fieldWithReadAccess = fieldsWithReadAccess_ ;
+    vector<CField*>& fieldWithReadAccess = fieldsWithReadAccess_ ;
+    vector<CField*> fieldModelIn ; // fields potentially from model
       
 // find all field potentially at workflow end
     vector<CField*> endWorkflowFields ;
@@ -914,10 +1067,15 @@ namespace xios {
 
     for(auto endWorkflowField : endWorkflowFields) endWorkflowField->buildWorkflowGraph(garbageCollector) ;
     
-    // Distribute files between secondary servers according to the data size => assign a context to a file
+    // get all field coming potentially from model
+    for (auto field : CField::getAll() ) if (field->getModelIn()) fieldModelIn.push_back(field) ;
+
+    // Distribute files between secondary servers according to the data size => assign a context to a file and then to fields
     if (serviceType_==CServicesManager::GATHERER) distributeFiles(this->enabledWriteModeFiles);
     else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
 
+   
+    // workflow endpoint => sent to IO/SERVER
     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
     {
       for(auto field : fileOutField) 
@@ -925,12 +1083,25 @@ namespace xios {
         field->connectToFileServer(garbageCollector) ; // connect the field to server filter
         field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
       }
+      setClientServerBuffer(fileOutField, true) ; // set context
+      for(auto field : fileOutField) field->sendFieldToFileServer() ;
     }
-    
 
 
+    // workflow startpoint => data from model
+    if (serviceType_==CServicesManager::CLIENT)
+    {
+      for(auto field : fieldModelIn) 
+      {
+        field->connectToModelInput(garbageCollector) ; // connect the field to server filter
+        // grid index will be computed on the fly
+      }
+    }
+
+  
 
 
+    return ;
     // For now, only read files with client and only one level server
     // if (hasClient && !hasServer) findEnabledReadModeFiles();      
 
@@ -1056,7 +1227,20 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
+ /*!
+  * Send context attribute and calendar to file server, it must be done once by context file server
+  * \param[in] client : context client to send   
+  */  
+  void CContext::sendContextToFileServer(CContextClient* client)
+  {
+    if (sendToFileServer_done_.count(client)!=0) return ;
+    else sendToFileServer_done_.insert(client) ;
+    
+    this->sendAllAttributesToServer(client); // Send all attributes of current context to server
+    CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current cale
+  }
 
+  // ym obsolete now to be removed
    void CContext::closeDefinition_old(void)
    TRY
    {
@@ -2067,97 +2251,8 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   /*!
-    * Compute the required buffer size to send the attributes (mostly those grid related).
-    * \param maxEventSize [in/out] the size of the bigger event for each connected server
-    * \param [in] contextClient
-    * \param [in] bufferForWriting True if buffers are used for sending data for writing
-      This flag is only true for client and server-1 for communication with server-2
-    */
-   std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize,
-                                                           CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
-   TRY
-   {
-	 // As calendar attributes are sent even if there are no active files or fields, maps are initialized according the size of calendar attributes
-     std::map<int, StdSize> attributesSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
-     maxEventSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
-
-     std::vector<CFile*>& fileList = this->enabledFiles;
-     size_t numEnabledFiles = fileList.size();
-     for (size_t i = 0; i < numEnabledFiles; ++i)
-     {
-//         CFile* file = this->enabledWriteModeFiles[i];
-        CFile* file = fileList[i];
-        std::vector<CField*> enabledFields = file->getEnabledFields();
-        size_t numEnabledFields = enabledFields.size();
-        for (size_t j = 0; j < numEnabledFields; ++j)
-        {
-          const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient, bufferForWriting);
-          std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-          for (; it != itE; ++it)
-          {
-		     // If attributesSize[it->first] does not exist, it will be zero-initialized
-		     // so we can use it safely without checking for its existence
-             if (attributesSize[it->first] < it->second)
-			   attributesSize[it->first] = it->second;
-
-		     if (maxEventSize[it->first] < it->second)
-			   maxEventSize[it->first] = it->second;
-          }
-        }
-     }
-     return attributesSize;
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
-    * Compute the required buffer size to send the fields data.
-    * \param maxEventSize [in/out] the size of the bigger event for each connected server
-    * \param [in] contextClient
-    * \param [in] bufferForWriting True if buffers are used for sending data for writing
-      This flag is only true for client and server-1 for communication with server-2
-    */
-   std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize,
-                                                      CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
-   TRY
-   {
-     std::map<int, StdSize> dataSize;
-
-     // Find all reference domain and axis of all active fields
-     std::vector<CFile*>& fileList = bufferForWriting ? this->enabledWriteModeFiles : this->enabledReadModeFiles;
-     size_t numEnabledFiles = fileList.size();
-     for (size_t i = 0; i < numEnabledFiles; ++i)
-     {
-       CFile* file = fileList[i];
-       if (file->getContextClient() == contextClient)
-       {
-         std::vector<CField*> enabledFields = file->getEnabledFields();
-         size_t numEnabledFields = enabledFields.size();
-         for (size_t j = 0; j < numEnabledFields; ++j)
-         {
-           // const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
-           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize(contextClient,bufferForWriting);
-           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-           for (; it != itE; ++it)
-           {
-             // If dataSize[it->first] does not exist, it will be zero-initialized
-             // so we can use it safely without checking for its existance
-        	 if (CXios::isOptPerformance)
-               dataSize[it->first] += it->second;
-             else if (dataSize[it->first] < it->second)
-               dataSize[it->first] = it->second;
-
-        	 if (maxEventSize[it->first] < it->second)
-               maxEventSize[it->first] = it->second;
-           }
-         }
-       }
-     }
-     return dataSize;
-   }
-   CATCH_DUMP_ATTR
-
-   //! Client side: Send infomation of active files (files are enabled to write out)
+  
+     //! Client side: Send infomation of active files (files are enabled to write out)
    void CContext::sendEnabledFiles(const std::vector<CFile*>& activeFiles)
    TRY
    {

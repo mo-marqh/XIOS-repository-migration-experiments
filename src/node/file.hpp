@@ -141,7 +141,12 @@ namespace xios {
          void sendAddVariable(const string& id, CContextClient* client);
          void sendAddVariableGroup(const string& id, CContextClient* client);
          void sendAddAllVariables(CContextClient* client);
-         
+      public:
+         void sendFileToFileServer(CContextClient* client) ;
+      private:
+         std::set<CContextClient*> sendFileToFileServer_done_ ;
+
+      public:
          // Receive info from client
          static void recvAddField(CEventServer& event);
          void recvAddField(CBufferIn& buffer);

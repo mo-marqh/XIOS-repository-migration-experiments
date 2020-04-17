@@ -144,14 +144,20 @@ namespace xios {
          void checkMask();
          void checkBounds();
          void checkLabel();
-         void sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
+      public:
+         void sendAxisToFileServer(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid) ;
+      private:
+         std::set<CContextClient*> sendAxisToFileServer_done_ ;
+      
+      private:
+         void sendAttributes(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
                              CServerDistributionDescription::ServerDistributionType distType);
-         void sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
+         void sendDistributionAttribute(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType);
          
 
-         void sendNonDistributedAttributes(void);
-         void sendDistributedAttributes(void);
+         void sendNonDistributedAttributes(CContextClient* client);
+         void sendDistributedAttributes(CContextClient* client);
 
          static void recvNonDistributedAttributes(CEventServer& event);
          static void recvDistributedAttributes(CEventServer& event);

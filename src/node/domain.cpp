@@ -2084,66 +2084,74 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
+  void CDomain::sendDomainToFileServer(CContextClient* client)
+  {
+    if (sendDomainToFileServer_done_.count(client)!=0) return ;
+    else sendDomainToFileServer_done_.insert(client) ;
+
+    StdString domDefRoot("domain_definition");
+    CDomainGroup* domPtr = CDomainGroup::get(domDefRoot);
+    domPtr->sendCreateChild(this->getId(), client);
+    this->sendAllAttributesToServer(client)  ;
+    this->sendDistributionAttributes(client);   
+    this->sendIndex(client);       
+    this->sendLonLat(client);
+    this->sendArea(client);    
+    this->sendDataIndex(client);
+  }
+
   /*!
     Send all attributes from client to connected clients
     The attributes will be rebuilt on receiving side
   */
+  // ym obsolete to be removed
   void CDomain::sendAttributes()
   TRY
   {
-    sendDistributionAttributes();
-    sendIndex();       
-    sendLonLat();
-    sendArea();    
-    sendDataIndex();
+    //sendDistributionAttributes();
+    //sendIndex();       
+    //sendLonLat();
+    //sendArea();    
+    //sendDataIndex();
   }
   CATCH
   /*!
     Send global index from client to connected client(s)
   */
-  void CDomain::sendIndex()
+  void CDomain::sendIndex(CContextClient* client)
   TRY
   {
     int ns, n, i, j, ind, nv, idx;
-    std::list<CContextClient*>::iterator it;
-    for (it=clients.begin(); it!=clients.end(); ++it)
+   
+    int serverSize = client->serverSize;
+    CEventClient eventIndex(getType(), EVENT_ID_INDEX);
+
+    list<CMessage> list_msgsIndex;
+    list<CArray<int,1> > list_indGlob;
+
+    std::unordered_map<int, vector<size_t> >::const_iterator itIndex, iteIndex;
+    iteIndex = indSrv_[serverSize].end();
+    for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
     {
-      CContextClient* client = *it;
+      int nbIndGlob = 0;
+      int rank = connectedServerRank_[serverSize][k];
+      itIndex = indSrv_[serverSize].find(rank);
+      if (iteIndex != itIndex)
+        nbIndGlob = itIndex->second.size();
 
-      int serverSize = client->serverSize;
-      CEventClient eventIndex(getType(), EVENT_ID_INDEX);
+      list_indGlob.push_back(CArray<int,1>(nbIndGlob));        
 
-      list<CMessage> list_msgsIndex;
-      list<CArray<int,1> > list_indGlob;
+      CArray<int,1>& indGlob = list_indGlob.back();
+      for (n = 0; n < nbIndGlob; ++n) indGlob(n) = static_cast<int>(itIndex->second[n]);
 
-      std::unordered_map<int, vector<size_t> >::const_iterator itIndex, iteIndex;
-      iteIndex = indSrv_[serverSize].end();
-      for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
-      {
-        int nbIndGlob = 0;
-        int rank = connectedServerRank_[serverSize][k];
-        itIndex = indSrv_[serverSize].find(rank);
-        if (iteIndex != itIndex)
-          nbIndGlob = itIndex->second.size();
-
-        list_indGlob.push_back(CArray<int,1>(nbIndGlob));        
-
-        CArray<int,1>& indGlob = list_indGlob.back();
-        for (n = 0; n < nbIndGlob; ++n)
-        {
-          indGlob(n) = static_cast<int>(itIndex->second[n]);
-        }
-
-        list_msgsIndex.push_back(CMessage());
-        list_msgsIndex.back() << this->getId() << (int)type; // enum ne fonctionne pour les message => ToFix
-        list_msgsIndex.back() << isCurvilinear;
-        list_msgsIndex.back() << list_indGlob.back(); //list_indi.back() << list_indj.back();
+      list_msgsIndex.push_back(CMessage());
+      list_msgsIndex.back() << this->getId() << (int)type; // enum ne fonctionne pour les message => ToFix
+      list_msgsIndex.back() << isCurvilinear;
+      list_msgsIndex.back() << list_indGlob.back(); //list_indi.back() << list_indj.back();
        
-        eventIndex.push(rank, nbSenders[serverSize][rank], list_msgsIndex.back());
-      }
-
-      client->sendEvent(eventIndex);
+      eventIndex.push(rank, nbSenders[serverSize][rank], list_msgsIndex.back());
     }
+    client->sendEvent(eventIndex);
   }
   CATCH_DUMP_ATTR
 
@@ -2152,103 +2160,92 @@ namespace xios {
     Because a client in a level knows correctly the grid distribution of client on the next level
     it calculates this distribution then sends it to the corresponding clients on the next level
   */
-  void CDomain::sendDistributionAttributes(void)
+  void CDomain::sendDistributionAttributes(CContextClient* client)
   TRY
   {
-    std::list<CContextClient*>::iterator it;
-    for (it=clients.begin(); it!=clients.end(); ++it)
+    int nbServer = client->serverSize;
+    std::vector<int> nGlobDomain(2);
+    nGlobDomain[0] = this->ni_glo;
+    nGlobDomain[1] = this->nj_glo;
+
+    CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
+    if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
+    else serverDescription.computeServerDistribution(false, 1);
+
+    std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+    std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+
+    CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
+    if (client->isServerLeader())
     {
-      CContextClient* client = *it;
-      int nbServer = client->serverSize;
-      std::vector<int> nGlobDomain(2);
-      nGlobDomain[0] = this->ni_glo;
-      nGlobDomain[1] = this->nj_glo;
+      std::list<CMessage> msgs;
 
-      CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
-      if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
-      else serverDescription.computeServerDistribution(false, 1);
-
-      std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-      std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-
-      CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
-      if (client->isServerLeader())
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
-        std::list<CMessage> msgs;
+        // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+        const int ibegin_srv = serverIndexBegin[*itRank][0];
+        const int jbegin_srv = serverIndexBegin[*itRank][1];
+        const int ni_srv = serverDimensionSizes[*itRank][0];
+        const int nj_srv = serverDimensionSizes[*itRank][1];
 
-        const std::list<int>& ranks = client->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-        {
-          // Use const int to ensure CMessage holds a copy of the value instead of just a reference
-          const int ibegin_srv = serverIndexBegin[*itRank][0];
-          const int jbegin_srv = serverIndexBegin[*itRank][1];
-          const int ni_srv = serverDimensionSizes[*itRank][0];
-          const int nj_srv = serverDimensionSizes[*itRank][1];
+        msgs.push_back(CMessage());
+        CMessage& msg = msgs.back();
+        msg << this->getId() ;
+        msg << isUnstructed_;
+        msg << ni_srv << ibegin_srv << nj_srv << jbegin_srv;
+        msg << ni_glo.getValue() << nj_glo.getValue();
+        msg << isCompressible_;
 
-          msgs.push_back(CMessage());
-          CMessage& msg = msgs.back();
-          msg << this->getId() ;
-          msg << isUnstructed_;
-          msg << ni_srv << ibegin_srv << nj_srv << jbegin_srv;
-          msg << ni_glo.getValue() << nj_glo.getValue();
-          msg << isCompressible_;
-
-          event.push(*itRank,1,msg);
-        }
-        client->sendEvent(event);
+        event.push(*itRank,1,msg);
       }
-      else client->sendEvent(event);
+      client->sendEvent(event);
     }
+    else client->sendEvent(event);
   }
   CATCH_DUMP_ATTR
 
   /*!
     Send area from client to connected client(s)
   */
-  void CDomain::sendArea()
+  void CDomain::sendArea(CContextClient* client)
   TRY
   {
     if (!hasArea) return;
 
     int ns, n, i, j, ind, nv, idx;
-    std::list<CContextClient*>::iterator it;
+    int serverSize = client->serverSize;
 
-    for (it=clients.begin(); it!=clients.end(); ++it)
+    // send area for each connected server
+    CEventClient eventArea(getType(), EVENT_ID_AREA);
+
+    list<CMessage> list_msgsArea;
+    list<CArray<double,1> > list_area;
+
+    std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
+    iteMap = indSrv_[serverSize].end();
+    for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
     {
-      CContextClient* client = *it;
-      int serverSize = client->serverSize;
+      int nbData = 0;
+      int rank = connectedServerRank_[serverSize][k];
+      it = indSrv_[serverSize].find(rank);
+      if (iteMap != it)
+        nbData = it->second.size();
+      list_area.push_back(CArray<double,1>(nbData));
 
-      // send area for each connected server
-      CEventClient eventArea(getType(), EVENT_ID_AREA);
-
-      list<CMessage> list_msgsArea;
-      list<CArray<double,1> > list_area;
-
-      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_[serverSize].end();
-      for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
+      const std::vector<size_t>& temp = it->second;
+      for (n = 0; n < nbData; ++n)
       {
-        int nbData = 0;
-        int rank = connectedServerRank_[serverSize][k];
-        it = indSrv_[serverSize].find(rank);
-        if (iteMap != it)
-          nbData = it->second.size();
-        list_area.push_back(CArray<double,1>(nbData));
-
-        const std::vector<size_t>& temp = it->second;
-        for (n = 0; n < nbData; ++n)
-        {
-          idx = static_cast<int>(it->second[n]);
-          list_area.back()(n) = areavalue(globalLocalIndexMap_[idx]);
-        }
-
-        list_msgsArea.push_back(CMessage());
-        list_msgsArea.back() << this->getId() << hasArea;
-        list_msgsArea.back() << list_area.back();
-        eventArea.push(rank, nbSenders[serverSize][rank], list_msgsArea.back());
+        idx = static_cast<int>(it->second[n]);
+        list_area.back()(n) = areavalue(globalLocalIndexMap_[idx]);
       }
-      client->sendEvent(eventArea);
+
+      list_msgsArea.push_back(CMessage());
+      list_msgsArea.back() << this->getId() << hasArea;
+      list_msgsArea.back() << list_area.back();
+      eventArea.push(rank, nbSenders[serverSize][rank], list_msgsArea.back());
     }
+    client->sendEvent(eventArea);
   }
   CATCH_DUMP_ATTR
 
@@ -2257,95 +2254,90 @@ namespace xios {
     Each client send long and lat information to corresponding connected clients(s).
     Because longitude and latitude are optional, this function only called if latitude and longitude exist
   */
-  void CDomain::sendLonLat()
+  void CDomain::sendLonLat(CContextClient* client)
   TRY
   {
     if (!hasLonLat) return;
 
     int ns, n, i, j, ind, nv, idx;
-    std::list<CContextClient*>::iterator it;
-    for (it=clients.begin(); it!=clients.end(); ++it)
+    int serverSize = client->serverSize;
+
+    // send lon lat for each connected server
+    CEventClient eventLon(getType(), EVENT_ID_LON);
+    CEventClient eventLat(getType(), EVENT_ID_LAT);
+
+    list<CMessage> list_msgsLon, list_msgsLat;
+    list<CArray<double,1> > list_lon, list_lat;
+    list<CArray<double,2> > list_boundslon, list_boundslat;
+
+    std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
+    iteMap = indSrv_[serverSize].end();
+    for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
     {
-      CContextClient* client = *it;
-      int serverSize = client->serverSize;
+      int nbData = 0;
+      int rank = connectedServerRank_[serverSize][k];
+      it = indSrv_[serverSize].find(rank);
+      if (iteMap != it)
+        nbData = it->second.size();
 
-      // send lon lat for each connected server
-      CEventClient eventLon(getType(), EVENT_ID_LON);
-      CEventClient eventLat(getType(), EVENT_ID_LAT);
+      list_lon.push_back(CArray<double,1>(nbData));
+      list_lat.push_back(CArray<double,1>(nbData));
 
-      list<CMessage> list_msgsLon, list_msgsLat;
-      list<CArray<double,1> > list_lon, list_lat;
-      list<CArray<double,2> > list_boundslon, list_boundslat;
-
-      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_[serverSize].end();
-      for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
+      if (hasBounds)
       {
-        int nbData = 0;
-        int rank = connectedServerRank_[serverSize][k];
-        it = indSrv_[serverSize].find(rank);
-        if (iteMap != it)
-          nbData = it->second.size();
+        list_boundslon.push_back(CArray<double,2>(nvertex, nbData));
+        list_boundslat.push_back(CArray<double,2>(nvertex, nbData));
+      }
 
-        list_lon.push_back(CArray<double,1>(nbData));
-        list_lat.push_back(CArray<double,1>(nbData));
+      CArray<double,1>& lon = list_lon.back();
+      CArray<double,1>& lat = list_lat.back();
+      const std::vector<size_t>& temp = it->second;
+      for (n = 0; n < nbData; ++n)
+      {
+        idx = static_cast<int>(it->second[n]);
+        int localInd = globalLocalIndexMap_[idx];
+        lon(n) = lonvalue(localInd);
+        lat(n) = latvalue(localInd);
 
         if (hasBounds)
         {
-          list_boundslon.push_back(CArray<double,2>(nvertex, nbData));
-          list_boundslat.push_back(CArray<double,2>(nvertex, nbData));
-        }
+          CArray<double,2>& boundslon = list_boundslon.back();
+          CArray<double,2>& boundslat = list_boundslat.back();
 
-        CArray<double,1>& lon = list_lon.back();
-        CArray<double,1>& lat = list_lat.back();
-        const std::vector<size_t>& temp = it->second;
-        for (n = 0; n < nbData; ++n)
-        {
-          idx = static_cast<int>(it->second[n]);
-          int localInd = globalLocalIndexMap_[idx];
-          lon(n) = lonvalue(localInd);
-          lat(n) = latvalue(localInd);
-
-          if (hasBounds)
+          for (nv = 0; nv < nvertex; ++nv)
           {
-            CArray<double,2>& boundslon = list_boundslon.back();
-            CArray<double,2>& boundslat = list_boundslat.back();
-
-            for (nv = 0; nv < nvertex; ++nv)
-            {
-              boundslon(nv, n) = bounds_lonvalue(nv, localInd);
-              boundslat(nv, n) = bounds_latvalue(nv, localInd);
-            }
+            boundslon(nv, n) = bounds_lonvalue(nv, localInd);
+            boundslat(nv, n) = bounds_latvalue(nv, localInd);
           }
         }
-
-        list_msgsLon.push_back(CMessage());
-        list_msgsLat.push_back(CMessage());
-
-        list_msgsLon.back() << this->getId() << hasLonLat;
-        if (hasLonLat) 
-          list_msgsLon.back() << list_lon.back();
-        list_msgsLon.back()  << hasBounds;
-        if (hasBounds)
-        {
-          list_msgsLon.back() << list_boundslon.back();
-        }
-
-        list_msgsLat.back() << this->getId() << hasLonLat;
-        if (hasLonLat)
-          list_msgsLat.back() << list_lat.back();
-        list_msgsLat.back() << hasBounds;
-        if (hasBounds)
-        {          
-          list_msgsLat.back() << list_boundslat.back();
-        }
-
-        eventLon.push(rank, nbSenders[serverSize][rank], list_msgsLon.back());
-        eventLat.push(rank, nbSenders[serverSize][rank], list_msgsLat.back());
       }
-      client->sendEvent(eventLon);
-      client->sendEvent(eventLat);
+
+      list_msgsLon.push_back(CMessage());
+      list_msgsLat.push_back(CMessage());
+
+      list_msgsLon.back() << this->getId() << hasLonLat;
+      if (hasLonLat) 
+        list_msgsLon.back() << list_lon.back();
+      list_msgsLon.back()  << hasBounds;
+      if (hasBounds)
+      {
+        list_msgsLon.back() << list_boundslon.back();
+      }
+
+      list_msgsLat.back() << this->getId() << hasLonLat;
+      if (hasLonLat)
+        list_msgsLat.back() << list_lat.back();
+      list_msgsLat.back() << hasBounds;
+      if (hasBounds)
+      {          
+        list_msgsLat.back() << list_boundslat.back();
+      }
+
+      eventLon.push(rank, nbSenders[serverSize][rank], list_msgsLon.back());
+      eventLat.push(rank, nbSenders[serverSize][rank], list_msgsLat.back());
     }
+    client->sendEvent(eventLon);
+    client->sendEvent(eventLat);
   }
   CATCH_DUMP_ATTR
 
@@ -2355,75 +2347,69 @@ namespace xios {
     and they will be compressed on receiving.
     The compressed index are represented with 1 and others are represented with -1
   */
-  void CDomain::sendDataIndex()
+  void CDomain::sendDataIndex(CContextClient* client)
   TRY
   {
     int ns, n, i, j, ind, nv, idx;
-    std::list<CContextClient*>::iterator it;
-    for (it=clients.begin(); it!=clients.end(); ++it)
+    int serverSize = client->serverSize;
+
+    // send area for each connected server
+    CEventClient eventDataIndex(getType(), EVENT_ID_DATA_INDEX);
+
+    list<CMessage> list_msgsDataIndex;
+    list<CArray<int,1> > list_data_i_index, list_data_j_index;
+
+    int nbIndex = i_index.numElements();
+    int niByIndex = max(i_index) - min(i_index) + 1;
+    int njByIndex = max(j_index) - min(j_index) + 1; 
+    int dataIindexBound = (1 == data_dim) ? (niByIndex * njByIndex) : niByIndex;
+    int dataJindexBound = (1 == data_dim) ? (niByIndex * njByIndex) : njByIndex;
+
+    
+    CArray<int,1> dataIIndex(nbIndex), dataJIndex(nbIndex);
+    dataIIndex = -1; 
+    dataJIndex = -1;
+    ind = 0;
+
+    for (idx = 0; idx < data_i_index.numElements(); ++idx)
     {
-      CContextClient* client = *it;
-
-      int serverSize = client->serverSize;
-
-      // send area for each connected server
-      CEventClient eventDataIndex(getType(), EVENT_ID_DATA_INDEX);
-
-      list<CMessage> list_msgsDataIndex;
-      list<CArray<int,1> > list_data_i_index, list_data_j_index;
-
-      int nbIndex = i_index.numElements();
-      int niByIndex = max(i_index) - min(i_index) + 1;
-      int njByIndex = max(j_index) - min(j_index) + 1; 
-      int dataIindexBound = (1 == data_dim) ? (niByIndex * njByIndex) : niByIndex;
-      int dataJindexBound = (1 == data_dim) ? (niByIndex * njByIndex) : njByIndex;
-
-      
-      CArray<int,1> dataIIndex(nbIndex), dataJIndex(nbIndex);
-      dataIIndex = -1; 
-      dataJIndex = -1;
-      ind = 0;
-
-      for (idx = 0; idx < data_i_index.numElements(); ++idx)
+      int dataIidx = data_i_index(idx) + data_ibegin;
+      int dataJidx = data_j_index(idx) + data_jbegin;
+      if ((0 <= dataIidx) && (dataIidx < dataIindexBound) &&
+          (0 <= dataJidx) && (dataJidx < dataJindexBound))
       {
-        int dataIidx = data_i_index(idx) + data_ibegin;
-        int dataJidx = data_j_index(idx) + data_jbegin;
-        if ((0 <= dataIidx) && (dataIidx < dataIindexBound) &&
-            (0 <= dataJidx) && (dataJidx < dataJindexBound))
-        {
-          dataIIndex((1 == data_dim) ? dataIidx : dataJidx * ni + dataIidx) = 1; //i_index(dataIidx);//dataIidx;
-          dataJIndex((1 == data_dim) ? dataIidx : dataJidx * ni + dataIidx) = 1; //j_index(dataJidx);//          
-        }
+        dataIIndex((1 == data_dim) ? dataIidx : dataJidx * ni + dataIidx) = 1; //i_index(dataIidx);//dataIidx;
+        dataJIndex((1 == data_dim) ? dataIidx : dataJidx * ni + dataIidx) = 1; //j_index(dataJidx);//          
       }
-
-      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_[serverSize].end();
-      for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
-      {
-        int nbData = 0;
-        int rank = connectedServerRank_[serverSize][k];
-        it = indSrv_[serverSize].find(rank);
-        if (iteMap != it)
-          nbData = it->second.size();
-        list_data_i_index.push_back(CArray<int,1>(nbData));
-        list_data_j_index.push_back(CArray<int,1>(nbData));
-
-        const std::vector<size_t>& temp = it->second;
-        for (n = 0; n < nbData; ++n)
-        {
-          idx = static_cast<int>(it->second[n]);
-          i = globalLocalIndexMap_[idx];
-          list_data_i_index.back()(n) = dataIIndex(i);
-          list_data_j_index.back()(n) = dataJIndex(i);
-        }
-
-        list_msgsDataIndex.push_back(CMessage());
-        list_msgsDataIndex.back() << this->getId();
-        list_msgsDataIndex.back() << list_data_i_index.back() << list_data_j_index.back();
-        eventDataIndex.push(rank, nbSenders[serverSize][rank], list_msgsDataIndex.back());
-      }
-      client->sendEvent(eventDataIndex);
     }
+
+    std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
+    iteMap = indSrv_[serverSize].end();
+    for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
+    {
+      int nbData = 0;
+      int rank = connectedServerRank_[serverSize][k];
+      it = indSrv_[serverSize].find(rank);
+      if (iteMap != it)
+        nbData = it->second.size();
+      list_data_i_index.push_back(CArray<int,1>(nbData));
+      list_data_j_index.push_back(CArray<int,1>(nbData));
+
+      const std::vector<size_t>& temp = it->second;
+      for (n = 0; n < nbData; ++n)
+      {
+        idx = static_cast<int>(it->second[n]);
+        i = globalLocalIndexMap_[idx];
+        list_data_i_index.back()(n) = dataIIndex(i);
+        list_data_j_index.back()(n) = dataJIndex(i);
+      }
+
+      list_msgsDataIndex.push_back(CMessage());
+      list_msgsDataIndex.back() << this->getId();
+      list_msgsDataIndex.back() << list_data_i_index.back() << list_data_j_index.back();
+      eventDataIndex.push(rank, nbSenders[serverSize][rank], list_msgsDataIndex.back());
+    }
+    client->sendEvent(eventDataIndex);
   }
   CATCH
   

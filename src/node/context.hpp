@@ -158,7 +158,8 @@ namespace xios {
 
          std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
-         void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false);
+         void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false); // old interface to be removed
+         void setClientServerBuffer(vector<CField*>& fields, bool bufferForWriting) ; 
 
          // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
          void distributeFiles(const std::vector<CFile*>& files);
@@ -180,7 +181,13 @@ namespace xios {
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
          void sendRegistry(void) ;
          void sendFinalizeClient(CContextClient* contextClient, const string& contextClientId);
-
+         
+         public:
+         void sendContextToFileServer(CContextClient* client) ;
+         private:
+         std::set<CContextClient*> sendToFileServer_done_ ;
+         
+         public: 
          std::string getContextId() {return contextId_;}
 
          // Client side: Receive and process messages

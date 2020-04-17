@@ -1344,6 +1344,26 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+
+  
+   /*!
+    * Send file attribute, related variable and chield field tree to a given file server.
+    * \param[in] client : the context client where to send file
+    */
+   void CFile::sendFileToFileServer(CContextClient* client)
+   TRY
+   {
+     if (sendFileToFileServer_done_.count(client)!=0) return ;
+     else sendFileToFileServer_done_.insert(client) ;
+     
+     StdString fileDefRoot("file_definition");
+     CFileGroup* cfgrpPtr = CFileGroup::get(fileDefRoot);
+     cfgrpPtr->sendCreateChild(this->getId(), client);
+     this->sendAllAttributesToServer(client);
+     this->sendAddAllVariables(client);
+     for(auto field : enabledFields) this->sendAddField(field->getId(), client);
+   }
+   CATCH_DUMP_ATTR
    /*!
    \brief Dispatch event received from client
       Whenever a message is received in buffer of server, it will be processed depending on

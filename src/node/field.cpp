@@ -245,15 +245,13 @@ namespace xios
 
     if (opeDate <= currDate)
     {
-      for (map<int, CArray<size_t, 1> >::iterator it = grid_->outLocalIndexStoreOnClient_.begin(); it != grid_->outLocalIndexStoreOnClient_.end(); ++it)
+      auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
+      for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
       {
         CArray<double,1> tmp;
         CArray<size_t,1>& indexTmp = it->second;
         *(rankBuffers[it->first]) >> tmp;
-        for (int idx = 0; idx < indexTmp.numElements(); ++idx)
-        {
-          recv_data_tmp(indexTmp(idx)) = tmp(idx);
-        }      
+        for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
       }
     }
 
@@ -435,8 +433,8 @@ namespace xios
     }
     else
     {
-      for (map<int, CArray<size_t, 1> >::iterator it = grid_->outLocalIndexStoreOnClient_.begin(); 
-                                                  it != grid_->outLocalIndexStoreOnClient_.end(); ++it)
+      auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
+      for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
       {
         CArray<size_t,1>& indexTmp = it->second;
         CArray<double,1> tmp(indexTmp.numElements());
@@ -1024,6 +1022,50 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
+  /*!
+   * Compute the required buffer size to send the fields data.
+   * \param [in/out] bufferSize Modifying the bufferSize for the client context
+   * \param [in/out] maxEventSize Modifying the maximum event size for the client context 
+   * \param [in] bufferForWriting True if buffers are used for sending data for writing
+   */  
+  void CField::setContextClientDataBufferSize(map<CContextClient*,map<int,size_t>>& bufferSize, 
+                                              map<CContextClient*,map<int,size_t>>& maxEventSize, 
+                                              bool bufferForWriting)
+  {
+    auto& contextBufferSize = bufferSize[client] ;
+    auto& contextMaxEventSize = maxEventSize[client] ;
+    const std::map<int, size_t> mapSize = grid_->getDataBufferSize(client, getId(), bufferForWriting);
+    for(auto& it : mapSize )
+    {
+      // If contextBufferSize[it.first] does not exist, it will be zero-initialized
+      // so we can use it safely without checking for its existance
+      if (CXios::isOptPerformance) contextBufferSize[it.first] += it.second;
+      else if (contextBufferSize[it.first] < it.second) contextBufferSize[it.first] = it.second;
+
+      if (contextMaxEventSize[it.first] < it.second) contextMaxEventSize[it.first] = it.second;
+    }
+
+  }
+
+  void CField::setContextClientAttributesBufferSize(map<CContextClient*,map<int,size_t>>& bufferSize, 
+                                                   map<CContextClient*,map<int,size_t>>& maxEventSize, 
+                                                   bool bufferForWriting)
+  {
+    auto& contextBufferSize = bufferSize[client] ;
+    auto& contextMaxEventSize = maxEventSize[client] ;
+    const std::map<int, size_t> mapSize = grid_->getAttributesBufferSize(client, bufferForWriting);
+    for(auto& it : mapSize )
+    {
+      // If contextBufferSize[it.first] does not exist, it will be zero-initialized
+      // so we can use it safely without checking for its existance
+      if (contextBufferSize[it.first] < it.second) contextBufferSize[it.first] = it.second;
+      if (contextMaxEventSize[it.first] < it.second) contextMaxEventSize[it.first] = it.second;
+    }
+
+  }
+
+
+// ym obsolete to be removed 
   std::map<int, StdSize> CField::getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting /*= "false"*/)
   TRY
   {
@@ -1031,12 +1073,15 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
+// ym obsolete to be removed 
   std::map<int, StdSize> CField::getGridDataBufferSize(CContextClient* client, bool bufferForWriting /*= "false"*/)
   TRY
   {
     return grid_->getDataBufferSize(client, getId(), bufferForWriting);
   }
   CATCH_DUMP_ATTR
+
+
 
   size_t CField::getGlobalWrittenSize()
   TRY
@@ -1171,7 +1216,11 @@ namespace xios
     return true ;
   }
    
-  
+  /*!
+   * Connect field to filter to send data to server. A temporal filter is inserted before accordingly to the 
+   * output frequency of the file
+   * \param gc the garbage collector to use when building the filter graph
+   */
   void CField::connectToFileServer(CGarbageCollector& gc)
   {
     // insert temporal filter before sending to files
@@ -1180,12 +1229,28 @@ namespace xios
     getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
   } 
 
+  /*!
+   * Compute grid index needed to send grid and data to server
+   */
   void CField::computeGridIndexToFileServer(void)
   {
     grid_->computeGridIndexToFileServer(client) ;
   }
 
-   /*!
+  /*!
+   * Connect field to a source filter to receive data from model.
+   */
+  void CField::connectToModelInput(CGarbageCollector& gc)
+  {
+    const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+    const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+
+    if (check_if_active.isEmpty()) check_if_active = false; 
+    clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid_, false, true, NoneDu, false, detectMissingValues, defaultValue));
+    clientSourceFilter -> connectOutput(inputFilter,0) ;
+  } 
+ 
+  /*!
    * Transform the grid_path attribut into vector of grid.
    * \return the vector CGrid* containing the list of grid path for tranformation
    */ 
@@ -1230,7 +1295,7 @@ namespace xios
    * \param enableOutput must be true when the field data is to be
    *                     read by the client or/and written to a file
    */
-
+   // ym obselete : to be removed later....
   void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
   TRY
   {     
@@ -1887,6 +1952,16 @@ namespace xios
   }
   CATCH
 
+  
+  void CField::sendFieldToFileServer(void)
+  {
+    CContext::getCurrent()->sendContextToFileServer(client);
+    fileOut_->sendFileToFileServer(client);
+    grid_->sendGridToFileServer(client);
+    this->sendAllAttributesToServer(client);
+    this->sendAddAllVariables(client);
+  }
+
   void CField::sendAddAllVariables(CContextClient* client)
   TRY
   {
@@ -1915,6 +1990,9 @@ namespace xios
     {
       grid_ref=grid_->getId() ;
       SuperClass::sendAllAttributesToServer(client) ;
+      domain_ref.reset() ;
+      axis_ref.reset() ;
+      scalar_ref.reset() ;
       grid_ref.reset();
     }
     else SuperClass::sendAllAttributesToServer(client) ;
