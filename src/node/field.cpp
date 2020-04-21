@@ -1191,10 +1191,13 @@ namespace xios
       for(auto grid : gridPath) 
       {
         grid->makeTransformGrid() ; // make the grid transformation
-        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridSrc, grid, detectMissingValues, defaultValue); 
-        lastFilter->connectOutput(filters.first, 0);
-        lastFilter = filters.second;
-        gridSrc=grid ;
+        if (grid->hasTransform()) 
+        {
+          std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridSrc, grid, detectMissingValues, defaultValue); 
+          lastFilter->connectOutput(filters.first, 0);
+          lastFilter = filters.second;
+          gridSrc=grid ;
+        }
       }
       instantDataFilter = lastFilter ;
       
@@ -1204,11 +1207,30 @@ namespace xios
     else 
     {
       if (!grid_->checkIfCompleted()) return false ;
-      grid_->solveElementsRefInheritance() ;
-      grid_->completeGrid(); // grid generation, to be checked
-      grid_->checkElementsAttributes() ;
-      instantDataFilter=inputFilter ;
-      setModelIn() ; // no reference, the field is potentially a source field from model
+      
+      if (hasFileIn()) // input file, attemp to read the grid from file
+      {
+         // must be checked
+         fileIn_->initRead() ;
+         fileIn_->checkReadFile();
+         grid_->solveElementsRefInheritance() ;
+         if (fileIn_->isClientSide()) fileIn_->readFieldAttributesMetaData(this);
+         grid_->completeGrid(); // grid generation, to be checked
+         if (fileIn_->isClientSide()) fileIn_->readFieldAttributesValues(this);
+         grid_->checkElementsAttributes() ;
+         grid_->solveDomainAxisBaseRef();
+         // probably in future tag grid incomplete if coming from a reading
+         instantDataFilter=inputFilter ;
+      }  
+      else 
+      {
+        setModelIn() ; // no reference, the field is potentially a source field from model
+
+        grid_->solveElementsRefInheritance() ;
+        grid_->completeGrid(); // grid generation, to be checked
+        grid_->checkElementsAttributes() ;
+        instantDataFilter=inputFilter ;
+      }
     }
     
     buildWorkflowGraphDone_ = true ;
@@ -1224,9 +1246,9 @@ namespace xios
   void CField::connectToFileServer(CGarbageCollector& gc)
   {
     // insert temporal filter before sending to files
-    fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, file->getContextClient()));
+    fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, client));
     // insert temporal filter before sending to files
-    getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
+    getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(fileWriterFilter, 0);
   } 
 
   /*!
@@ -1250,6 +1272,47 @@ namespace xios
     clientSourceFilter -> connectOutput(inputFilter,0) ;
   } 
  
+  /*!
+   * Connect field to a source filter to receive data from a client (on server side).
+   */
+  void CField::connectToClientInput(CGarbageCollector& gc)
+  {
+    clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc,  grid_, false, false));
+    clientSourceFilter -> connectOutput(inputFilter,0) ;
+  } 
+
+
+  /*!
+   * Connect field to a source filter to receive data from a server (on client side).
+   */
+  void CField::connectToServerInput(CGarbageCollector& gc)
+  {
+    serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc,  grid_, false, false));
+    serverSourceFilter -> connectOutput(inputFilter,0) ;
+  } 
+
+  /*!
+   * Connect field to a file writer filter to write data in file (on server side).
+   */
+  void CField::connectToFileWriter(CGarbageCollector& gc)
+  {
+    fileServerWriterFilter = std::shared_ptr<CFileServerWriterFilter>(new CFileServerWriterFilter(gc, this));
+    instantDataFilter->connectOutput(fileServerWriterFilter, 0);
+  } 
+  
+
+  /*!
+   * Connect field to a store filter to output data to model on client Side
+   */
+  void CField::connectToModelOutput(CGarbageCollector& gc)
+  {
+    const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+    const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+
+    storeFilter = std::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid_, detectMissingValues, defaultValue));
+    instantDataFilter->connectOutput(storeFilter, 0);
+  }
+
   /*!
    * Transform the grid_path attribut into vector of grid.
    * \return the vector CGrid* containing the list of grid path for tranformation

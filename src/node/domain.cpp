@@ -1849,7 +1849,7 @@ namespace xios {
   void CDomain::computeConnectedClients(CContextClient* client)
   TRY
   {
-    if (computeConnectedClients_done_.count(client)==0) return ;
+    if (computeConnectedClients_done_.count(client)!=0) return ;
     else computeConnectedClients_done_.insert(client) ;
     
     CContext* context=CContext::getCurrent() ;

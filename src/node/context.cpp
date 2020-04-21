@@ -1016,7 +1016,9 @@ namespace xios {
      // After xml is parsed, there are some more works with post processing
 //     postProcessing();
 
+    
     // Make sure the calendar was correctly created
+    if (serviceType_!=CServicesManager::CLIENT) CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
     if (!calendar)
       ERROR("CContext::postProcessing()", << "A calendar must be defined for the context \"" << getId() << "!\"")
     else if (calendar->getTimeStep() == NoneDu)
@@ -1057,7 +1059,21 @@ namespace xios {
     findFieldsWithReadAccess();
     vector<CField*>& fieldWithReadAccess = fieldsWithReadAccess_ ;
     vector<CField*> fieldModelIn ; // fields potentially from model
-      
+     
+    // define if files are on clientSied or serverSide 
+    if (serviceType_==CServicesManager::CLIENT)
+    {
+      for (auto& file : enabledWriteModeFiles) file->setClientSide() ;
+      for (auto& file : enabledReadModeFiles) file->setClientSide() ;
+    }
+    else
+    {
+      for (auto& file : enabledWriteModeFiles) file->setServerSide() ;
+      for (auto& file : enabledReadModeFiles) file->setServerSide() ;
+    }
+
+
+
 // find all field potentially at workflow end
     vector<CField*> endWorkflowFields ;
     endWorkflowFields.reserve(fileOutField.size()+CouplerOutField.size()+fieldWithReadAccess.size()) ;
@@ -1087,6 +1103,27 @@ namespace xios {
       for(auto field : fileOutField) field->sendFieldToFileServer() ;
     }
 
+    // workflow endpoint => write to file
+    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)
+    {
+      for(auto field : fileOutField) 
+      {
+        field->connectToFileWriter(garbageCollector) ; // connect the field to server filter
+      }
+    }
+    
+    // workflow endpoint => Send data from server to client
+    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER)
+    {
+      // no filter to send data from server to client => to be implemented (reading case)
+    }
+
+    // workflow endpoint => sent to model on client side
+    if (serviceType_==CServicesManager::CLIENT)
+    {
+      for(auto field : fieldWithReadAccess) field->connectToModelOutput(garbageCollector) ;
+    }
+
 
     // workflow startpoint => data from model
     if (serviceType_==CServicesManager::CLIENT)
@@ -1097,8 +1134,39 @@ namespace xios {
         // grid index will be computed on the fly
       }
     }
+    
+    // workflow startpoint => data from client on server side
+    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER || serviceType_==CServicesManager::OUT_SERVER)
+    {
+      for(auto field : fieldModelIn) 
+      {
+        field->connectToClientInput(garbageCollector) ; // connect the field to server filter
+      }
+    }
 
-  
+     // workflow startpoint => data from server on client side
+    if (serviceType_==CServicesManager::CLIENT)
+    {
+      for(auto field : fileInField) 
+      {
+        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
+        field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
+        field->sendFieldToFileServer() ;
+      }
+    }
+
+    // workflow startpoint => data read from file on server side
+    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER)
+    {
+      // no filter for reading data from file => to be implemented
+    }
+
+
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendCloseDefinition();
+    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)  createFileHeader();
+    if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
+   
+
 
 
     return ;

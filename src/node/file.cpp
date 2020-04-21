@@ -344,9 +344,10 @@ namespace xios {
       // Done by classical server or secondary server
       // TODO: This condition should be changed soon. It only works with maximum number of level as 2
 
-//ym      if (CServer::serverLevel == 0 || CServer::serverLevel == 1)
-      if (context->getServiceType()==CServicesManager::IO_SERVER || context->getServiceType()==CServicesManager::GATHERER)
-      {
+//ym      if (CServer::serverLevel == 0 || CServer::serverLevel == 1) 
+// ym client must doing it also
+//      if (context->getServiceType()==CServicesManager::IO_SERVER || context->getServiceType()==CServicesManager::GATHERER)
+//      {
         if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {
           CTimer::get("Files : open headers").resume();
@@ -356,7 +357,7 @@ namespace xios {
           CTimer::get("Files : open headers").suspend();
         }
         //checkSplit(); // Really need for reading?
-      }
+ //     }
     }
     CATCH_DUMP_ATTR
 
@@ -755,6 +756,15 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   void CFile::readFieldAttributesMetaData(CField* field)
+   {
+     this->data_in->readFieldAttributesMetaData(field);
+   }
+
+   void CFile::readFieldAttributesValues(CField* field)
+   {
+     this->data_in->readFieldAttributesValues(field);
+   }
    /*!
    \brief Parse xml file and write information into file object
    \param [in] node xmld node corresponding in xml file

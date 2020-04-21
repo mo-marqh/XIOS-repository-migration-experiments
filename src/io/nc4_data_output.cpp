@@ -1639,7 +1639,7 @@ namespace xios
              case (ONE_FILE):
              {
                if (grid->doGridHaveDataDistributed())
-                 grid->getDistributionServer()->computeGlobalIndex(indexes);
+                 grid->getServerDistribution()->computeGlobalIndex(indexes);
 
                std::vector<StdSize> start, count;
                start.push_back(grid->getOffsetWrittenIndexes());

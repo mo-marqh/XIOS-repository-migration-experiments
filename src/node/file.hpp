@@ -103,7 +103,8 @@ namespace xios {
          void openInReadMode(void);
          void close(void);
          void readAttributesOfEnabledFieldsInReadMode();
-
+         void readFieldAttributesMetaData(CField* field) ;
+         void readFieldAttributesValues(CField* field) ;
          // Some processing on file
          void solveFieldRefInheritance(bool apply);
          void processEnabledFile(void);
@@ -195,6 +196,16 @@ namespace xios {
          std::shared_ptr<CDataOutput> data_out;
          std::shared_ptr<CDataInput> data_in;
          std::vector<CField*> enabledFields;
+
+       private:  
+         bool isClientSide_ ; // the file is on client side or on server side ?
+       public:
+         bool isClientSide(void) { return isClientSide_ ;}
+         bool isServerSide(void) { return !isClientSide_ ;}
+         void setClientSide(void) { isClientSide_=true ;}
+         void setServerSide(void) { isClientSide_=false ;}
+       
+       private:
 
 
       public:

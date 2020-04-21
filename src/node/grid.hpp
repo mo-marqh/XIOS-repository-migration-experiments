@@ -193,12 +193,11 @@ namespace xios {
 
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed(CContextClient* client = 0);
-         size_t getWrittenDataSize() const;
+         size_t getWrittenDataSize() ;
          int getNumberWrittenIndexes() const;
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
-         CDistributionServer* getDistributionServer();
          CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformGridSrc);
@@ -246,6 +245,15 @@ namespace xios {
        bool computeClientDistribution_done_ = false ;
      public:
        CDistributionClient* getClientDistribution(void); 
+
+     private:   
+       /** Server-like distribution calculated upon receiving indexes */
+       CDistributionServer* serverDistribution_;
+       void computeServerDistribution(void) ;
+       bool computeServerDistribution_done_=false ;
+     public: 
+       CDistributionServer* getServerDistribution(void) { if (computeServerDistribution_done_) computeServerDistribution() ; return serverDistribution_ ;}
+
 
      private:
        template<int N>
@@ -412,11 +420,7 @@ namespace xios {
         std::vector<std::string> axisList_, domList_, scalarList_;
         bool isAxisListSet, isDomListSet, isScalarListSet;
 
-/** Server-like distribution calculated upon receiving indexes */
-        CDistributionServer* serverDistribution_;
-
         CClientServerMapping* clientServerMap_;
-        size_t writtenDataSize_;
         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
 
 /** Map storing local ranks of connected receivers. Key = size of receiver's intracomm.

@@ -30,7 +30,7 @@ namespace xios {
       , vAxisGroup_(), axisList_(), isAxisListSet(false)
       , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
-      , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
+      , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
 	    , isCompressible_(false)
       , transformations_(0), isTransformed_(false)
@@ -51,7 +51,7 @@ namespace xios {
       , vAxisGroup_(), axisList_(), isAxisListSet(false)
       , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
-      , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
+      , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
 	    , isCompressible_(false)
       , transformations_(0), isTransformed_(false)
@@ -1664,6 +1664,132 @@ namespace xios {
   void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers, CContextServer* server)
   TRY
   {
+    CContextClient* client = server->getAssociatedClient();
+    connectedServerRankRead_ = ranks;
+    for (int n = 0; n < ranks.size(); n++)
+    {
+      int rank = ranks[n];
+      CBufferIn& buffer = *buffers[n];
+      buffer >>  isCompressible_; // probably to be removed later
+      CArray<size_t,1> outIndex;
+      buffer >> outIndex;
+      outGlobalIndexFromClient_.insert(std::make_pair(rank, outIndex));
+      connectedDataSizeRead_[rank] = outIndex.numElements();
+    }
+
+    nbReadSenders_[client] = CClientServerMappingDistributed::computeConnectedClients(client->serverSize, client->clientSize,
+                                                                                      client->intraComm, ranks);
+  }
+  CATCH_DUMP_ATTR
+  
+
+  void CGrid::computeServerDistribution(void)
+  TRY
+  {
+    if (computeServerDistribution_done_) return ;
+    else computeServerDistribution_done_=true ;
+
+    CContext* context = CContext::getCurrent();
+      
+    int idx = 0, numElement = axis_domain_order.numElements();
+    int ssize = numElement;
+    std::vector<int> indexMap(numElement);
+    for (int i = 0; i < numElement; ++i)
+    {
+      indexMap[i] = idx;
+      if (2 == axis_domain_order(i))
+      {
+        ++ssize;
+        idx += 2;
+      }
+      else
+        ++idx;
+    }
+
+    for (int n = 0; n < connectedServerRankRead_.size(); n++)
+    {
+      int rank = connectedServerRankRead_[n];
+      size_t dataSize = 0;
+
+      if (0 == serverDistribution_)
+      {
+        int axisId = 0, domainId = 0, scalarId = 0, globalSize = 1;
+        std::vector<CDomain*> domainList = getDomains();
+        std::vector<CAxis*> axisList = getAxis();
+        std::vector<int> nBegin(ssize), nSize(ssize), nGlob(ssize), nBeginGlobal(ssize), nGlobElement(numElement);
+        std::vector<CArray<int,1> > globalIndex(numElement);
+        for (int i = 0; i < numElement; ++i)
+        {
+          nGlobElement[i] = globalSize;
+          if (2 == axis_domain_order(i)) //domain
+          {
+            nBegin[indexMap[i]] = domainList[domainId]->ibegin;
+            nSize[indexMap[i]]  = domainList[domainId]->ni;
+            nBeginGlobal[indexMap[i]] = 0;
+            nGlob[indexMap[i]] = domainList[domainId]->ni_glo;
+
+            nBegin[indexMap[i] + 1] = domainList[domainId]->jbegin;
+            nSize[indexMap[i] + 1] = domainList[domainId]->nj;
+            nBeginGlobal[indexMap[i] + 1] = 0;
+            nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
+
+            {
+              int count = 0;
+              globalIndex[i].resize(nSize[indexMap[i]]*nSize[indexMap[i]+1]);
+              for (int jdx = 0; jdx < nSize[indexMap[i]+1]; ++jdx)
+                for (int idx = 0; idx < nSize[indexMap[i]]; ++idx)
+                {
+                  globalIndex[i](count) = (nBegin[indexMap[i]] + idx) + (nBegin[indexMap[i]+1] + jdx) * nGlob[indexMap[i]];
+                  ++count;
+                }
+            }
+
+            ++domainId;
+          }
+          else if (1 == axis_domain_order(i)) // axis
+          {
+            nBegin[indexMap[i]] = axisList[axisId]->begin;
+            nSize[indexMap[i]]  = axisList[axisId]->n;
+            nBeginGlobal[indexMap[i]] = 0;
+            nGlob[indexMap[i]] = axisList[axisId]->n_glo;     
+            globalIndex[i].resize(nSize[indexMap[i]]);
+            for (int idx = 0; idx < nSize[indexMap[i]]; ++idx)
+              globalIndex[i](idx) = nBegin[indexMap[i]] + idx;
+
+            ++axisId;
+          }
+          else // scalar
+          { 
+            nBegin[indexMap[i]] = 0;
+            nSize[indexMap[i]]  = 1;
+            nBeginGlobal[indexMap[i]] = 0;
+            nGlob[indexMap[i]] = 1;
+            globalIndex[i].resize(1);
+            globalIndex[i](0) = 0;
+            ++scalarId;
+          }
+        }
+        dataSize = 1;
+
+        for (int i = 0; i < nSize.size(); ++i)
+        dataSize *= nSize[i];
+        serverDistribution_ = new CDistributionServer(context->intraCommRank_, 
+                                                      globalIndex, axis_domain_order,
+                                                      nBegin, nSize, nBeginGlobal, nGlob);
+      }
+    }
+  }
+  CATCH_DUMP_ATTR
+
+
+
+
+
+
+/* old interface => transform into compute receivedIndex
+  void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers, CContextServer* server)
+  TRY
+  {
     CContext* context = CContext::getCurrent();
     connectedServerRankRead_ = ranks;
 
@@ -1828,6 +1954,8 @@ namespace xios {
 
   }
   CATCH_DUMP_ATTR
+*/
+
 
   /*
      Compute on the fly the global dimension of a grid with its elements
@@ -1921,7 +2049,7 @@ namespace xios {
   bool CGrid::doGridHaveDataToWrite()
   TRY
   {
-     return (0 != writtenDataSize_);
+     return (0 != getWrittenDataSize());
   }
   CATCH_DUMP_ATTR
 
@@ -1931,10 +2059,10 @@ namespace xios {
     an one dimension array.
     \return size of data written on server
   */
-  size_t CGrid::getWrittenDataSize() const
+  size_t CGrid::getWrittenDataSize() 
   TRY
   {
-    return writtenDataSize_;
+    return getServerDistribution()->getGridSize();
   }
   CATCH
 
@@ -1971,13 +2099,7 @@ namespace xios {
   }
   CATCH
 
-  CDistributionServer* CGrid::getDistributionServer()
-  TRY
-  {
-    return serverDistribution_;
-  }
-  CATCH_DUMP_ATTR
-
+  
   CDistributionClient* CGrid::getClientDistribution()
   TRY
   {
@@ -2112,6 +2234,8 @@ namespace xios {
     CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
     gridPtr->sendCreateChild(this->getId(),client);
     this->sendAllAttributesToServer(client);
+    if (isScalarGrid())  sendIndexScalarGrid();
+    else  sendIndex();
     this->sendAllDomains(client);
     this->sendAllAxis(client);
     this->sendAllScalars(client);
