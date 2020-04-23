@@ -2143,7 +2143,7 @@ namespace xios
               SuperClassWriter::setDefaultValue(fieldid, (double*)NULL);
 
             if (field->compression_level.isEmpty())
-              field->compression_level = field->file->compression_level.isEmpty() ? 0 : field->file->compression_level;
+              field->compression_level = field->getRelFile()->compression_level.isEmpty() ? 0 : field->getRelFile()->compression_level;
             SuperClassWriter::setCompressionLevel(fieldid, field->compression_level);
 
            {  // Ecriture des coordonnes
@@ -2373,11 +2373,11 @@ namespace xios
 
         if (!field->wasWritten())
         {
-          if (appendMode && field->file->record_offset.isEmpty() && 
+          if (appendMode && field->getRelFile()->record_offset.isEmpty() && 
               field->getOperationTimeType() != func::CFunctor::once)
           {
             double factorUnit;
-            if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
+            if (!field->getRelFile()->time_units.isEmpty() && field->getRelFile()->time_units==CFile::time_units_attr::days)
             factorUnit=context->getCalendar()->getDayLengthInSeconds() ;
             else factorUnit=1 ;
             field->resetNStep(getRecordFromTime(field->last_Write_srv,factorUnit) + 1);
@@ -2438,7 +2438,7 @@ namespace xios
             wtimeCounter=true ;
           }
 
-          if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
+          if (!field->getRelFile()->time_units.isEmpty() && field->getRelFile()->time_units==CFile::time_units_attr::days)
           {
             double secByDay=context->getCalendar()->getDayLengthInSeconds() ;
             time_data/=secByDay;
@@ -2677,14 +2677,14 @@ namespace xios
          StdString timeBoundId("axis_nbounds");
 
          StdString strTimeUnits ;
-         if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days) strTimeUnits="days since " ;
+         if (!field->getRelFile()->time_units.isEmpty() && field->getRelFile()->time_units==CFile::time_units_attr::days) strTimeUnits="days since " ;
          else  strTimeUnits="seconds since " ;
  
          if (field->getOperationTimeType() == func::CFunctor::instant) field->hasTimeInstant = true;
          if (field->getOperationTimeType() == func::CFunctor::centered) field->hasTimeCentered = true;
 
 
-         if (field->file->time_counter.isEmpty())
+         if (field->getRelFile()->time_counter.isEmpty())
          {
            if (timeCounterType==none) createTimeCounterAxis=true ;
            if (field->hasTimeCentered)
@@ -2698,7 +2698,7 @@ namespace xios
              if (!hasTimeInstant) createInstantAxis=true ;
            }
          }
-         else if (field->file->time_counter==CFile::time_counter_attr::instant)
+         else if (field->getRelFile()->time_counter==CFile::time_counter_attr::instant)
          {
            if (field->hasTimeCentered)
            {
@@ -2711,7 +2711,7 @@ namespace xios
              if (!hasTimeInstant) createInstantAxis=true ;
            }
          }
-         else if (field->file->time_counter==CFile::time_counter_attr::centered)
+         else if (field->getRelFile()->time_counter==CFile::time_counter_attr::centered)
          {
            if (field->hasTimeCentered)
            {
@@ -2724,7 +2724,7 @@ namespace xios
              if (!hasTimeInstant) createInstantAxis=true ;
            }
          }
-         else if (field->file->time_counter==CFile::time_counter_attr::instant_exclusive)
+         else if (field->getRelFile()->time_counter==CFile::time_counter_attr::instant_exclusive)
          {
            if (field->hasTimeCentered)
            {
@@ -2736,7 +2736,7 @@ namespace xios
              timeCounterType=instant ;
            }
          }
-         else if (field->file->time_counter==CFile::time_counter_attr::centered_exclusive)
+         else if (field->getRelFile()->time_counter==CFile::time_counter_attr::centered_exclusive)
          {
            if (field->hasTimeCentered)
            {
@@ -2748,7 +2748,7 @@ namespace xios
              if (!hasTimeInstant) createInstantAxis=true ;
            }
          }
-         else if (field->file->time_counter==CFile::time_counter_attr::exclusive)
+         else if (field->getRelFile()->time_counter==CFile::time_counter_attr::exclusive)
          {
            if (field->hasTimeCentered)
            {
@@ -2769,7 +2769,7 @@ namespace xios
              }
            }
          }
-         else if (field->file->time_counter==CFile::time_counter_attr::none)
+         else if (field->getRelFile()->time_counter==CFile::time_counter_attr::none)
          {
            if (field->hasTimeCentered)
            {
@@ -2780,7 +2780,7 @@ namespace xios
              if (!hasTimeInstant) createInstantAxis=true ;
            }
          }
-         else if (field->file->time_counter==CFile::time_counter_attr::record)
+         else if (field->getRelFile()->time_counter==CFile::time_counter_attr::record)
          {
            if (timeCounterType==none) createTimeCounterAxis=true ;
            timeCounterType=record ;
@@ -2851,8 +2851,8 @@ namespace xios
                 SuperClassWriter::addVariable(axisId, NC_DOUBLE, dims);
                 SuperClassWriter::addAttribute("axis", string("T"), &axisId);
 
-                if (field->file->time_counter.isEmpty() || 
-                   (field->file->time_counter != CFile::time_counter_attr::record))
+                if (field->getRelFile()->time_counter.isEmpty() || 
+                   (field->getRelFile()->time_counter != CFile::time_counter_attr::record))
                 {
                   CDate timeOrigin = cal->getTimeOrigin();
                   StdString strTimeOrigin = timeOrigin.toString();
@@ -2864,7 +2864,7 @@ namespace xios
              }
 
              // Adding time_counter_bound dimension
-             if (field->file->time_counter.isEmpty() || (field->file->time_counter != CFile::time_counter_attr::record))
+             if (field->getRelFile()->time_counter.isEmpty() || (field->getRelFile()->time_counter != CFile::time_counter_attr::record))
              {
                 if (!SuperClassWriter::varExist(axisBoundId))
                 {

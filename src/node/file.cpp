@@ -275,8 +275,11 @@ namespace xios {
     void CFile::initRead(void)
     TRY
     {
+      CContext* context = CContext::getCurrent();
       if (checkRead) return;
-      createSubComFile();
+      //createSubComFile();
+      allZoneEmpty = false; 
+      MPI_Comm_dup(context->intraComm_, &fileComm) ;
       checkRead = true;
     }
     CATCH_DUMP_ATTR

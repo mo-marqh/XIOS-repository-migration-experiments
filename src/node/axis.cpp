@@ -382,8 +382,8 @@ namespace xios {
         }
         for (int i = 0; i < data_n; ++i)
         {
-          if ((i+data_begin) >= 0 && (i+data_begin<n) && !mask(i+data_begin))
-            data_index(i) = -1;
+           if (data_index(i) >= 0 && data_index(i)<n)
+             if (!mask(data_index(i))) data_index(i) = -1;
         }
       }
 
@@ -1280,7 +1280,7 @@ namespace xios {
     CArray<int,1> nonCompressedData(nbData);
     nonCompressedData = -1;   
     // Mask is incorporated into data_index and is not sent/received anymore
-    mask.resize(0);
+    mask.reset();
     if (hasValue)
       value.resize(nbData);
     if (hasBounds)

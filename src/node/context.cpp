@@ -1090,6 +1090,7 @@ namespace xios {
     if (serviceType_==CServicesManager::GATHERER) distributeFiles(this->enabledWriteModeFiles);
     else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
 
+    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(client) ;
    
     // workflow endpoint => sent to IO/SERVER
     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
@@ -1151,7 +1152,7 @@ namespace xios {
       {
         field->connectToServerInput(garbageCollector) ; // connect the field to server filter
         field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
-        field->sendFieldToFileServer() ;
+        field->sendFieldToInputFileServer() ;
       }
     }
 
@@ -1163,7 +1164,11 @@ namespace xios {
 
 
     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendCloseDefinition();
-    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)  createFileHeader();
+    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)  
+    {
+      createFileHeader();
+    }
+
     if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
    
 
@@ -2626,8 +2631,8 @@ namespace xios {
    {
       vector<CFile*>::const_iterator it;
 
-      for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
-      // for (it=enabledWriteModeFiles.begin(); it != enabledWriteModeFiles.end(); it++)
+      //for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
+      for (it=enabledWriteModeFiles.begin(); it != enabledWriteModeFiles.end(); it++)
       {
          (*it)->initWrite();
       }

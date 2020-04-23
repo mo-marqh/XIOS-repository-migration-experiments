@@ -252,7 +252,7 @@ namespace xios {
        void computeServerDistribution(void) ;
        bool computeServerDistribution_done_=false ;
      public: 
-       CDistributionServer* getServerDistribution(void) { if (computeServerDistribution_done_) computeServerDistribution() ; return serverDistribution_ ;}
+       CDistributionServer* getServerDistribution(void) { if (!computeServerDistribution_done_) computeServerDistribution() ; return serverDistribution_ ;}
 
 
      private:

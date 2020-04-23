@@ -32,7 +32,6 @@ namespace xios
 
   CField::CField(void)
     : CObjectTemplate<CField>(), CFieldAttributes()
-    , file()
     , written(false)
     , nstep(0), nstepMax(0)
     , hasOutputFile(false)
@@ -50,7 +49,6 @@ namespace xios
 
   CField::CField(const StdString& id)
     : CObjectTemplate<CField>(id), CFieldAttributes()
-    , file()
     , written(false)
     , nstep(0), nstepMax(0)
     , hasOutputFile(false)
@@ -359,10 +357,10 @@ namespace xios
     {
       info(20) << "currentDate : " << currentDate << endl ;
       info(20) << "lastDataRequestedFromServer : " << lastDataRequestedFromServer << endl ;
-      info(20) << "file->output_freq.getValue() : " << file->output_freq.getValue() << endl ;
-      info(20) << "lastDataRequestedFromServer + file->output_freq.getValue() : " << lastDataRequestedFromServer + file->output_freq << endl ;
+      info(20) << "fileIn_->output_freq.getValue() : " << fileIn_->output_freq.getValue() << endl ;
+      info(20) << "lastDataRequestedFromServer + fileIn_->output_freq.getValue() : " << lastDataRequestedFromServer + fileIn_->output_freq << endl ;
 
-      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer + file->output_freq, file->getContextClient());
+      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer + fileIn_->output_freq, fileIn_->getContextClient());
     }
 
     return dataRequested;
@@ -579,7 +577,7 @@ namespace xios
     }
 
     if (wasDataAlreadyReceivedFromServer)
-      lastDataReceivedFromServer = lastDataReceivedFromServer + file->output_freq;
+      lastDataReceivedFromServer = lastDataReceivedFromServer + fileIn_->output_freq;
     else
     {
       lastDataReceivedFromServer = context->getCalendar()->getInitDate();
@@ -615,7 +613,7 @@ namespace xios
       bool isDataLate;
       do
       {
-        const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + file->output_freq) : context->getCalendar()->getInitDate();
+        const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + fileIn_->output_freq) : context->getCalendar()->getInitDate();
         isDataLate = (nextDataDue <= currentDate);
 
         if (isDataLate)
@@ -658,7 +656,7 @@ namespace xios
   CATCH_DUMP_ATTR
 
   //----------------------------------------------------------------
-
+/*
   void CField::setRelFile(CFile* _file)
   TRY
   {
@@ -666,7 +664,7 @@ namespace xios
     hasOutputFile = true;
   }
   CATCH_DUMP_ATTR
-
+*/
   //----------------------------------------------------------------
 
   StdString CField::GetName(void)    { return StdString("field"); }
@@ -687,7 +685,9 @@ namespace xios
   CFile* CField::getRelFile(void) const
   TRY
   {
-    return this->file;
+    if (hasFileIn()) return this->fileIn_;
+    else if (hasFileOut()) return this->fileOut_ ;
+    else return nullptr ;
   }
   CATCH
 
@@ -1097,14 +1097,12 @@ namespace xios
   {
     CContext* context = CContext::getCurrent();
 
-    if (context->getServiceType()==CServicesManager::CLIENT || !hasOutputFile) return;
-
     if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
 
     if (freq_offset.isEmpty()) freq_offset.setValue(NoneDu);
 
-    freq_operation_srv = file->output_freq.getValue();
-    freq_write_srv     = file->output_freq.getValue();
+    freq_operation_srv = fileOut_->output_freq.getValue();
+    freq_write_srv     = fileOut_->output_freq.getValue();
 
     lastlast_Write_srv = context->getCalendar()->getInitDate();
     last_Write_srv     = context->getCalendar()->getInitDate();
@@ -1233,6 +1231,14 @@ namespace xios
       }
     }
     
+    if (hasFileOut())
+    {
+      if (fileOut_->isServerSide())
+      {
+        this->solveServerOperation() ;
+      }
+    }
+
     buildWorkflowGraphDone_ = true ;
     workflowEnabled_ = true ;
     return true ;
@@ -1287,7 +1293,13 @@ namespace xios
    */
   void CField::connectToServerInput(CGarbageCollector& gc)
   {
-    serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc,  grid_, false, false));
+    const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+    const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+
+    checkTimeAttributes();
+    serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid_, true, false, freq_offset, true,
+                                                                          detectMissingValues, defaultValue));
+    //serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc,  grid_, false, false));
     serverSourceFilter -> connectOutput(inputFilter,0) ;
   } 
 
@@ -1381,7 +1393,7 @@ namespace xios
       // If the field data is to be read by the client or/and written to a file
       if (enableOutput && !storeFilter && !fileWriterFilter)
       {
-        if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
+        if (getRelFile() && (getRelFile()->mode.isEmpty() || getRelFile()->mode == CFile::mode_attr::write))
         {
           fileServerWriterFilter = std::shared_ptr<CFileServerWriterFilter>(new CFileServerWriterFilter(gc, this));
           instantDataFilter->connectOutput(fileServerWriterFilter, 0);
@@ -1396,9 +1408,9 @@ namespace xios
       // If the field data is to be read by the client or/and written to a file
       if (enableOutput && !storeFilter && !fileWriterFilter)
       {
-        if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
+        if (getRelFile() && (getRelFile()->mode.isEmpty() || getRelFile()->mode == CFile::mode_attr::write))
         {
-          fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, file->getContextClient()));
+          fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, getRelFile()->getContextClient()));
           instantDataFilter->connectOutput(fileWriterFilter, 0);
         }
       }
@@ -1432,7 +1444,7 @@ namespace xios
         // Check if we have a reference on another field
         else if (!field_ref.isEmpty()) instantDataFilter = getFieldReference(gc);
         // Check if the data is to be read from a file
-        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
+        else if (getRelFile() && !getRelFile()->mode.isEmpty() && getRelFile()->mode == CFile::mode_attr::read)
         {
           checkTimeAttributes();
           instantDataFilter = serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid_, true, false, freq_offset, true,
@@ -1456,10 +1468,10 @@ namespace xios
           instantDataFilter->connectOutput(storeFilter, 0);
         }
 
-        if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
+        if (getRelFile() && (getRelFile()->mode.isEmpty() || getRelFile()->mode == CFile::mode_attr::write))
         {
-          fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, file->getContextClient()));
-          getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
+          fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, getRelFile()->getContextClient()));
+          getTemporalDataFilter(gc, getRelFile()->output_freq)->connectOutput(fileWriterFilter, 0);
         }
       }
     }
@@ -2000,7 +2012,7 @@ namespace xios
     // A grid is sent by a client (both for read or write) or by primary server (write only)
     if (context->getServiceType()==CServicesManager::GATHERER)
     {
-      if (file->mode.isEmpty() || (!file->mode.isEmpty() && file->mode == CFile::mode_attr::write))
+      if (getRelFile()->mode.isEmpty() || (!getRelFile()->mode.isEmpty() && getRelFile()->mode == CFile::mode_attr::write))
         grid_->setContextClient(contextClient);
     }
     else if (context->getServiceType()==CServicesManager::CLIENT)
@@ -2019,8 +2031,20 @@ namespace xios
   void CField::sendFieldToFileServer(void)
   {
     CContext::getCurrent()->sendContextToFileServer(client);
-    fileOut_->sendFileToFileServer(client);
+    getRelFile()->sendFileToFileServer(client);
     grid_->sendGridToFileServer(client);
+    this->sendAllAttributesToServer(client);
+    this->sendAddAllVariables(client);
+  }
+  
+  void CField::sendFieldToInputFileServer(void)
+  {
+    CContext::getCurrent()->sendContextToFileServer(client);
+    getRelFile()->sendFileToFileServer(client);
+    grid_->sendGridToFileServer(client);
+    read_access=true ; // not the best solution, but on server side, the field must be a starting point of the workflow
+                       // must be replace by a better solution when implementing filters for reading and send to client
+                       // on server side
     this->sendAllAttributesToServer(client);
     this->sendAddAllVariables(client);
   }
@@ -2120,8 +2144,8 @@ namespace xios
   void CField::checkTimeAttributes(CDuration* freqOp)
   TRY
   {
-    bool isFieldRead  = file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read;
-    bool isFieldWrite = file && ( file->mode.isEmpty() ||  file->mode == CFile::mode_attr::write);
+    bool isFieldRead  = getRelFile() && !getRelFile()->mode.isEmpty() && getRelFile()->mode == CFile::mode_attr::read;
+    bool isFieldWrite = getRelFile() && ( getRelFile()->mode.isEmpty() ||  getRelFile()->mode == CFile::mode_attr::write);
     if (isFieldRead && !(operation.getValue() == "instant" || operation.getValue() == "once") )     
       ERROR("void CField::checkTimeAttributes(void)",
          << "Unsupported operation for field '" << getFieldOutputName() << "'." << std::endl
@@ -2131,7 +2155,7 @@ namespace xios
     {
       if (operation.getValue() == "instant")
       {
-        if (isFieldRead || isFieldWrite) freq_op.setValue(file->output_freq.getValue());
+        if (isFieldRead || isFieldWrite) freq_op.setValue(getRelFile()->output_freq.getValue());
         else freq_op=*freqOp ;
       }
       else freq_op.setValue(TimeStep);

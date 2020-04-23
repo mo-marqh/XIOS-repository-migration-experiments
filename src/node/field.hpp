@@ -143,6 +143,7 @@ namespace xios {
          void sendGridComponentOfEnabledFields();
 
          void sendFieldToFileServer(void) ;
+         void sendFieldToInputFileServer(void) ;
 
          /// Vérifications ///
          void checkTimeAttributes(CDuration* freqOp=NULL);
@@ -247,28 +248,28 @@ namespace xios {
          CVariableGroup* vVariableGroup;
 
          CGrid*  grid_=nullptr;
-         CFile*  file;
+//         CFile*  file;
          
          CFile* fileIn_ = nullptr ; //<! pointer to input related file
-         bool hasFileIn(void) { return fileIn_==nullptr ? false : true ;}
+         bool hasFileIn(void) const { return fileIn_==nullptr ? false : true ;} 
          CFile* getFileIn(void) {return fileIn_;}
          void setFileIn(CFile* fileIn) { fileIn_ = fileIn ;}
          void unsetFileIn(void) { fileIn_ = nullptr ;}
 
          CFile* fileOut_ = nullptr ; //<! pointer to output related file
-         bool hasFileOut(void) { return fileOut_==nullptr ? false : true ;}
+         bool hasFileOut(void) const { return fileOut_==nullptr ? false : true ;} 
          CFile* getFileOut(void) {return fileOut_;}
          void setFileOut(CFile* fileOut) { fileOut_ = fileOut ;}
          void unsetFileOut(void) { fileOut_ = nullptr ;}
 
          CCouplerIn* couplerIn_ = nullptr ; //<!pointer to input related coupler
-         bool hasCouplerIn(void) { return couplerIn_==nullptr ? false : true ;}
+         bool hasCouplerIn(void) const { return couplerIn_==nullptr ? false : true ;}
          CCouplerIn* getCouplerIn(void) {return couplerIn_;}
          void setCouplerIn(CCouplerIn* couplerIn) { couplerIn_ = couplerIn ;}
          void unsetCouplerIn(void) { couplerIn_ = nullptr ;}
 
          CCouplerOut* couplerOut_ = nullptr ; //<!pointer to output related coupler
-         bool hasCouplerOut(void) { return couplerOut_==nullptr ? false : true ;}
+         bool hasCouplerOut(void) const { return couplerOut_==nullptr ? false : true ;}
          CCouplerOut* getCouplerOut(void) {return couplerOut_;}
          void setCouplerOut(CCouplerOut* couplerOut) { couplerOut_ = couplerOut ;}
          void unsetCouplerOut(void) { couplerOut_ = nullptr ;}
