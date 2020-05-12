@@ -95,8 +95,20 @@ namespace xios
          virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
          void solveFieldRefInheritance(bool apply);
          void createInterCommunicator(void) ;
+         void assignContext(void) ;
+      
+      private:
+        CContextClient* client_=nullptr ;
+      public:
+         CContextClient* getContextClient(void) {return client_; }
+      
+      private:
+        string couplingContextId_ ;
+      public:
+        const string& getCouplingContextId(void) ;  
 
       private :
+
          CFieldGroup* virtualFieldGroup;
 
 //         std::shared_ptr<CDataOutput> data_out;

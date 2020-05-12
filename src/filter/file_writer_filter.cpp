@@ -34,7 +34,7 @@ namespace xios
       }
     }
 
-    field->sendUpdateData(dataArray, client_);
+    field->sendUpdateData(data[0]->timestamp, dataArray, client_);
   }
 
   bool CFileWriterFilter::mustAutoTrigger() const

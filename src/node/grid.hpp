@@ -90,6 +90,12 @@ namespace xios {
 
          StdSize  getDataSize(void) ;
 
+         /**
+          * Get the local data grid size, ie the size of the compressed grid (inside the workflow)
+          * \return The size od the compressed grid
+          */
+         StdSize  getLocalDataSize(void) ;
+
          /// Entrees-sorties de champs
          template <int n>
          void inputField(const CArray<double,n>& field, CArray<double,1>& stored) ;
@@ -150,7 +156,15 @@ namespace xios {
          void sendGridToFileServer(CContextClient* client) ;
       private:
          std::set<CContextClient*> sendGridToFileServer_done_ ;
-      
+     
+      public:
+         void sendGridToCouplerOut(CContextClient* client, const string& fieldId) ;
+      private:
+         std::set<CContextClient*> sendGridToCouplerOut_done_ ;
+
+      public:
+         void makeAliasForCoupling(const string& fieldId) ;
+
       public:
          void sendAddDomain(const std::string& id,CContextClient* contextClient);
          void sendAddAxis(const std::string& id,CContextClient* contextClient);
@@ -169,9 +183,18 @@ namespace xios {
          static bool dispatchEvent(CEventServer& event);
          static void recvIndex(CEventServer& event);
          void recvIndex(vector<int> ranks, vector<CBufferIn*> buffers, CContextServer* server);
-         void sendIndex(void);
-         void sendIndexScalarGrid();
-
+       
+       public:  
+         void sendIndex(CContextClient* client, const string& gridId="");
+       private:
+          set<CContextClient*> sendIndex_done_ ;
+       
+       public:
+         void sendIndexScalarGrid(CContextClient* client, const string& gridId="");
+       private:
+          set<CContextClient*> sendIndexScalarGrid_done_ ;
+      
+       public:
          void setContextClient(CContextClient* contextClient);
 
          void computeDomConServer();
@@ -220,7 +243,10 @@ namespace xios {
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
          size_t getGlobalWrittenSize(void) ;
-         bool checkIfCompleted(void) ;
+         
+         bool isCompleted(void) ;
+         void setCompleted(void) ;
+         void unsetCompleted(void) ;
 
 
          bool hasMask(void) const;

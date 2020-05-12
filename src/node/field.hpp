@@ -77,7 +77,7 @@ namespace xios {
          enum EEventId
          {
            EVENT_ID_UPDATE_DATA, EVENT_ID_READ_DATA, EVENT_ID_READ_DATA_READY,
-           EVENT_ID_ADD_VARIABLE, EVENT_ID_ADD_VARIABLE_GROUP
+           EVENT_ID_ADD_VARIABLE, EVENT_ID_ADD_VARIABLE_GROUP, EVENT_ID_GRID_COMPLETED
          };
 
          /// Constructeurs ///
@@ -110,9 +110,8 @@ namespace xios {
          // Grid data buffer size for each connection of contextclient
          std::map<int, StdSize> getGridDataBufferSize(CContextClient* client, bool bufferForWriting = false);
 
-         void setContextClient(CContextClient* newContextClient);
-         CContextClient* getContextClient();
-
+       public:
+          void makeGridAliasForCoupling(void) ;
        public:
          bool isActive(bool atCurrentTimestep = false) const;
          bool hasOutputFile;
@@ -143,6 +142,14 @@ namespace xios {
          void sendGridComponentOfEnabledFields();
 
          void sendFieldToFileServer(void) ;
+         void sendCloseDefinition(void) ;
+      
+      public:
+         void sendFieldToCouplerOut(void) ;
+      private:
+         bool sendFieldToCouplerOut_done_=false;
+      public:
+
          void sendFieldToInputFileServer(void) ;
 
          /// Vérifications ///
@@ -176,9 +183,12 @@ namespace xios {
         static bool dispatchEvent(CEventServer& event);
         void sendAllAttributesToServer(CContextClient* client) ; 
         void sendUpdateData(const CArray<double,1>& data);
-        void sendUpdateData(const CArray<double,1>& data, CContextClient* client);
+        void sendUpdateData(Time timestamp, const CArray<double,1>& data, CContextClient* client);
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
+        void recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers);
+        void recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers);
+        
         void writeField(void);
         bool sendReadDataRequest(const CDate& tsDataRequested, CContextClient* client);
         bool sendReadDataRequestIfNeeded(void);
@@ -187,9 +197,14 @@ namespace xios {
         EReadField readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
+        void recvDataFromCoupler(vector<int> ranks, vector<CBufferIn*> buffers) ;
         void checkForLateDataFromServer(void);
-        void checkIfMustAutoTrigger(void);
-        void autoTriggerIfNeeded(void);
+        void checkForLateDataFromCoupler(void) ;
+
+        void checkIfMustAutoTrigger(void); // ym obsolete
+        void autoTriggerIfNeeded(void); //ym obsolete
+        void triggerLateField(void) ;
+
         void outputField(CArray<double,3>& fieldOut);
         void outputField(CArray<double,2>& fieldOut);
         void outputField(CArray<double,1>& fieldOut);
@@ -226,6 +241,8 @@ namespace xios {
         CGrid* getGrid(void) { return grid_; } 
 
         void connectToFileServer(CGarbageCollector& gc) ;
+        void connectToCouplerOut(CGarbageCollector& gc) ;
+        void connectToCouplerIn(CGarbageCollector& gc) ;
         void connectToModelInput(CGarbageCollector& gc) ;
         void connectToFileWriter(CGarbageCollector& gc) ;
         void connectToClientInput(CGarbageCollector& gc) ;
@@ -240,6 +257,20 @@ namespace xios {
         void setContextClientAttributesBufferSize(map<CContextClient*,map<int,size_t>>& bufferSize, 
                                                  map<CContextClient*,map<int,size_t>>& maxEventSize, 
                                                  bool bufferForWriting) ;
+      private:
+          bool isGridCompleted_ = true ;
+      public:
+          bool isGridCompleted() { return isGridCompleted_ ;} 
+          void setGridCompleted(void) { isGridCompleted_= true; }
+          void unsetGridCompleted(void) { isGridCompleted_ = false ;}
+      
+      public:     
+          void sendGridCompleted(void) ;
+      private:   
+          static void recvGridCompleted(CEventServer& event);
+          void recvGridCompleted(CBufferIn& buffer);
+
+
       private:
         std::vector<CGrid*> getGridPath(void) ;
 
@@ -314,6 +345,11 @@ namespace xios {
         
       private:
          CContextClient* client;
+      public:
+         void setContextClient(CContextClient* newContextClient);
+         CContextClient* getContextClient(void) {return client;}
+
+      private:
 
          bool areAllReferenceSolved;
          bool isReferenceSolved;

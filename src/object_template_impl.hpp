@@ -215,18 +215,18 @@ namespace xios
    }
 
    template<typename T>
-   void CObjectTemplate<T>::sendAllAttributesToServer(CContextClient* client)
+   void CObjectTemplate<T>::sendAllAttributesToServer(CContextClient* client, const string& objectId)
    {
      CAttributeMap& attrMap = *this;
      CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
      for (; it != itE; ++it)
      {
-       if (it->second->doSend() && !(it->second)->isEmpty()) sendAttributToServer(*(it->second), client);
+       if (it->second->doSend() && !(it->second)->isEmpty()) sendAttributToServer(*(it->second), client, objectId);
      }
    }
 
    template <class T>
-   void CObjectTemplate<T>::sendAttributToServer(const string& id, CContextClient* client)
+   void CObjectTemplate<T>::sendAttributToServer(const string& id, CContextClient* client, const string& objectId )
    {
       CAttributeMap & attrMap = *this;
       CAttribute* attr=attrMap[id];
@@ -234,13 +234,14 @@ namespace xios
    }
 
   template <class T>
-  void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr, CContextClient* client)
+  void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr, CContextClient* client, const string& objectId)
   {
     CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
     if (client->isServerLeader())
     {
       CMessage msg;
-      msg<<this->getId(); 
+      if (objectId.empty()) msg << this->getId();
+      else msg << objectId;
       msg << attr.getName();
       msg << attr;
       const std::list<int>& ranks = client->getRanksServerLeader();
@@ -253,7 +254,7 @@ namespace xios
 
 /* specialisation for context, because context Id on client is not the same on server, and no need to transfer context Id */
   template <>
-  void CObjectTemplate<CContext>::sendAttributToServer(CAttribute& attr, CContextClient* client)
+  void CObjectTemplate<CContext>::sendAttributToServer(CAttribute& attr, CContextClient* client, const string& objectId)
   {
     CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
     if (client->isServerLeader())
@@ -277,14 +278,15 @@ namespace xios
   */
 
   template<class T>
-  void CObjectTemplate<T>::sendAddItem(const StdString& id, int itemType, CContextClient* client)
+  void CObjectTemplate<T>::sendAddItem(const StdString& id, int itemType, CContextClient* client, const string& objectId)
   {
     typedef typename T::EEventId ItemType;
      CEventClient event(this->getType(),ItemType(itemType));
      if (client->isServerLeader())
      {
        CMessage msg;
-       msg << this->getId();
+       if (objectId.empty()) msg << this->getId();
+       else msg << objectId;
        msg << id;
        const std::list<int>& ranks = client->getRanksServerLeader();
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)

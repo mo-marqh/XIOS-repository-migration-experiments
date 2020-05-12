@@ -171,6 +171,13 @@ TRY
       step=(domainSrc_->lat_end-domainSrc_->lat_start)/domainSrc_->nj_glo ;
       for (int i=0; i<domainSrc_->ni_glo; ++i) lat_g(i)=domainSrc_->lat_start+i*step ;
     }
+    else if (!domainSrc_->lonvalue.isEmpty() && !domainSrc_->latvalue.isEmpty())  // data can come possibly from coupler so only lonvalue and latvalue are defined ?
+    {
+      CArray<double,1> lon(niSrc), lat(njSrc) ;
+      for(int i=0; i< niSrc;++i) lon(i) = domainSrc_->lonvalue(i) ;
+      for(int j=0, n=0; j<njSrc; ++j, n+=niSrc) lat(j) = domainSrc_->latvalue(n) ;
+      domainSrc_->AllgatherRectilinearLonLat(lon, lat, lon_g, lat_g) ;
+    }
     else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
 
     nVertexSrc = constNVertex;

@@ -2100,6 +2100,35 @@ namespace xios {
     this->sendDataIndex(client);
   }
 
+  void CDomain::sendDomainToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid)
+  {
+    if (sendDomainToFileServer_done_.count(client)!=0) return ;
+    else sendDomainToFileServer_done_.insert(client) ;
+    
+    const string domainId = "_domain["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    
+    if (!domain_ref.isEmpty())
+    {
+      auto domain_ref_tmp=domain_ref.getValue() ;
+      domain_ref.reset() ; // remove the reference, find an other way to do that more cleanly
+      this->sendAllAttributesToServer(client, domainId)  ;
+      domain_ref = domain_ref_tmp ;
+    }
+    else this->sendAllAttributesToServer(client, domainId)  ;
+
+    this->sendDistributionAttributes(client, domainId);   
+    this->sendIndex(client, domainId);       
+    this->sendLonLat(client, domainId);
+    this->sendArea(client, domainId);    
+    this->sendDataIndex(client, domainId);
+  }
+
+  void CDomain::makeAliasForCoupling(const string& fieldId, int posInGrid)
+  {
+    const string domainId = "_domain["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    this->createAlias(domainId) ;
+  }
+
   /*!
     Send all attributes from client to connected clients
     The attributes will be rebuilt on receiving side
@@ -2118,11 +2147,12 @@ namespace xios {
   /*!
     Send global index from client to connected client(s)
   */
-  void CDomain::sendIndex(CContextClient* client)
+  void CDomain::sendIndex(CContextClient* client, const string& domainId)
   TRY
   {
+    string serverDomainId = domainId.empty() ? this->getId() : domainId ;
+    
     int ns, n, i, j, ind, nv, idx;
-   
     int serverSize = client->serverSize;
     CEventClient eventIndex(getType(), EVENT_ID_INDEX);
 
@@ -2145,7 +2175,7 @@ namespace xios {
       for (n = 0; n < nbIndGlob; ++n) indGlob(n) = static_cast<int>(itIndex->second[n]);
 
       list_msgsIndex.push_back(CMessage());
-      list_msgsIndex.back() << this->getId() << (int)type; // enum ne fonctionne pour les message => ToFix
+      list_msgsIndex.back() << serverDomainId << (int)type; // enum ne fonctionne pour les message => ToFix
       list_msgsIndex.back() << isCurvilinear;
       list_msgsIndex.back() << list_indGlob.back(); //list_indi.back() << list_indj.back();
        
@@ -2160,9 +2190,11 @@ namespace xios {
     Because a client in a level knows correctly the grid distribution of client on the next level
     it calculates this distribution then sends it to the corresponding clients on the next level
   */
-  void CDomain::sendDistributionAttributes(CContextClient* client)
+  void CDomain::sendDistributionAttributes(CContextClient* client, const string& domainId)
   TRY
   {
+    string serverDomainId = domainId.empty() ? this->getId() : domainId ;
+
     int nbServer = client->serverSize;
     std::vector<int> nGlobDomain(2);
     nGlobDomain[0] = this->ni_glo;
@@ -2191,7 +2223,7 @@ namespace xios {
 
         msgs.push_back(CMessage());
         CMessage& msg = msgs.back();
-        msg << this->getId() ;
+        msg << serverDomainId ;
         msg << isUnstructed_;
         msg << ni_srv << ibegin_srv << nj_srv << jbegin_srv;
         msg << ni_glo.getValue() << nj_glo.getValue();
@@ -2208,11 +2240,12 @@ namespace xios {
   /*!
     Send area from client to connected client(s)
   */
-  void CDomain::sendArea(CContextClient* client)
+  void CDomain::sendArea(CContextClient* client, const string& domainId)
   TRY
   {
     if (!hasArea) return;
-
+    string serverDomainId = domainId.empty() ? this->getId() : domainId ;
+    
     int ns, n, i, j, ind, nv, idx;
     int serverSize = client->serverSize;
 
@@ -2241,7 +2274,7 @@ namespace xios {
       }
 
       list_msgsArea.push_back(CMessage());
-      list_msgsArea.back() << this->getId() << hasArea;
+      list_msgsArea.back() <<serverDomainId << hasArea;
       list_msgsArea.back() << list_area.back();
       eventArea.push(rank, nbSenders[serverSize][rank], list_msgsArea.back());
     }
@@ -2254,11 +2287,12 @@ namespace xios {
     Each client send long and lat information to corresponding connected clients(s).
     Because longitude and latitude are optional, this function only called if latitude and longitude exist
   */
-  void CDomain::sendLonLat(CContextClient* client)
+  void CDomain::sendLonLat(CContextClient* client, const string& domainId)
   TRY
   {
     if (!hasLonLat) return;
-
+    string serverDomainId = domainId.empty() ? this->getId() : domainId ;
+    
     int ns, n, i, j, ind, nv, idx;
     int serverSize = client->serverSize;
 
@@ -2315,7 +2349,7 @@ namespace xios {
       list_msgsLon.push_back(CMessage());
       list_msgsLat.push_back(CMessage());
 
-      list_msgsLon.back() << this->getId() << hasLonLat;
+      list_msgsLon.back() << serverDomainId << hasLonLat;
       if (hasLonLat) 
         list_msgsLon.back() << list_lon.back();
       list_msgsLon.back()  << hasBounds;
@@ -2324,7 +2358,7 @@ namespace xios {
         list_msgsLon.back() << list_boundslon.back();
       }
 
-      list_msgsLat.back() << this->getId() << hasLonLat;
+      list_msgsLat.back() << serverDomainId << hasLonLat;
       if (hasLonLat)
         list_msgsLat.back() << list_lat.back();
       list_msgsLat.back() << hasBounds;
@@ -2347,9 +2381,11 @@ namespace xios {
     and they will be compressed on receiving.
     The compressed index are represented with 1 and others are represented with -1
   */
-  void CDomain::sendDataIndex(CContextClient* client)
+  void CDomain::sendDataIndex(CContextClient* client, const string& domainId)
   TRY
   {
+    string serverDomainId = domainId.empty() ? this->getId() : domainId ;
+    
     int ns, n, i, j, ind, nv, idx;
     int serverSize = client->serverSize;
 
@@ -2405,7 +2441,7 @@ namespace xios {
       }
 
       list_msgsDataIndex.push_back(CMessage());
-      list_msgsDataIndex.back() << this->getId();
+      list_msgsDataIndex.back() << serverDomainId ;
       list_msgsDataIndex.back() << list_data_i_index.back() << list_data_j_index.back();
       eventDataIndex.push(rank, nbSenders[serverSize][rank], list_msgsDataIndex.back());
     }
@@ -2613,7 +2649,8 @@ namespace xios {
       ERROR("void CDomain::recvLon(std::map<int, CBufferIn*>& rankBuffers)",
            << "The number of sending clients is not correct."
            << "Expected number: " << recvClientRanks_.size() << " but received " << nbReceived);
-
+    
+    int nbLonInd = 0;
     vector<CArray<double,1> > recvLonValue(nbReceived);
     vector<CArray<double,2> > recvBoundsLonValue(nbReceived);    
     for (i = 0; i < recvClientRanks_.size(); ++i)
@@ -2630,7 +2667,6 @@ namespace xios {
 
     if (hasLonLat)
     {
-      int nbLonInd = 0;
       for (i = 0; i < nbReceived; ++i)
       {
         nbLonInd += recvLonValue[i].numElements();
@@ -2664,6 +2700,41 @@ namespace xios {
            }                  
         }
       }       
+    }
+
+   // setup attribute depending the type of domain
+    if (hasLonLat)
+    {
+      nbLonInd = globalLocalIndexMap_.size();
+      if (ni*nj != nbLonInd)
+        ERROR("void CDomain::recvLon(std::map<int, CBufferIn*>& rankBuffers)",
+             << "The number of index received is not coherent with the given resolution"
+             << "nbLonInd=" << nbLonInd << ", ni=" << ni <<", nj"<<ni<<" ni*nj="<<ni*nj);
+
+      if (type == type_attr::rectilinear || type == type_attr::curvilinear)
+      {
+        lonvalue_2d.resize(ni,nj);
+          for(int ij=0, j=0 ; j<nj ; j++)
+            for(int i=0 ; i<ni; i++, ij++) lonvalue_2d(i,j) = lonvalue(ij) ;
+        
+        if (hasBounds)
+        {
+          bounds_lon_2d.resize(nvertex, ni, nj) ;
+          for(int ij=0, j=0 ; j<nj ; j++)
+            for(int i=0 ; i<ni; i++, ij++) 
+              for(int nv=0; nv<nvertex; nv++) bounds_lon_2d(nv,i,j) = bounds_lonvalue(nv,ij) ;
+        }
+      }
+    }
+    else if (type == type_attr::unstructured || type == type_attr::gaussian)
+    {
+      lonvalue_1d.resize(nbLonInd);
+      lonvalue_1d = lonvalue ;
+      if (hasBounds)
+      {
+        bounds_lon_1d.resize(nvertex, nbLonInd) ;
+        bounds_lon_1d = bounds_lonvalue ;
+      }
     }
   }
   CATCH_DUMP_ATTR
@@ -2716,9 +2787,9 @@ namespace xios {
         buffer >> recvBoundsLatValue[i];
     }
 
+    int nbLatInd = 0;
     if (hasLonLat)
     {
-      int nbLatInd = 0;
       for (i = 0; i < nbReceived; ++i)
       {
         nbLatInd += recvLatValue[i].numElements();
@@ -2755,6 +2826,46 @@ namespace xios {
         }
       }       
     }
+      // setup attribute depending the type of domain
+    if (hasLonLat)
+    {
+      nbLatInd = globalLocalIndexMap_.size();
+      
+      if (ni*nj != nbLatInd)
+        ERROR("void CDomain::recvLat(std::map<int, CBufferIn*>& rankBuffers)",
+             << "The number of index received is not coherent with the given resolution"
+            << "nbLonInd=" << nbLatInd << ", ni=" << ni <<", nj"<<ni<<" ni*nj="<<ni*nj);
+
+      if (type == type_attr::rectilinear || type == type_attr::curvilinear)
+      {
+        {
+          latvalue_2d.resize(ni,nj);
+          for(int ij=0, j=0 ; j<nj ; j++)
+            for(int i=0 ; i<ni; i++, ij++) latvalue_2d(i,j) = latvalue(ij) ;
+        
+          if (hasBounds)
+          {
+            bounds_lat_2d.resize(nvertex, ni, nj) ;
+            for(int ij=0, j=0 ; j<nj ; j++)
+              for(int i=0 ; i<ni; i++, ij++) 
+                for(int nv=0; nv<nvertex; nv++) bounds_lat_2d(nv,i,j) = bounds_latvalue(nv,ij) ;
+          }
+        }
+      }
+      else if (type == type_attr::unstructured || type == type_attr::gaussian)
+      {
+        if (hasLonLat)
+        {
+          latvalue_1d.resize(nbLatInd);
+          latvalue_1d = latvalue ;
+          if (hasBounds)
+          {
+            bounds_lat_1d.resize(nvertex, nbLatInd) ;
+            bounds_lon_1d = bounds_lonvalue ;
+          }
+        }
+      }
+    } 
   }
   CATCH_DUMP_ATTR
 
@@ -3015,42 +3126,7 @@ namespace xios {
     }
   }
   CATCH_DUMP_ATTR
-
-  /*!
-  \brief Check if a domain is completed
-  Before make any domain processing, we must be sure that all domain informations have
-  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
-  other context (coupling). So all direct reference of the domain (domain_ref) must be also completed
-  \return true if domain and domain reference are completed
-  */
-  bool CDomain::checkIfCompleted(void)
-  {
-    if (hasDirectDomainReference()) if (!getDirectDomainReference()->checkIfCompleted()) return false;
-    return isCompleted_ ;
-  }
-
-  /*!
-  \brief Set a domain as completed
-   When all information about a domain have been received, the domain is tagged as completed and is
-   suitable for processing
-  */
-  void CDomain::setCompleted(void)
-  {
-    if (hasDirectDomainReference()) getDirectDomainReference()->setCompleted() ;
-    isCompleted_=true ;
-  }
-
-  /*!
-  \brief Set a domain as uncompleted
-   When informations about a domain are expected from a grid reading from file or coupling, the domain is 
-   tagged as uncompleted and is not suitable for processing
-  */
-  void CDomain::setUncompleted(void)
-  {
-    if (hasDirectDomainReference()) getDirectDomainReference()->setUncompleted() ;
-    isCompleted_=false ;
-  }
-  
+    
   /*!
    * Go through the hierarchy to find the domain from which the transformations must be inherited
    */

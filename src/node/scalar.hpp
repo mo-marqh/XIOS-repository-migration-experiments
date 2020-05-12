@@ -71,15 +71,19 @@ namespace xios
             bool IsWritten(const StdString& filename) const;
             void checkAttributesOnClient();
             virtual void parse(xml::CXMLNode & node);
-
-            bool checkIfCompleted(void) ;
-            void setCompleted(void) ;
-            void setUncompleted(void) ;
-         
+        
          public:
             void sendScalarToFileServer(CContextClient* client) ;
          private:
             std::set<CContextClient*> sendScalarToFileServer_done_ ;
+
+         public:
+            void sendScalarToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid) ;
+         private:
+            std::set<CContextClient*> sendScalarToCouplerOut_done_ ;
+         
+         public:
+            void makeAliasForCoupling(const string& fieldId, int posInGrid) ;
 
          public:
            bool hasTransformation();
@@ -88,7 +92,13 @@ namespace xios
            void duplicateTransformation(CScalar*);
            CTransformation<CScalar>* addTransformation(ETranformationType transType, const StdString& id="");
            bool isEqual(CScalar* scalar);
-
+        private:  
+          /** Clients that have to send a scalar. There can be multiple clients in case of secondary server, otherwise only one client. */
+         std::list<CContextClient*> clients;
+         std::set<CContextClient*> clientsSet;
+        public:
+          void setContextClient(CContextClient* contextClient) ;
+        
          private:
            std::set<StdString> relFiles;
            TransMapTypes transformationMap_;
@@ -102,8 +112,27 @@ namespace xios
 
            /** define if the scalar is completed or not ie all attributes have been received before in case 
                of grid reading from file or coupling */ 
-           bool isCompleted_=true ;  
+      private:
+         /** define if the scalar is completed or not ie all attributes have been received before in case 
+             of grid reading from file or coupling */ 
+         bool isCompleted_=true ;  
+      public:     
+         /*!
+           \brief Check if a scalar is completed
+           Before make any scalar processing, we must be sure that all scalar informations have
+           been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+           other context (coupling). So all direct reference of the scalar (scalar_ref) must be also completed
+           \return true if scalar and scalar reference are completed
+          */
+         bool isCompleted(void)
+         {
+           if (hasDirectScalarReference()) if (!getDirectScalarReference()->isCompleted()) return false;
+           else return isCompleted_ ;
+         }
+         void setCompleted(void) { isCompleted_=true ; }
+         void unsetCompleted(void) { isCompleted_=false ; }
 
+      private:
             DECLARE_REF_FUNC(Scalar,scalar)
 
       }; // class CVar

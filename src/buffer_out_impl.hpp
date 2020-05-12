@@ -10,9 +10,11 @@ namespace xios
     template <> bool CBufferOut::put<int>(const int& data)   { return put_template(data) ; }
     template <> bool CBufferOut::put<short>(const short& data) { return put_template(data) ; }  
     template <> bool CBufferOut::put<long>(const long& data)  { return put_template(data) ; }  
+    template <> bool CBufferOut::put<longlong>(const longlong& data)  { return put_template(data) ; }  
     template <> bool CBufferOut::put<uint>(const uint& data)  { return put_template(data) ; }  
     template <> bool CBufferOut::put<ushort>(const ushort& data) { return put_template(data) ; }  
     template <> bool CBufferOut::put<ulong>(const ulong& data) { return put_template(data) ; }  
+    template <> bool CBufferOut::put<ulonglong>(const ulonglong& data) { return put_template(data) ; }  
     template <> bool CBufferOut::put<float>(const float& data) { return put_template(data) ; }  
     template <> bool CBufferOut::put<double>(const double& data) { return put_template(data) ; }  
     template <> bool CBufferOut::put<long double>(const long double& data) { return put_template(data) ;}  
@@ -22,9 +24,11 @@ namespace xios
     template <> bool CBufferOut::put<int>(const int* data, size_t n)   { return put_template(data,n) ; }
     template <> bool CBufferOut::put<short>(const short* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBufferOut::put<long>(const long* data, size_t n)  { return put_template(data,n) ; }  
+    template <> bool CBufferOut::put<longlong>(const longlong* data, size_t n)  { return put_template(data,n) ; }  
     template <> bool CBufferOut::put<uint>(const uint* data, size_t n)  { return put_template(data,n) ; }  
     template <> bool CBufferOut::put<ushort>(const ushort* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBufferOut::put<ulong>(const ulong* data, size_t n) { return put_template(data,n) ; }  
+    template <> bool CBufferOut::put<ulonglong>(const ulonglong* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBufferOut::put<float>(const float* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBufferOut::put<double>(const double* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBufferOut::put<long double>(const long double* data, size_t n) { return put_template(data,n) ;}  
@@ -35,9 +39,11 @@ namespace xios
     template <> bool CBufferOut::advance<int>(size_t n)   { return advance_template<int>(n) ; }
     template <> bool CBufferOut::advance<short>(size_t n) { return advance_template<short>(n) ; }  
     template <> bool CBufferOut::advance<long>(size_t n)  { return advance_template<long>(n) ; }  
+    template <> bool CBufferOut::advance<longlong>(size_t n)  { return advance_template<longlong>(n) ; }  
     template <> bool CBufferOut::advance<uint>(size_t n)  { return advance_template<uint>(n) ; }  
     template <> bool CBufferOut::advance<ushort>(size_t n) { return advance_template<ushort>(n) ; }  
     template <> bool CBufferOut::advance<ulong>(size_t n) { return advance_template<ulong>(n) ; }  
+    template <> bool CBufferOut::advance<ulonglong>(size_t n) { return advance_template<ulonglong>(n) ; }  
     template <> bool CBufferOut::advance<float>(size_t n) { return advance_template<float>(n) ; }  
     template <> bool CBufferOut::advance<double>(size_t n) { return advance_template<double>(n) ; }  
     template <> bool CBufferOut::advance<long double>(size_t n) { return advance_template<long double>(n) ;}  

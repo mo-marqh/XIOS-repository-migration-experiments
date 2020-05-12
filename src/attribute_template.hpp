@@ -11,6 +11,12 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 #include "type.hpp"
+#include "tv_data_display.h"
+
+#ifdef __GNUC__
+#include <typeinfo>
+#include <cxxabi.h>
+#endif
 
 namespace xios
 {
@@ -19,7 +25,7 @@ namespace xios
     \class CAttributeTemplate
     The class implements attribute of some basic types
   */
-      template <class T>
+       template <class T>
          class CAttributeTemplate : public CAttribute, public CType<T>
       {
             typedef CAttribute SuperClass;
@@ -90,6 +96,38 @@ namespace xios
 //            virtual void generateFortranInterfaceIsDefinedBody_(ostream& oss,const string& className) ;
 //            virtual void generateFortranInterfaceIsDefinedDeclaration(ostream& oss,const string& className) ;
 
+           static int show_TV_ttf_display_type ( const CAttributeTemplate<T>* attr)
+           {
+             int status ;
+             if (attr->isEmpty()) 
+             {
+               status = TV_ttf_add_row("State", TV_ttf_type_ascii_string,"(empty)") ;
+               if (status != TV_ttf_ec_ok) return TV_ttf_format_raw ;
+               else return TV_ttf_format_ok_elide ;
+             }
+             else 
+             {
+               char tname[128] ;
+               char bname[128] = "ValueType" ;
+#ifdef __GNUC__
+               size_t size = sizeof(bname) ;
+               abi::__cxa_demangle(typeid(T).name(), bname, &size, &status) ;
+               if (status !=0) return TV_ttf_format_raw ;
+#endif
+               snprintf (tname, sizeof(tname), "%s", bname);
+               if (typeid(T)==typeid(string))
+                 status = TV_ttf_add_row("values", TV_ttf_type_ascii_string, ((string*)(attr->ptrValue))->c_str() );
+               else status = TV_ttf_add_row("values", tname, attr->ptrValue) ;
+               if (status != TV_ttf_ec_ok) return TV_ttf_format_raw ;
+               else return TV_ttf_format_ok_elide ;
+             }
+           }
+      
+           static int TV_ttf_display_type ( const CAttributeTemplate<T>* attr )
+           {
+             return show_TV_ttf_display_type (attr) ;
+           }
+
 
          protected :
 
@@ -106,8 +144,22 @@ namespace xios
           CType<T> inheritedValue ;
       }; // class CAttribute
 
+#define macrotype(_TYPE_)\
+  template<> int CAttributeTemplate<_TYPE_>::TV_ttf_display_type( const CAttributeTemplate<_TYPE_>* attr ) \
+  {\
+    return show_TV_ttf_display_type (attr) ;\
+  }
+
+macrotype(double)
+macrotype(int)
+macrotype(bool)
+macrotype(string)
+//macrotype(CDate)
+//macrotype(CDuration)
+#undef macrotype
 
    template <class T>  void FromBinary(StdIStream & is, T & obj);
+
 
 } // namespace xios
 

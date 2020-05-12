@@ -574,26 +574,51 @@ namespace xios {
      this->sendAttributes(client, globalDim, orderPositionInGrid, CServerDistributionDescription::BAND_DISTRIBUTION) ;
    }
 
+   void CAxis::sendAxisToCouplerOut(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid, const string& fieldId, int posInGrid)
+   {
+     if (sendAxisToFileServer_done_.count(client)!=0) return ;
+     else sendAxisToFileServer_done_.insert(client) ;
+     
+     string axisId="_axis["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+
+     if (!axis_ref.isEmpty())
+    {
+      auto axis_ref_tmp=axis_ref.getValue() ;
+      axis_ref.reset() ; // remove the reference, find an other way to do that more cleanly
+      this->sendAllAttributesToServer(client, axisId)  ; 
+      axis_ref = axis_ref_tmp ;
+    }
+    else this->sendAllAttributesToServer(client, axisId)  ; 
+  
+    this->sendAttributes(client, globalDim, orderPositionInGrid, CServerDistributionDescription::BAND_DISTRIBUTION, axisId) ;
+   }
+
+  void CAxis::makeAliasForCoupling(const string& fieldId, int posInGrid)
+  {
+    const string axisId = "_axis["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    this->createAlias(axisId) ;
+  }
+
   /*!
     Send attributes from one client to other clients
     \param[in] globalDim global dimension of grid which contains this axis
     \param[in] order
   */
   void CAxis::sendAttributes(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
-                             CServerDistributionDescription::ServerDistributionType distType)
+                             CServerDistributionDescription::ServerDistributionType distType, const string& axisId)
   TRY
   {
-     sendDistributionAttribute(client, globalDim, orderPositionInGrid, distType);
+     sendDistributionAttribute(client, globalDim, orderPositionInGrid, distType, axisId);
 
      // if (index.numElements() == n_glo.getValue())
      if ((orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
          || (index.numElements() != n_glo))
      {
-       sendDistributedAttributes(client);       
+       sendDistributedAttributes(client, axisId);       
      }
      else
      {
-       sendNonDistributedAttributes(client);    
+       sendNonDistributedAttributes(client, axisId);    
      }     
   }
   CATCH_DUMP_ATTR
@@ -888,9 +913,10 @@ namespace xios {
     \param [in] distType distribution type of the server. For now, we only have band distribution.
   */
   void CAxis::sendDistributionAttribute(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
-                                        CServerDistributionDescription::ServerDistributionType distType)
+                                        CServerDistributionDescription::ServerDistributionType distType, const string& axisId)
   TRY
   {
+    string serverAxisId = axisId.empty() ? this->getId() : axisId ; 
     int nbServer = client->serverSize;
 
     CServerDistributionDescription serverDescription(globalDim, nbServer);
@@ -913,7 +939,7 @@ namespace xios {
 
         msgs.push_back(CMessage());
         CMessage& msg = msgs.back();
-        msg << this->getId();
+        msg << serverAxisId;
         msg << ni << begin;
         msg << isCompressible_;                    
 
@@ -961,9 +987,11 @@ namespace xios {
     on supposing that these attributes are not distributed among the sending group
     In the future, if new attributes are added, they should also be processed in this function
   */
-  void CAxis::sendNonDistributedAttributes(CContextClient* client)
+  void CAxis::sendNonDistributedAttributes(CContextClient* client, const string& axisId)
   TRY
   {
+    string serverAxisId = axisId.empty() ? this->getId() : axisId ; 
+
     CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES);
     size_t nbIndex = index.numElements();
     size_t nbDataIndex = 0;
@@ -995,7 +1023,7 @@ namespace xios {
       {
         msgs.push_back(CMessage());
         CMessage& msg = msgs.back();
-        msg << this->getId();
+        msg << serverAxisId;
         msg << index.getValue() << dataIndex << mask.getValue();
         msg << hasValue;
         if (hasValue) msg << value.getValue();
@@ -1086,9 +1114,11 @@ namespace xios {
     supposing that these attributes are distributed among the clients of the sending group
     In future, if new attributes are added, they should also be processed in this function
   */
-  void CAxis::sendDistributedAttributes(CContextClient* client)
+  void CAxis::sendDistributedAttributes(CContextClient* client, const string& axisId)
   TRY
   {
+    string serverAxisId = axisId.empty() ? this->getId() : axisId ; 
+    
     int ind, idx;
     int nbServer = client->serverSize;
 
@@ -1165,7 +1195,7 @@ namespace xios {
       }
 
       listData.push_back(CMessage());
-      listData.back() << this->getId()
+      listData.back() << serverAxisId
                       << list_indi.back() << list_dataInd.back();
 
       listData.back() << hasValue;
@@ -1429,43 +1459,6 @@ namespace xios {
     }
   }
   CATCH_DUMP_ATTR
-
-/*!
-  \brief Check if a axis is completed
-  Before make any axis processing, we must be sure that all axis informations have
-  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
-  other context (coupling). So all direct reference of the axis (axis_ref) must be also completed
-  \return true if axis and axis reference are completed
-  */
-  bool CAxis::checkIfCompleted(void)
-  {
-    if (hasDirectAxisReference()) if (!getDirectAxisReference()->checkIfCompleted()) return false;
-    return isCompleted_ ;
-  }
-
-  /*!
-  \brief Set a axis as completed
-   When all information about a axis have been received, the axis is tagged as completed and is
-   suitable for processing
-  */
-  void CAxis::setCompleted(void)
-  {
-    if (hasDirectAxisReference()) getDirectAxisReference()->setCompleted() ;
-    isCompleted_=true ;
-  }
-
-  /*!
-  \brief Set a axis as uncompleted
-   When informations about a axis are expected from a grid reading from file or coupling, the axis is 
-   tagged as uncompleted and is not suitable for processing
-  */
-  void CAxis::setUncompleted(void)
-  {
-    if (hasDirectAxisReference()) getDirectAxisReference()->setUncompleted() ;
-    isCompleted_=false ;
-  }
-
-
 
   /*!
    * Go through the hierarchy to find the axis from which the transformations must be inherited

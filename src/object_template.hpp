@@ -55,10 +55,10 @@ namespace xios
          /// Traitement statique ///
          static void ClearAllAttributes(void);
          std::map<int, size_t> getMinimumBufferSizeForAttributes(CContextClient* client);
-         void sendAttributToServer(const string& id, CContextClient* client);
-         void sendAttributToServer(CAttribute& attr, CContextClient* client) ;
-         void sendAllAttributesToServer(CContextClient* client);
-         void sendAddItem(const string& id, int itemType, CContextClient* client);
+         void sendAttributToServer(const string& id, CContextClient* client, const string& objectId="");
+         void sendAttributToServer(CAttribute& attr, CContextClient* client, const string& objectId="") ;
+         void sendAllAttributesToServer(CContextClient* client, const string& objectId="");
+         void sendAddItem(const string& id, int itemType, CContextClient* client, const string& objectId="");
          static void recvAttributFromClient(CEventServer& event) ;
          static bool dispatchEvent(CEventServer& event) ;
 

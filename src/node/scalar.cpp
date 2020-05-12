@@ -69,44 +69,6 @@ namespace xios {
   }
 
   /*!
-  \brief Check if a scalar is completed
-  Before make any scalar processing, we must be sure that all scalar informations have
-  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
-  other context (coupling). So all direct reference of the scalar (scalar_ref) must be also completed
-  \return true if scalar and scalar reference are completed
-  */
-  bool CScalar::checkIfCompleted(void)
-  {
-    if (hasDirectScalarReference()) if (!getDirectScalarReference()->checkIfCompleted()) return false;
-    return isCompleted_ ;
-  }
-
-  /*!
-  \brief Set a scalar as completed
-   When all information about a scalar have been received, the scalar is tagged as completed and is
-   suitable for processing
-  */
-  void CScalar::setCompleted(void)
-  {
-    if (hasDirectScalarReference()) getDirectScalarReference()->setCompleted() ;
-    isCompleted_=true ;
-  }
-
-  /*!
-  \brief Set a scalar as uncompleted
-   When informations about a scalar are expected from a grid reading from file or coupling, the scalar is 
-   tagged as uncompleted and is not suitable for processing
-  */
-  void CScalar::setUncompleted(void)
-  {
-    if (hasDirectScalarReference()) getDirectScalarReference()->setUncompleted() ;
-    isCompleted_=false ;
-  }
-
-
-
-
-  /*!
     Compare two scalar objects. 
     They are equal if only if they have identical attributes as well as their values.
     Moreover, they must have the same transformations.
@@ -186,16 +148,52 @@ namespace xios {
       for (size_t i = 0; i < refScalar.size(); ++i)
         refScalar[i]->setTransformations(scalar->getAllTransformations());
   }
-
+ 
   void CScalar::sendScalarToFileServer(CContextClient* client)
   {
     if (sendScalarToFileServer_done_.count(client)!=0) return ;
     else sendScalarToFileServer_done_.insert(client) ;
-
     StdString scalarDefRoot("scalar_definition");
     CScalarGroup* scalarPtr = CScalarGroup::get(scalarDefRoot);
     this->sendAllAttributesToServer(client);
   }
+
+  void CScalar::sendScalarToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid)
+  {
+    if (sendScalarToCouplerOut_done_.count(client)!=0) return ;
+    else sendScalarToCouplerOut_done_.insert(client) ;
+
+    string scalarId="_scalar["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+   
+    if (!scalar_ref.isEmpty())
+    {
+      auto scalar_ref_tmp=scalar_ref.getValue() ;
+      scalar_ref.reset() ; // remove the reference, find an other way to do that more cleanly
+      this->sendAllAttributesToServer(client, scalarId)  ;
+      scalar_ref = scalar_ref_tmp ;
+    }
+    else this->sendAllAttributesToServer(client, scalarId)  ;
+
+
+    this->sendAllAttributesToServer(client, scalarId);
+  }  
+
+  void CScalar::makeAliasForCoupling(const string& fieldId, int posInGrid)
+  {
+    const string scalarId = "_scalar["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    this->createAlias(scalarId) ;
+  }
+
+  void CScalar::setContextClient(CContextClient* contextClient)
+  TRY
+  {
+    if (clientsSet.find(contextClient)==clientsSet.end())
+    {
+      clients.push_back(contextClient) ;
+      clientsSet.insert(contextClient);
+    }
+  }
+  CATCH_DUMP_ATTR
   /*!
     Parse children nodes of a scalar in xml file.
     \param node child node to process

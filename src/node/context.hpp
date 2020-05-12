@@ -56,6 +56,9 @@ namespace xios {
            EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES,
            EVENT_ID_PROCESS_GRID_ENABLED_FIELDS,
            EVENT_ID_CONTEXT_FINALIZE_CLIENT,
+           EVENT_ID_COUPLER_IN_READY,
+           EVENT_ID_COUPLER_IN_CLOSE_DEFINITION,
+           EVENT_ID_COUPLER_IN_CONTEXT_FINALIZED,
          };
 
          /// typedef ///
@@ -149,7 +152,7 @@ namespace xios {
          void buildFilterGraphOfFieldsWithReadAccess();
          void postProcessing();
          void postProcessingGlobalAttributes();         
-
+         void triggerLateFields(void) ;
          void solveAllRefOfEnabledFieldsAndTransform(void);
          void checkGridEnabledFields();
          void checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
@@ -168,6 +171,11 @@ namespace xios {
          
          // Send context close definition
          void sendCloseDefinition(void);
+       public:
+         void sendCloseDefinition(CContextClient* client) ;
+       private:
+         set<CContextClient*> sendCloseDefinition_done_ ;
+       public:
          // There are something to send on closing context defintion
          void sendUpdateCalendar(int step);
          void sendCreateFileHeader(void);
@@ -207,9 +215,36 @@ namespace xios {
          void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
          static void recvFinalizeClient(CEventServer& event) ;
          void recvFinalizeClient(CBufferIn& buffer);
-         
-         void freeComms(void);                  //!< Free internally allcoated communicators
-         void releaseClientBuffers(void);       //! Deallocate buffers allocated by clientContexts
+        
+       public:
+         void sendCouplerInReady(CContextClient* client);
+       private:
+         set<CContextClient*> sendCouplerInReady_done_;
+       public:
+         static void recvCouplerInReady(CEventServer& event) ;
+         void recvCouplerInReady(CBufferIn& buffer) ; //!< coupler is ready to receive grid definition.
+         set<CContextClient*> couplerInReady_;
+         bool isCouplerInReady(CContextClient* client) { return couplerInReady_.count(client)!=0 ;}
+
+       public:
+        void sendCouplerInCloseDefinition(CContextClient* client) ;
+        set<CContextClient*> sendCouplerInCloseDefinition_done_;
+        static void recvCouplerInCloseDefinition(CEventServer& event) ;
+        void recvCouplerInCloseDefinition(CBufferIn& buffer) ; //!< coupler has finished it defintion, data can be sent     
+        set<CContextClient*> couplerInCloseDefinition_ ;
+        bool isCouplerInCloseDefinition(CContextClient* client) { return couplerInCloseDefinition_.count(client)!=0 ;}
+
+       public:
+        void sendCouplerInContextFinalized(CContextClient* client) ;
+        set<CContextClient*> sendCouplerInContextFinalized_done_;
+        static void recvCouplerInContextFinalized(CEventServer& event) ;
+        void recvCouplerInContextFinalized(CBufferIn& buffer) ; //!< coupler has finished it defintion, data can be sent     
+        set<CContextClient*> couplerInContextFinalized_ ;
+        bool isCouplerInContextFinalized(CContextClient* client) { return couplerInContextFinalized_.count(client)!=0 ;}
+
+       public:  
+        void freeComms(void);                  //!< Free internally allcoated communicators
+        void releaseClientBuffers(void);       //! Deallocate buffers allocated by clientContexts
 
          // dispatch event
          static bool dispatchEvent(CEventServer& event);
@@ -280,6 +315,9 @@ namespace xios {
          // List of all enabled fields whose instant data is accessible from the public API
          // but which are not part of a file
          std::vector<CField*> fieldsWithReadAccess_;
+         std::vector<CField*> couplerInFields_;
+         std::vector<CField*> fileInFields_;
+
 
          // Context root
          static std::shared_ptr<CContextGroup> root;
@@ -294,10 +332,25 @@ namespace xios {
          CContextClient* client;    //!< Concrete contex client
          std::vector<CContextServer*> serverPrimServer;
          std::vector<CContextClient*> clientPrimServer;
-         std::map<std::string, CContextClient*> couplerClient_ ;
-         std::map<std::string, CContextServer*> couplerServer_ ;
 
-
+         // list of slave servers (IO server or others)
+         set<CContextClient*> slaveServers_ ;
+      private:
+         // the map containing context client associated to it string id for coupling out ;
+         std::map<std::string, CContextClient*> couplerOutClient_ ;
+         // the map containing context server associated to it string id for coupling out ;
+         std::map<std::string, CContextServer*> couplerOutServer_ ;
+         // the map containing context client associated to it string id for coupling in ;
+         std::map<std::string, CContextClient*> couplerInClient_ ;
+         // the map containing context server associated to it string id for coupling in ;
+         std::map<std::string, CContextServer*> couplerInServer_ ;
+      public:
+         CContextClient* getCouplerInClient(const string& contextId) { return couplerInClient_[contextId] ;}
+         CContextServer* getCouplerInServer(const string& contextId) { return couplerInServer_[contextId] ;}
+         CContextClient* getCouplerOutClient(const string& contextId) { return couplerOutClient_[contextId] ;}
+         CContextServer* getCouplerOutServer(const string& contextId) { return couplerOutServer_[contextId] ;}
+      
+  
          std::vector<std::string> primServerId_;
 
          CRegistry* registryIn ;    //!< input registry which is read from file

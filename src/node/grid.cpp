@@ -101,6 +101,13 @@ namespace xios {
      return retvalue;
    }
    CATCH
+   
+   /*!
+    * Get the local data grid size, ie the size of the compressed grid (inside the workflow)
+    * \return The size od the compressed grid
+    */
+    StdSize  CGrid::getLocalDataSize(void) { return getClientDistribution()->getLocalDataSize();}
+
 
    /*!
     * Compute the minimum buffer size required to send the attributes to the server(s).
@@ -325,6 +332,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   //ym obsolete -> to be removed later
    void CGrid::checkMaskIndex(bool doSendingIndex)
    TRY
    {
@@ -333,8 +341,8 @@ namespace xios {
      {
        if (this->isChecked && doSendingIndex && !isIndexSent) 
        { 
-         if (isScalarGrid())  sendIndexScalarGrid();
-         else  sendIndex();
+         if (isScalarGrid())  /*sendIndexScalarGrid()*/;
+         else  /*sendIndex()*/;
          this->isIndexSent = true; 
        }
      }
@@ -1452,192 +1460,189 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-  void CGrid::sendIndexScalarGrid()
+  void CGrid::sendIndexScalarGrid(CContextClient* client, const string& gridId)
   TRY
   {
+    if (sendIndexScalarGrid_done_.count(client)!=0) return ;
+    else sendIndexScalarGrid_done_.insert(client) ;
+
     CContext* context = CContext::getCurrent();
-    storeIndex_toSrv_.clear();
-    std::list<CContextClient*>::iterator it;
+    
+    string serverGridId = gridId.empty() ? serverGridId=this->getId() : serverGridId=gridId ;
 
-    for (it=clients.begin(); it!=clients.end(); ++it)
+    int receiverSize = client->serverSize;
+
+    CEventClient event(getType(), EVENT_ID_INDEX);
+    list<CMessage> listMsg;
+    list<CArray<size_t,1> > listOutIndex;
+
+    if (client->isServerLeader())
     {
-      CContextClient* client = *it;
-      int receiverSize = client->serverSize;
-
-      CEventClient event(getType(), EVENT_ID_INDEX);
-      list<CMessage> listMsg;
-      list<CArray<size_t,1> > listOutIndex;
-
-      if (client->isServerLeader())
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
-        const std::list<int>& ranks = client->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        int rank = *itRank;
+        int nb = 1;
+        storeIndex_toSrv_[client].insert(std::make_pair(rank, CArray<int,1>(nb)));
+        listOutIndex.push_back(CArray<size_t,1>(nb));
+
+        CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv_[client][rank];
+        CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
+
+        for (int k = 0; k < nb; ++k)
         {
-          int rank = *itRank;
-          int nb = 1;
-          storeIndex_toSrv_[client].insert(std::make_pair(rank, CArray<int,1>(nb)));
-          listOutIndex.push_back(CArray<size_t,1>(nb));
-
-          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv_[client][rank];
-          CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
-
-          for (int k = 0; k < nb; ++k)
-          {
-            outGlobalIndexOnServer(k) = 0;
-            outLocalIndexToServer(k)  = 0;
-          }
-
-          if (context->getServiceType()==CServicesManager::CLIENT)  
-            storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
-
-          listMsg.push_back(CMessage());
-          listMsg.back() << getId( )<< isCompressible_ << listOutIndex.back();
-
-          event.push(rank, 1, listMsg.back());
+          outGlobalIndexOnServer(k) = 0;
+          outLocalIndexToServer(k)  = 0;
         }
-        client->sendEvent(event);
+
+        if (context->getServiceType()==CServicesManager::CLIENT)  // -> what about for coupling probably unusefull to be check
+          storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+
+        listMsg.push_back(CMessage());
+        listMsg.back() << serverGridId << isCompressible_ << listOutIndex.back();
+
+        event.push(rank, 1, listMsg.back());
       }
-      else
+      client->sendEvent(event);
+    }
+    else
+    {
+      const std::list<int>& ranks = client->getRanksServerNotLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
-        const std::list<int>& ranks = client->getRanksServerNotLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        int rank = *itRank;
+        int nb = 1;          
+        CArray<int, 1> outLocalIndexToServer(nb);
+        for (int k = 0; k < nb; ++k)
         {
-          int rank = *itRank;
-          int nb = 1;          
-          CArray<int, 1> outLocalIndexToServer(nb);
-          for (int k = 0; k < nb; ++k)
-          {
-            outLocalIndexToServer(k)  = 0;
-          }
-
-          if (context->getServiceType()==CServicesManager::CLIENT)
-            storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+          outLocalIndexToServer(k)  = 0;
         }
-        client->sendEvent(event);
+
+        if (context->getServiceType()==CServicesManager::CLIENT)
+          storeIndex_fromSrv_.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
       }
+      client->sendEvent(event);
     }
   }
   CATCH_DUMP_ATTR
 
-  void CGrid::sendIndex(void)
+  void CGrid::sendIndex(CContextClient* client, const string& gridId)
   TRY
   {
+    if (sendIndex_done_.count(client)!=0) return ;
+    else sendIndex_done_.insert(client) ;
     CContext* context = CContext::getCurrent();
-    storeIndex_toSrv_.clear();
-    std::list<CContextClient*>::iterator it;
+    string serverGridId = gridId.empty() ? this->getId() : gridId ;
 
-    for (it=clients.begin(); it!=clients.end(); ++it)
+
+
+    int receiverSize = client->serverSize;
+
+    CEventClient event(getType(), EVENT_ID_INDEX);
+    int rank;
+    list<CMessage> listMsg;
+    list<CArray<size_t,1> > listOutIndex;
+    const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getClientDistribution()->getGlobalLocalDataSendToServer();
+    CDistributionClient::GlobalLocalDataMap::const_iterator itbIndex = globalLocalIndexSendToServer.begin(), itIndex,
+                                                            iteIndex = globalLocalIndexSendToServer.end();
+    itIndex = itbIndex;                                                              
+
+    if (!doGridHaveDataDistributed(client))
     {
-      CContextClient* client = *it;
-      int receiverSize = client->serverSize;
-
-      CEventClient event(getType(), EVENT_ID_INDEX);
-      int rank;
-      list<CMessage> listMsg;
-      list<CArray<size_t,1> > listOutIndex;
-      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = getClientDistribution()->getGlobalLocalDataSendToServer();
-      CDistributionClient::GlobalLocalDataMap::const_iterator itbIndex = globalLocalIndexSendToServer.begin(), itIndex,
-                                                              iteIndex = globalLocalIndexSendToServer.end();
-      itIndex = itbIndex;                                                              
-
-      if (!doGridHaveDataDistributed(client))
+      if (client->isServerLeader())
       {
-        if (client->isServerLeader())
+        int indexSize = globalLocalIndexSendToServer.size();
+        CArray<size_t,1> outGlobalIndexOnServer(indexSize);
+        CArray<int,1> outLocalIndexToServer(indexSize);
+        for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
         {
-          int indexSize = globalLocalIndexSendToServer.size();
-          CArray<size_t,1> outGlobalIndexOnServer(indexSize);
-          CArray<int,1> outLocalIndexToServer(indexSize);
-          for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
-          {
-            outGlobalIndexOnServer(idx) = itIndex->first;
-            outLocalIndexToServer(idx) = itIndex->second;
-          }
-
-          const std::list<int>& ranks = client->getRanksServerLeader();
-          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-          {
-            storeIndex_toSrv_[client].insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
-            if (context->getServiceType()==CServicesManager::CLIENT)
-              storeIndex_fromSrv_.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
-            
-            listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
-
-            listMsg.push_back(CMessage());
-            listMsg.back() << getId() << isCompressible_ << listOutIndex.back();
-
-            event.push(*itRank, 1, listMsg.back());
-          }
-          client->sendEvent(event);
+          outGlobalIndexOnServer(idx) = itIndex->first;
+          outLocalIndexToServer(idx) = itIndex->second;
         }
-        else
-        {
-           int indexSize = globalLocalIndexSendToServer.size();
-           CArray<int,1> outLocalIndexToServer(indexSize);
-           for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
-           {
-             outLocalIndexToServer(idx) = itIndex->second;
-           }
 
-           const std::list<int>& ranks = client->getRanksServerNotLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           {
-             storeIndex_fromSrv_.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
-           }
-           client->sendEvent(event);
-         }
+        const std::list<int>& ranks = client->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        {
+          storeIndex_toSrv_[client].insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+          if (context->getServiceType()==CServicesManager::CLIENT)  // -> what about for coupling probably unusefull to be check
+            storeIndex_fromSrv_.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+          
+          listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
+
+          listMsg.push_back(CMessage());
+          listMsg.back() << serverGridId << isCompressible_ << listOutIndex.back();
+
+          event.push(*itRank, 1, listMsg.back());
+        }
+        client->sendEvent(event);
       }
       else
       {
-        CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
-        itGlobalMap = globalIndexOnServer_[receiverSize].begin();
-        iteGlobalMap = globalIndexOnServer_[receiverSize].end();
+         int indexSize = globalLocalIndexSendToServer.size();
+         CArray<int,1> outLocalIndexToServer(indexSize);
+         for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
+         {
+           outLocalIndexToServer(idx) = itIndex->second;
+         }
 
-        std::map<int,std::vector<int> >localIndexTmp;
-        std::map<int,std::vector<size_t> > globalIndexTmp;
-        for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+         const std::list<int>& ranks = client->getRanksServerNotLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         {
+           storeIndex_fromSrv_.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+         }
+         client->sendEvent(event);
+       }
+    }
+    else
+    {
+      CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
+      itGlobalMap = globalIndexOnServer_[receiverSize].begin();
+      iteGlobalMap = globalIndexOnServer_[receiverSize].end();
+
+      std::map<int,std::vector<int> >localIndexTmp;
+      std::map<int,std::vector<size_t> > globalIndexTmp;
+      for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+      {
+        int serverRank = itGlobalMap->first;
+        int indexSize = itGlobalMap->second.size();
+        const std::vector<size_t>& indexVec = itGlobalMap->second;
+        for (int idx = 0; idx < indexSize; ++idx)
         {
-          int serverRank = itGlobalMap->first;
-          int indexSize = itGlobalMap->second.size();
-          const std::vector<size_t>& indexVec = itGlobalMap->second;
-          for (int idx = 0; idx < indexSize; ++idx)
+          itIndex = globalLocalIndexSendToServer.find(indexVec[idx]);
+          if (iteIndex != itIndex)
           {
-            itIndex = globalLocalIndexSendToServer.find(indexVec[idx]);
-            if (iteIndex != itIndex)
-            {
-              globalIndexTmp[serverRank].push_back(itIndex->first);
-              localIndexTmp[serverRank].push_back(itIndex->second);
-            }
+            globalIndexTmp[serverRank].push_back(itIndex->first);
+            localIndexTmp[serverRank].push_back(itIndex->second);
           }
         }
-
-        for (int ns = 0; ns < connectedServerRank_[receiverSize].size(); ++ns)
-        {
-          rank = connectedServerRank_[receiverSize][ns];
-          int nb = 0;
-          if (globalIndexTmp.end() != globalIndexTmp.find(rank))
-            nb = globalIndexTmp[rank].size();
-
-          storeIndex_toSrv_[client].insert(make_pair(rank, CArray<int,1>(nb)));
-          listOutIndex.push_back(CArray<size_t,1>(nb));
-
-          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv_[client][rank];
-          CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
-
-          for (int k = 0; k < nb; ++k)
-          {
-            outGlobalIndexOnServer(k) = globalIndexTmp[rank].at(k);
-            outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
-          }
-
-          storeIndex_fromSrv_.insert(make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
-          listMsg.push_back(CMessage());
-          listMsg.back() << getId()  << isCompressible_ << listOutIndex.back();
-
-          event.push(rank, nbSenders_[receiverSize][rank], listMsg.back());
-        }
-
-        client->sendEvent(event);
       }
+
+      for (int ns = 0; ns < connectedServerRank_[receiverSize].size(); ++ns)
+      {
+        rank = connectedServerRank_[receiverSize][ns];
+        int nb = 0;
+        if (globalIndexTmp.end() != globalIndexTmp.find(rank))
+          nb = globalIndexTmp[rank].size();
+
+        storeIndex_toSrv_[client].insert(make_pair(rank, CArray<int,1>(nb)));
+        listOutIndex.push_back(CArray<size_t,1>(nb));
+
+        CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv_[client][rank];
+        CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
+
+        for (int k = 0; k < nb; ++k)
+        {
+          outGlobalIndexOnServer(k) = globalIndexTmp[rank].at(k);
+          outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
+        }
+
+        storeIndex_fromSrv_.insert(make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+        listMsg.push_back(CMessage());
+        listMsg.back() << serverGridId  << isCompressible_ << listOutIndex.back();
+
+        event.push(rank, nbSenders_[receiverSize][rank], listMsg.back());
+      }
+      client->sendEvent(event);
     }
   }
   CATCH_DUMP_ATTR
@@ -2234,11 +2239,46 @@ namespace xios {
     CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
     gridPtr->sendCreateChild(this->getId(),client);
     this->sendAllAttributesToServer(client);
-    if (isScalarGrid())  sendIndexScalarGrid();
-    else  sendIndex();
+    if (isScalarGrid())  sendIndexScalarGrid(client);
+    else  sendIndex(client);
     this->sendAllDomains(client);
     this->sendAllAxis(client);
     this->sendAllScalars(client);
+  }
+
+  void CGrid::sendGridToCouplerOut(CContextClient* client, const string& fieldId)
+  {
+    if (sendGridToCouplerOut_done_.count(client)!=0) return ;
+    else sendGridToCouplerOut_done_.insert(client) ;
+    string gridId="_grid_of_"+fieldId ;
+    this->sendAllAttributesToServer(client, gridId);
+    
+    if (isScalarGrid())  sendIndexScalarGrid(client, gridId);
+    else sendIndex(client, gridId);
+
+    const auto& domVect = getDomains() ;
+    for (int pos=0; pos<domVect.size();pos++) domVect[pos]->sendDomainToCouplerOut(client, fieldId, pos);
+
+    const auto& axisVect=getAxis() ;
+    for (int pos=0; pos<axisVect.size();pos++) axisVect[pos]->sendAxisToCouplerOut(client, getGlobalDimension(), getAxisPositionInGrid()[pos], fieldId, pos);
+
+    const auto& scalVect=getScalars() ;
+    for (int pos=0; pos<scalVect.size();pos++) scalVect[pos]->sendScalarToCouplerOut(client, fieldId, pos);
+  }
+
+  void CGrid::makeAliasForCoupling(const string& fieldId)
+  {
+    string gridId="_grid_of_"+fieldId ;
+    createAlias(gridId) ;
+    
+    const auto& domVect = getDomains() ;
+    for (int pos=0; pos<domVect.size();pos++) domVect[pos]->makeAliasForCoupling(fieldId, pos);
+
+    const auto& axisVect=getAxis() ;
+    for (int pos=0; pos<axisVect.size();pos++) axisVect[pos]->makeAliasForCoupling(fieldId, pos);
+
+    const auto& scalVect=getScalars() ;
+    for (int pos=0; pos<scalVect.size();pos++) scalVect[pos]->makeAliasForCoupling(fieldId, pos);
   }
 
    /*!
@@ -2364,15 +2404,47 @@ namespace xios {
   been sent, for exemple when reading a grid in a file or when grid elements are sent by an
   other context (coupling)
   */
-  bool CGrid::checkIfCompleted(void)
+  bool CGrid::isCompleted(void)
   {
     setDomainList();
-    for (auto domainId : domList_) if (!CDomain::get(domainId)->checkIfCompleted()) return false ;
+    for (auto domainId : domList_) if (!CDomain::get(domainId)->isCompleted()) return false ;
     setAxisList() ;
-    for (auto axisId : axisList_) if (!CAxis::get(axisId)->checkIfCompleted()) return false ;
+    for (auto axisId : axisList_) if (!CAxis::get(axisId)->isCompleted()) return false ;
     setScalarList() ;
-    for (auto scalarId : scalarList_) if (!CScalar::get(scalarId)->checkIfCompleted()) return false ;
+    for (auto scalarId : scalarList_) if (!CScalar::get(scalarId)->isCompleted()) return false ;
     return true ;
+  }
+
+  /*!
+  \brief impose that all elements of the grid are complete
+  Before make any grid processing, we must be sure that all grid information elements have
+  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+  other context (coupling)
+  */
+  void CGrid::setCompleted(void)
+  {
+    setDomainList();
+    for (auto domainId : domList_) CDomain::get(domainId)->setCompleted() ;
+    setAxisList() ;
+    for (auto axisId : axisList_) CAxis::get(axisId)->setCompleted() ;
+    setScalarList() ;
+    for (auto scalarId : scalarList_) CScalar::get(scalarId)->setCompleted() ;
+  }
+
+/*!
+  \brief impose that all elements of the grid are incomplete
+  Before make any grid processing, we must be sure that all grid information elements have
+  been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+  other context (coupling)
+  */
+  void CGrid::unsetCompleted(void)
+  {
+    setDomainList();
+    for (auto domainId : domList_) CDomain::get(domainId)->unsetCompleted() ;
+    setAxisList() ;
+    for (auto axisId : axisList_) CAxis::get(axisId)->unsetCompleted() ;
+    setScalarList() ;
+    for (auto scalarId : scalarList_) CScalar::get(scalarId)->unsetCompleted() ;
   }
 
   /*!
@@ -2903,10 +2975,10 @@ namespace xios {
       clients.push_back(contextClient) ;
       clientsSet.insert(contextClient);
     }
-    for (int i=0; i<this->getDomains().size(); i++)
-    	this->getDomains()[i]->setContextClient(contextClient);
-    for (int i=0; i<this->getAxis().size(); i++)
-    	this->getAxis()[i]->setContextClient(contextClient);
+    for (auto domain : getDomains()) domain->setContextClient(contextClient);
+    for (auto axis : getAxis()) axis->setContextClient(contextClient);
+    for (auto scalar : getScalars()) scalar->setContextClient(contextClient);
+   
   }
   CATCH_DUMP_ATTR
 

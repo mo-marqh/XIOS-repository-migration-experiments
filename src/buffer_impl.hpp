@@ -9,9 +9,11 @@ namespace xios
     template <> bool CBuffer::put<int>(const int& data)   { return put_template(data) ; }
     template <> bool CBuffer::put<short>(const short& data) { return put_template(data) ; }  
     template <> bool CBuffer::put<long>(const long& data)  { return put_template(data) ; }  
+    template <> bool CBuffer::put<longlong>(const longlong& data)  { return put_template(data) ; }  
     template <> bool CBuffer::put<uint>(const uint& data)  { return put_template(data) ; }  
     template <> bool CBuffer::put<ushort>(const ushort& data) { return put_template(data) ; }  
     template <> bool CBuffer::put<ulong>(const ulong& data) { return put_template(data) ; }  
+    template <> bool CBuffer::put<ulonglong>(const ulonglong& data) { return put_template(data) ; }  
     template <> bool CBuffer::put<float>(const float& data) { return put_template(data) ; }  
     template <> bool CBuffer::put<double>(const double& data) { return put_template(data) ; }  
     template <> bool CBuffer::put<long double>(const long double& data) { return put_template(data) ;}  
@@ -20,9 +22,11 @@ namespace xios
     template <> bool CBuffer::put<int>(const int* data, size_t n)   { return put_template(data,n) ; }
     template <> bool CBuffer::put<short>(const short* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBuffer::put<long>(const long* data, size_t n)  { return put_template(data,n) ; }  
+    template <> bool CBuffer::put<longlong>(const longlong* data, size_t n)  { return put_template(data,n) ; }  
     template <> bool CBuffer::put<uint>(const uint* data, size_t n)  { return put_template(data,n) ; }  
     template <> bool CBuffer::put<ushort>(const ushort* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBuffer::put<ulong>(const ulong* data, size_t n) { return put_template(data,n) ; }  
+    template <> bool CBuffer::put<ulonglong>(const ulonglong* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBuffer::put<float>(const float* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBuffer::put<double>(const double* data, size_t n) { return put_template(data,n) ; }  
     template <> bool CBuffer::put<long double>(const long double* data, size_t n) { return put_template(data,n) ;}  
@@ -32,9 +36,11 @@ namespace xios
     template <> bool CBuffer::put_ptr<int>(const int*& data, size_t n)   { return put_ptr_template(data,n) ; }
     template <> bool CBuffer::put_ptr<short>(const short*& data, size_t n) { return put_ptr_template(data,n) ; }  
     template <> bool CBuffer::put_ptr<long>(const long*& data, size_t n)  { return put_ptr_template(data,n) ; }  
+    template <> bool CBuffer::put_ptr<longlong>(const longlong*& data, size_t n)  { return put_ptr_template(data,n) ; }  
     template <> bool CBuffer::put_ptr<uint>(const uint*& data, size_t n)  { return put_ptr_template(data,n) ; }  
     template <> bool CBuffer::put_ptr<ushort>(const ushort*& data, size_t n) { return put_ptr_template(data,n) ; }  
     template <> bool CBuffer::put_ptr<ulong>(const ulong*& data, size_t n) { return put_ptr_template(data,n) ; }  
+    template <> bool CBuffer::put_ptr<ulonglong>(const ulonglong*& data, size_t n) { return put_ptr_template(data,n) ; }  
     template <> bool CBuffer::put_ptr<float>(const float*& data, size_t n) { return put_ptr_template(data,n) ; }  
     template <> bool CBuffer::put_ptr<double>(const double*& data, size_t n) { return put_ptr_template(data,n) ; }  
     template <> bool CBuffer::put_ptr<long double>(const long double*& data, size_t n) { return put_ptr_template(data,n) ;}  
@@ -45,9 +51,11 @@ namespace xios
     template <> bool CBuffer::get<int>(int& data)   { return get_template(data) ; }
     template <> bool CBuffer::get<short>(short& data) { return get_template(data) ; }  
     template <> bool CBuffer::get<long>(long& data)  { return get_template(data) ; }  
+    template <> bool CBuffer::get<longlong>(longlong& data)  { return get_template(data) ; }  
     template <> bool CBuffer::get<uint>(uint& data)  { return get_template(data) ; }  
     template <> bool CBuffer::get<ushort>(ushort& data) { return get_template(data) ; }  
     template <> bool CBuffer::get<ulong>(ulong& data) { return get_template(data) ; }  
+    template <> bool CBuffer::get<ulonglong>(ulonglong& data) { return get_template(data) ; }  
     template <> bool CBuffer::get<float>(float& data) { return get_template(data) ; }  
     template <> bool CBuffer::get<double>(double& data) { return get_template(data) ; }  
     template <> bool CBuffer::get<long double>(long double& data) { return get_template(data) ;}  
@@ -56,9 +64,11 @@ namespace xios
     template <> bool CBuffer::get<int>(int* data, size_t n)   { return get_template(data,n) ; }
     template <> bool CBuffer::get<short>(short* data, size_t n) { return get_template(data,n) ; }  
     template <> bool CBuffer::get<long>(long* data, size_t n)  { return get_template(data,n) ; }  
+    template <> bool CBuffer::get<longlong>(longlong* data, size_t n)  { return get_template(data,n) ; }  
     template <> bool CBuffer::get<uint>(uint* data, size_t n)  { return get_template(data,n) ; }  
     template <> bool CBuffer::get<ushort>(ushort* data, size_t n) { return get_template(data,n) ; }  
     template <> bool CBuffer::get<ulong>(ulong* data, size_t n) { return get_template(data,n) ; }  
+    template <> bool CBuffer::get<ulonglong>(ulonglong* data, size_t n) { return get_template(data,n) ; }  
     template <> bool CBuffer::get<float>(float* data, size_t n) { return get_template(data,n) ; }  
     template <> bool CBuffer::get<double>(double* data, size_t n) { return get_template(data,n) ; }  
     template <> bool CBuffer::get<long double>(long double* data, size_t n) { return get_template(data,n) ;}  
@@ -67,9 +77,11 @@ namespace xios
     template <> bool CBuffer::get_ptr<int>(int*& data, size_t n)   { return get_ptr_template(data,n) ; }
     template <> bool CBuffer::get_ptr<short>(short*& data, size_t n) { return get_ptr_template(data,n) ; }  
     template <> bool CBuffer::get_ptr<long>(long*& data, size_t n)  { return get_ptr_template(data,n) ; }  
+    template <> bool CBuffer::get_ptr<longlong>(longlong*& data, size_t n)  { return get_ptr_template(data,n) ; }  
     template <> bool CBuffer::get_ptr<uint>(uint*& data, size_t n)  { return get_ptr_template(data,n) ; }  
     template <> bool CBuffer::get_ptr<ushort>(ushort*& data, size_t n) { return get_ptr_template(data,n) ; }  
     template <> bool CBuffer::get_ptr<ulong>(ulong*& data, size_t n) { return get_ptr_template(data,n) ; }  
+    template <> bool CBuffer::get_ptr<ulonglong>(ulonglong*& data, size_t n) { return get_ptr_template(data,n) ; }  
     template <> bool CBuffer::get_ptr<float>(float*& data, size_t n) { return get_ptr_template(data,n) ; }  
     template <> bool CBuffer::get_ptr<double>(double*& data, size_t n) { return get_ptr_template(data,n) ; }  
     template <> bool CBuffer::get_ptr<long double>(long double*& data, size_t n) { return get_ptr_template(data,n) ;}  

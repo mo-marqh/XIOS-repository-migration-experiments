@@ -707,64 +707,51 @@ namespace xios {
       if (!finalized) finished &= serverPrimServer[i]->eventLoop(enableEventsProcessing);
     }
 
-    for (auto it=couplerClient_.begin(); it!=couplerClient_.end(); ++it)
-    {
-      if (!finalized) it->second->checkBuffers();
-    }
+    for (auto couplerOut : couplerOutClient_)
+      if (!finalized) couplerOut.second->checkBuffers();
+    
+    for (auto couplerIn : couplerInClient_)
+      if (!finalized) couplerIn.second->checkBuffers();
+    
+    for (auto couplerOut : couplerOutServer_)
+      if (!finalized) couplerOut.second->eventLoop(enableEventsProcessing);
 
-    for (auto it=couplerServer_.begin(); it!=couplerServer_.end(); ++it)
-    {
-      if (!finalized) it->second->eventLoop(enableEventsProcessing);
-    }
-
+    for (auto couplerIn : couplerInServer_)
+      if (!finalized) couplerIn.second->eventLoop(enableEventsProcessing);
+    
     if (server!=nullptr) if (!finalized) finished &= server->eventLoop(enableEventsProcessing);
   
     return finalized && finished ;
   }
 
-  void CContext::addCouplingChanel(const std::string& context, bool out)
+  void CContext::addCouplingChanel(const std::string& fullContextId, bool out)
   {
-     vector<string> vectStr=splitRegex(context,"::") ;
-     string poolId=vectStr[0] ;
-     string serviceId=poolId ;
-     string contextId=vectStr[1] ;
-
      int contextLeader ;
-     int type = CServicesManager::CLIENT ;
-     string contextName=CXios::getContextsManager()->getServerContextName(poolId, serviceId, 0, type, contextId) ;
      
-     if (couplerClient_.find(contextName)==couplerClient_.end())
-     {
-       bool ok=CXios::getContextsManager()->getContextLeader(contextName, contextLeader, getIntraComm()) ;
+     if (out)
+     { 
+       if (couplerOutClient_.find(fullContextId)==couplerOutClient_.end()) 
+       {
+         bool ok=CXios::getContextsManager()->getContextLeader(fullContextId, contextLeader, getIntraComm()) ;
      
-       MPI_Comm interComm, interCommClient, interCommServer  ;
-       MPI_Comm intraCommClient, intraCommServer ;
+         MPI_Comm interComm, interCommClient, interCommServer  ;
+         MPI_Comm intraCommClient, intraCommServer ;
 
-       if (ok) MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
+         if (ok) MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
 
-       MPI_Comm_dup(intraComm_, &intraCommClient) ;
-       MPI_Comm_dup(intraComm_, &intraCommServer) ;
-       if (out)
-       {
-         MPI_Comm_dup(interComm, &interCommClient) ;
-         MPI_Comm_dup(interComm, &interCommServer) ;
-         CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
-         CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
-         client->setAssociatedServer(server) ;
-         server->setAssociatedClient(client) ;
-       }
-       else
-       {
-          MPI_Comm_dup(interComm, &interCommServer) ;
-          MPI_Comm_dup(interComm, &interCommClient) ;
-          CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
-          CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
-          client->setAssociatedServer(server) ;
-          server->setAssociatedClient(client) ;
-       }
-       MPI_Comm_free(&interComm) ;
+        MPI_Comm_dup(intraComm_, &intraCommClient) ;
+        MPI_Comm_dup(intraComm_, &intraCommServer) ;
+        MPI_Comm_dup(interComm, &interCommClient) ;
+        MPI_Comm_dup(interComm, &interCommServer) ;
+        CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
+        CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
+        client->setAssociatedServer(server) ;
+        server->setAssociatedClient(client) ;
+        MPI_Comm_free(&interComm) ;
+        couplerOutClient_[fullContextId] = client ;
+        couplerOutServer_[fullContextId] = server ;
 
-
+/*
       // for now, we don't now which beffer size must be used for client coupler
       // It will be evaluated later. Fix a constant size for now...
       // set to 10Mb for development
@@ -776,10 +763,39 @@ namespace xios {
        }
 
        client->setBufferSize(bufferSize, maxEventSize);    
-       
-       couplerClient_[contextName] = client ;
-       couplerServer_[contextName] = server ;
-     }
+*/
+      }
+    }
+    else if (couplerInClient_.find(fullContextId)==couplerInClient_.end())
+    {
+      bool ok=CXios::getContextsManager()->getContextLeader(fullContextId, contextLeader, getIntraComm()) ;
+     
+       MPI_Comm interComm, interCommClient, interCommServer  ;
+       MPI_Comm intraCommClient, intraCommServer ;
+
+       if (ok) MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
+
+       MPI_Comm_dup(intraComm_, &intraCommClient) ;
+       MPI_Comm_dup(intraComm_, &intraCommServer) ;
+       MPI_Comm_dup(interComm, &interCommServer) ;
+       MPI_Comm_dup(interComm, &interCommClient) ;
+       CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
+       CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
+       client->setAssociatedServer(server) ;
+       server->setAssociatedClient(client) ;
+       MPI_Comm_free(&interComm) ;
+
+       map<int,size_t> bufferSize, maxEventSize ;
+       for(int i=0;i<client->getRemoteSize();i++)
+       {
+         bufferSize[i]=10000000 ;
+         maxEventSize[i]=10000000 ;
+       }
+
+       client->setBufferSize(bufferSize, maxEventSize);    
+       couplerInClient_[fullContextId] = client ;
+       couplerInServer_[fullContextId] = server ;        
+    }
   }
   
   void CContext::globalEventLoop(void)
@@ -797,7 +813,21 @@ namespace xios {
 
       if (serviceType_==CServicesManager::CLIENT)
       {
-        doPreTimestepOperationsForEnabledReadModeFiles(); // For now we only use server level 1 to read data
+//ym        doPreTimestepOperationsForEnabledReadModeFiles(); // For now we only use server level 1 to read data
+
+        triggerLateFields() ;
+
+        // inform couplerIn that I am finished
+        for(auto& couplerInClient : couplerInClient_) sendCouplerInContextFinalized(couplerInClient.second) ;
+
+        // wait until received message from couplerOut that they have finished
+        bool couplersInFinalized ;
+        do
+        {
+          couplersInFinalized=true ;
+          for(auto& couplerOutClient : couplerOutClient_) couplersInFinalized &= isCouplerInContextFinalized(couplerOutClient.second) ; 
+          globalEventLoop() ;
+        } while (!couplersInFinalized) ;
 
         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
         client->finalize();
@@ -1054,8 +1084,8 @@ namespace xios {
     // Find all enabled fields of each file      
     vector<CField*>&& fileOutField = findAllEnabledFieldsInFileOut(this->enabledWriteModeFiles);
     vector<CField*>&& fileInField = findAllEnabledFieldsInFileIn(this->enabledReadModeFiles);
-    vector<CField*>&& CouplerOutField = findAllEnabledFieldsCouplerOut(this->enabledCouplerOut);
-    vector<CField*>&& CouplerInField = findAllEnabledFieldsCouplerIn(this->enabledCouplerIn);
+    vector<CField*>&& couplerOutField = findAllEnabledFieldsCouplerOut(this->enabledCouplerOut);
+    vector<CField*>&& couplerInField = findAllEnabledFieldsCouplerIn(this->enabledCouplerIn);
     findFieldsWithReadAccess();
     vector<CField*>& fieldWithReadAccess = fieldsWithReadAccess_ ;
     vector<CField*> fieldModelIn ; // fields potentially from model
@@ -1072,17 +1102,62 @@ namespace xios {
       for (auto& file : enabledReadModeFiles) file->setServerSide() ;
     }
 
-
-
+    
+    for (auto& field : couplerInField)
+    {
+      field->unsetGridCompleted() ;
+    }
 // find all field potentially at workflow end
     vector<CField*> endWorkflowFields ;
-    endWorkflowFields.reserve(fileOutField.size()+CouplerOutField.size()+fieldWithReadAccess.size()) ;
+    endWorkflowFields.reserve(fileOutField.size()+couplerOutField.size()+fieldWithReadAccess.size()) ;
     endWorkflowFields.insert(endWorkflowFields.end(),fileOutField.begin(), fileOutField.end()) ;
-    endWorkflowFields.insert(endWorkflowFields.end(),CouplerOutField.begin(), CouplerOutField.end()) ;
+    endWorkflowFields.insert(endWorkflowFields.end(),couplerOutField.begin(), couplerOutField.end()) ;
     endWorkflowFields.insert(endWorkflowFields.end(),fieldWithReadAccess.begin(), fieldWithReadAccess.end()) ;
 
-    for(auto endWorkflowField : endWorkflowFields) endWorkflowField->buildWorkflowGraph(garbageCollector) ;
+    bool workflowGraphIsCompleted ;
+
+    bool first=true ;
+    do
+    {
+      workflowGraphIsCompleted=true; 
+      for(auto endWorkflowField : endWorkflowFields) 
+      {
+        workflowGraphIsCompleted &= endWorkflowField->buildWorkflowGraph(garbageCollector) ;
+      }
+
+      for(auto couplerIn : enabledCouplerIn) couplerIn->assignContext() ;
+      for(auto field : couplerInField) field->makeGridAliasForCoupling();
+      for(auto field : couplerInField) this->sendCouplerInReady(field->getContextClient()) ;
     
+
+      // assign context to coupler out and related fields
+      for(auto couplerOut : enabledCouplerOut) couplerOut->assignContext() ;
+      // for now supose that all coupling out endpoint are succesfull. The difficultie is client/server buffer evaluation
+      for(auto field : couplerOutField) 
+      {
+        field->computeGridIndexToFileServer() ; // same kind of index than for file server -> in future distribution may change
+      }
+      if (first) setClientServerBuffer(couplerOutField, true) ; // set buffer context
+
+      bool couplersReady ;
+      do 
+      {
+        couplersReady=true ;
+        for(auto field : couplerOutField)
+        {
+          bool ready = isCouplerInReady(field->getContextClient()) ; 
+          if (ready) field->sendFieldToCouplerOut() ;
+          couplersReady &= ready ;
+        }
+        if (!couplersReady) this->eventLoop() ;
+      } while (!couplersReady) ;
+
+      first=false ;
+      this->eventLoop() ;
+    } while (!workflowGraphIsCompleted) ;
+
+    for( auto field : couplerInField) couplerInFields_.push_back(field) ;
+
     // get all field coming potentially from model
     for (auto field : CField::getAll() ) if (field->getModelIn()) fieldModelIn.push_back(field) ;
 
@@ -1100,7 +1175,7 @@ namespace xios {
         field->connectToFileServer(garbageCollector) ; // connect the field to server filter
         field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
       }
-      setClientServerBuffer(fileOutField, true) ; // set context
+      setClientServerBuffer(fileOutField, true) ; // set buffer context
       for(auto field : fileOutField) field->sendFieldToFileServer() ;
     }
 
@@ -1145,12 +1220,24 @@ namespace xios {
       }
     }
 
+    
+    for(auto field : couplerInField) 
+    {
+      field->connectToCouplerIn(garbageCollector) ; // connect the field to server filter
+    }
+    
+    
+    for(auto field : couplerOutField) 
+    {
+      field->connectToCouplerOut(garbageCollector) ; // for now the same kind of filter that for file server
+    }
+
      // workflow startpoint => data from server on client side
     if (serviceType_==CServicesManager::CLIENT)
     {
       for(auto field : fileInField) 
       {
-        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
+        field->connectToServerInput(garbageCollector) ; // connect tFhe field to server filter
         field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
         field->sendFieldToInputFileServer() ;
       }
@@ -1161,9 +1248,16 @@ namespace xios {
     {
       // no filter for reading data from file => to be implemented
     }
+    
+    // construct slave server list
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) 
+    {
+      for(auto field : fileOutField) slaveServers_.insert(field->getContextClient()) ; 
+      for(auto field : fileInField)  slaveServers_.insert(field->getContextClient()) ;  
+    }
 
+    for(auto& slaveServer : slaveServers_) sendCloseDefinition(slaveServer) ;
 
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendCloseDefinition();
     if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)  
     {
       createFileHeader();
@@ -1171,10 +1265,30 @@ namespace xios {
 
     if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
    
+    // send signal to couplerIn context that definition phasis is done
 
+    for(auto& couplerInClient : couplerInClient_) sendCouplerInCloseDefinition(couplerInClient.second) ;
 
+    // wait until all couplerIn signal that closeDefition is done.
+    bool ok;
+    do
+    {
+      ok = true ;
+      for(auto& couplerOutClient : couplerOutClient_) ok &= isCouplerInCloseDefinition(couplerOutClient.second) ;
+      this->eventLoop() ; 
+    } while (!ok) ;
 
     return ;
+
+
+
+
+
+
+
+
+
+
     // For now, only read files with client and only one level server
     // if (hasClient && !hasServer) findEnabledReadModeFiles();      
 
@@ -1986,18 +2100,30 @@ namespace xios {
            case EVENT_ID_POST_PROCESS:
              recvPostProcessing(event);
              return true;
-            case EVENT_ID_SEND_REGISTRY:
+           case EVENT_ID_SEND_REGISTRY:
              recvRegistry(event);
              return true;
              break;
-            case EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES:
+           case EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES:
              recvPostProcessingGlobalAttributes(event);
              return true;
              break;
-            case EVENT_ID_PROCESS_GRID_ENABLED_FIELDS:
+           case EVENT_ID_PROCESS_GRID_ENABLED_FIELDS:
              recvProcessingGridOfEnabledFields(event);
              return true;
              break;
+           case EVENT_ID_COUPLER_IN_READY:
+             recvCouplerInReady(event);
+             return true;
+             break;
+           case EVENT_ID_COUPLER_IN_CLOSE_DEFINITION:
+             recvCouplerInCloseDefinition(event);
+             return true;
+             break;
+           case EVENT_ID_COUPLER_IN_CONTEXT_FINALIZED:
+             recvCouplerInContextFinalized(event);
+             return true;
+             break;  
            default :
              ERROR("bool CContext::dispatchEvent(CEventServer& event)",
                     <<"Unknown Event");
@@ -2008,6 +2134,7 @@ namespace xios {
    CATCH
 
    //! Client side: Send a message to server to make it close
+   // ym obsolete
    void CContext::sendCloseDefinition(void)
    TRY
    {
@@ -2034,6 +2161,24 @@ namespace xios {
      }
    }
    CATCH_DUMP_ATTR
+   
+   //  ! Client side: Send a message to server to make it close
+   void CContext::sendCloseDefinition(CContextClient* client)
+   TRY
+   {
+      if (sendCloseDefinition_done_.count(client)!=0) return ;
+      else sendCloseDefinition_done_.insert(client) ;
+
+      CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION);
+      if (client->isServerLeader())
+      {
+        CMessage msg;
+        for(auto rank : client->getRanksServerLeader()) event.push(rank,1,msg);
+        client->sendEvent(event);
+      }
+     else client->sendEvent(event);
+   }
+   CATCH_DUMP_ATTR
 
    //! Server side: Receive a message of client announcing a context close
    void CContext::recvCloseDefinition(CEventServer& event)
@@ -2048,28 +2193,17 @@ namespace xios {
    void CContext::sendUpdateCalendar(int step)
    TRY
    {
-    int nbSrvPools ;
-    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
-    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
-    else nbSrvPools = 0 ;
-    CContextClient* contextClientTmp ;
-
-    for (int i = 0; i < nbSrvPools; ++i)
-    {
-       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
-       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
-       CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
-
-         if (contextClientTmp->isServerLeader())
-         {
-           CMessage msg;
-           msg<<step;
-           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             event.push(*itRank,1,msg);
-           contextClientTmp->sendEvent(event);
-         }
-         else contextClientTmp->sendEvent(event);
+     CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
+     for(auto client : slaveServers_) 
+     {
+       if (client->isServerLeader())
+       {
+         CMessage msg;
+         msg<<step;
+         for (auto& rank : client->getRanksServerLeader() ) event.push(rank,1,msg);
+         client->sendEvent(event);
+       }
+       else client->sendEvent(event);
      }
    }
    CATCH_DUMP_ATTR
@@ -2579,6 +2713,14 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   void CContext::triggerLateFields(void)
+   TRY
+   {
+    for(auto& field : fileInFields_) field->triggerLateField() ;
+    for(auto& field : couplerInFields_) field->triggerLateField() ;
+   }
+   CATCH_DUMP_ATTR
+
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)
    TRY
@@ -2589,7 +2731,7 @@ namespace xios {
       {
         if (serviceType_==CServicesManager::CLIENT) // For now we only use server level 1 to read data
         {
-          doPreTimestepOperationsForEnabledReadModeFiles();
+          triggerLateFields();
         }
 
         info(50) << "updateCalendar : before : " << calendar->getCurrentDate() << endl;
@@ -2770,6 +2912,133 @@ namespace xios {
     countChildContextFinalized_++ ;
   }
   CATCH_DUMP_ATTR
+
+
+
+
+ //! Client side: Send a message  announcing that context can receive grid definition from coupling
+   void CContext::sendCouplerInReady(CContextClient* client)
+   TRY
+   {
+      if (sendCouplerInReady_done_.count(client)!=0) return ;
+      else sendCouplerInReady_done_.insert(client) ;
+
+      CEventClient event(getType(),EVENT_ID_COUPLER_IN_READY);
+
+      if (client->isServerLeader())
+      {
+        CMessage msg;
+        msg<<this->getId();
+        for (auto& rank : client->getRanksServerLeader()) event.push(rank,1,msg);
+        client->sendEvent(event);
+      }
+      else client->sendEvent(event);
+   }
+   CATCH_DUMP_ATTR
+
+   //! Server side: Receive a message announcing that context can send grid definition for context coupling
+   void CContext::recvCouplerInReady(CEventServer& event)
+   TRY
+   {
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      getCurrent()->recvCouplerInReady(*buffer);
+   }
+   CATCH
+
+   //! Server side: Receive a message announcing that context can send grid definition for context coupling
+   void CContext::recvCouplerInReady(CBufferIn& buffer)
+   TRY
+   {
+      string contextId ;
+      buffer>>contextId;
+      couplerInReady_.insert(getCouplerOutClient(contextId)) ;
+   }
+   CATCH_DUMP_ATTR
+
+
+
+
+
+ //! Client side: Send a message  announcing that a coupling context have done it closeDefinition, so data can be sent now.
+   void CContext::sendCouplerInCloseDefinition(CContextClient* client)
+   TRY
+   {
+      if (sendCouplerInCloseDefinition_done_.count(client)!=0) return ;
+      else sendCouplerInCloseDefinition_done_.insert(client) ;
+
+      CEventClient event(getType(),EVENT_ID_COUPLER_IN_CLOSE_DEFINITION);
+
+      if (client->isServerLeader())
+      {
+        CMessage msg;
+        msg<<this->getId();
+        for (auto& rank : client->getRanksServerLeader()) event.push(rank,1,msg);
+        client->sendEvent(event);
+      }
+      else client->sendEvent(event);
+   }
+   CATCH_DUMP_ATTR
+
+   //! Server side: Receive a message announcing that a coupling context have done it closeDefinition, so data can be sent now.
+   void CContext::recvCouplerInCloseDefinition(CEventServer& event)
+   TRY
+   {
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      getCurrent()->recvCouplerInCloseDefinition(*buffer);
+   }
+   CATCH
+
+   //! Server side: Receive a message announcing that a coupling context have done it closeDefinition, so data can be sent now.
+   void CContext::recvCouplerInCloseDefinition(CBufferIn& buffer)
+   TRY
+   {
+      string contextId ;
+      buffer>>contextId;
+      couplerInCloseDefinition_.insert(getCouplerOutClient(contextId)) ;
+   }
+   CATCH_DUMP_ATTR
+
+
+
+
+//! Client side: Send a message  announcing that a coupling context have done it contextFinalize, so it can also close it own context.
+   void CContext::sendCouplerInContextFinalized(CContextClient* client)
+   TRY
+   {
+      if (sendCouplerInContextFinalized_done_.count(client)!=0) return ;
+      else sendCouplerInContextFinalized_done_.insert(client) ;
+
+      CEventClient event(getType(),EVENT_ID_COUPLER_IN_CONTEXT_FINALIZED);
+
+      if (client->isServerLeader())
+      {
+        CMessage msg;
+        msg<<this->getId();
+        for (auto& rank : client->getRanksServerLeader()) event.push(rank,1,msg);
+        client->sendEvent(event);
+      }
+      else client->sendEvent(event);
+   }
+   CATCH_DUMP_ATTR
+
+   //! Server side: Receive a message announcing that a coupling context have done it contextFinalize, so it can also close it own context.
+   void CContext::recvCouplerInContextFinalized(CEventServer& event)
+   TRY
+   {
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      getCurrent()->recvCouplerInContextFinalized(*buffer);
+   }
+   CATCH
+
+   //! Server side: Receive a message announcing that a coupling context have done it contextFinalize, so it can also close it own context.
+   void CContext::recvCouplerInContextFinalized(CBufferIn& buffer)
+   TRY
+   {
+      string contextId ;
+      buffer>>contextId;
+      couplerInContextFinalized_.insert(getCouplerOutClient(contextId)) ;
+   }
+   CATCH_DUMP_ATTR
 
 
 

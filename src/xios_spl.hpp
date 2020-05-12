@@ -48,9 +48,11 @@ typedef std::istream       StdIStream;
 typedef std::string        StdString;
 typedef std::size_t        StdSize;
 
-typedef  unsigned short int   ushort;
-typedef  unsigned int         uint;
-typedef  unsigned long int    ulong;
+typedef  unsigned short int      ushort;
+typedef  unsigned int            uint;
+typedef  unsigned long int       ulong;
+typedef  long long int           longlong;
+typedef  unsigned long long int  ulonglong;
 
 const size_t stringArrayLen=255 ;
 

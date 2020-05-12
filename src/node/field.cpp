@@ -132,7 +132,11 @@ namespace xios
           recvAddVariableGroup(event);
           return true;
           break;
-
+     
+        case EVENT_ID_GRID_COMPLETED :
+          recvGridCompleted(event);
+          return true;
+          break;
         default :
           ERROR("bool CField::dispatchEvent(CEventServer& event)", << "Unknown Event");
           return false;
@@ -141,7 +145,7 @@ namespace xios
   }
   CATCH
 
-  void CField::sendUpdateData(const CArray<double,1>& data, CContextClient* client)
+  void CField::sendUpdateData(Time timeStamp, const CArray<double,1>& data, CContextClient* client)
   TRY
   {
     CTimer::get("Field : send data").resume();
@@ -168,7 +172,7 @@ namespace xios
             CArray<double,1>& data_tmp = list_data.back();
             for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
-            list_msg.back() << getId() << data_tmp;
+            list_msg.back() << getId() << timeStamp << data_tmp;
             event.push(rank, 1, list_msg.back());
           }
           client->sendEvent(event);
@@ -188,7 +192,7 @@ namespace xios
         CArray<double,1>& data_tmp = list_data.back();
         for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
-        list_msg.back() << getId() << data_tmp;
+        list_msg.back() << getId() << timeStamp << data_tmp;
         event.push(rank, grid_->nbSenders_[receiverSize][rank], list_msg.back());
       }
       client->sendEvent(event);
@@ -218,11 +222,20 @@ namespace xios
   }
   CATCH
 
+
   void  CField::recvUpdateData(std::map<int,CBufferIn*>& rankBuffers)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    if (hasCouplerIn()) recvUpdateDataFromCoupler(rankBuffers) ;
+    else recvUpdateDataFromClient(rankBuffers) ;
+  }
+  CATCH
 
+  void  CField::recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers)
+  TRY
+  {
+    CContext* context = CContext::getCurrent();
+    Time timeStamp ;
     size_t sizeData = 0;
     if (0 == recvDataSrv.numElements())
     {            
@@ -248,7 +261,7 @@ namespace xios
       {
         CArray<double,1> tmp;
         CArray<size_t,1>& indexTmp = it->second;
-        *(rankBuffers[it->first]) >> tmp;
+        *(rankBuffers[it->first]) >> timeStamp >> tmp;
         for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
       }
     }
@@ -551,6 +564,41 @@ namespace xios
   }
   CATCH
 
+  
+  void CField::recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers)
+  TRY
+  {
+    CContext* context = CContext::getCurrent();
+    Time timeStamp ;
+    if (wasDataAlreadyReceivedFromServer)
+    {  
+      lastDataReceivedFromServer = lastDataReceivedFromServer + freq_op;
+    }
+    else
+    {
+      // unlikely to input from file server where data are received at ts=0
+      // for coupling, it would be after the first freq_op, because for now we don't have
+      // restart mecanism to send the value at ts=0. It mus be changed in future
+      lastDataReceivedFromServer = context->getCalendar()->getInitDate()+freq_op;
+      wasDataAlreadyReceivedFromServer = true;
+    }
+
+    CArray<int,1>& storeClient = grid_->getStoreIndex_client();
+    CArray<double,1> recv_data_tmp(storeClient.numElements());  
+
+    auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
+    for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
+    {
+      CArray<double,1> tmp;
+      CArray<size_t,1>& indexTmp = it->second;
+      *(rankBuffers[it->first]) >> timeStamp >> tmp;
+      for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
+    }
+    
+    clientSourceFilter->streamData(lastDataReceivedFromServer, recv_data_tmp);
+    
+  }
+  CATCH_DUMP_ATTR
   /*!
     Receive read data from server
     \param [in] ranks Ranks of sending processes
@@ -596,6 +644,44 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
+  void CField::checkForLateDataFromCoupler(void)
+  TRY
+  {
+    CContext* context = CContext::getCurrent();
+    const CDate& currentDate = context->getCalendar()->getCurrentDate();
+
+    CTimer timer("CField::checkForLateDataFromCoupler");
+    timer.resume();
+    traceOff() ;
+    timer.suspend();
+      
+    bool isDataLate;
+    do
+    {
+      const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + freq_op) : context->getCalendar()->getInitDate();
+      isDataLate = (nextDataDue <= currentDate);
+
+      if (isDataLate)
+      {
+        timer.resume();
+//ym          context->checkBuffersAndListen();
+//ym            context->eventLoop();
+        context->globalEventLoop();
+
+        timer.suspend();
+      }
+    } while (isDataLate && timer.getCumulatedTime() < CXios::recvFieldTimeout);
+    
+    timer.resume();
+    traceOn() ;
+    timer.suspend() ;
+
+    if (isDataLate) ERROR("void CField::checkForLateDataFromCoupler(void)",
+                            << "Late data at timestep = " << currentDate);
+  }
+  CATCH_DUMP_ATTR
+
+
   void CField::checkForLateDataFromServer(void)
   TRY
   {
@@ -639,6 +725,23 @@ namespace xios
     }
   }
   CATCH_DUMP_ATTR
+
+  void CField::triggerLateField(void)
+  TRY
+  {
+    if (hasFileIn()) 
+    {
+      checkForLateDataFromServer() ;
+      serverSourceFilter->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate()) ;
+    } 
+    else if (hasCouplerIn())
+    {
+      checkForLateDataFromCoupler() ;
+      clientSourceFilter->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate()) ;
+    }
+  }
+  CATCH_DUMP_ATTR
+
 
   void CField::checkIfMustAutoTrigger(void)
   TRY
@@ -1139,6 +1242,7 @@ namespace xios
   bool CField::buildWorkflowGraph(CGarbageCollector& gc)
   {
     if (buildWorkflowGraphDone_) return true ;
+    
     const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
     const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
@@ -1151,6 +1255,10 @@ namespace xios
       if (!ret) return false ; // workflow graph cannot be built at this stage
     }
 
+    // now construct grid and check if element are enabled
+    solveGridReference() ; // grid_ is now defined
+    if (!isGridCompleted()) return false;
+
     // Check if we have an expression to parse
     std::shared_ptr<COutputPin> filterExpr ;
     if (hasExpression())
@@ -1159,9 +1267,6 @@ namespace xios
       filterExpr = expr->reduce(gc, *this);
       if (!filterExpr) return false ; // workflow graph cannot be built at this stage
     }
-    
-    // now construct grid and check if element are enabled
-    solveGridReference() ; // grid_ is now defined
     
     // prepare transformation. Need to know before if workflow of auxillary field can be built
     if (hasDirectFieldReference())
@@ -1172,9 +1277,9 @@ namespace xios
       CGrid* gridSrc=getDirectFieldReference()->getGrid() ;
       for(auto grid : gridPath)
       {
-        if (!grid->checkIfCompleted()) return false ;
         grid->solveElementsRefInheritance() ;
-        grid_->completeGrid(gridSrc); // grid generation, to be checked
+        grid->completeGrid(gridSrc); // grid generation, to be checked
+        grid->checkElementsAttributes() ;
         grid->prepareTransformGrid(gridSrc) ; // prepare the grid tranformation
         for(auto fieldId : grid->getAuxInputTransformGrid()) // try to build workflow graph for auxillary field tranformation
           if (!CField::get(fieldId)->buildWorkflowGraph(gc)) return false ;
@@ -1204,8 +1309,6 @@ namespace xios
     }
     else 
     {
-      if (!grid_->checkIfCompleted()) return false ;
-      
       if (hasFileIn()) // input file, attemp to read the grid from file
       {
          // must be checked
@@ -1220,7 +1323,12 @@ namespace xios
          // probably in future tag grid incomplete if coming from a reading
          instantDataFilter=inputFilter ;
       }  
-      else 
+      else if (hasCouplerIn())
+      {
+        grid_->checkElementsAttributes() ;
+        instantDataFilter=inputFilter ;
+      }
+      else
       {
         setModelIn() ; // no reference, the field is potentially a source field from model
 
@@ -1255,6 +1363,13 @@ namespace xios
     fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, client));
     // insert temporal filter before sending to files
     getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(fileWriterFilter, 0);
+  } 
+
+  void CField::connectToCouplerOut(CGarbageCollector& gc)
+  {
+    // insert temporal filter before sending to files
+    fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, client));
+    instantDataFilter->connectOutput(fileWriterFilter, 0);
   } 
 
   /*!
@@ -1302,6 +1417,26 @@ namespace xios
     //serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc,  grid_, false, false));
     serverSourceFilter -> connectOutput(inputFilter,0) ;
   } 
+
+  /*!
+   * Connect field to a source filter to receive data from coupler (on client side).
+   */
+   void CField::connectToCouplerIn(CGarbageCollector& gc)
+  {
+    CContext* context = CContext::getCurrent();
+
+    if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
+    if (freq_offset.isEmpty()) freq_offset.setValue(freq_op.getValue() - TimeStep);
+
+    freq_operation_srv = freq_op ;
+    last_operation_srv = context->getCalendar()->getInitDate();
+    const CDuration toffset = freq_operation_srv - freq_offset.getValue() - context->getCalendar()->getTimeStep();
+    last_operation_srv     = last_operation_srv - toffset;
+
+    clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid_, false, false, freq_offset, true)) ;
+    clientSourceFilter -> connectOutput(inputFilter,0) ;
+  } 
+
 
   /*!
    * Connect field to a file writer filter to write data in file (on server side).
@@ -2020,14 +2155,11 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  CContextClient* CField::getContextClient()
-  TRY
+  void CField::sendCloseDefinition(void)
   {
-    return client;
+    CContext::getCurrent()->sendCloseDefinition(client) ;
   }
-  CATCH
 
-  
   void CField::sendFieldToFileServer(void)
   {
     CContext::getCurrent()->sendContextToFileServer(client);
@@ -2036,7 +2168,61 @@ namespace xios
     this->sendAllAttributesToServer(client);
     this->sendAddAllVariables(client);
   }
+
+  void CField::sendFieldToCouplerOut(void)
+  {
+    if (sendFieldToCouplerOut_done_) return ;
+    else sendFieldToCouplerOut_done_=true ;
+    grid_->sendGridToCouplerOut(client, this->getId());
+    this->sendGridCompleted();
+
+  }
   
+  void CField::makeGridAliasForCoupling(void) 
+  { 
+    grid_->makeAliasForCoupling(this->getId()); 
+  }
+
+ //! Client side: Send a message  announcing that the grid definition has been received from a coupling context
+   void CField::sendGridCompleted(void)
+   TRY
+   {
+      CEventClient event(getType(),EVENT_ID_GRID_COMPLETED);
+
+      if (client->isServerLeader())
+      {
+        CMessage msg;
+        msg<<this->getId();
+        for (auto& rank : client->getRanksServerLeader()) event.push(rank,1,msg);
+        client->sendEvent(event);
+      }
+      else client->sendEvent(event);
+   }
+   CATCH_DUMP_ATTR
+
+   //! Server side: Receive a message announcing that the grid definition has been received from a coupling context
+   void CField::recvGridCompleted(CEventServer& event)
+   TRY
+   {
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvGridCompleted(*buffer);
+   }
+   CATCH
+
+   //! Server side: Receive a message  message  announcing that the grid definition has been received from a coupling context
+   void CField::recvGridCompleted(CBufferIn& buffer)
+   TRY
+   {
+      setGridCompleted() ;
+   }
+   CATCH_DUMP_ATTR
+
+
+
+
+
   void CField::sendFieldToInputFileServer(void)
   {
     CContext::getCurrent()->sendContextToFileServer(client);
@@ -2144,9 +2330,7 @@ namespace xios
   void CField::checkTimeAttributes(CDuration* freqOp)
   TRY
   {
-    bool isFieldRead  = getRelFile() && !getRelFile()->mode.isEmpty() && getRelFile()->mode == CFile::mode_attr::read;
-    bool isFieldWrite = getRelFile() && ( getRelFile()->mode.isEmpty() ||  getRelFile()->mode == CFile::mode_attr::write);
-    if (isFieldRead && !(operation.getValue() == "instant" || operation.getValue() == "once") )     
+    if (hasFileIn() && !(operation.getValue() == "instant" || operation.getValue() == "once") )     
       ERROR("void CField::checkTimeAttributes(void)",
          << "Unsupported operation for field '" << getFieldOutputName() << "'." << std::endl
          << "Currently only \"instant\" is supported for fields read from file.")
@@ -2155,12 +2339,12 @@ namespace xios
     {
       if (operation.getValue() == "instant")
       {
-        if (isFieldRead || isFieldWrite) freq_op.setValue(getRelFile()->output_freq.getValue());
+        if (hasFileIn() || hasFileOut()) freq_op.setValue(getRelFile()->output_freq.getValue());
         else freq_op=*freqOp ;
       }
       else freq_op.setValue(TimeStep);
     }
-    if (freq_offset.isEmpty()) freq_offset.setValue(isFieldRead ? NoneDu : (freq_op.getValue() - TimeStep));
+    if (freq_offset.isEmpty()) freq_offset.setValue(hasFileIn() ? NoneDu : (freq_op.getValue() - TimeStep));
   }
   CATCH_DUMP_ATTR
 

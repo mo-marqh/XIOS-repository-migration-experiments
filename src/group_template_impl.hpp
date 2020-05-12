@@ -369,14 +369,15 @@ namespace xios
   }
 
    template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::sendCreateChild(const string& id, CContextClient* client)
+   void CGroupTemplate<U, V, W>::sendCreateChild(const string& id, CContextClient* client, const string& objectId)
    {
 
     CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;
     if (client->isServerLeader())
     {
       CMessage msg ;
-      msg<<this->getId() ;
+      if (objectId.empty()) msg << this->getId();
+      else msg << objectId;
       msg<<id ;
       const std::list<int>& ranks = client->getRanksServerLeader();
       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
@@ -387,13 +388,14 @@ namespace xios
    }
 
    template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id, CContextClient* client)
+   void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id, CContextClient* client, const string& objectId)
    {
      CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;
      if (client->isServerLeader())
      {
        CMessage msg ;
-       msg<<this->getId() ;
+       if (objectId.empty()) msg << this->getId();
+       else msg << objectId;
        msg<<id ;
        const std::list<int>& ranks = client->getRanksServerLeader();
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)

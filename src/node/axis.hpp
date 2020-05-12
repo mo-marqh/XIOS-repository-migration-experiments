@@ -123,10 +123,6 @@ namespace xios {
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
          bool isEqual(CAxis* axis);
 
-         bool checkIfCompleted(void) ;
-         void setCompleted(void) ;
-         void setUncompleted(void) ;
-
       public: 
         bool hasValue;        
         bool hasBounds;
@@ -149,15 +145,23 @@ namespace xios {
       private:
          std::set<CContextClient*> sendAxisToFileServer_done_ ;
       
+      public:
+         void sendAxisToCouplerOut(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid, const string& fieldId, int posInGrid) ;
+      private:
+         std::set<CContextClient*> sendAxisToCouplerOut_done_ ;
+    
+      public:
+         void makeAliasForCoupling(const string& fieldId, int posInGrid) ;
+
       private:
          void sendAttributes(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
-                             CServerDistributionDescription::ServerDistributionType distType);
+                             CServerDistributionDescription::ServerDistributionType distType, const string& axisId="");
          void sendDistributionAttribute(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
-                                        CServerDistributionDescription::ServerDistributionType distType);
+                                        CServerDistributionDescription::ServerDistributionType distType, const string& axisId="");
          
 
-         void sendNonDistributedAttributes(CContextClient* client);
-         void sendDistributedAttributes(CContextClient* client);
+         void sendNonDistributedAttributes(CContextClient* client, const string& axisId="");
+         void sendDistributedAttributes(CContextClient* client, const string& axisId="");
 
          static void recvNonDistributedAttributes(CEventServer& event);
          static void recvDistributedAttributes(CEventServer& event);
@@ -170,14 +174,31 @@ namespace xios {
 
       private:
 
-/** Clients that have to send a domain. There can be multiple clients in case of secondary server, otherwise only one client. */
+/** Clients that have to send a axis. There can be multiple clients in case of secondary server, otherwise only one client. */
          std::list<CContextClient*> clients;
          std::set<CContextClient*> clientsSet;
 
+      private:
          /** define if the axis is completed or not ie all attributes have been received before in case 
              of grid reading from file or coupling */ 
          bool isCompleted_=true ;  
-
+      public:     
+         /*!
+           \brief Check if a axis is completed
+           Before make any axis processing, we must be sure that all axis informations have
+           been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+           other context (coupling). So all direct reference of the axis (axis_ref) must be also completed
+           \return true if axis and axis reference are completed
+          */
+         bool isCompleted(void)
+         {
+           if (hasDirectAxisReference()) if (!getDirectAxisReference()->isCompleted()) return false;
+           else return isCompleted_ ;
+         }
+         void setCompleted(void) { isCompleted_=true ; }
+         void unsetCompleted(void) { isCompleted_=false ; }
+      
+      private:
          bool isChecked;
          bool areClientAttributesChecked_;
          bool isClientAfterTransformationChecked;

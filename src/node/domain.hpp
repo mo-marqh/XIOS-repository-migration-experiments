@@ -110,10 +110,26 @@ namespace xios {
          bool isEqual(CDomain* domain);
 
          static bool dispatchEvent(CEventServer& event);
-
-         bool checkIfCompleted(void) ;
-         void setCompleted(void) ;
-         void setUncompleted(void) ;
+      
+      private:
+         /** define if the domain is completed or not ie all attributes have been received before in case 
+             of grid reading from file or coupling */ 
+         bool isCompleted_=true ;  
+      public:     
+        /*!
+           \brief Check if a domain is completed
+           Before make any domain processing, we must be sure that all domain informations have
+           been sent, for exemple when reading a grid in a file or when grid elements are sent by an
+           other context (coupling). So all direct reference of the domain (domain_ref) must be also completed
+           \return true if domain and domain reference are completed
+          */
+         bool isCompleted(void)
+         {
+           if (hasDirectDomainReference()) if (!getDirectDomainReference()->isCompleted()) return false;
+           else return isCompleted_ ;
+         }
+         void setCompleted(void) { isCompleted_=true ; }
+         void unsetCompleted(void) { isCompleted_=false ; }
 
       public:
          /// Mutateur ///
@@ -189,13 +205,22 @@ namespace xios {
        private:
          std::set<CContextClient*> sendDomainToFileServer_done_ ;
        private:
-         
+         public:
+         void sendDomainToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid) ;
+       private:
+         std::set<CContextClient*> sendDomainToCouplerOut_done_ ;
+      
+       public:
+        void makeAliasForCoupling(const string& fieldId, int posInGrid) ;
+
+       private:
+
          void sendAttributes(); // ym obsolete -> to be removed
-         void sendIndex(CContextClient* client);
-         void sendDistributionAttributes(CContextClient* client);
-         void sendArea(CContextClient* client);
-         void sendLonLat(CContextClient* client);         
-         void sendDataIndex(CContextClient* client);
+         void sendIndex(CContextClient* client, const string& domainId="");
+         void sendDistributionAttributes(CContextClient* client, const string& domainId="");
+         void sendArea(CContextClient* client, const string& domainId="");
+         void sendLonLat(CContextClient* client, const string& domainId="");         
+         void sendDataIndex(CContextClient* client, const string& domainId="");
          void convertLonLatValue();
          void fillInRectilinearLonLat();
          void fillInCurvilinearLonLat();
@@ -227,10 +252,6 @@ namespace xios {
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          bool isClientAfterTransformationChecked;
-         
-         /** define if the domain is completed or not ie all attributes have been received before in case 
-             of grid reading from file or coupling */ 
-         bool isCompleted_=true ;  
 
 /** global index of the domain on server side, sent by the clients. This is global index for lon, lat, mask elements (ie non masked elements)
     indGlobs_[rank] -> array of global index received from the client of rank "rank"

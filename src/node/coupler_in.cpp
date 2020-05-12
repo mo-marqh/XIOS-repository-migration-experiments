@@ -50,6 +50,21 @@ namespace xios
    }
    CATCH_DUMP_ATTR
 
+   const string& CCouplerIn::getCouplingContextId(void)
+   {
+     if (couplingContextId_.empty())
+     {
+       vector<string> vectStr=splitRegex(context,"::") ;
+       string poolId=vectStr[0] ;
+       string serviceId=poolId ;
+       string contextId=vectStr[1] ;
+       int contextLeader ;
+       int type = CServicesManager::CLIENT ;
+       couplingContextId_=CXios::getContextsManager()->getServerContextName(poolId, serviceId, 0, type, contextId) ;
+     }
+     return couplingContextId_ ;
+   }
+
    void CCouplerIn::createInterCommunicator(void)
    TRY
    {
@@ -59,7 +74,7 @@ namespace xios
                "The attribute <context> must be defined to specify the target coupling context");
      }
      CContext* contextPtr = CContext::getCurrent();
-     contextPtr->addCouplingChanel(context, false) ;
+     contextPtr->addCouplingChanel(getCouplingContextId(), false) ;
    }
    CATCH_DUMP_ATTR
 
@@ -131,7 +146,14 @@ namespace xios
    }
    CATCH
 
-
+  /*!
+   * assign the context associated to the coupler to the enabled fields
+   */
+   void  CCouplerIn::assignContext(void)
+   {
+     client_ = CContext::getCurrent()->getCouplerInClient(getCouplingContextId());
+     for (auto& field : getEnabledFields()) field->setContextClient(client_) ; 
+   }
 
    //----------------------------------------------------------------
    //! Change virtual field group to a new one

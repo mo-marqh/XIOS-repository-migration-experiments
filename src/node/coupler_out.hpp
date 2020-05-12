@@ -95,8 +95,18 @@ namespace xios
         void solveAllRefOfEnabledFieldsAndTransform() ;
         void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
         void checkGridOfEnabledFields(void) ;
-
-      private :
+        void assignContext(void) ;
+      private:
+        // the contextClient associated to the context Id attribute
+        CContextClient* client_=nullptr ;
+      public: 
+        CContextClient* getContextClient(void) {return client_; }
+      
+      private:
+        string couplingContextId_ ;
+      public:
+        const string& getCouplingContextId(void) ;  
+      private:
          CFieldGroup* virtualFieldGroup;
 
 //         std::shared_ptr<CDataOutput> data_out;
@@ -117,4 +127,4 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XIOS_CCouplingIn__
+#endif // __XIOS_CCouplingIn__2

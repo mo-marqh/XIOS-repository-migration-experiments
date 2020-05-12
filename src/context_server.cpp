@@ -325,7 +325,8 @@ namespace xios
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier
-         if (!eventScheduler_ && CXios::isServer) MPI_Barrier(intraComm) ;
+//ym to be check later
+//         if (!eventScheduler_ && CXios::isServer) MPI_Barrier(intraComm) ;
 
 //         context->setProcessingEvent() ;
          isProcessingEvent_=true ;

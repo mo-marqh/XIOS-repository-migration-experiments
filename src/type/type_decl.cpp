@@ -32,10 +32,16 @@ namespace xios
   template bool operator==(const CType_ref<decl_type>& lhs, const CType_ref<decl_type>& rhs);    
   
   macro(string)
+  macro(char)
+  macro(short)
   macro(int)
+  macro(unsigned int)
+  macro(long)
+  macro(unsigned long)
+  macro(long long)
+  macro(unsigned long long)
   macro(double)
   macro(bool)
-  macro(StdSize)
   macro(CDate)
   macro(CDuration)
 }
