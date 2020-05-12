@@ -11,7 +11,6 @@ namespace xios
     , value1(value1)
     , value2(value2)
   { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
     /* Nothing to do */ 
   };
 
@@ -25,7 +24,7 @@ namespace xios
     {
       CWorkflowGraph::allocNodeEdge();
 
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -34,7 +33,7 @@ namespace xios
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
 
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].filter_tag = this->tag;
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 
@@ -100,7 +99,6 @@ namespace xios
     , value1(value1)
     , value2(value2)
   { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
     /* Nothing to do */ 
   };
 
@@ -114,7 +112,7 @@ namespace xios
     {
       CWorkflowGraph::allocNodeEdge();
 
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -123,7 +121,7 @@ namespace xios
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
 
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].filter_tag = this->tag;
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 
@@ -188,7 +186,6 @@ namespace xios
     , op(operatorExpr.getOpScalarFieldField(op))
     , value(value)
   { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
     /* Nothing to do */ 
   };
 
@@ -203,7 +200,7 @@ namespace xios
     {  
       CWorkflowGraph::allocNodeEdge();
 
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -212,7 +209,7 @@ namespace xios
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
     
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 
@@ -300,7 +297,6 @@ namespace xios
     , value1(value1)
     , value2(value2)
   { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
     /* Nothing to do */ 
   };
 
@@ -314,7 +310,7 @@ namespace xios
     {
       CWorkflowGraph::allocNodeEdge();
 
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -323,7 +319,7 @@ namespace xios
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
 
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].filter_tag = this->tag;
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 
@@ -389,7 +385,6 @@ namespace xios
     , op(operatorExpr.getOpFieldScalarField(op))
     , value(value)
   { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
     /* Nothing to do */ 
   };
 
@@ -404,7 +399,7 @@ namespace xios
     {  
       CWorkflowGraph::allocNodeEdge();
 
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -413,7 +408,7 @@ namespace xios
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
     
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 
@@ -498,7 +493,6 @@ namespace xios
     , op(operatorExpr.getOpFieldFieldScalar(op))
     , value(value)
   { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
     /* Nothing to do */ 
   };
 
@@ -513,7 +507,7 @@ namespace xios
     {  
       CWorkflowGraph::allocNodeEdge();
 
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -522,7 +516,7 @@ namespace xios
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
     
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 
@@ -607,7 +601,6 @@ namespace xios
     : CFilter(gc, 3, this)
     , op(operatorExpr.getOpFieldFieldField(op))
   { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
     /* Nothing to do */ 
   };
 
@@ -622,7 +615,7 @@ namespace xios
     {  
       CWorkflowGraph::allocNodeEdge();
 
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -631,7 +624,7 @@ namespace xios
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
     
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 

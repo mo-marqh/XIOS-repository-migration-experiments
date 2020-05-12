@@ -128,7 +128,7 @@ PROGRAM test_complete
   CALL xios_get_domain_attr("domain_atm",ni=ni,lonvalue_2D=lonvalue)
 
   PRINT *,"ni",ni
-  PRINT *,"lonvalue",lonvalue;
+  !PRINT *,"lonvalue",lonvalue;
 
 !!! Fin de la definition du contexte
 
@@ -208,7 +208,7 @@ PROGRAM test_complete
   CALL xios_get_domain_attr("domain_srf",ni=ni,lonvalue_2D=lonvalue)
 
   PRINT *,"ni",ni
-  PRINT *,"lonvalue",lonvalue ;
+  !PRINT *,"lonvalue",lonvalue ;
 
 !!! Fin de la definition du contexte SRF
 

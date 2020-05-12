@@ -13,26 +13,37 @@
      <field id="field_Domain"  operation="average" freq_op="3600s" domain_ref="domain_A"/>
      <field id="field_A_zoom"  operation="average" freq_op="3600s" field_ref="field_A" grid_ref="grid_A_zoom"/>
      <field id="field_Scalar"  operation="average" freq_op="3600s" grid_ref="grid_Scalar"/>
+     <field id="test_field_B"  field_ref="field_A" > field_A+10 </field>
    </field_definition>
 
 
    <file_definition type="one_file" par_access="collective" output_freq="1h" output_level="10" >
       
+     <file id="test_output" output_freq="4h" enabled=".TRUE." >
+       <field field_ref="field_A"                        name ="field_A" build_workflow_graph=".FALSE." enabled=".FALSE."/>
+       <field field_ref="test_field_B"                   name ="field_B" build_workflow_graph=".FALSE." enabled=".TRUE."/>
+       <field id="test_field_C" field_ref="test_field_B" name ="field_C" build_workflow_graph=".TRUE."  enabled=".TRUE."  > 10*test_field_B </field>
+       <field id="test_field_D" field_ref="test_field_B" name ="field_D" build_workflow_graph=".TRUE."  enabled=".FALSE." > 100*field_A </field>
+       <field id="test_field_E" field_ref="test_field_B" name ="field_E" build_workflow_graph=".TRUE."  enabled=".FALSE." > field_A+10*test_field_B-field_C </field>
+     </file>
+
+
      <file id="output2" name="output2" output_freq="4h" enabled=".FALSE.">
         <field id="field_G" field_ref="field_A" name="field_G_zoom" grid_ref="grid_A_zoom" build_workflow_graph=".TRUE." build_workflow_graph_start="1h" build_workflow_graph_end="8h" />        
         <!-- <field field_ref="field_Scalar" name="field_A_scalar" build_workflow_graph=".TRUE."/>         -->
      </file>
 
 
-     <file id="output1" name="output1" output_freq="24h" enabled=".TRUE.">
+     <file id="output1" name="output1" output_freq="24h" enabled=".FALSE.">
         <!-- <field field_ref="field_Domain" name="field_A" /> -->
         <field id="field_F" field_ref="field_A" name="field_24h" grid_ref="grid_A" build_workflow_graph=".TRUE." build_workflow_graph_start="4h" build_workflow_graph_end="24h"  />        
         
      </file>  
 
-     <file id="output" name="output" enabled=".TRUE.">
+     <file id="output" name="output" enabled=".FALSE.">
         <!-- <field field_ref="field_Domain" name="field_A" /> -->
-        <!-- <field field_ref="field_A" name="field_A_name"  build_workflow_graph=".FALSE." />  -->
+        <field field_ref="field_A" name="field_A_name"  build_workflow_graph=".TRUE." />
+        <field field_ref="field_A" name="field_A_unary"  build_workflow_graph=".TRUE." > field_A+50 </field>
         <!-- <field field_ref="field_B" name="field_B_name"  build_workflow_graph=".FALSE."/>  -->
         <!-- <field field_ref="field_C" name="field_C_name"  enabled=".TRUE." />  -->
         <!-- <field id="field_D" field_ref="field_A" operation="instant" build_workflow_graph=".TRUE." name="field_D_name" build_workflow_graph_start="1h" build_workflow_graph_end="2h" > sqrt(field_A) </field> -->

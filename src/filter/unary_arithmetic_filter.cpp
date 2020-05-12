@@ -8,9 +8,7 @@ namespace xios
   CUnaryArithmeticFilter::CUnaryArithmeticFilter(CGarbageCollector& gc, const std::string& op)
     : CFilter(gc, 1, this)
     , op(operatorExpr.getOpField(op))
-  { 
-    expression.assign(*yacc_globalInputText_ptr, 0, yacc_globalInputText_ptr->size()-1);
-  };
+  { };
 
   std::tuple<int, int, int> CUnaryArithmeticFilter::buildGraph(std::vector<CDataPacketPtr> data)
   {
@@ -21,7 +19,7 @@ namespace xios
     if(building_graph)
     {
       CWorkflowGraph::allocNodeEdge();
-      size_t filterhash = std::hash<StdString>{}(expression+to_string(data[0]->timestamp)+this->field->getId());
+      size_t filterhash = std::hash<StdString>{}(this->field->content+to_string(data[0]->timestamp)+this->field->getId());
 
       // first round
       if(CWorkflowGraph::mapHashFilterID_ptr->find(filterhash) == CWorkflowGraph::mapHashFilterID_ptr->end())
@@ -29,8 +27,7 @@ namespace xios
         firstround=true;
         this->filterID = InvalidableObject::filterIdGenerator++;
         int edgeID = InvalidableObject::edgeIdGenerator++;
-
-        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+expression+")", 3, 1, 0, data[0]);
+        CWorkflowGraph::addNode(this->filterID, "Arithmetic Filter\\n("+this->field->content+")", 3, 1, 0, data[0]);
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].filter_tag = this->tag;
         (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
 

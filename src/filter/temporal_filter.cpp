@@ -84,7 +84,7 @@ namespace xios
   {
     bool BG = buildGraph(data);
 
-    CDataPacketPtr packet;
+    CDataPacketPtr packet=0;
 
     if (data[0]->status != CDataPacket::END_OF_STREAM)
     {

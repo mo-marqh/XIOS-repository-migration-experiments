@@ -25,6 +25,7 @@
 #include "file_server_writer_filter.hpp"
 #include "workflow_graph.hpp"
 
+#include "yacc_var.hpp"
 namespace xios{
 
    /// ////////////////////// Définitions ////////////////////// ///
@@ -1141,44 +1142,33 @@ namespace xios{
      if(this->field_graph_start==-2) this->field_graph_start = filter_start;
      if(this->field_graph_end==-2) this->field_graph_end = filter_end;         // init
 
-     // if(CXios::isClient) std::cout<<"****************** buildFilterGraph : field_id = "<<this->getId()<<" BEFORE: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
 
      if(start_graph == -1)
      {
        //nothing
-       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case1: this->field_graph_start = "<<this->field_graph_start<<std::endl;
      }
      else //if(start_graph != -1)
      {
        if(this->field_graph_start == -1) this->field_graph_start = start_graph;
        else this->field_graph_start = min(this->field_graph_start, start_graph);
-
-       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case2: this->field_graph_start = "<<this->field_graph_start<<std::endl;
      }
 
 
      if(end_graph == -1)
      {
        //nothing
-       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case1: this->field_graph_end = "<<this->field_graph_end<<std::endl;
      }
      else
      {
        if(this->field_graph_end == -1) this->field_graph_end = end_graph;
        else this->field_graph_end = max(this->field_graph_end, end_graph);
 
-       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case2: this->field_graph_end = "<<this->field_graph_end<<std::endl;
      }
     
 
      filter_start = this->field_graph_start;
      filter_end = this->field_graph_end;
 
-
-     // if(CXios::isClient) std::cout<<"****************** buildFilterGraph : field_id = "<<this->getId()<<" AFTER: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
-     
-
-     
      
 
      bool hasWriterServer = context->hasServer && !context->hasClient;
@@ -1281,7 +1271,6 @@ namespace xios{
             instantDataFilter->start_graph = filter_start;
             instantDataFilter->end_graph = filter_end;
             instantDataFilter->field = this;
-            // if(CXios::isClient) std::cout<<"***********************buildFilterGraph init source filter : field_id = "<<this->getId()<<" sourcefilter->start_graph = "<<clientSourceFilter->start_graph<<" sourcefilter->end_graph = "<<clientSourceFilter->end_graph<<std::endl;
          }
        }
 
@@ -1319,7 +1308,6 @@ namespace xios{
            fileWriterFilter->end_graph = filter_end;
            fileWriterFilter->distance = getTemporalDataFilter(gc, file->output_freq)->distance+1;
 
-           // std::cout<<"CFileWriterFilter filter start = "<<filter_start<<" end = "<<filter_end<<" field = "<<this->getId()<<std::endl;
 
          }
        }
@@ -1360,38 +1348,29 @@ namespace xios{
      if(this->field_graph_start==-2) this->field_graph_start = filter_start;
      if(this->field_graph_end==-2) this->field_graph_end = filter_end;         // init
 
-     // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" BEFORE: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
 
      if(start_graph == -1)
      {
        //nothing
-       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case1: this->field_graph_start = "<<this->field_graph_start<<std::endl;
      }
      else //if(start_graph != -1)
      {
        if(this->field_graph_start == -1) this->field_graph_start = start_graph;
        else this->field_graph_start = min(this->field_graph_start, start_graph);
-
-       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case2: this->field_graph_start = "<<this->field_graph_start<<std::endl;
      }
 
      if(end_graph == -1)
      {
        //nothing
-       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case1: this->field_graph_end = "<<this->field_graph_end<<std::endl;
      }
      else
      {
        if(this->field_graph_end == -1) this->field_graph_end = end_graph;
        else this->field_graph_end = max(this->field_graph_end, end_graph);
-
-       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case2: this->field_graph_end = "<<this->field_graph_end<<std::endl;
      }
 
      filter_start = this->field_graph_start;
      filter_end = this->field_graph_end;
-
-     // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" AFTER: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
 
 
      std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters;
@@ -1450,7 +1429,6 @@ namespace xios{
    std::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc, Time start_graph, Time end_graph)
    TRY
    {
-     //if(CXios::isClient) std::cout<<"getSelfReference field_id = "<<this->getId()<<" start_graph = "<<start_graph<<" end_graph = "<<end_graph<<std::endl;
 
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
@@ -1531,19 +1509,15 @@ namespace xios{
                                                                              freq_op, freq_offset, outFreq, detectMissingValues));
 
        instantDataFilter->connectOutput(temporalFilter, 0);
-       //temporalFilter->tag = buildWorkflowGraph;
        
        temporalFilter->parent_filters.resize(1);
        temporalFilter->parent_filters[0] = instantDataFilter;
        
 
-       //if(temporalFilter->parent_filters[0]->tag) temporalFilter->tag=true;
        temporalFilter->tag = temporalFilter->parent_filters[0]->tag;
        temporalFilter->start_graph = temporalFilter->parent_filters[0]->start_graph;
        temporalFilter->end_graph = temporalFilter->parent_filters[0]->end_graph;
 
-       // temporalFilter->start_graph = filter_start;
-       // temporalFilter->end_graph = filter_end;
        temporalFilter->field = this;
 
        it = temporalDataFilters.insert(std::make_pair(outFreq, temporalFilter)).first;

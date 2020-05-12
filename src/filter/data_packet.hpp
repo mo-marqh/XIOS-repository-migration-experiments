@@ -26,10 +26,10 @@ namespace xios
     CDate date;             //!< Date associated to the data
     Time timestamp;         //!< Timestamp of the data
     StatusCode status;      //!< Status of the packet
-    int src_filterID;
+    int src_filterID=0;
     std::vector<int> filterIDoutputs;
-    CField *field;
-    int distance;
+    CField *field=nullptr;
+    int distance=-1;
     
     /*!
      * Creates a deep copy of the packet.

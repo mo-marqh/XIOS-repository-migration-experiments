@@ -26,7 +26,13 @@ namespace xios
 
   void CSourceFilter::buildGraph(CDataPacketPtr packet)
   {
-    bool building_graph = this->tag ? packet->timestamp >= this->field->field_graph_start && packet->timestamp <= this->field->field_graph_end : false;
+    bool filter_interval=false;
+    if (this->field)
+    {
+      if(this->field->field_graph_start == -1 && this->field->field_graph_end == -1) filter_interval = true;
+      else filter_interval = packet->timestamp >= this->field->field_graph_start && packet->timestamp <= this->field->field_graph_end;
+    }
+    bool building_graph = this->tag ? filter_interval : false;
     if(building_graph)
     {
       this->filterID = InvalidableObject::filterIdGenerator++;  
