@@ -2445,16 +2445,49 @@ namespace xios {
    void CContext::createCouplerInterCommunicator(void)
    TRY
    {
-      // juste for test now, in future need an scheduler to avoid dead-lock
-      for(auto it=enabledCouplerOut.begin();it!=enabledCouplerOut.end();++it)
+      int rank=this->getIntraCommRank() ;
+      map<string,list<CCouplerOut*>> listCouplerOut ;  
+      map<string,list<CCouplerIn*>> listCouplerIn ;  
+
+      for(auto couplerOut : enabledCouplerOut) listCouplerOut[couplerOut->getCouplingContextId()].push_back(couplerOut) ;
+      for(auto couplerIn : enabledCouplerIn) listCouplerIn[couplerIn->getCouplingContextId()].push_back(couplerIn) ;
+
+      CCouplerManager* couplerManager = CXios::getCouplerManager() ;
+      if (rank==0)
       {
-        (*it)->createInterCommunicator() ;
+        for(auto couplerOut : listCouplerOut) couplerManager->registerCoupling(this->getContextId(),couplerOut.first) ;
+        for(auto couplerIn : listCouplerIn) couplerManager->registerCoupling(couplerIn.first,this->getContextId()) ;
       }
 
-      for(auto it=enabledCouplerIn.begin();it!=enabledCouplerIn.end();++it)
+      do
       {
-        (*it)->createInterCommunicator() ;
-      }
+        for(auto couplerOut : listCouplerOut) 
+        {
+          bool isNextCoupling ;
+          if (rank==0) isNextCoupling = couplerManager->isNextCoupling(this->getContextId(),couplerOut.first) ;
+          MPI_Bcast(&isNextCoupling,1,MPI_C_BOOL, 0, getIntraComm()) ; 
+          if (isNextCoupling) 
+          {
+            addCouplingChanel(couplerOut.first, true) ;
+            listCouplerOut.erase(couplerOut.first) ;
+            break ;
+          }            
+        }
+        for(auto couplerIn : listCouplerIn) 
+        {
+          bool isNextCoupling ;
+          if (rank==0) isNextCoupling = couplerManager->isNextCoupling(couplerIn.first,this->getContextId());
+          MPI_Bcast(&isNextCoupling,1,MPI_C_BOOL, 0, getIntraComm()) ; 
+          if (isNextCoupling) 
+          {
+            addCouplingChanel(couplerIn.first, false) ;
+            listCouplerIn.erase(couplerIn.first) ;
+            break ;
+          }           
+        }
+
+      } while (!listCouplerOut.empty() || !listCouplerIn.empty()) ;
+
    }
    CATCH_DUMP_ATTR
 

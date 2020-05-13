@@ -2861,7 +2861,7 @@ namespace xios {
           if (hasBounds)
           {
             bounds_lat_1d.resize(nvertex, nbLatInd) ;
-            bounds_lon_1d = bounds_lonvalue ;
+            bounds_lat_1d = bounds_latvalue ;
           }
         }
       }

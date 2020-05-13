@@ -579,7 +579,7 @@ namespace xios
       // unlikely to input from file server where data are received at ts=0
       // for coupling, it would be after the first freq_op, because for now we don't have
       // restart mecanism to send the value at ts=0. It mus be changed in future
-      lastDataReceivedFromServer = context->getCalendar()->getInitDate()+freq_op;
+      lastDataReceivedFromServer = context->getCalendar()->getInitDate();
       wasDataAlreadyReceivedFromServer = true;
     }
 
@@ -658,7 +658,7 @@ namespace xios
     bool isDataLate;
     do
     {
-      const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + freq_op) : context->getCalendar()->getInitDate();
+      const CDate nextDataDue = (wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + freq_op) : context->getCalendar()->getInitDate()) + freq_offset;
       isDataLate = (nextDataDue <= currentDate);
 
       if (isDataLate)

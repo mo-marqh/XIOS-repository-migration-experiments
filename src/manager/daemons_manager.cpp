@@ -21,6 +21,8 @@ namespace xios
     CXios::launchRessourcesManager(isXiosServer) ;
     CXios::launchServicesManager(isXiosServer) ;
     CXios::launchContextsManager(isXiosServer) ;
+    CXios::launchCouplerManager(isXiosServer) ;
+
     if (isXiosServer) CServer::launchServersRessource(splitComm) ;
     MPI_Comm_free(&splitComm) ;
   }
@@ -28,6 +30,7 @@ namespace xios
   CDaemonsManager::~CDaemonsManager()
   {
     CXios::finalizeContextsManager() ;
+    CXios::finalizeCouplerManager() ;
     CXios::finalizeServicesManager() ;
     CXios::finalizeRessourcesManager() ;
   }
