@@ -40,9 +40,8 @@ namespace xios
       packet->field = this->field;
       packet->distance = 1;
       
-    
       CWorkflowGraph::allocNodeEdge();
-
+      
       CWorkflowGraph::addNode(this->filterID, "Source Filter ", 1, 1, 0, packet);
       (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
       (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].field_id = this->field->getId();

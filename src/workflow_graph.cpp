@@ -8,6 +8,8 @@ namespace xios
   std::unordered_map <int, graph_info_box_edge > *CWorkflowGraph::mapFieldToFilters_ptr_with_info = 0;
 
   std::unordered_map <size_t, int> *CWorkflowGraph::mapHashFilterID_ptr = 0;
+  
+  std::unordered_map <StdString, int > *CWorkflowGraph::mapContext_ptr = 0;
 
 
   vector <StdString> CWorkflowGraph::filters;
@@ -124,12 +126,22 @@ namespace xios
   void CWorkflowGraph::addNode(int nodeID, StdString filterName, int filterClass, bool filterFilled, int entry_nb, CDataPacketPtr packet)
   TRY
   {
+    if(!mapContext_ptr) mapContext_ptr = new std::unordered_map<StdString, int>;
+    std::string current_context_id = CContext::getCurrent()->getId();
+    std::unordered_map<StdString,int>::const_iterator found = mapContext_ptr->find(current_context_id);
+    if (found == mapContext_ptr->end())
+    {
+      std::pair<StdString, int> mypair (current_context_id, mapContext_ptr->size());
+      mapContext_ptr->insert(mypair);
+    }
+
     (*mapFilters_ptr_with_info)[nodeID].filter_name = filterName;
     (*mapFilters_ptr_with_info)[nodeID].filter_class = filterClass;
     (*mapFilters_ptr_with_info)[nodeID].filter_filled = filterFilled;
     (*mapFilters_ptr_with_info)[nodeID].expected_entry_nb = entry_nb;
     (*mapFilters_ptr_with_info)[nodeID].date = packet->date;
     (*mapFilters_ptr_with_info)[nodeID].timestamp = packet->timestamp;
+    (*mapFilters_ptr_with_info)[nodeID].node_context_id = CContext::getCurrent()->getId();
   }
   CATCH
 
@@ -138,6 +150,7 @@ namespace xios
   void CWorkflowGraph::addEdge(int edgeID, int toID, CDataPacketPtr packet)
   TRY
   {
+    std::string current_context_id = CContext::getCurrent()->getId();
     (*mapFieldToFilters_ptr_with_info)[edgeID].from = packet->src_filterID;
     (*mapFieldToFilters_ptr_with_info)[edgeID].to = toID;
     (*mapFieldToFilters_ptr_with_info)[edgeID].field_id = packet->field->getId();
@@ -147,6 +160,7 @@ namespace xios
     (*mapFieldToFilters_ptr_with_info)[edgeID].timestamp = packet->timestamp;
     (*mapFieldToFilters_ptr_with_info)[edgeID].field = packet->field;
     (*mapFieldToFilters_ptr_with_info)[edgeID].attributes = packet->field->record4graphXiosAttributes();
+    (*mapFieldToFilters_ptr_with_info)[edgeID].edge_context_id = CContext::getCurrent()->getId();
   }
   CATCH
 

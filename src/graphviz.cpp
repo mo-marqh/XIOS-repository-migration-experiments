@@ -54,9 +54,9 @@ namespace xios
       std::ofstream file (filename.c_str());
 
       boost::write_graphviz(file, g,
-          boost::make_label_writer(&nodes[0]),
-          boost::make_label_writer(get(edge_name, g)),
-          boost::make_graph_attributes_writer(graph_attr, vertex_attr, edge_attr));
+      boost::make_label_writer(&nodes[0]),
+      boost::make_label_writer(get(edge_name, g)),
+      boost::make_graph_attributes_writer(graph_attr, vertex_attr, edge_attr));
          
     }
   }
@@ -71,71 +71,88 @@ namespace xios
     if (CWorkflowGraph::mapFilters_ptr_with_info !=0 && !CWorkflowGraph::mapFilters_ptr_with_info->empty())
     {
       CWorkflowGraph::buildStaticWorkflow_with_info();
+      int nbGraphContext = CWorkflowGraph::mapContext_ptr->size();
 
       StdString color_table[7] = {"black", "red", "blue", "green", "purple", "yellow", "gray"};
     
-      std::ofstream fs_json;
-      fs_json.open ("graph_data.json", std::fstream::out);
+      std::ofstream fs_json[nbGraphContext];
+      
+      for (std::unordered_map<StdString, int>::const_iterator it = CWorkflowGraph::mapContext_ptr->begin(); it != CWorkflowGraph::mapContext_ptr->end(); ++it) 
+      {
+        fs_json[it->second].open ("graph_data_"+it->first+".json", std::fstream::out);
+        fs_json[it->second] << "{\"nodes\":["<<std::endl<<"      ";
+      }
 
-      fs_json << "{\"nodes\":["<<std::endl<<"      ";
-      static bool firstnode=true;
-      static bool firstedge=true;
-    
+      static bool firstnodes[5];
+      static bool firstedges[5];
+
+      for(int i=0; i<nbGraphContext; i++)
+      {
+        firstnodes[i]=true;
+        firstedges[i]=true;
+      }
+
       for (auto it=CWorkflowGraph::mapFilters_ptr_with_info->begin(); it != CWorkflowGraph::mapFilters_ptr_with_info->end(); it++)
       {
-        if(firstnode) 
+        int index = (*CWorkflowGraph::mapContext_ptr)[it->second.node_context_id];
+        if(firstnodes[index]) 
         {
-          fs_json << "{\"id\": "<<it->first +1<<", "<<std::endl;
-          firstnode = false;
+          fs_json[index] << "{\"id\": "<<it->first +1<<", "<<std::endl;
+          firstnodes[index] = false;
         }
         else
         {
-          fs_json << ",{\"id\": "<<it->first +1<<", "<<std::endl;
+          fs_json[index] << ",{\"id\": "<<it->first +1<<", "<<std::endl;
         }
         if(it->second.filter_class == 1) // source filter
-          fs_json << "       \"label\": \""<<it->second.filter_name<<"\\n("<<it->second.field_id<<")\", "<<std::endl;
+          fs_json[index] << "       \"label\": \""<<it->second.filter_name<<"\\n("<<it->second.field_id<<")\", "<<std::endl;
         else
-          fs_json << "       \"label\": \""<<it->second.filter_name<<"\", "<<std::endl;
-        fs_json << "       \"class\": "<<it->second.filter_class<<", "<<std::endl;
-        fs_json << "       \"filled\": "<<it->second.filter_filled<<", "<<std::endl;
-        fs_json << "       \"type\": \""<<it->second.transform_type<<"\", "<<std::endl;
-        fs_json << "       \"entry\": "<<it->second.expected_entry_nb<<", "<<std::endl;
-        fs_json << "       \"inputs\": "<<it->second.inputs_complete<<", "<<std::endl;
-        fs_json << "       \"tag\": "<<it->second.filter_tag<<", "<<std::endl;
-        fs_json << "       \"cid\": "<<it->second.clusterID<<", "<<std::endl;
-        fs_json << "       \"distance\": "<<it->second.distance<<", "<<std::endl;
-        fs_json << "       \"attributes\": \""<<it->second.attributes<<"\"}"<<std::endl<<"      ";
+          fs_json[index] << "       \"label\": \""<<it->second.filter_name<<"\", "<<std::endl;
+        fs_json[index] << "       \"class\": "<<it->second.filter_class<<", "<<std::endl;
+        fs_json[index] << "       \"filled\": "<<it->second.filter_filled<<", "<<std::endl;
+        fs_json[index] << "       \"type\": \""<<it->second.transform_type<<"\", "<<std::endl;
+        fs_json[index] << "       \"entry\": "<<it->second.expected_entry_nb<<", "<<std::endl;
+        fs_json[index] << "       \"inputs\": "<<it->second.inputs_complete<<", "<<std::endl;
+        fs_json[index] << "       \"tag\": "<<it->second.filter_tag<<", "<<std::endl;
+        fs_json[index] << "       \"cid\": "<<it->second.clusterID<<", "<<std::endl;
+        fs_json[index] << "       \"distance\": "<<it->second.distance<<", "<<std::endl;
+        fs_json[index] << "       \"context\": \""<<it->second.node_context_id<<"\", "<<std::endl;
+        fs_json[index] << "       \"attributes\": \""<<it->second.attributes<<"\"}"<<std::endl<<"       ";
       }
-      fs_json << "    ],"<<std::endl;
-
-
-      fs_json << " \"edges\" : ["<<std::endl<<"      ";
+      for(int i=0; i<nbGraphContext; i++) 
+      {
+        fs_json[i] << "    ],"<<std::endl;
+        fs_json[i] << " \"edges\" : ["<<std::endl<<"      ";
+      }
 
       for (auto it=CWorkflowGraph::mapFieldToFilters_ptr_with_info->begin(); it != CWorkflowGraph::mapFieldToFilters_ptr_with_info->end(); it++)
       {
-        if(firstedge)
+        int index = (*CWorkflowGraph::mapContext_ptr)[it->second.edge_context_id];
+        if(firstedges[index])
         {
-          fs_json << "{\"id\": "<<it->first +1<<", "<<std::endl;
-          firstedge = false;
+          fs_json[index] << "{\"id\": "<<it->first +1<<", "<<std::endl;
+          firstedges[index] = false;
         }
         else
         {
-          fs_json << ",{\"id\": "<<it->first +1<<", "<<std::endl;
+          fs_json[index] << ",{\"id\": "<<it->first +1<<", "<<std::endl;
         }
-        fs_json << "       \"from\": "<<it->second.from+1<<", "<<std::endl;
-        fs_json << "       \"to\": "<<it->second.to+1<<", "<<std::endl;
-        fs_json << "       \"label\": \""<<it->second.field_id<<"\\n"<<it->second.date<<"\", "<<std::endl;
+        fs_json[index] << "       \"from\": "<<it->second.from+1<<", "<<std::endl;
+        fs_json[index] << "       \"to\": "<<it->second.to+1<<", "<<std::endl;
+        fs_json[index] << "       \"label\": \""<<it->second.field_id<<"\\n"<<it->second.date<<"\", "<<std::endl;
         // fs_json << "       \"title\": \""<<"Show more information about this field"<<"\", "<<std::endl;
         // fs_json << "       \"fid\": \""<<it->second.field_id<<"\", "<<std::endl;
         // fs_json << "       \"fname\": \""<<it->second.field_name<<"\", "<<std::endl;
         // fs_json << "       \"gid\": \""<<it->second.grid_id<<"\", "<<std::endl;
-        fs_json << "       \"date\": \""<<it->second.date<<"\", "<<std::endl;
-        fs_json << "       \"attributes\": \"id = "<<it->second.field_id<<"</br>"<<it->second.attributes<<"\"}"<<std::endl<<"      ";
-
+        fs_json[index] << "       \"date\": \""<<it->second.date<<"\", "<<std::endl;
+        fs_json[index] << "       \"context\": \""<<it->second.edge_context_id<<"\", "<<std::endl;
+        fs_json[index] << "       \"attributes\": \"id = "<<it->second.field_id<<"</br>"<<it->second.attributes<<"\"}"<<std::endl<<"       ";
       }
-      fs_json << "    ]}"<<std::endl;
-
-      fs_json.close();
+      for(int i=0; i<nbGraphContext; i++)
+      {
+        fs_json[i] << "    ]}"<<std::endl;
+        fs_json[i].close();
+      }
     }
   }
   CATCH

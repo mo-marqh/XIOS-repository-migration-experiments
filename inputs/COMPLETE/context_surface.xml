@@ -21,7 +21,7 @@
       </field>
       <field field_ref="field_A_srf_K" build_workflow_graph="false" />
       <field field_ref="field_A_srf_K_2" name="field_A_srf_K_2" /> <!-- Should be identical to field_A_srf_K -->
-      <field field_ref="field_A_srf_K" name="field_A_srf_K_3" build_workflow_graph="true"> field_A_srf_K</field> <!-- Should be identical to field_A_srf_K -->
+      <field field_ref="field_A_srf_K" name="field_A_srf_K_3" build_workflow_graph="true"/> <!-- Should be identical to field_A_srf_K -->
       <field field_ref="field_A_srf_K_2" name="field_A_srf_K_max_mean" long_name="Maximum of hourly average over 6h" operation="maximum" freq_op="1h"> @field_A_srf_K </field>
       <field field_ref="field_A_srf" name="field_A_srf_min" operation="minimum" />
       <field field_ref="field_A_srf_2" name="field_A_srf_min_2" operation="minimum" /> <!-- Should be identical to field_A_srf_min -->

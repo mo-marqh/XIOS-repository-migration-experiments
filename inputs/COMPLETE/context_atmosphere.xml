@@ -9,10 +9,10 @@
 
   <file_definition type="one_file" par_access="collective" output_freq="6h" sync_freq="6h" output_level="10" enabled=".TRUE.">
     <file id="output_atmosphere" name="output_atmosphere">
-      <field field_ref="field_A_atm" />
+      <field field_ref="field_A_atm" build_workflow_graph="true"/>
     </file>
     <file id="output_atmosphere_zoom" name="output_atmosphere_zoom">
-      <field field_ref="field_A_atm_zoom" name="field_A_atm_zoom" />
+      <field field_ref="field_A_atm_zoom" name="field_A_atm_zoom" build_workflow_graph="true"/>
     </file>
   </file_definition>
 

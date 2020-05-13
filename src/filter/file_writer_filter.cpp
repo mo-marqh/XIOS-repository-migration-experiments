@@ -29,8 +29,8 @@ namespace xios
       StdString namestring = to_string(this->field->name);
       namestring.erase(0, 6);
       namestring.erase(namestring.length()-1, 1);
-
-      CWorkflowGraph::addNode(this->filterID, namestring + "\\n("+this->field->file->getId()+".nc)", 6, 0, 1, data[0]);
+      
+      CWorkflowGraph::addNode(this->filterID, namestring + "\\n(file ID : "+this->field->file->getId()+")", 6, 0, 1, data[0]);
 
       (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
       (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes += "</br>file attributes : </br>" +this->field->file->record4graphXiosAttributes();

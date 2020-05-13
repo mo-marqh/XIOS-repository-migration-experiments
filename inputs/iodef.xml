@@ -19,12 +19,12 @@
 
    <file_definition type="one_file" par_access="collective" output_freq="1h" output_level="10" >
       
-     <file id="test_output" output_freq="4h" enabled=".TRUE." >
-       <field field_ref="field_A"                        name ="field_A" build_workflow_graph=".FALSE." enabled=".FALSE."/>
-       <field field_ref="test_field_B"                   name ="field_B" build_workflow_graph=".FALSE." enabled=".TRUE."/>
+     <file id="test_output" name = "output" output_freq="4h" enabled=".TRUE." >
+       <field field_ref="field_A"                        name ="field_A" build_workflow_graph=".TRUE." enabled=".TRUE."/>
+       <field field_ref="test_field_B"                   name ="field_B" build_workflow_graph=".TRUE." enabled=".TRUE."/>
        <field id="test_field_C" field_ref="test_field_B" name ="field_C" build_workflow_graph=".TRUE."  enabled=".TRUE."  > 10*test_field_B </field>
-       <field id="test_field_D" field_ref="test_field_B" name ="field_D" build_workflow_graph=".TRUE."  enabled=".FALSE." > 100*field_A </field>
-       <field id="test_field_E" field_ref="test_field_B" name ="field_E" build_workflow_graph=".TRUE."  enabled=".FALSE." > field_A+10*test_field_B-field_C </field>
+       <field id="test_field_D" field_ref="test_field_B" name ="field_D" build_workflow_graph=".TRUE."  enabled=".TRUE." > 100*field_A </field>
+       <field id="test_field_E" field_ref="test_field_B" name ="field_E" build_workflow_graph=".TRUE."  enabled=".TRUE." > field_A+10*test_field_B-field_C </field>
      </file>
 
 

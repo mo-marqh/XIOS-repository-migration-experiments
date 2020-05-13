@@ -7,7 +7,7 @@
 #include "garbage_collector.hpp"
 #include "date.hpp"
 #include "duration.hpp"
-
+#include "context.hpp"
 
 namespace xios
 {
@@ -29,6 +29,7 @@ namespace xios
     int filter_tag;
     int clusterID;
     int distance;
+    StdString node_context_id;
   };
 
   struct graph_info_box_edge
@@ -42,7 +43,7 @@ namespace xios
     Time timestamp;
     CField *field;
     StdString attributes;
-    
+    StdString edge_context_id;
   };
 
   class CWorkflowGraph
@@ -67,6 +68,8 @@ namespace xios
       static std::unordered_map <int, graph_info_box_edge> *mapFieldToFilters_ptr_with_info;
 
       static std::unordered_map <size_t, int> *mapHashFilterID_ptr;
+      
+      static std::unordered_map <StdString, int> *mapContext_ptr;
 
 
       static bool build_begin;
