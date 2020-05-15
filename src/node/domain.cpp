@@ -2725,15 +2725,15 @@ namespace xios {
               for(int nv=0; nv<nvertex; nv++) bounds_lon_2d(nv,i,j) = bounds_lonvalue(nv,ij) ;
         }
       }
-    }
-    else if (type == type_attr::unstructured || type == type_attr::gaussian)
-    {
-      lonvalue_1d.resize(nbLonInd);
-      lonvalue_1d = lonvalue ;
-      if (hasBounds)
+      else if (type == type_attr::unstructured || type == type_attr::gaussian)
       {
-        bounds_lon_1d.resize(nvertex, nbLonInd) ;
-        bounds_lon_1d = bounds_lonvalue ;
+        lonvalue_1d.resize(nbLonInd);
+        lonvalue_1d = lonvalue ;
+        if (hasBounds)
+        {
+          bounds_lon_1d.resize(nvertex, nbLonInd) ;
+          bounds_lon_1d = bounds_lonvalue ;
+        }
       }
     }
   }
@@ -2939,6 +2939,16 @@ namespace xios {
         }
       }
       
+      // fill the area attribute
+      area.resize(ni,nj);
+      for (int j = 0; j < nj; ++j)
+      {
+        for (int i = 0; i < ni; ++i)
+        {
+          int k = j * ni + i;
+          area(i,j) = areavalue(k) ;
+        }
+      }
     }
   }
   CATCH_DUMP_ATTR
