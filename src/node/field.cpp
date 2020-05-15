@@ -658,8 +658,8 @@ namespace xios
     bool isDataLate;
     do
     {
-      const CDate nextDataDue = (wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + freq_op) : context->getCalendar()->getInitDate()) + freq_offset;
-      isDataLate = (nextDataDue <= currentDate);
+      if (wasDataAlreadyReceivedFromServer) isDataLate = lastDataReceivedFromServer + freq_offset < currentDate ;
+      else isDataLate = context->getCalendar()->getInitDate()+freq_offset <= currentDate ;
 
       if (isDataLate)
       {
