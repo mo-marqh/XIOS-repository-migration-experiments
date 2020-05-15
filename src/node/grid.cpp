@@ -1681,13 +1681,27 @@ namespace xios {
       outGlobalIndexFromClient_.insert(std::make_pair(rank, outIndex));
       connectedDataSizeRead_[rank] = outIndex.numElements();
     }
-
+    // ym : displaced to avoid collective call at message reception
+/* 
     nbReadSenders_[client] = CClientServerMappingDistributed::computeConnectedClients(client->serverSize, client->clientSize,
-                                                                                      client->intraComm, ranks);
+                                                                                     client->intraComm, ranks);
+*/
   }
   CATCH_DUMP_ATTR
   
-
+  
+  /*!
+   * Compute the number of connected client for a given contextClient and insert it in the nbReadSenders map.
+   * /param[in] client : the given contextClient
+   */
+  void CGrid::computeNbReadSenders(CContextClient* client) 
+  TRY
+  
+  { 
+    nbReadSenders_[client] = CClientServerMappingDistributed::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRankRead_);
+  }
+  CATCH_DUMP_ATTR
+  
   void CGrid::computeServerDistribution(void)
   TRY
   {

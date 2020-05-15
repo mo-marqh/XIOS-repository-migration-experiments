@@ -371,14 +371,19 @@ namespace xios {
   * Usefull to indicate in a message the number of participant needed by the transfer protocol */
          std::map<int, std::map<int,int> > nbSenders_;
 
-
+      private:
 /** Maps storing the number of participating servers for data sent a specific client for a given contextClient.
   * Symetric of nbSenders_, but for server side which want to send data to client.
   * nbReadSender_[context_client_size] -> map the number of server sender by connected rank of clients
-  * nbReadSender_[context_client_size] [rank_client] -> the number of serverq participating to a send message for a client of rank "rank_client" 
+  * nbReadSender_[context_client_size] [rank_client] -> the number of server participating to a send message for a client of rank "rank_client" 
   * Usefull to indicate in a message the number of participant needed by the transfer protocol */
          std::map<CContextClient*, std::map<int,int> > nbReadSenders_;
-
+      public:
+         std::map<int,int>& getNbReadSenders(CContextClient* client) 
+         { if (nbReadSenders_.count(client)==0) computeNbReadSenders(client) ; return nbReadSenders_[client] ;}
+      private:
+         void computeNbReadSenders(CContextClient* client) ;
+     
 
 // Manh Ha's comment: " A client receives global index from other clients (via recvIndex)
 // then does mapping these index into local index of STORE_CLIENTINDEX

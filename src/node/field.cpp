@@ -471,7 +471,7 @@ namespace xios
             break;
         }
 
-        event.push(it->first, grid_->nbReadSenders_[client][it->first], msg);
+        event.push(it->first, grid_->getNbReadSenders(client)[it->first], msg);
       }
       client->sendEvent(event);
     }
@@ -658,7 +658,7 @@ namespace xios
     bool isDataLate;
     do
     {
-      if (wasDataAlreadyReceivedFromServer) isDataLate = lastDataReceivedFromServer + freq_offset < currentDate ;
+      if (wasDataAlreadyReceivedFromServer) isDataLate = lastDataReceivedFromServer + freq_offset + freq_op <= currentDate ;
       else isDataLate = context->getCalendar()->getInitDate()+freq_offset <= currentDate ;
 
       if (isDataLate)
