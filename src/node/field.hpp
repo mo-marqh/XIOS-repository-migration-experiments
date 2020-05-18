@@ -189,12 +189,12 @@ namespace xios {
         void recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers);
         void recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers);
         
-        void writeField(void);
+        void writeField(const CArray<double,1>& data);
         bool sendReadDataRequest(const CDate& tsDataRequested, CContextClient* client);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(CContextServer* server);
-        EReadField readField(void);
+        EReadField readField(CArray<double,1>& data);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
         void recvDataFromCoupler(vector<int> ranks, vector<CBufferIn*> buffers) ;
@@ -205,15 +205,16 @@ namespace xios {
         void autoTriggerIfNeeded(void); //ym obsolete
         void triggerLateField(void) ;
 
-        void outputField(CArray<double,3>& fieldOut);
-        void outputField(CArray<double,2>& fieldOut);
-        void outputField(CArray<double,1>& fieldOut);
-        void inputField(CArray<double,3>& fieldOut);
-        void inputField(CArray<double,2>& fieldOut);
-        void inputField(CArray<double,1>& fieldOut);
-        void outputCompressedField(CArray<double, 1>& fieldOut);
-        void scaleFactorAddOffset(double scaleFactor, double addOffset);
-        void invertScaleFactorAddOffset(double scaleFactor, double addOffset);
+//        void outputField(CArray<double,3>& fieldOut);
+//        void outputField(CArray<double,2>& fieldOut);
+        void outputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
+
+//        void inputField(CArray<double,3>& fieldOut);
+//        void inputField(CArray<double,2>& fieldOut);
+        void inputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
+        void outputCompressedField(const CArray<double,1>& dataIn, CArray<double, 1>& dataOut);
+        void scaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset);
+        void invertScaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset);
         void parse(xml::CXMLNode& node);
 
         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
@@ -328,7 +329,7 @@ namespace xios {
          map<int,std::shared_ptr<func::CFunctor> > foperation_srv;
 
          // map<int, CArray<double,1> > data_srv;
-         CArray<double,1> recvDataSrv;
+//         CArray<double,1> recvDataSrv; // not usefull anymore
          
          std::shared_ptr<func::CFunctor> recvFoperationSrv;
          string content;

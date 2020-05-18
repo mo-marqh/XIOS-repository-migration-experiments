@@ -121,12 +121,12 @@ namespace xios
       CATCH
       //----------------------------------------------------------------
 
-      void CDataOutput::writeFieldData(CField* field)
+      void CDataOutput::writeFieldData(CField* field, const CArray<double,1>& data)
       TRY
       {
 //         CGrid* grid = CGrid::get(field->grid_ref.getValue());
 //         CDomain* domain = CDomain::get(grid->domain_ref.getValue());
-         this->writeFieldData_(field);
+         this->writeFieldData_(field, data);
       }
       CATCH
 

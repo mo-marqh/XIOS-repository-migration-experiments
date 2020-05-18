@@ -42,7 +42,7 @@ namespace xios
   }
   CATCH
 
-  void CNc4DataInput::readFieldData_(CField* field)
+  void CNc4DataInput::readFieldData_(CField* field, CArray<double,1>& dataOut)
   TRY
   {
     CContext* context = CContext::getCurrent();
@@ -112,14 +112,14 @@ namespace xios
       }
     }
 
-    field->inputField(fieldData);
+    field->inputField(fieldData, dataOut);
 
     if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
     {
       double scaleFactor = 1.0, addOffset = 0.0;
       if (!field->scale_factor.isEmpty()) scaleFactor = field->scale_factor;
       if (!field->add_offset.isEmpty()) addOffset = field->add_offset;
-      field->invertScaleFactorAddOffset(scaleFactor, addOffset);
+      field->invertScaleFactorAddOffset(dataOut,scaleFactor, addOffset);
     }
   }
   CATCH

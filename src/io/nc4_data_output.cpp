@@ -2342,10 +2342,11 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      void CNc4DataOutput::writeFieldData_ (CField*  field)
+      void CNc4DataOutput::writeFieldData_ (CField*  field, const CArray<double,1>& data)
       {
         CContext* context = CContext::getCurrent();
         CGrid* grid = field->getGrid();
+        CArray<double,1> dataIn(data.copy()) ;
 
         if (field->getNStep()<1) 
         {
@@ -2456,7 +2457,7 @@ namespace xios
            double addOffset = 0.0;
            if (!field->scale_factor.isEmpty()) scaleFactor = field->scale_factor;
            if (!field->add_offset.isEmpty()) addOffset = field->add_offset;
-           field->scaleFactorAddOffset(scaleFactor, addOffset);
+           field->scaleFactorAddOffset(dataIn, scaleFactor, addOffset);
          }
 
          try
@@ -2471,9 +2472,9 @@ namespace xios
            if (!field->default_value.isEmpty()) fieldData = field->default_value;
 
            if (field->getUseCompressedOutput())
-             field->outputCompressedField(fieldData);
+             field->outputCompressedField(dataIn, fieldData);
            else
-             field->outputField(fieldData);
+             field->outputField(dataIn, fieldData);
 
            if (!field->prec.isEmpty() && field->prec == 2) fieldData = round(fieldData);
 

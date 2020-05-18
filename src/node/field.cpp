@@ -234,6 +234,8 @@ namespace xios
   void  CField::recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers)
   TRY
   {
+    // ym to remove latter
+    /*
     CContext* context = CContext::getCurrent();
     Time timeStamp ;
     size_t sizeData = 0;
@@ -256,6 +258,7 @@ namespace xios
 
     if (opeDate <= currDate)
     {
+      
       auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
       for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
       {
@@ -265,14 +268,29 @@ namespace xios
         for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
       }
     }
+*/
+    Time timeStamp ;
+    CArray<int,1>& storeClient = grid_->getStoreIndex_client(); // replace it with local size
+    CArray<double,1> recv_data_tmp(storeClient.numElements());
+    auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
+    for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
+    {
+      CArray<double,1> tmp;
+      CArray<size_t,1>& indexTmp = it->second;
+      *(rankBuffers[it->first]) >> timeStamp >> tmp;
+      for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
+    }
 
     this->setData(recv_data_tmp);
+/*
     // delete incomming flux for server only
     recvFoperationSrv.reset() ;
     recvDataSrv.reset() ;
+*/
   }
   CATCH_DUMP_ATTR
 
+  /* ym : old interface : to be removed...
   void CField::writeUpdateData(const CArray<double,1>& data)
   TRY
   {
@@ -302,8 +320,25 @@ namespace xios
     }
   }
   CATCH_DUMP_ATTR
+  */
 
-  void CField::writeField(void)
+  void CField::writeUpdateData(const CArray<double,1>& data)
+  TRY
+  {
+    const CDate writeDate = last_Write_srv + freq_write_srv;
+    last_Write_srv = writeDate;
+    grid_->computeWrittenIndex();
+    /*
+    recvDataSrv.resize(data.numElements()) ;
+    recvDataSrv = data ;
+    */
+    writeField(data);
+    lastlast_Write_srv = last_Write_srv;
+  }
+  CATCH_DUMP_ATTR
+
+
+  void CField::writeField(const CArray<double,1>& data)
   TRY
   {
     if (!getRelFile()->isEmptyZone())
@@ -312,7 +347,7 @@ namespace xios
       {
         getRelFile()->checkWriteFile();
         this->incrementNStep();
-        getRelFile()->getDataOutput()->writeFieldData(CField::get(this));
+        getRelFile()->getDataOutput()->writeFieldData(CField::get(this), data);
       }
     }
   }
@@ -402,15 +437,16 @@ namespace xios
     CContextClient* client = server->getAssociatedClient() ;
     CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
     std::list<CMessage> msgs;
-
-    EReadField hasData = readField();
+    
+    CArray<double,1> data ;
+    EReadField hasData = readField(data);
 
     map<int, CArray<double,1> >::iterator it;
     if (!grid_->doGridHaveDataDistributed(client))
     {
        if (client->isServerLeader())
        {
-          if (0 != recvDataSrv.numElements())
+          if (0 != data.numElements())
           {            
             const std::list<int>& ranks = client->getRanksServerLeader();
             for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
@@ -421,10 +457,10 @@ namespace xios
               switch (hasData)
               {
                 case RF_DATA:
-                  msg << getNStep() - 1 << recvDataSrv;
+                  msg << getNStep() - 1 << data;
                   break;
                 case RF_NODATA:
-                  msg << int(-2) << recvDataSrv;
+                  msg << int(-2) << data;
                   break;
                 case RF_EOF:                  
                 default:
@@ -451,7 +487,7 @@ namespace xios
         CArray<double,1> tmp(indexTmp.numElements());
         for (int idx = 0; idx < indexTmp.numElements(); ++idx)
         {
-          tmp(idx) = recvDataSrv(indexTmp(idx));
+          tmp(idx) = data(indexTmp(idx));
         } 
 
         msgs.push_back(CMessage());
@@ -483,7 +519,7 @@ namespace xios
     A field is read with the distribution of data on the server side
     \return State of field can be read from a file
   */
-  CField::EReadField CField::readField(void)
+  CField::EReadField CField::readField(CArray<double,1>& data)
   TRY
   {
     CContext* context = CContext::getCurrent();
@@ -495,11 +531,8 @@ namespace xios
     {      
       if (grid_->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)      
       {
-        if (0 == recvDataSrv.numElements())
-        {            
           CArray<int,1>& storeClient = grid_->getStoreIndex_client();          
-          recvDataSrv.resize(storeClient.numElements());          
-        }
+          data.resize(storeClient.numElements());          
         
         getRelFile()->checkReadFile();
 
@@ -514,7 +547,7 @@ namespace xios
           readState = RF_EOF;
 
         if (RF_EOF != readState)
-          getRelFile()->getDataInput()->readFieldData(CField::get(this));
+          getRelFile()->getDataInput()->readFieldData(CField::get(this),data);
       }
     }
     else
@@ -2017,52 +2050,52 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  void CField::scaleFactorAddOffset(double scaleFactor, double addOffset)
+  void CField::scaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset)
   TRY
   {
-    recvDataSrv = (recvDataSrv - addOffset) / scaleFactor;
+    data = (data - addOffset) / scaleFactor;
   }
   CATCH_DUMP_ATTR
 
-  void CField::invertScaleFactorAddOffset(double scaleFactor, double addOffset)
+  void CField::invertScaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset)
   TRY
   {
-    recvDataSrv = recvDataSrv * scaleFactor + addOffset;
+    data = data * scaleFactor + addOffset;
   }
   CATCH_DUMP_ATTR
 
-  void CField::outputField(CArray<double,1>& fieldOut)
+  void CField::outputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
   TRY
   { 
     CArray<size_t,1>& outIndexClient = grid_->localIndexToWriteOnClient_;
     CArray<size_t,1>& outIndexServer = grid_->localIndexToWriteOnServer_;
     for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
     {
-      fieldOut(outIndexServer(idx)) = recvDataSrv(outIndexClient(idx));
+      dataOut(outIndexServer(idx)) = dataIn(outIndexClient(idx));
     }
   }
   CATCH_DUMP_ATTR
 
-  void CField::inputField(CArray<double,1>& fieldIn)
+  void CField::inputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
   TRY
   {
     CArray<size_t,1>& outIndexClient = grid_->localIndexToWriteOnClient_;
     CArray<size_t,1>& outIndexServer = grid_->localIndexToWriteOnServer_;
     for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
     {
-      recvDataSrv(outIndexClient(idx)) = fieldIn(outIndexServer(idx));
+      dataOut(outIndexClient(idx)) = dataIn(outIndexServer(idx));
     }
   }
   CATCH_DUMP_ATTR
 
- void CField::outputCompressedField(CArray<double,1>& fieldOut)
+ void CField::outputCompressedField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
  TRY
  {
     CArray<size_t,1>& outIndexClient = grid_->localIndexToWriteOnClient_;
     CArray<size_t,1>& outIndexServer = grid_->localIndexToWriteOnServer_;
     for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
     {
-      fieldOut((idx)) = recvDataSrv(outIndexClient(idx));
+      dataOut((idx)) = dataIn(outIndexClient(idx));
     }
   }
   CATCH_DUMP_ATTR

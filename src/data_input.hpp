@@ -17,7 +17,7 @@ namespace xios
 
       /// Read methods ///
       StdSize getFieldNbRecords(CField* field);
-      void readFieldData(CField* field);
+      void readFieldData(CField* field, CArray<double,1>& data);
       void readFieldAttributesMetaData(CField* field);
       void readFieldAttributesValues(CField* field);
       void closeFile(void);
@@ -26,7 +26,7 @@ namespace xios
 
     protected:
       virtual StdSize getFieldNbRecords_(CField* field) = 0;
-      virtual void readFieldData_(CField* field) = 0;
+      virtual void readFieldData_(CField* field, CArray<double,1>& data) = 0;
       virtual void readFieldAttributes_(CField* field, bool readAttributeValues) = 0;
       virtual void closeFile_(void) = 0;
 

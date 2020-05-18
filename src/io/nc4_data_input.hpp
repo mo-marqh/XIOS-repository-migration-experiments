@@ -36,7 +36,7 @@ namespace xios
   protected:
     // Read methods
     virtual StdSize getFieldNbRecords_(CField* field);
-    virtual void readFieldData_(CField* field);
+    virtual void readFieldData_(CField* field, CArray<double,1>& data);
     virtual void readFieldAttributes_(CField* field, bool readAttributeValues);
     virtual void closeFile_(void);
 
