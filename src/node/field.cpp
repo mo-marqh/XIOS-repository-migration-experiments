@@ -23,6 +23,8 @@
 #include "temporal_filter.hpp"
 #include "spatial_transform_filter.hpp"
 #include "file_server_writer_filter.hpp"
+#include "file_server_reader_filter.hpp"
+#include "server_to_client_filter.hpp"
 #include "tracer.hpp"
 
 namespace xios
@@ -434,14 +436,22 @@ namespace xios
   void CField::recvReadDataRequest(CContextServer* server)
   TRY
   {
-    CContextClient* client = server->getAssociatedClient() ;
-    CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
-    std::list<CMessage> msgs;
-    
+        
     CArray<double,1> data ;
     EReadField hasData = readField(data);
+    CDate date = CContext::getCurrent()->getCalendar()->getCurrentDate();
+    if (hasData == RF_DATA) fileServerReaderFilter_->streamData(date,data) ;
+    else fileServerReaderFilter_->signalEndOfStream(date) ;
 
-    map<int, CArray<double,1> >::iterator it;
+  }
+  CATCH_DUMP_ATTR
+
+
+  void CField::sendUpdateDataServerToClient(bool isEOF, const CArray<double,1>& data, CContextClient* client)
+  TRY
+  {
+    CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
+    std::list<CMessage> msgs;
     if (!grid_->doGridHaveDataDistributed(client))
     {
        if (client->isServerLeader())
@@ -454,20 +464,10 @@ namespace xios
               msgs.push_back(CMessage());
               CMessage& msg = msgs.back();
               msg << getId();
-              switch (hasData)
-              {
-                case RF_DATA:
-                  msg << getNStep() - 1 << data;
-                  break;
-                case RF_NODATA:
-                  msg << int(-2) << data;
-                  break;
-                case RF_EOF:                  
-                default:
-                  msg << int(-1);
-                  break;
-              }
-
+              
+              if (isEOF)  msg << int(-1);
+              else msg << getNStep() - 1 << data;
+         
               event.push(*itRank, 1, msg);
             }
           }
@@ -483,30 +483,19 @@ namespace xios
       auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
       for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
       {
-        CArray<size_t,1>& indexTmp = it->second;
-        CArray<double,1> tmp(indexTmp.numElements());
-        for (int idx = 0; idx < indexTmp.numElements(); ++idx)
-        {
-          tmp(idx) = data(indexTmp(idx));
-        } 
+        
 
         msgs.push_back(CMessage());
         CMessage& msg = msgs.back();
         msg << getId();
-        switch (hasData)
+        if (isEOF) msg << int(-1);
+        else 
         {
-          case RF_DATA:
-            msg << getNStep() - 1 << tmp;
-            break;
-          case RF_NODATA:
-            msg << int(-2) << tmp;
-            break;
-          case RF_EOF:                  
-          default:
-            msg << int(-1);
-            break;
+          CArray<size_t,1>& indexTmp = it->second;
+          CArray<double,1> tmp(indexTmp.numElements());
+          for (int idx = 0; idx < indexTmp.numElements(); ++idx) tmp(idx) = data(indexTmp(idx));
+          msg << getNStep() - 1 << tmp;
         }
-
         event.push(it->first, grid_->getNbReadSenders(client)[it->first], msg);
       }
       client->sendEvent(event);
@@ -1480,6 +1469,14 @@ namespace xios
     instantDataFilter->connectOutput(fileServerWriterFilter, 0);
   } 
   
+  /*!
+   * Connect field to a file reader filter to read data from file (on server side).
+   */
+  void CField::connectToFileReader(CGarbageCollector& gc)
+  {
+    fileServerReaderFilter_ = std::shared_ptr<CFileServerReaderFilter>(new CFileServerReaderFilter(gc, this));
+    fileServerReaderFilter_->connectOutput(inputFilter, 0);
+  } 
 
   /*!
    * Connect field to a store filter to output data to model on client Side
@@ -1491,6 +1488,14 @@ namespace xios
 
     storeFilter = std::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid_, detectMissingValues, defaultValue));
     instantDataFilter->connectOutput(storeFilter, 0);
+  }
+
+
+ 
+  void CField::connectToServerToClient(CGarbageCollector& gc)
+  {
+    serverToClientFilter_ = std::shared_ptr<CServerToClientFilter>(new CServerToClientFilter(gc, this, client));
+    instantDataFilter->connectOutput(serverToClientFilter_, 0);
   }
 
   /*!

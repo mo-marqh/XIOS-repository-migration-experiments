@@ -42,7 +42,8 @@ namespace xios {
    class CStoreFilter;
    class CFileWriterFilter;
    class CFileServerWriterFilter;
-
+   class CFileServerReaderFilter;
+   class CServerToClientFilter;
    ///--------------------------------------------------------------
 
    // Declare/Define CFieldAttribute
@@ -182,8 +183,9 @@ namespace xios {
         template <int N> void setData(const CArray<double, N>& _data);
         static bool dispatchEvent(CEventServer& event);
         void sendAllAttributesToServer(CContextClient* client) ; 
-        void sendUpdateData(const CArray<double,1>& data);
         void sendUpdateData(Time timestamp, const CArray<double,1>& data, CContextClient* client);
+        void sendUpdateDataServerToClient(bool isEOF, const CArray<double,1>& data, CContextClient* client) ;
+
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
         void recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers);
@@ -249,6 +251,8 @@ namespace xios {
         void connectToClientInput(CGarbageCollector& gc) ;
         void connectToServerInput(CGarbageCollector& gc) ;
         void connectToModelOutput(CGarbageCollector& gc);
+        void connectToFileReader(CGarbageCollector& gc) ;
+        void connectToServerToClient(CGarbageCollector& gc) ;
 
         void computeGridIndexToFileServer(void) ;
 
@@ -401,6 +405,14 @@ namespace xios {
         
          //! The terminal filter which writes data to file
          std::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
+
+         //! The source filter which read data from file
+         std::shared_ptr<CFileServerReaderFilter> fileServerReaderFilter_;
+
+         //! The terminal filter which send data from file server to client
+         std::shared_ptr<CServerToClientFilter> serverToClientFilter_;
+
+
    }; // class CField
 
    ///--------------------------------------------------------------

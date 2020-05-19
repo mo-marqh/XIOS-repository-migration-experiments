@@ -1165,7 +1165,12 @@ namespace xios {
     if (serviceType_==CServicesManager::GATHERER) distributeFiles(this->enabledWriteModeFiles);
     else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
 
+    // client side, assign context for file reading
     if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(client) ;
+    
+    // server side, assign context where to send file data read
+    if (serviceType_==CServicesManager::CServicesManager::GATHERER || serviceType_==CServicesManager::IO_SERVER) 
+      for(auto file : this->enabledReadModeFiles) file->setContextClient(client) ;
    
     // workflow endpoint => sent to IO/SERVER
     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
@@ -1191,7 +1196,10 @@ namespace xios {
     // workflow endpoint => Send data from server to client
     if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER)
     {
-      // no filter to send data from server to client => to be implemented (reading case)
+      for(auto field : fileInField) 
+      {
+        field->connectToServerToClient(garbageCollector) ;
+      }
     }
 
     // workflow endpoint => sent to model on client side
@@ -1246,7 +1254,10 @@ namespace xios {
     // workflow startpoint => data read from file on server side
     if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER)
     {
-      // no filter for reading data from file => to be implemented
+      for(auto field : fileInField) 
+      {
+        field->connectToFileReader(garbageCollector) ;
+      }
     }
     
     // construct slave server list
