@@ -3,3 +3,4 @@
 ccc_msub -E "--wait" job_irene_local.sh 
 
 bash -c "python generate_test.py"
+bash -c "cd $CCCWORKDIR/XIOS_ETST_SUITE_REPOSITORY && python generate_test.py"
