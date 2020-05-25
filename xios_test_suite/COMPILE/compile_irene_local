@@ -16,5 +16,4 @@ cp build_*.txt ${build_dir}/build_${xios_machine_name}
 CHMOD -R ${build_dir}/build_${xios_machine_name}
 
 bash -c "python ./generate_compile.py"
-bash -c "cd $CCCWORKDIR/XIOS_TEST_SUITE_REPOSITORY && python ./generate_compile.py"
 
