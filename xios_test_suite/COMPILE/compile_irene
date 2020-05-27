@@ -26,6 +26,6 @@ done
 
 CHMOD -R ${build_dir}/build_${xios_machine_name}
 
-bash -c "python ./generate_compile.py"
+#bash -c "python ./generate_compile.py"
 
-copy_to_thredds compile_${xios_machine_name}_info.js
+#copy_to_thredds compile_${xios_machine_name}_info.js
