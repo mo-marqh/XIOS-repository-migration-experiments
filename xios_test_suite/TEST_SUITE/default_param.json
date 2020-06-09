@@ -1,11 +1,11 @@
 [
 	{
-	"ATMdomain": "'lmdz'",
-        "UsingServer2": "'true'",
-        "RatioServer2": "50",
-        "NumberPoolsServer2": "1",
-        "Duration": "'1d'",
-        "NumberClients": "4",
-	"NumberServers": "4"
+	    "ATMdomain": "lmdz",
+        "UsingServer2": "true",
+        "RatioServer2": 50,
+        "NumberPoolsServer2": 1,
+        "Duration": "1d",
+        "NumberClients": 4,
+	    "NumberServers": 4
 	}
 ]

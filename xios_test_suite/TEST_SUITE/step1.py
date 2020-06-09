@@ -1,0 +1,180 @@
+import glob
+import sys
+import subprocess
+import os
+import json
+import itertools
+import copy
+
+param_list = ["ATMdomain", "UsingServer2", "NumberClients", "NumberServers", "RatioServer2", "NumberPoolsServer2", "Duration"]
+param_short_list = ["ATMdom", "Srv2", "NbClnt", "NbSrv", "RatioSrv2", "NbPlSrv2", "Duration"]
+
+mode=os.getenv("mode")
+arch=os.getenv("arch")
+
+def OSinfo(runthis):
+    red = lambda text: '\033[0;31m' + text + '\033[0m'
+    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+    theInfo = osstdout.communicate()[0].strip()
+    if osstdout.returncode!=0:
+        print(red(runthis+" FAILED"))
+        print >> sys.stderr, osstdout.returncode
+        sys.exit()
+
+def product_dict(**kwargs):
+    keys = kwargs.keys()
+    vals = kwargs.values()
+    for instance in itertools.product(*vals):
+        yield dict(zip(keys, instance))
+
+def get_default_param():
+    f=open("default_param.json", 'r')
+    default_param = json.load(f)
+    f.close()
+    return default_param[0]
+
+def generate_job_irene(fn, n):
+    with open(fn, "w") as fh:
+        fh.write("#!/bin/bash\n")
+        fh.write("#MSUB -r XIOS\n")
+        fh.write("#MSUB -eo\n")
+        fh.write("#MSUB -o client_output.out\n")
+        fh.write("#MSUB -e client_error.out\n")
+        fh.write("#MSUB -c 1\n")
+        fh.write("#MSUB -n 24\n")
+        fh.write("#MSUB -X\n")
+        fh.write("#MSUB -x\n")
+        fh.write("#MSUB -T 1800\n")
+        fh.write("#MSUB -q skylake\n")     
+        fh.write("#MSUB -A gen0826\n")
+        fh.write("#MSUB -Q test\n")
+        fh.write("#MSUB -m work,scratch\n")
+        fh.write("source ../../../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+        fh.write("ccc_mprun -n "+str(n)+" generic_testcase.exe\n")
+
+
+def update_full_job(location, n):
+    with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+            fh.write("\ncd ${location}/"+location+"; ccc_mprun -E \'--exclusive\' -n "+str(n)+" generic_testcase.exe > output.out 2> error.out &\n")
+            fh.write("PIDS+=($!)\n")
+            fh.write("CONFIGS+=("+location+")\n")
+
+
+def main():
+    with open("full_job_"+arch+"_"+mode+".sh", "w") as fh:
+        fh.write("#!/bin/bash\n")
+        fh.write("#MSUB -r XIOS\n")
+        fh.write("#MSUB -eo\n")
+        fh.write("#MSUB -o client_output.out\n")
+        fh.write("#MSUB -e client_error.err\n")
+        fh.write("#MSUB -c 1\n")
+        fh.write("#MSUB -n 24\n")
+        fh.write("#MSUB -X\n")
+        fh.write("#MSUB -x\n")
+        fh.write("#MSUB -T 1800\n")
+        fh.write("#MSUB -q skylake\n")     
+        fh.write("#MSUB -A gen0826\n")
+        fh.write("#MSUB -Q test\n")
+        fh.write("#MSUB -m work,scratch\n")
+        fh.write("export location=/ccc/cont003/home/gencmip6/wangyush/XIOS/trunk/xios_test_suite/RUN_TEST_SUITE\n")
+        fh.write("export log_location=/ccc/cont003/home/gencmip6/wangyush/XIOS/trunk/xios_test_suite/RUN_TEST_SUITE\n")
+        fh.write("source ../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+        fh.write("echo \"parallel launch arch="+arch+" mode="+mode+"\" >> ${log_location}/Log.txt\n")
+        fh.write("date >> ${log_location}/Log.txt\n")
+    
+    test_folder_list = glob.glob('test_*')
+    all_config=dict()
+
+    default_param = get_default_param()
+    # print(default_param)
+
+    for test_folder in test_folder_list:
+        config_list=[]
+        config_name=[]
+        with open(test_folder+"/user_param.json", "r") as f:
+            config_dict = json.load(f)
+
+        for i in range(len(config_dict)):
+            config_list.extend(list(product_dict(**config_dict[i])))
+            #print(config_list)
+        for i in range(len(config_list)):
+            # print(config_list[i])
+            keylist = list(config_list[i].keys())
+            # print(keylist)
+            full_config = copy.deepcopy(default_param)
+            for j in range(len(keylist)):
+                full_config[ keylist[j] ] = config_list[i][keylist[j]]
+
+            #print(full_config)
+            mystr = str(full_config)
+            mystr = mystr.replace("{", "")
+            mystr = mystr.replace("}", "")
+            mystr = mystr.replace("[", "")
+            mystr = mystr.replace("]", "")
+            mystr = mystr.replace(",", "")
+            mystr = mystr.replace(":", "")
+            mystr = mystr.replace("'", "")
+            mystr = mystr.replace("b'", "")
+            mystr = mystr.replace(" ", "_")
+            for j in range(len(param_list)):
+                mystr = mystr.replace(param_list[j], param_short_list[j])
+            if not mystr in config_name:
+                config_name.append(mystr)
+            #print(mystr)
+            OSinfo("mkdir -p "+test_folder+"/CONFIG_"+mystr)
+            OSinfo("cp build_"+arch+"_"+mode+"/bin/generic_testcase.exe "+test_folder+"/CONFIG_"+mystr)
+            OSinfo("cp iodef.xml "+test_folder+"/CONFIG_"+mystr+"/iodef.xml.tmp")
+
+            with open(test_folder+"/CONFIG_"+mystr+"/iodef.xml.tmp", "r") as f:
+                lines = f.readlines()
+                for i in range(len(lines)):
+                    if "XIOS::" in lines[i]:
+                        config_keys = list(full_config.keys())
+                        for idx in range(len(config_keys)):
+                            lines[i] = lines[i].replace("XIOS::"+config_keys[idx], str(full_config[config_keys[idx]]))
+                with open(test_folder+"/CONFIG_"+mystr+"/iodef.xml", "w") as g:
+                    for line in lines:
+                        g.write(line)
+
+            OSinfo("rm -f "+test_folder+"/CONFIG_"+mystr+"/iodef.xml.tmp")
+            OSinfo("cp "+test_folder+"/context_atm.xml "+test_folder+"/CONFIG_"+mystr+"/")
+            OSinfo("cp context_grid_dynamico.xml "+test_folder+"/CONFIG_"+mystr+"/")
+            OSinfo("cp dynamico_grid.nc "+test_folder+"/CONFIG_"+mystr+"/")
+            OSinfo("cp "+test_folder+"/checkfile.def "+test_folder+"/CONFIG_"+mystr+"/")
+            with open(test_folder+"/CONFIG_"+mystr+"/param.def", "w") as fh:
+                fh.write("&params_run\n")
+                fh.write("duration=\'"+full_config["Duration"]+"\'\n")
+                fh.write("nb_proc_atm="+str(full_config["NumberClients"])+"\n")
+                fh.write("/\n")
+            with open(test_folder+"/CONFIG_"+mystr+"/all_param.def", "w") as fh:
+                fh.write("&params_run\n")
+                for param in param_list:
+                    fh.write(param+"="+str(full_config[param])+"\n")
+                fh.write("/\n")
+
+            generate_job_irene(test_folder+"/CONFIG_"+mystr+"/job.sh", full_config['NumberClients']+full_config['NumberServers'])
+            update_full_job(test_folder+"/CONFIG_"+mystr, full_config['NumberClients']+full_config['NumberServers'])
+
+        #print(config_name)
+        all_config[test_folder] = config_name
+
+    with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+        fh.write("\nfor pid in ${PIDS[@]}; do\n")
+        fh.write("wait ${pid}\n")
+        fh.write("STATUS+=($?)\ndone\n")
+        fh.write("\ni=0\n")
+        fh.write("#for st in ${STATUS[@]}; do\n")
+        fh.write("#if [[ ${st} -ne 0 ]]; then\n")
+        fh.write("#echo \"${CONFIGS[${i}]} -1\" >> ${location}/plain_report.txt\n")
+        fh.write("#else\n")
+        fh.write("#echo \"${CONFIGS[${i}]} 1\" >> ${location}/plain_report.txt\n")
+        fh.write("#fi\n")
+        fh.write("#((i+=1))\n")
+        fh.write("#done\n\n")
+        fh.write("#wait\n")
+        fh.write("date >> ${log_location}/Log.txt\n")
+
+    #print(all_config)
+
+if __name__== "__main__":
+  main()
