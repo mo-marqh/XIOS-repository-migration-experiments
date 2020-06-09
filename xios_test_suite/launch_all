@@ -1,6 +1,6 @@
 #!/bin/bash
 
 source ./load_env
-./copy_html
+#./copy_html
 ./launch_compile
 ./launch_test_suite
