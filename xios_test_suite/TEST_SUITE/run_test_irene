@@ -6,6 +6,8 @@ export arch=X64_IRENE
 export mode=prod
 export build_dir=xios_test_suite/RUN_TEST_SUITE/build_${arch}_${mode}
 export svnR=$(svn info --show-item revision ../../)
+export ref_location=/ccc/cont003/home/gencmip6/wangyush/cron_xios
+export ref_file=reference.tar.gz
 
 echo "Start Building XIOS ... "
 bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 4"

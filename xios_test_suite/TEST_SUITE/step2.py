@@ -12,7 +12,8 @@ param_short_list = ["ATMdom", "Srv2", "NbClnt", "NbSrv", "RatioSrv2", "NbPlSrv2"
 mode=os.getenv("mode")
 arch=os.getenv("arch")
 svnr=os.getenv("svnR")
-
+ref_location=os.getenv("ref_location")
+ref_file=os.getenv("ref_file")
 
 def OSinfo(runthis):
     red = lambda text: '\033[0;31m' + text + '\033[0m'
@@ -39,7 +40,9 @@ def nonblank_lines(f):
             yield line
 
 def main():
-    
+    OSinfo("cp "+ref_location+"/"+ref_file+" ./")
+    OSinfo("tar -zxvf "+ref_file)
+    OSinfo("rm -f "+ref_file)
     test_folder_list = glob.glob('test_*')
 
     for test_folder in test_folder_list:
@@ -55,8 +58,8 @@ def main():
                 folder_name = list(config.split("/"))[0]
                 config_name = list(config.split("/"))[1]
                 for checkfile in checkfiles:
-                    if os.path.exists(config+"/"+checkfile) and os.path.exists("ref_"+config+"/"+checkfile):
-                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"ref_"+config+"/"+checkfile+" | > diff.txt")
+                    if os.path.exists(config+"/"+checkfile) and os.path.exists("reference/ref_"+config+"/"+checkfile):
+                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+" | > diff.txt")
                         if os.stat("diff.txt").st_size==0:
                             report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(1)+"\n")
                     elif os.path.exists(config+"/"+checkfile):
