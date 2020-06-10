@@ -21,10 +21,8 @@ def OSinfo(runthis):
     theInfo = osstdout.communicate()[0].strip()
     if osstdout.returncode!=0:
         print(red(runthis+" FAILED"))
-        print >> sys.stderr, osstdout.returncode
+        print(theInfo)
         sys.exit()
-    # else:
-    #     print(runthis+" OK")
 
 
 def get_default_param():
