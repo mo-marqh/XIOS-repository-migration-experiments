@@ -1,6 +1,6 @@
 #!/bin/bash
 ##SBATCH --nodes=2
-#SBATCH --ntasks=8              # Nombre total de processus MPI
+#SBATCH --ntasks=32              # Nombre total de processus MPI
 #SBATCH --ntasks-per-node=16
 ##SBATCH --cpus-per-task=1
 #SBATCH --hint=nomultithread
@@ -21,7 +21,7 @@ cd ${SLURM_SUBMIT_DIR}
 export arch=X64_JEANZAY
 export mode=prod
 
-./run_test_local
+time ./run_test_local
 
 
 #============================= X64_JEANZAY_debug =============================
@@ -29,4 +29,4 @@ export mode=prod
 export arch=X64_JEANZAY
 export mode=debug
 
-./run_test_local
+time ./run_test_local

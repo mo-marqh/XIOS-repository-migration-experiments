@@ -80,7 +80,7 @@ fi
 
 
 cmake .
-ctest -V 
+ctest -V -j16
 #ctest --output-on-failure
 make report
 

@@ -11,6 +11,12 @@ param_short_list = ["ATMdom", "Srv2", "NbClnt", "NbSrv", "RatioSrv2", "NbPlSrv2"
 
 mode=os.getenv("mode")
 arch=os.getenv("arch")
+machine=os.getenv("xios_machine_name")
+my_counter=1
+portion=0
+
+nb_proc_irene=20 # this must be >= NumberClients+NumberServers for all configs for all test folders
+nb_proc_jz=36 # this must be >= sum(NumberClients+NumberServers) for each test folder
 
 def OSinfo(runthis):
     red = lambda text: '\033[0;31m' + text + '\033[0m'
@@ -33,55 +39,101 @@ def get_default_param():
     f.close()
     return default_param[0]
 
-def generate_job_irene(fn, n):
-    with open(fn, "w") as fh:
-        fh.write("#!/bin/bash\n")
-        fh.write("#MSUB -r XIOS\n")
-        fh.write("#MSUB -eo\n")
-        fh.write("#MSUB -o client_output.out\n")
-        fh.write("#MSUB -e client_error.out\n")
-        fh.write("#MSUB -c 1\n")
-        fh.write("#MSUB -n 24\n")
-        fh.write("#MSUB -X\n")
-        fh.write("#MSUB -x\n")
-        fh.write("#MSUB -T 1800\n")
-        fh.write("#MSUB -q skylake\n")     
-        fh.write("#MSUB -A gen0826\n")
-        fh.write("#MSUB -Q test\n")
-        fh.write("#MSUB -m work,scratch\n")
-        fh.write("source ../../../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
-        fh.write("ccc_mprun -n "+str(n)+" generic_testcase.exe\n")
+def generate_job(fn, n):
+    if machine=="irene":
+        with open(fn, "w") as fh:
+            fh.write("#!/bin/bash\n")
+            fh.write("#MSUB -r XIOS\n")
+            fh.write("#MSUB -eo\n")
+            fh.write("#MSUB -o client_output.out\n")
+            fh.write("#MSUB -e client_error.out\n")
+            fh.write("#MSUB -c 1\n")
+            fh.write("#MSUB -n "+str(n)+"\n")
+            fh.write("#MSUB -X\n")
+            fh.write("#MSUB -x\n")
+            fh.write("#MSUB -T 1800\n")
+            fh.write("#MSUB -q skylake\n")     
+            fh.write("#MSUB -A gen0826\n")
+            fh.write("#MSUB -Q test\n")
+            fh.write("#MSUB -m work,scratch\n")
+            fh.write("source ../../../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("ccc_mprun -n "+str(n)+" generic_testcase.exe\n")
+
+    if machine=="jeanzay":
+        with open(fn, "w") as fh:
+            fh.write("#!/bin/bash\n")
+            fh.write("#SBATCH --ntasks="+str(n)+"\n")
+            fh.write("#SBATCH --hint=nomultithread\n")
+            fh.write("#SBATCH -o output.out\n")
+            fh.write("#SBATCH -e error.out\n")
+            fh.write("#SBATCH -t 00:10:00\n")
+            fh.write("#SBATCH --account=psl@cpu\n")
+            fh.write("ulimit -c 0\n")
+            fh.write("cd ${SLURM_SUBMIT_DIR}\n")
+            fh.write("source ../../../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt")
+            fh.write("srun generic_testcase.exe")
 
 
 def update_full_job(location, n):
-    with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+    global my_counter
+    if machine=="irene":
+        with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
             fh.write("\ncd ${location}/"+location+"; ccc_mprun -E \'--exclusive\' -n "+str(n)+" generic_testcase.exe > output.out 2> error.out &\n")
             fh.write("PIDS+=($!)\n")
             fh.write("CONFIGS+=("+location+")\n")
-
+    if machine=="jeanzay":
+        with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+            fh.write("\ncd ${location}/"+location+"; srun --exclusive -n "+str(n)+" generic_testcase.exe > output.out 2> error.out &\n")
+            #fh.write("echo \"test progress "+str(my_counter*portion)+"% \"\n")
+            #my_counter = my_counter+1
 
 def main():
-    with open("full_job_"+arch+"_"+mode+".sh", "w") as fh:
-        fh.write("#!/bin/bash\n")
-        fh.write("#MSUB -r XIOS\n")
-        fh.write("#MSUB -eo\n")
-        fh.write("#MSUB -o client_output.out\n")
-        fh.write("#MSUB -e client_error.err\n")
-        fh.write("#MSUB -c 1\n")
-        fh.write("#MSUB -n 24\n")
-        fh.write("#MSUB -X\n")
-        fh.write("#MSUB -x\n")
-        fh.write("#MSUB -T 1800\n")
-        fh.write("#MSUB -q skylake\n")     
-        fh.write("#MSUB -A gen0826\n")
-        fh.write("#MSUB -Q test\n")
-        fh.write("#MSUB -m work,scratch\n")
-        fh.write("export location="+os.getcwd()+"\n")
-        fh.write("export log_location="+os.getcwd()+"\n")
-        fh.write("source ../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
-        fh.write("echo \"parallel launch arch="+arch+" mode="+mode+"\" >> ${log_location}/Log.txt\n")
-        fh.write("date >> ${log_location}/Log.txt\n")
-    
+    global portion
+    tmp_list=glob.glob("test_*/CONFIG_*")
+    nb_configs = len(tmp_list)
+    portion = 100.0/nb_configs
+
+    if machine=="irene":
+        with open("full_job_"+arch+"_"+mode+".sh", "w") as fh:
+            fh.write("#!/bin/bash\n")
+            fh.write("#MSUB -r XIOS\n")
+            fh.write("#MSUB -eo\n")
+            fh.write("#MSUB -o client_output.out\n")
+            fh.write("#MSUB -e client_error.err\n")
+            fh.write("#MSUB -c 1\n")
+            fh.write("#MSUB -n "+str(nb_proc_irene)+"\n")
+            fh.write("#MSUB -X\n")
+            fh.write("#MSUB -x\n")
+            fh.write("#MSUB -T 1800\n")
+            fh.write("#MSUB -q skylake\n")     
+            fh.write("#MSUB -A gen0826\n")
+            fh.write("#MSUB -Q test\n")
+            fh.write("#MSUB -m work,scratch\n")
+            fh.write("export location="+os.getcwd()+"\n")
+            fh.write("export log_location="+os.getcwd()+"\n")
+            fh.write("source ../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("echo \"parallel launch arch="+arch+" mode="+mode+"\" >> ${log_location}/Log.txt\n")
+            fh.write("date >> ${log_location}/Log.txt\n")
+     
+    if machine=="jeanzay":
+        with open("full_job_"+arch+"_"+mode+".sh", "w") as fh:
+            fh.write("#!/bin/bash\n")
+            fh.write("#SBATCH --ntasks="+str(nb_proc_jz)+"\n")
+            fh.write("#SBATCH --hint=nomultithread\n")
+            fh.write("#SBATCH -t 00:10:00\n")
+            fh.write("#SBATCH --account=psl@cpu\n")
+            fh.write("ulimit -c 0\n")
+            fh.write("cd ${SLURM_SUBMIT_DIR}\n")
+            fh.write("source ../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt\n")
+            fh.write("export location="+os.getcwd()+"\n")
+            fh.write("export log_location="+os.getcwd()+"\n")
+            fh.write("echo \"parallel launch arch="+arch+" mode="+mode+"\" >> ${log_location}/Log.txt\n")
+            fh.write("date >> ${log_location}/Log.txt\n")
+
+
+
     test_folder_list = glob.glob('test_*')
     all_config=dict()
 
@@ -152,28 +204,37 @@ def main():
                     fh.write(param+"="+str(full_config[param])+"\n")
                 fh.write("/\n")
 
-            generate_job_irene(test_folder+"/CONFIG_"+mystr+"/job.sh", full_config['NumberClients']+full_config['NumberServers'])
+            generate_job(test_folder+"/CONFIG_"+mystr+"/job.sh", full_config['NumberClients']+full_config['NumberServers'])
             update_full_job(test_folder+"/CONFIG_"+mystr, full_config['NumberClients']+full_config['NumberServers'])
 
         #print(config_name)
+        with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+            fh.write("wait\nwait\n")
+            fh.write("echo \"tests in "+test_folder+" finished\"\n")
         all_config[test_folder] = config_name
+ 
 
-    with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
-        fh.write("\nfor pid in ${PIDS[@]}; do\n")
-        fh.write("wait ${pid}\n")
-        fh.write("STATUS+=($?)\ndone\n")
-        fh.write("\ni=0\n")
-        fh.write("#for st in ${STATUS[@]}; do\n")
-        fh.write("#if [[ ${st} -ne 0 ]]; then\n")
-        fh.write("#echo \"${CONFIGS[${i}]} -1\" >> ${location}/plain_report.txt\n")
-        fh.write("#else\n")
-        fh.write("#echo \"${CONFIGS[${i}]} 1\" >> ${location}/plain_report.txt\n")
-        fh.write("#fi\n")
-        fh.write("#((i+=1))\n")
-        fh.write("#done\n\n")
-        fh.write("#wait\n")
-        fh.write("date >> ${log_location}/Log.txt\n")
+    if machine=="irene":
+        with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+            fh.write("\nfor pid in ${PIDS[@]}; do\n")
+            fh.write("wait ${pid}\n")
+            fh.write("STATUS+=($?)\ndone\n")
+            fh.write("\ni=0\n")
+            fh.write("#for st in ${STATUS[@]}; do\n")
+            fh.write("#if [[ ${st} -ne 0 ]]; then\n")
+            fh.write("#echo \"${CONFIGS[${i}]} -1\" >> ${location}/plain_report.txt\n")
+            fh.write("#else\n")
+            fh.write("#echo \"${CONFIGS[${i}]} 1\" >> ${location}/plain_report.txt\n")
+            fh.write("#fi\n")
+            fh.write("#((i+=1))\n")
+            fh.write("#done\n\n")
+            fh.write("#wait\n")
+            fh.write("date >> ${log_location}/Log.txt\n")
+    if machine=="jeanzay":
+        with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+            fh.write("date >> ${log_location}/Log.txt\n")
 
+    
     #print(all_config)
 
 if __name__== "__main__":
