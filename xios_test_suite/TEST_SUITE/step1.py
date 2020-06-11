@@ -12,8 +12,6 @@ param_short_list = ["ATMdom", "Srv2", "NbClnt", "NbSrv", "RatioSrv2", "NbPlSrv2"
 mode=os.getenv("mode")
 arch=os.getenv("arch")
 machine=os.getenv("xios_machine_name")
-my_counter=1
-portion=0
 
 nb_proc_irene=20 # this must be >= NumberClients+NumberServers for all configs for all test folders
 nb_proc_jz=36 # this must be >= sum(NumberClients+NumberServers) for each test folder
@@ -85,14 +83,8 @@ def update_full_job(location, n):
     if machine=="jeanzay":
         with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
             fh.write("\ncd ${location}/"+location+"; srun --exclusive -n "+str(n)+" generic_testcase.exe > output.out 2> error.out &\n")
-            #fh.write("echo \"test progress "+str(my_counter*portion)+"% \"\n")
-            #my_counter = my_counter+1
 
 def main():
-    global portion
-    tmp_list=glob.glob("test_*/CONFIG_*")
-    nb_configs = len(tmp_list)
-    portion = 100.0/nb_configs
 
     if machine=="irene":
         with open("full_job_"+arch+"_"+mode+".sh", "w") as fh:

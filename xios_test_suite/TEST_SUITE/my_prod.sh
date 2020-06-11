@@ -49,4 +49,4 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
 fi
 
 
-#python3 step2.py
+python3 step2.py
