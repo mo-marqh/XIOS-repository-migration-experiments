@@ -200,9 +200,10 @@ def main():
             update_full_job(test_folder+"/CONFIG_"+mystr, full_config['NumberClients']+full_config['NumberServers'])
 
         #print(config_name)
-        with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
-            fh.write("wait\nwait\n")
-            fh.write("echo \"tests in "+test_folder+" finished\"\n")
+        if machine=="jeanzay":
+            with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
+                fh.write("wait\nwait\n")
+                fh.write("echo \"tests in "+test_folder+" finished\"\n")
         all_config[test_folder] = config_name
  
 
