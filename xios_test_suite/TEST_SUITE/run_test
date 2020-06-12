@@ -10,7 +10,7 @@ export build_status=$?
 if [[ ${build_status} == 0 ]]
 then
   echo "XIOS Build Finished. Start Unit Tests"
-  bash ./my_prod.sh
+  bash ./my_run.sh
   rundir=${xios_test_suite_repository}/RUN
   mkdir -p $rundir ; CHMOD  $rundir
   mkdir -p ${rundir}/test_${xios_machine_name} ; CHMOD ${rundir}/test_${xios_machine_name}
