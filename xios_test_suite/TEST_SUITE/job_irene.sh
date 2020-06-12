@@ -1,43 +1,43 @@
 #!/bin/bash
-######################
-## CURIE   TGCC/CEA ##
-######################
-#MSUB -r XIOS
-#MSUB -o client_output.out    # standard output
-#MSUB -e client_error.err    #error output
-#MSUB -eo
-#MSUB -c 1
-#MSUB -n 48  # Number of MPI tasks (SPMD case) or cores (MPMD case)
-#MSUB -X 
-#MSUB -x 
-#MSUB -T 1800      # Wall clock limit (seconds)
-#MSUB -q skylake           # thin nodes
-#MSUB -A gen0826
-#MSUB -Q test
-#MSUB -m work,scratch
+
+export build_dir=xios_test_suite/RUN_TEST_SUITE/build_${arch}_${mode}
+export svnR=$(svn info --show-item revision ../../)
+
+echo "Start Building XIOS ... "
+bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 4"
+
+export build_status=$?
+if [[ ${build_status} == 0 ]]
+then
+  echo "XIOS Build Finished. Start Unit Tests"
+  bash ./my_prod.sh
+  rundir=${xios_test_suite_repository}/RUN
+  mkdir -p $rundir ; CHMOD  $rundir
+  mkdir -p ${rundir}/test_${xios_machine_name} ; CHMOD ${rundir}/test_${xios_machine_name}
+
+  cp report_${svnR}_${arch}_${mode}.txt ${rundir}/test_${xios_machine_name}/test_${svnR}_${xios_machine_name}_${arch}_${mode}.txt
+
+  CHMOD ${rundir}/test_${xios_machine_name}/test_${svnR}_${xios_machine_name}_${arch}_${mode}.txt
+
+  mkdir -p ${rundir}/def_files ;  CHMOD ${rundir}/RUN/def_files
+  mkdir -p ${rundir}/def_files/${svnR} ;  CHMOD ${rundir}/def_files/${svnR}
+
+  for i in $(ls -d test_*/)
+  do
+    mkdir -p ${rundir}/def_files/${svnR}/${i%%}
+    cp ${i%%}/user_param.json ${rundir}/def_files/${svnR}/${i%%}
+    for j in $(ls -d ${i%%/}/CONFIG_*)
+    do
+      mkdir -p ${rundir}/def_files/${svnR}/${j%%}
+      cp ${j%%}/all_param.def ${rundir}/def_files/${svnR}/${j%%}
+    done
+    CHMOD ${rundir}/def_files
+  done
 
 
-#============================= X64_IRENE_prod =============================
-
-
-cd $BRIDGE_MSUB_PWD
-
-export arch=X64_IRENE
-export mode=prod
-
-./run_test
-
-
-#============================= X64_IRENE_debug =============================
-
-
-cd $BRIDGE_MSUB_PWD
-
-export arch=X64_IRENE
-export mode=debug
-
-./run_test
-
+else
+  echo "XIOS Build Failed. Skip Unit Tests"
+fi
 
 
 

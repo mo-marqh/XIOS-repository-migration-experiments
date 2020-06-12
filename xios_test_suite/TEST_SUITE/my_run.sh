@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "running my_prod.sh"
+echo "running my_run.sh"
 
 export svnR=$(svn info --show-item revision ../../)
 svnurl=$(svn info --show-item url ../../)
@@ -20,7 +20,6 @@ python3 step1.py
 if [[ ${xios_machine_name} == "irene" ]]; then
   cmd=$(ccc_msub full_job_${arch}_${mode}.sh)
   jobid="${cmd//[!0-9]/}"
-  #jobid=9999999
 
   i=0
   output=$(ccc_mpp | grep ${jobid})
@@ -33,10 +32,11 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   done
 fi
 
+
+
 if [[ ${xios_machine_name} == "jeanzay" ]]; then
   cmd=$(sbatch full_job_${arch}_${mode}.sh)
   jobid="${cmd//[!0-9]/}"
-  #jobid=99999
   i=0
   output=$(squeue -u rpsl954 | grep ${jobid})
   while [ ! -z "$output" ]

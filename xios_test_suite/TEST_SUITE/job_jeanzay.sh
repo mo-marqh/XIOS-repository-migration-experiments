@@ -1,32 +1,43 @@
 #!/bin/bash
-##SBATCH --nodes=2
-#SBATCH --ntasks=32              # Nombre total de processus MPI
-##SBATCH --ntasks-per-node=16
-##SBATCH --cpus-per-task=1
-#SBATCH --hint=nomultithread
-#SBATCH -t 00:10:00              # Temps elapsed maximum d'exécution
-#SBATCH -o output.out     # Nom du fichier de sortie
-#SBATCH -e error.err     # Nom du fichier d'erreur
-##SBATCH -p cpu_port             # Nom de la partition d'exécution
-##SBATCH -A sos@cpu
-##SBATCH --distribution=arbitrary
-#SBATCH --account=psl@cpu
+export build_dir=xios_test_suite/RUN_TEST_SUITE/build_${arch}_${mode}
+export svnR=$(svn info --show-item revision ../../)
+export ref_location=/gpfswork/rech/psl/rpsl954/cron_xios
+export ref_file=reference.tar.gz
 
-ulimit -c 0
+echo "Start Building XIOS ... "
+bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 4"
 
-cd ${SLURM_SUBMIT_DIR}
+export build_status=$?
+if [[ ${build_status} == 0 ]]
+then
+  echo "XIOS Build Finished. Start Unit Tests"
+  bash ./my_prod.sh
+  rundir=${xios_test_suite_repository}/RUN
+  mkdir -p $rundir ; CHMOD  $rundir
+  mkdir -p ${rundir}/test_${xios_machine_name} ; CHMOD ${rundir}/test_${xios_machine_name}
 
-#============================= X64_JEANZAY_prod =============================
+  cp report_${svnR}_${arch}_${mode}.txt ${rundir}/test_${xios_machine_name}/test_${svnR}_${xios_machine_name}_${arch}_${mode}.txt
 
-export arch=X64_JEANZAY
-export mode=prod
+  CHMOD ${rundir}/test_${xios_machine_name}/test_${svnR}_${xios_machine_name}_${arch}_${mode}.txt
 
-time ./run_test
+  mkdir -p ${rundir}/def_files ;  CHMOD ${rundir}/def_files
+  mkdir -p ${rundir}/def_files/${svnR} ;  CHMOD ${rundir}/def_files/${svnR}
+
+  for i in $(ls -d test_*/)
+  do
+    mkdir -p ${rundir}/def_files/${svnR}/${i%%}
+    cp ${i%%}/user_param.json ${rundir}/def_files/${svnR}/${i%%}
+    for j in $(ls -d ${i%%/}/CONFIG_*)
+    do
+      mkdir -p ${rundir}/def_files/${svnR}/${j%%}
+      cp ${j%%}/all_param.def ${rundir}/def_files/${svnR}/${j%%}
+    done
+    CHMOD ${rundir}/def_files
+  done
 
 
-#============================= X64_JEANZAY_debug =============================
+else
+  echo "XIOS Build Failed. Skip Unit Tests"
+fi
 
-export arch=X64_JEANZAY
-export mode=debug
 
-time ./run_test
