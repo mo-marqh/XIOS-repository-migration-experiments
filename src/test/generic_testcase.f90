@@ -102,10 +102,10 @@ PROGRAM generic_testcase
 
     IF (i_am_atm) CALL model("atm")
   
-  
     CALL xios_finalize()
   ENDIF
 
+ print*, "finished Successfully"  
   CALL MPI_FINALIZE(ierr)
   
 CONTAINS
