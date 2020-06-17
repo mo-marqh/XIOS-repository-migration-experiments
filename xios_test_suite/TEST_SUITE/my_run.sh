@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 echo "running my_run.sh"
 
@@ -14,7 +14,8 @@ echo "#build_dir" $(pwd)/build_${arch}_${mode} >> ${fn}
 echo "#arch" $arch >> ${fn}
 echo "#mode" $mode >> ${fn}
 
-python step1.py
+
+${PYTHON} step1.py
 
 
 if [[ ${xios_machine_name} == "irene" ]]; then
@@ -49,4 +50,4 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
 fi
 
 
-python step2.py
+${PYTHON} step2.py

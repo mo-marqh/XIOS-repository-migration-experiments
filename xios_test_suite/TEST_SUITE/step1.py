@@ -150,7 +150,7 @@ def main():
     #all_config=dict()
 
     default_param = get_default_param()
-    # print(default_param)
+    #print(default_param)
 
     for test_folder in test_folder_list:
         config_list=[]
@@ -177,8 +177,8 @@ def main():
             mystr = mystr.replace("]", "")
             mystr = mystr.replace(",", "")
             mystr = mystr.replace(":", "")
+            mystr = mystr.replace("u'", "")
             mystr = mystr.replace("'", "")
-            mystr = mystr.replace("b'", "")
             mystr = mystr.replace(" ", "_")
             for j in range(len(param_list)):
                 mystr = mystr.replace(param_list[j], param_short_list[j])
