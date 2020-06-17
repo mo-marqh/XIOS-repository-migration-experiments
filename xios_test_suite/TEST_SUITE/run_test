@@ -19,7 +19,7 @@ then
 
   CHMOD ${rundir}/test_${xios_machine_name}/test_${svnR}_${xios_machine_name}_${arch}_${mode}.txt
 
-  mkdir -p ${rundir}/def_files ;  CHMOD ${rundir}/RUN/def_files
+  mkdir -p ${rundir}/def_files ;  CHMOD ${rundir}/def_files
   mkdir -p ${rundir}/def_files/${svnR} ;  CHMOD ${rundir}/def_files/${svnR}
 
   for i in $(ls -d test_*/)

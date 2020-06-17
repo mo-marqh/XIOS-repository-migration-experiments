@@ -1,2 +1,0 @@
-param_list = ["ATMdomain", "UsingServer2", "NumberClients", "NumberServers", "RatioServer2", "NumberPoolsServer2", "Duration"]
-param_short_list = ["ATMdom", "UsingSrv2", "NbClients", "NbServers", "RatioSrv2", "NbPlSrv2", "Duration"]

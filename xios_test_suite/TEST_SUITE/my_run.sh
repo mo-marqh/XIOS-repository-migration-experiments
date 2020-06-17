@@ -14,7 +14,7 @@ echo "#build_dir" $(pwd)/build_${arch}_${mode} >> ${fn}
 echo "#arch" $arch >> ${fn}
 echo "#mode" $mode >> ${fn}
 
-python3 step1.py
+python step1.py
 
 
 if [[ ${xios_machine_name} == "irene" ]]; then
@@ -49,4 +49,4 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
 fi
 
 
-python3 step2.py
+python step2.py
