@@ -1,0 +1,15 @@
+# default configurations
+
+# UsingServer2 = 'false'
+# RatioServer2 = 50
+# NumberPoolsServer2 = 1
+# NumberClients = 8
+# NumberServers = 4
+# Duration = '1d'
+
+# for multiple definitions, use 'comma' to seperate
+# e.g. NumberServers = 2, 4, 8  
+
+NumberServers = 2, 4
+UsingServer2 = 'false', 'true'
+ATMdomain = 'lmdz'
