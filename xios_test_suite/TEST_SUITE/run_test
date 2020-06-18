@@ -31,7 +31,6 @@ then
       mkdir -p ${rundir}/def_files/${svnR}/${j%%}
       cp ${j%%}/all_param.def ${rundir}/def_files/${svnR}/${j%%}
     done
-    CHMOD ${rundir}/def_files
   done
 
 
