@@ -6,8 +6,8 @@ import json
 import itertools
 import copy
 
-param_list = ["ATMdomain", "UsingServer2", "NumberClients", "NumberServers", "RatioServer2", "NumberPoolsServer2", "Duration"]
-param_short_list = ["ATMdom", "Srv2", "NbClnt", "NbSrv", "RatioSrv2", "NbPlSrv2", "Duration"]
+param_list = ["ATMdomain", "UsingServer2", "NumberClients", "NumberServers", "RatioServer2", "NumberPoolsServer2", "Duration", "InfoLevel"]
+param_short_list = ["ATMdom", "Srv2", "NbClnt", "NbSrv", "RatioSrv2", "NbPlSrv2", "Duration", "Info"]
 
 mode=os.getenv("mode")
 arch=os.getenv("arch")
@@ -37,7 +37,10 @@ def get_default_param():
     f=open("default_param.json", 'r')
     default_param = json.load(f)
     f.close()
-    return default_param[0]
+    l = list(default_param[0].items())
+    l.sort()
+    def_param=dict(l)
+    return def_param
 
 def generate_job(fn, n):
     if machine=="irene":
@@ -61,7 +64,8 @@ def generate_job(fn, n):
             fh.write("#MSUB -A gen0826\n")
             fh.write("#MSUB -Q test\n")
             fh.write("#MSUB -m work,scratch\n")
-            fh.write("source ../../../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("cp ../../build_"+arch+"_"+mode+"/bin/generic_testcase.exe ./\n")
+            fh.write("source ../../build_"+arch+"_"+mode+"/arch.env\n")
             fh.write("ccc_mprun -n "+str(n)+" generic_testcase.exe\n")
 
     if machine=="jeanzay":
@@ -80,7 +84,8 @@ def generate_job(fn, n):
             fh.write("#SBATCH --account=psl@cpu\n")
             fh.write("ulimit -c 0\n")
             fh.write("cd ${SLURM_SUBMIT_DIR}\n")
-            fh.write("source ../../../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("cp ../../build_"+arch+"_"+mode+"/bin/generic_testcase.exe ./\n")
+            fh.write("source ../../build_"+arch+"_"+mode+"/arch.env\n")
             fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt\n")
             fh.write("srun generic_testcase.exe")
 
@@ -89,12 +94,12 @@ def update_full_job(location, n):
     global my_counter
     if machine=="irene":
         with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
-            fh.write("\ncd ${location}/"+location+"; ccc_mprun -E \'--exclusive\' -n "+str(n)+" generic_testcase.exe > output.out 2> error.out &\n")
+            fh.write("\ncd ${location}/"+location+"; ccc_mprun -E \'--exclusive\' -n "+str(n)+" generic_testcase.exe > output_"+arch+"_"+mode+".out 2> error_"+arch+"_"+mode+".out &\n")
             fh.write("PIDS+=($!)\n")
             fh.write("CONFIGS+=("+location+")\n")
     if machine=="jeanzay":
         with open("full_job_"+arch+"_"+mode+".sh", "a") as fh:
-            fh.write("\ncd ${location}/"+location+"; srun --exclusive -n "+str(n)+" generic_testcase.exe > output.out 2> error.out &\n")
+            fh.write("\ncd ${location}/"+location+"; srun --exclusive -n "+str(n)+" generic_testcase.exe > output_"+arch+"_"+mode+".out 2> error_"+arch+"_"+mode+".out &\n")
 
 def main():
 
@@ -107,8 +112,8 @@ def main():
             fh.write("#====================================================\n")
             fh.write("#MSUB -r XIOS\n")
             fh.write("#MSUB -eo\n")
-            fh.write("#MSUB -o client_output.out\n")
-            fh.write("#MSUB -e client_error.err\n")
+            fh.write("#MSUB -o output_"+arch+"_"+mode+".out\n")
+            fh.write("#MSUB -e error_"+arch+"_"+mode+".err\n")
             fh.write("#MSUB -c 1\n")
             fh.write("#MSUB -n "+str(nb_proc_irene)+"\n")
             fh.write("#MSUB -X\n")
@@ -120,7 +125,7 @@ def main():
             fh.write("#MSUB -m work,scratch\n")
             fh.write("export location="+os.getcwd()+"\n")
             fh.write("export log_location="+os.getcwd()+"\n")
-            fh.write("source ../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("source build_"+arch+"_"+mode+"/arch.env\n")
             fh.write("echo \"parallel launch arch="+arch+" mode="+mode+"\" >> ${log_location}/Log.txt\n")
             fh.write("date >> ${log_location}/Log.txt\n")
      
@@ -132,12 +137,14 @@ def main():
             fh.write("# Called by my_run.sh -> run_test -> run_test_jeanzay\n")
             fh.write("#====================================================\n")
             fh.write("#SBATCH --ntasks="+str(nb_proc_jz)+"\n")
+            fh.write("#SBATCH -o output_"+arch+"_"+mode+".out\n")
+            fh.write("#SBATCH -e error_"+arch+"_"+mode+".out\n")
             fh.write("#SBATCH --hint=nomultithread\n")
             fh.write("#SBATCH -t 00:10:00\n")
             fh.write("#SBATCH --account=psl@cpu\n")
             fh.write("ulimit -c 0\n")
             fh.write("cd ${SLURM_SUBMIT_DIR}\n")
-            fh.write("source ../BUILD/build_"+arch+"_"+mode+"/arch.env\n")
+            fh.write("source build_"+arch+"_"+mode+"/arch.env\n")
             fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt\n")
             fh.write("export location="+os.getcwd()+"\n")
             fh.write("export log_location="+os.getcwd()+"\n")
@@ -178,6 +185,7 @@ def main():
             mystr = mystr.replace(",", "")
             mystr = mystr.replace(":", "")
             mystr = mystr.replace("u'", "")
+            mystr = mystr.replace("b'", "")
             mystr = mystr.replace("'", "")
             mystr = mystr.replace(" ", "_")
             for j in range(len(param_list)):

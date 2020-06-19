@@ -6,14 +6,14 @@ import json
 import itertools
 import copy
 
-param_list = ["ATMdomain", "UsingServer2", "NumberClients", "NumberServers", "RatioServer2", "NumberPoolsServer2", "Duration"]
-param_short_list = ["ATMdom", "Srv2", "NbClnt", "NbSrv", "RatioSrv2", "NbPlSrv2", "Duration"]
 
 mode=os.getenv("mode")
 arch=os.getenv("arch")
 svnr=os.getenv("svnR")
 ref_location=os.getenv("ref_location")
 ref_file=os.getenv("ref_file")
+
+
 
 def OSinfo(runthis):
     red = lambda text: '\033[0;31m' + text + '\033[0m'
@@ -25,11 +25,6 @@ def OSinfo(runthis):
         sys.exit()
 
 
-def get_default_param():
-    f=open("default_param.json", 'r')
-    default_param = json.load(f)
-    f.close()
-    return default_param[0]
 
 def nonblank_lines(f):
     for l in f:
@@ -38,14 +33,34 @@ def nonblank_lines(f):
             yield line
 
 def main():
-    OSinfo("cp "+ref_location+"/"+ref_file+" ./")
-    OSinfo("tar -zxvf "+ref_file)
+    ref_list = glob.glob(ref_location+"/*")
+    for i in range(len(ref_list)):
+        tmp = ref_list[i].split("/")
+        rev = tmp[len(tmp)-1]
+        ref_list[i] = int(rev)
+    ref_list.sort(reverse=True) #ref_list in descending order
+    
+    print(ref_list)
+
+    ref_rev = "0"
+    for ref in ref_list:
+        if int(svnr) >= ref :
+            ref_rev = str(rev)
+            break
+        
+    if not int(ref_rev):
+        print("no available reference found ... exit")
+        return
+    
+    OSinfo("cp "+ref_location+"/"+ref_rev+"/"+ref_file+" ./")
+    OSinfo("tar -zxvf "+ref_location+"/"+ref_rev+"/"+ref_file)
     OSinfo("rm -f "+ref_file)
+    
+    
     test_folder_list = glob.glob('test_*')
 
     for test_folder in test_folder_list:
         config_list = glob.glob(test_folder+"/CONFIG_*")
-        #print(*config_list, sep = "\n")
         
         
         with open(test_folder+"/checkfile.def", "r") as fh:

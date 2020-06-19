@@ -24,11 +24,11 @@ then
 
   for i in $(ls -d test_*/)
   do
-    mkdir -p ${rundir}/def_files/${svnR}/${i%%}
+    mkdir -p ${rundir}/def_files/${svnR}/${i%%} ; CHMOD ${rundir}/def_files/${svnR}/${i%%}
     cp ${i%%}/user_param.json ${rundir}/def_files/${svnR}/${i%%}
     for j in $(ls -d ${i%%/}/CONFIG_*)
     do
-      mkdir -p ${rundir}/def_files/${svnR}/${j%%}
+      mkdir -p ${rundir}/def_files/${svnR}/${j%%} ; CHMOD ${rundir}/def_files/${svnR}/${j%%}
       cp ${j%%}/all_param.def ${rundir}/def_files/${svnR}/${j%%}
     done
   done

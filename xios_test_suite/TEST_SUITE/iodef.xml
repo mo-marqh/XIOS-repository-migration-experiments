@@ -52,7 +52,7 @@
 
       <variable_group id="parameters" >
         <variable id="using_server" type="bool">true</variable>
-        <variable id="info_level" type="int">100</variable>
+        <variable id="info_level" type="int">XIOS::InfoLevel</variable>
         <variable id="print_file" type="bool">true</variable>
         <variable id="using_server2" type="bool">XIOS::UsingServer2</variable>
         <variable id="ratio_server2" type="int">XIOS::RatioServer2</variable>
