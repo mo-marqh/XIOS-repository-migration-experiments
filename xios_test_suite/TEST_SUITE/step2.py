@@ -40,15 +40,13 @@ def main():
         ref_list[i] = int(rev)
     ref_list.sort(reverse=True) #ref_list in descending order
     
-    print(ref_list)
-
-    ref_rev = "0"
+    ref_rev = ""
     for ref in ref_list:
         if int(svnr) >= ref :
             ref_rev = str(rev)
             break
         
-    if not int(ref_rev):
+    if not ref_rev:
         print("no available reference found ... exit")
         return
     
