@@ -1,5 +1,5 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -24,6 +24,8 @@ logicalmkup
 \font_osf false
 \font_sf_scale 100 100
 \font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures false
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -53,6 +55,7 @@ logicalmkup
 \suppress_date false
 \justification true
 \use_refstyle 0
+\use_minted 0
 \index Index
 \shortcut idx
 \color #008000
@@ -61,7 +64,10 @@ logicalmkup
 \tocdepth 3
 \paragraph_separation indent
 \paragraph_indentation default
-\quotes_language english
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
@@ -7720,27 +7726,6 @@ interpolate_domain
 \end_layout
 
 \begin_layout Subsection*
-file (optional): 
-\emph on
-string
-\end_layout
-
-\begin_layout Standard
-Fortran:
-\end_layout
-
-\begin_layout LyX-Code
-CHARACTER(LEN=*) :: type
-\end_layout
-
-\begin_layout Standard
-Define a file which contains the weight values for interpolation from domain
- source to domain destination.
- If not specified, the internal interpolation module will be used to compte
- the weights.
-\end_layout
-
-\begin_layout Subsection*
 order (optional): 
 \emph on
 integer
@@ -7759,7 +7744,248 @@ Defines the order of interpolation.
  This attribute is only for internal interpolation module.
  Currently, only first order and second order are available for conservative
  interpolations.
- The default value is 2.
+ The default value is 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+renormalize (optional): 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: renormalize
+\end_layout
+
+\begin_layout Standard
+This flag is usefull only when targeted cells intersect masked source cells.
+ In case a field corresponding to a flux value, the result of the interpolation
+ remain correct.
+ Otherwise for intensive field, the computed value need to be renormalize
+ prorate of the non masked intersected area to remain correct.
+ This flag activate these functionnality.
+ Default value is 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+false
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+quantitity (optional): 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: quantity
+\end_layout
+
+\begin_layout Standard
+If this flag is set, the interpolation will preserve extensive property
+ of the field.
+ Default value is 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+false
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+use_area (optional): 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: use_area
+\end_layout
+
+\begin_layout Standard
+If this flag is set, given area for source and target domain (if any) will
+ be used to renormalize compute weight by the ratio given area / computed
+ area.
+ Default value is 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+false
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+detect_missing_value (optional): 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: detect_missing_value
+\end_layout
+
+\begin_layout Standard
+If flag is set to true, input data of the field to be interpolated are analyzed
+ to detect missing values.
+ Detected cells are considered as masked and will be taking into account
+ for interpolation in a similar way than the domain mask.
+ Default value is 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+false
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+mode (optionnal): 
+\emph on
+enumeration {compute, read, read_or_compute}
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: mode
+\end_layout
+
+\begin_layout Standard
+Define if interpolation must be computed (compute), read from file (read),
+ or if find file weight, read otherwise compute (read_or_compute).
+ Default value is 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+compute
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+write_weight (optional): 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: write_weight
+\end_layout
+
+\begin_layout Standard
+If this flag is set, the computed weights will be written in file.
+ If weights are already read from a file, nothing will happen.
+ Default value is 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+false
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+weight_filename (optional): 
+\emph on
+string
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: weight_filename
+\end_layout
+
+\begin_layout Standard
+Define the file name where the weights will be written or read.
+ If not specified when trying to read or write, a name will be automatically
+ generated.
+ 
+\end_layout
+
+\begin_layout Subsection*
+read_write_convention (optionnal): 
+\emph on
+enumeration {c, fortran}
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: read_write_convention
+\end_layout
+
+\begin_layout Standard
+Define the convention for pair of global index source and destination for
+ wich a weight is defined.
+ For C convention, index will begin to 0, for fortran, index will begin
+ to 1.
+ Usefull only for read ar write weights from/to a file.
+ Default value is corresponding to C convention.
 \end_layout
 
 \begin_layout Subsection
