@@ -363,8 +363,45 @@
 
   <file_definition  type="one_file" >
     
+     <file id="atm_output_max" output_freq="4ts" enabled="true" >
+       <field field_ref="field2D"  operation = "maximum" />
+       <field field_ref="field3D"  operation = "maximum" />
+       <field field_ref="pressure" operation = "maximum" />
+     </file>
 
-     <file id="atm_output" output_freq="4ts" enabled="true" >
+
+     <file id="atm_output_min" output_freq="4ts" enabled="true" >
+       <field field_ref="field2D"  operation = "minimum" />
+       <field field_ref="field3D"  operation = "minimum" />
+       <field field_ref="pressure" operation = "minimum" />
+     </file>
+
+     <file id="atm_output_ave" output_freq="4ts" enabled="true" >
+       <field field_ref="field2D"  operation = "average" />
+       <field field_ref="field3D"  operation = "average" />
+       <field field_ref="pressure" operation = "average" />
+     </file>
+
+     <file id="atm_output_sum" output_freq="4ts" enabled="true" >
+       <field field_ref="field2D"  operation = "accumulate" />
+       <field field_ref="field3D"  operation = "accumulate" />
+       <field field_ref="pressure" operation = "accumulate" />
+     </file>
+     
+     <file id="atm_output_once" output_freq="4ts" enabled="true" >
+       <field field_ref="field2D"  operation = "once" />
+       <field field_ref="field3D"  operation = "once" />
+       <field field_ref="pressure" operation = "once" />
+     </file>
+     
+     <file id="atm_output_instant" output_freq="4ts" enabled="true" >
+       <field field_ref="field2D"  operation = "instant" />
+       <field field_ref="field3D"  operation = "instant" />
+       <field field_ref="pressure" operation = "instant" />
+     </file>
+
+
+     <file id="atm_output" output_freq="4ts" enabled="false" >
        
        <field field_ref="field2D" operation="average" enabled="true"/>
        <field field_ref="field3D" operation="average" enabled="false"/>

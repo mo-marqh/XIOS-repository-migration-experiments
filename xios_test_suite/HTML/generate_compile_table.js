@@ -1,3 +1,4 @@
+var compile_dict={"-1": "&#10060;", "1": "&#9989;"}
 function generateCompileTable()
 {
   var machine_list=[];
@@ -223,7 +224,7 @@ function fillSubCompileTable(revision, machine, machine_compile_info, machine_re
         {
           if(part_compile_info[k][2] == tmp_arch_list[j] && part_compile_info[k][3] == tmp_mode_list[i])
           {
-            myCell.innerHTML = (part_compile_info[k][4])
+            myCell.innerHTML = compile_dict[part_compile_info[k][4]]
             break
           }
         }        

@@ -1,4 +1,4 @@
-var dict = {"-1": "&#10060;", "0": "&#10062;", "1": "&#9989;"}
+var dict = {"-1": "&#10060;", "0": "&#10067;", "1": "&#9989;"}
 
 function generateTestTable()
 {
@@ -318,7 +318,7 @@ function create_rows(nb, revision, machine, build_dir, status, full_dir)
     myCell_4.onclick = function() {show_user_params(machine, revision, build_dir, status[0])}
     myCell_5 = document.createElement("a")
     myCell_5.innerHTML = ("show location")
-    myCell_5.onclick = function() {show_text(full_dir.replace(build_dir, "GENERIC_TESTCASE/")+status[0])}
+    myCell_5.onclick = function() {show_text(full_dir.replace(build_dir, "")+status[0])}
     myCell_2.appendChild(myCell_3)
     myCell_3.appendChild(myCell_4)
     myCell_3.appendChild(myCell_5)
@@ -382,7 +382,7 @@ function create_rows(nb, revision, machine, build_dir, status, full_dir)
     myCell_4.onclick = function() {show_all_params(machine, revision, build_dir, status[0], status[1])}
     myCell_5 = document.createElement("a")
     myCell_5.innerHTML = ("show location")
-    myCell_5.onclick = function() {show_text(full_dir.replace(build_dir, "GENERIC_TESTCASE/")+status[0]+"/"+status[1])}
+    myCell_5.onclick = function() {show_text(full_dir.replace(build_dir, "")+status[0]+"/"+status[1])}
     myCell_2.appendChild(myCell_3)
     myCell_3.appendChild(myCell_4)
     myCell_3.appendChild(myCell_5)

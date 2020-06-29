@@ -1,3 +1,7 @@
 
-atm_output.nc
+#atm_output.nc
+atm_output_max.nc
+atm_output_min.nc
+atm_output_sum.nc
+atm_output_ave.nc
 #atm_output_ensemble.nc
