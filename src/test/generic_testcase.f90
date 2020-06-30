@@ -260,7 +260,7 @@ CONTAINS
     ENDIF
     
     ok_field3D_recv_W=xios_is_valid_field("field3D_recv_W").AND.xios_is_valid_field("field3D_resend_W") ;
-    IF (ok_field3D_recv) THEN
+    IF (ok_field3D_recv_W) THEN
       CALL xios_is_defined_field_attr("field3D_recv_W",freq_op=ok)
       IF (ok) THEN
         CALL xios_get_field_attr("field3D_recv_W",freq_op=freq_op_recv)
@@ -465,7 +465,7 @@ CONTAINS
     ENDIF
     
     ok_other_field3D_recv_W=xios_is_valid_field("other_field3D_recv_W").AND.xios_is_valid_field("other_field3D_resend_W") ;
-    IF (ok_other_field3D_recv) THEN
+    IF (ok_other_field3D_recv_W) THEN
       CALL xios_is_defined_field_attr("other_field3D_recv_W",freq_op=ok)
       IF (ok) THEN
         CALL xios_get_field_attr("other_field3D_recv_W",freq_op=freq_op_recv)
@@ -1879,10 +1879,10 @@ CONTAINS
         bounds_lon(2,i,j)=bounds_lon_glo(1,ibegin+i)
         bounds_lon(3,i,j)=bounds_lon_glo(1,ibegin+i)
         bounds_lon(4,i,j)=bounds_lon_glo(2,ibegin+i)
-        bounds_lat(1,i,j)=bounds_lat_glo(1,ibegin+i)
-        bounds_lat(2,i,j)=bounds_lat_glo(1,ibegin+i)
-        bounds_lat(3,i,j)=bounds_lat_glo(2,ibegin+i)
-        bounds_lat(4,i,j)=bounds_lat_glo(2,ibegin+i)
+        bounds_lat(1,i,j)=bounds_lat_glo(1,jbegin+j)
+        bounds_lat(2,i,j)=bounds_lat_glo(1,jbegin+j)
+        bounds_lat(3,i,j)=bounds_lat_glo(2,jbegin+j)
+        bounds_lat(4,i,j)=bounds_lat_glo(2,jbegin+j)
 
         ij=(j+offset_j)*(ni+2*offset_i)+i+offset_i
         return_index(ij)=i+j*ni
@@ -1958,13 +1958,10 @@ CONTAINS
      LOGICAL           :: mask(:)
      INTEGER :: i,x
 
-     x=size(mask)
      mask(:)=.TRUE.
      IF (params%domain_mask) THEN
-       DO i=0,x-1
-         IF (lon(i)-2*lat(i)>-10 .AND. lon(i)-2*lat(i) <10) mask(i)=.FALSE.
-         IF (2*lat(i)+lon(i)>-10 .AND. 2*lat(i)+lon(i)<10) mask(i)=.FALSE.
-       ENDDO
+       WHERE (lon(:)-2*lat(:)>-10 .AND. lon(:)-2*lat(:) <10) mask(:)=.FALSE.
+       WHERE (2*lat(:)+lon(:)>-10 .AND. 2*lat(:)+lon(:)<10) mask(:)=.FALSE.
      ENDIF
 
   END SUBROUTINE set_domain_mask
@@ -2157,7 +2154,7 @@ CONTAINS
     DO i=0,y-1
       IF (Y_mask(i)) THEN
          return_fieldY(i)=(coef-SIN(dp_pi*(ACOS(COS(Y_lat(i)*dp_conv)*&
-                            COS(Y_lon(X/2)*dp_conv))/dp_length)))
+                            COS(Y_lon(i)*dp_conv))/dp_length)))
       ENDIF
     ENDDO
 
