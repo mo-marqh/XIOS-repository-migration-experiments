@@ -196,6 +196,7 @@ def main():
             OSinfo("mkdir -p "+test_folder+"/CONFIG_"+mystr)
             OSinfo("cp build_"+arch+"_"+mode+"/bin/generic_testcase.exe "+test_folder+"/CONFIG_"+mystr)
             OSinfo("cp iodef.xml "+test_folder+"/CONFIG_"+mystr+"/iodef.xml.tmp")
+            OSinfo("cp "+test_folder+"/context_atm.xml "+test_folder+"/CONFIG_"+mystr+"/context_atm.xml.tmp")
 
             with open(test_folder+"/CONFIG_"+mystr+"/iodef.xml.tmp", "r") as f:
                 lines = f.readlines()
@@ -208,8 +209,20 @@ def main():
                     for line in lines:
                         g.write(line)
 
+            with open(test_folder+"/CONFIG_"+mystr+"/context_atm.xml.tmp", "r") as f:
+                lines = f.readlines()
+                for i in range(len(lines)):
+                    if "XIOS::" in lines[i]:
+                        config_keys = list(full_config.keys())
+                        for idx in range(len(config_keys)):
+                            lines[i] = lines[i].replace("XIOS::"+config_keys[idx], str(full_config[config_keys[idx]]))
+                with open(test_folder+"/CONFIG_"+mystr+"/context_atm.xml", "w") as g:
+                    for line in lines:
+                        g.write(line)
+
+
             OSinfo("rm -f "+test_folder+"/CONFIG_"+mystr+"/iodef.xml.tmp")
-            OSinfo("cp "+test_folder+"/context_atm.xml "+test_folder+"/CONFIG_"+mystr+"/")
+            OSinfo("rm -f "+test_folder+"/CONFIG_"+mystr+"/context_atm.xml.tmp")
             OSinfo("cp context_grid_dynamico.xml "+test_folder+"/CONFIG_"+mystr+"/")
             OSinfo("cp dynamico_grid.nc "+test_folder+"/CONFIG_"+mystr+"/")
             OSinfo("cp "+test_folder+"/checkfile.def "+test_folder+"/CONFIG_"+mystr+"/")

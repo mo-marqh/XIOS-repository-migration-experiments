@@ -43,7 +43,8 @@ def main():
     ref_rev = ""
     for ref in ref_list:
         if int(svnr) >= ref :
-            ref_rev = str(rev)
+            ref_rev = str(ref)
+            print("corresponding reference = ", ref)
             break
         
     if not ref_rev:
