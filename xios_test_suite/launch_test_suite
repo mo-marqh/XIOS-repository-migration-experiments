@@ -1,5 +1,5 @@
 #!/bin/bash
-export COPY_TO_SERVER=false
+export COPY_TO_SERVER=true
 if [[ $1 == "--copy" ]]
 then
   export COPY_TO_SERVER=$2
