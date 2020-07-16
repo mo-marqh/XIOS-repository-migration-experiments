@@ -16,6 +16,8 @@ namespace xios
     public:
     
     CMessage(void) ;
+    CMessage(const CMessage& Msg)  ;
+    
     list<CBaseType*> typeList ;
     virtual bool fromBuffer(CBufferIn& buffer) const;
     virtual bool toBuffer(CBufferOut& buffer) const;

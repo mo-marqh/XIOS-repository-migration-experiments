@@ -15,6 +15,8 @@
 #include "server_distribution_description.hpp"
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
+#include "element.hpp"
+#include "local_connector.hpp"
 
 namespace xios {
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -220,6 +222,26 @@ namespace xios {
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
          static std::map<StdString, ETranformationType> transformationMapList_;
          static bool dummyTransformationMapList_;
+
+
+         
+        private:
+         CLocalElement* localElement_ = nullptr ;
+         void initializeLocalElement(void) ;
+        public: 
+         CLocalElement* getLocalElement(void) { if (localElement_==nullptr) initializeLocalElement() ; return localElement_ ; }
+         CLocalView* getLocalView(CElementView::type type) { return getLocalElement()->getView(type) ;}
+        private:
+         void addFullView(void) ;
+         void addWorkflowView(void) ;
+         void addModelView(void) ;
+
+        private:
+         CLocalConnector* modelToWorkflowConnector_ ;
+         void computeModelToWorkflowConnector(void)  ;
+        public:
+         CLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_ ;}
+
 
          DECLARE_REF_FUNC(Axis,axis)
    }; // class CAxis

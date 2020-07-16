@@ -15,6 +15,8 @@
 #include "client_server_mapping.hpp"
 #include "utils.hpp"
 #include "transformation_enum.hpp"
+#include "grid_local_connector.hpp"
+#include "grid_elements.hpp"
 
 namespace xios {
 
@@ -254,6 +256,10 @@ namespace xios {
          void createMask(void);
          void modifyMask(const CArray<int,1>& indexToModify, bool valueToModify = false);
          void modifyMaskSize(const std::vector<int>& newDimensionSize, bool newValue = false);
+        
+        /** get mask pointer stored in mask_1d, or mask_2d, or..., or mask_7d */
+         CArray<bool,1> mask_ ;
+         CArray<bool,1>& getMask(void) ;
 
          void computeGridGlobalDimension(const std::vector<CDomain*>& domains,
                                          const std::vector<CAxis*>& axis,
@@ -288,6 +294,7 @@ namespace xios {
                           const std::vector<CArray<bool,1>* >& axisMasks,
                           const CArray<int,1>& axisDomainOrder,
                           bool createMask = false);
+
         template<int N>
         void modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify, bool valueToModify);
 
@@ -500,6 +507,18 @@ namespace xios {
 /** List order of axis and domain in a grid, if there is a domain, it will take value 2, axis 1, scalar 0 */
         std::vector<int> order_;
 
+      private:  
+        CGridLocalElements* gridLocalElements_= nullptr ;
+        void computeGridLocalElements(void) ;
+      public:
+        CGridLocalElements* getGridLocalElements(void) { if (gridLocalElements_==nullptr) computeGridLocalElements() ; return gridLocalElements_ ;}
+
+      private:
+        CGridLocalConnector* modelToWorkflowConnector_ ;
+      public:
+        void computeModelToWorkflowConnector(void) ;
+        CGridLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_;}
+
    }; // class CGrid
 
    ///--------------------------------------------------------------
@@ -520,6 +539,7 @@ namespace xios {
    }
    CATCH
 
+/* obsolete
    template <int n>
    void CGrid::maskField(const CArray<double,n>& field, CArray<double,1>& stored)
    {
@@ -533,6 +553,23 @@ namespace xios {
 //#endif
       this->maskField_arr(field.dataFirst(), stored);
    }
+*/
+   template <int n>
+   void CGrid::maskField(const CArray<double,n>& field, CArray<double,1>& stored)
+   {
+      auto connector = getModelToWorkflowConnector() ;
+
+      if (connector->getSrcSize() != field.numElements())
+         ERROR("void CGrid::inputField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
+                << "[ Awaiting data of size = " << this->getDataSize() << ", "
+                << "Received data size = "      << field.numElements() << " ] "
+                << "The data array does not have the right size! "
+                << "Grid = " << this->getId())
+      const double nanValue = std::numeric_limits<double>::quiet_NaN();
+      connector->transfer(field, stored, nanValue) ;
+   }
+
+
 
    template <int n>
    void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field)

@@ -17,6 +17,9 @@
 #include "transformation_enum.hpp"
 #include "server_distribution_description.hpp"
 #include "mesh.hpp"
+#include "element.hpp"
+#include "local_connector.hpp"
+#include "gatherer_connector.hpp"
 
 namespace xios {
 
@@ -49,7 +52,8 @@ namespace xios {
          {
            EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, 
            EVENT_ID_AREA,
-           EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT
+           EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT,
+           EVENT_ID_DOMAIN_DISTRIBUTION
          } ;
 
       public:
@@ -215,6 +219,11 @@ namespace xios {
 
        private:
 
+         static void recvDomainDistribution(CEventServer& event) ;
+         void receivedDomainDistribution(CEventServer& event, int phasis) ;
+        
+
+         void sendDomainDistribution(CContextClient* client, const string& domainId="") ; //for testing
          void sendAttributes(); // ym obsolete -> to be removed
          void sendIndex(CContextClient* client, const string& domainId="");
          void sendDistributionAttributes(CContextClient* client, const string& domainId="");
@@ -300,6 +309,28 @@ namespace xios {
          static std::map<StdString, ETranformationType> transformationMapList_;
          static bool _dummyTransformationMapList;
 
+ 
+       private:
+         CLocalElement* localElement_ = nullptr ;
+         void initializeLocalElement(void) ;
+       
+       public:  
+         CLocalElement* getLocalElement(void) { if (localElement_==nullptr) initializeLocalElement() ; return localElement_ ; }
+         CLocalView* getLocalView(CElementView::type type) { return getLocalElement()->getView(type) ;}
+       
+       private:  
+         void addFullView(void) ;
+         void addWorkflowView(void) ;
+         void addModelView(void) ;
+        
+       private:
+         CLocalConnector* modelToWorkflowConnector_ ;
+         void computeModelToWorkflowConnector(void)  ;
+         CGathererConnector*  gathererConnector_ ;
+
+       public:
+         CLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_ ;}
+         
          DECLARE_REF_FUNC(Domain,domain)
 
    }; // class CDomain

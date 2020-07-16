@@ -17,6 +17,16 @@
 #include "distribution_client.hpp"
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
+#include "local_connector.hpp"
+#include "grid_local_connector.hpp"
+#include "remote_connector.hpp"
+#include "gatherer_connector.hpp"
+#include "scatterer_connector.hpp"
+#include "grid_scatterer_connector.hpp"
+#include "grid_gatherer_connector.hpp"
+
+
+
 
 #include <algorithm>
 
@@ -1733,9 +1743,98 @@ namespace xios {
       this->checkCompression();
       this->computeLocalMask() ;
       this->completeLonLatClient();
+      this->initializeLocalElement() ;
+      this->addFullView() ;
+      this->addWorkflowView() ;
+      this->addModelView() ;
+      // testing ?
+      CLocalView* local = localElement_->getView(CElementView::WORKFLOW) ;
+      CLocalView* model = localElement_->getView(CElementView::MODEL) ;
+
+      CLocalConnector test1(model, local) ;
+      test1.computeConnector() ;
+      CLocalConnector test2(local, model) ;
+      test2.computeConnector() ;
+      CGridLocalConnector gridTest1(vector<CLocalConnector*>{&test1}) ;
+      CGridLocalConnector gridTest2(vector<CLocalConnector*>{&test2}) ;
+      
+      
+      CArray<int,1> out1 ;
+      CArray<int,1> out2 ;
+      test1.transfer(data_i_index,out1,-111) ;
+      test2.transfer(out1,out2,-111) ;
+      
+      out1 = 0 ;
+      out2 = 0 ;
+      gridTest1.transfer(data_i_index,out1,-111) ;
+      gridTest2.transfer(out1, out2,-111) ;
+      
       this->checkAttributes_done_ = true;
    }
    CATCH_DUMP_ATTR
+
+
+   void CDomain::initializeLocalElement(void)
+   {
+      // after checkDomain i_index and j_index of size (ni*nj) 
+      int nij = ni*nj ;
+      CArray<size_t, 1> ij_index(ni*nj) ;
+      for(int ij=0; ij<nij ; ij++) ij_index(ij) = i_index(ij)+j_index(ij)*ni_glo ;
+      int rank = CContext::getCurrent()->getIntraCommRank() ;
+      localElement_ = new CLocalElement(rank, ni_glo*nj_glo, ij_index) ;
+   }
+
+   void CDomain::addFullView(void)
+   {
+      CArray<int,1> index(ni*nj) ;
+      int nij=ni*nj ;
+      for(int ij=0; ij<nij ; ij++) index(ij)=ij ;
+      localElement_ -> addView(CElementView::FULL, index) ;
+   }
+
+   void CDomain::addWorkflowView(void)
+   {
+     // information for workflow view is stored in localMask
+     int nij=ni*nj ;
+     int nMask=0 ;
+     for(int ij=0; ij<nij ; ij++) if (localMask(ij)) nMask++ ;
+     CArray<int,1> index(nMask) ;
+
+     nMask=0 ;
+     for(int ij=0; ij<nij ; ij++) 
+      if (localMask(ij))
+      {
+        index(nMask)=ij ;
+        nMask++ ;
+      }
+      localElement_ -> addView(CElementView::WORKFLOW, index) ;
+   }
+
+   void CDomain::addModelView(void)
+   {
+     // information for model view is stored in data_i_index/data_j_index
+     // very weird, do not mix data_i_index and data_i_begin => in future only keep data_i_index
+     int dataSize = data_i_index.numElements() ;
+     CArray<int,1> index(dataSize) ;
+     int i,j ;
+     for(int k=0;k<dataSize;k++)
+     {
+        i=data_i_index(k)+data_ibegin ; // bad
+        j=data_j_index(k)+data_jbegin ; // bad
+        if (i>=0 && i<ni && j>=0 && j<nj) index(k)=i+j*ni ;
+        else index(k)=-1 ;
+     }
+     localElement_->addView(CElementView::MODEL, index) ;
+   }
+        
+   void CDomain::computeModelToWorkflowConnector(void)
+   { 
+     CLocalView* srcView=getLocalView(CElementView::MODEL) ;
+     CLocalView* dstView=getLocalView(CElementView::WORKFLOW) ;
+     modelToWorkflowConnector_ = new CLocalConnector(srcView, dstView); 
+     modelToWorkflowConnector_->computeConnector() ;
+   }
+
 
    //----------------------------------------------------------------
    // Divide function checkAttributes into 2 seperate ones
@@ -2098,6 +2197,9 @@ namespace xios {
     this->sendLonLat(client);
     this->sendArea(client);    
     this->sendDataIndex(client);
+
+    // test new connector functionnality
+    this->sendDomainDistribution(client) ;
   }
 
   void CDomain::sendDomainToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid)
@@ -2128,6 +2230,125 @@ namespace xios {
     const string domainId = "_domain["+std::to_string(posInGrid)+"]_of_"+fieldId ;
     this->createAlias(domainId) ;
   }
+
+
+  void CDomain::sendDomainDistribution(CContextClient* client, const string& domainId)
+  TRY
+  {
+    string serverDomainId = domainId.empty() ? this->getId() : domainId ;
+    CContext* context = CContext::getCurrent();
+    int nbServer = client->serverSize;
+    std::vector<int> nGlobDomain(2);
+    nGlobDomain[0] = this->ni_glo;
+    nGlobDomain[1] = this->nj_glo;
+
+    CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
+    int distributedPosition ;
+    if (isUnstructed_) distributedPosition = 0 ;
+    else distributedPosition = 1 ;
+
+    serverDescription.computeServerDistribution(false, distributedPosition);
+    
+    std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+    std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+ 
+    vector<unordered_map<size_t,vector<int>>> indexServerOnElement ;
+    CArray<int,1> axisDomainOrder(1) ; axisDomainOrder(0)=2 ;
+    auto zeroIndex=serverDescription.computeServerGlobalByElement(indexServerOnElement, context->getIntraCommRank(), context->getIntraCommSize(),
+                                                                  axisDomainOrder,distributedPosition) ;
+    // distribution is very bad => to redo
+    // convert indexServerOnElement => map<int,CArray<size_t,1>> - need to be changed later
+    map<int, vector<size_t>> vectGlobalIndex ;
+    for(auto& indexRanks : indexServerOnElement[0])
+    {
+      size_t index=indexRanks.first ;
+      auto& ranks=indexRanks.second ;
+      for(int rank : ranks) vectGlobalIndex[rank].push_back(index) ;
+    }
+    map<int, CArray<size_t,1>> globalIndex ;
+    for(auto& vect : vectGlobalIndex ) globalIndex.emplace(vect.first, CArray<size_t,1>(vect.second.data(), shape(vect.second.size()))) ; 
+
+    CDistributedElement remoteElement(ni_glo*nj_glo, globalIndex) ;
+    remoteElement.addFullView() ;
+
+    CRemoteConnector remoteConnector(localElement_->getView(CElementView::FULL), remoteElement.getView(CElementView::FULL),context->getIntraComm()) ;
+    remoteConnector.computeConnector() ;
+    CDistributedElement scatteredElement(remoteElement.getGlobalSize(), remoteConnector.getDistributedGlobalIndex()) ;
+    scatteredElement.addFullView() ;
+    CScattererConnector scatterConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    scatterConnector.computeConnector() ;
+    CGridScattererConnector gridScatter({&scatterConnector}) ;
+
+    CEventClient event0(getType(), EVENT_ID_DOMAIN_DISTRIBUTION);
+    CMessage message0 ;
+    message0<<serverDomainId<<0 ; 
+    remoteElement.sendToServer(client,event0,message0) ;
+
+    CEventClient event1(getType(), EVENT_ID_DOMAIN_DISTRIBUTION);
+    CMessage message1 ;
+    message1<<serverDomainId<<1<<localElement_->getView(CElementView::FULL)->getGlobalSize() ; 
+    scatterConnector.transfer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event1,message1) ;
+    
+    CEventClient event2(getType(), EVENT_ID_DOMAIN_DISTRIBUTION);
+    CMessage message2 ;
+    message2<<serverDomainId<<2 ; 
+//    scatterConnector.transfer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event2,message2) ;
+    scatterConnector.transfer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event2,message2) ;
+
+/*
+    localElement_->getView(CElementView::FULL)->sendRemoteElement(remoteConnector, client, event1, message1) ;
+    CEventClient event2(getType(), EVENT_ID_DOMAIN_DISTRIBUTION);
+    CMessage message2 ;
+    message2<<serverDomainId<<2 ; 
+    remoteConnector.transferToServer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event2,message2) ;
+*/
+
+  }
+  CATCH
+  
+
+  void CDomain::recvDomainDistribution(CEventServer& event)
+  TRY
+  {
+    string domainId;
+    int phasis ;
+    for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> domainId >> phasis ;
+    get(domainId)->receivedDomainDistribution(event, phasis);
+  }
+  CATCH
+
+  void CDomain::receivedDomainDistribution(CEventServer& event, int phasis)
+  TRY
+  {
+    CContext* context = CContext::getCurrent();
+    if (phasis==0)
+    {
+      localElement_ = new  CLocalElement(context->getIntraCommRank(),event) ;
+      localElement_->addFullView() ;
+    }
+    else if (phasis==1)
+    {
+      CContext* context = CContext::getCurrent();
+      CDistributedElement* elementFrom = new  CDistributedElement(event) ;
+      elementFrom->addFullView() ;
+      gathererConnector_ = new CGathererConnector(elementFrom->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
+      gathererConnector_->computeConnector() ; 
+    }
+    else if (phasis==2)
+    {
+      CArray<size_t,1> globalIndex ;
+      //gathererConnector_->transfer(event,globalIndex) ;
+      CGridGathererConnector gridGathererConnector({gathererConnector_}) ;
+      gridGathererConnector.transfer(event, globalIndex) ;
+    }
+    else if (phasis==3)
+    {
+
+    }
+  }
+  CATCH
+
+  
 
   /*!
     Send all attributes from client to connected clients
@@ -2479,6 +2700,10 @@ namespace xios {
           break;  
         case EVENT_ID_DATA_INDEX:
           recvDataIndex(event);
+          return true;
+          break;
+        case EVENT_ID_DOMAIN_DISTRIBUTION:
+          recvDomainDistribution(event);
           return true;
           break;
         default:

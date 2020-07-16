@@ -566,6 +566,7 @@ namespace xios
       virtual void reset(void) { this->free(); initialized = false; }
       virtual bool isEmpty(void) const { return !initialized; }
       virtual size_t size(void) const { return size(this->numElements()); }
+      virtual std::vector<T_numtype> getVector(void) { return vector<T_numtype>(this->dataFirst(),this->dataFirst()+this->numElements()) ;}
       static size_t size(sizeType numElements) { return (N_rank + 1) * sizeof(int) + sizeof(size_t) + numElements * sizeof(T_numtype); }
       
       static int show_TV_ttf_display_type ( const CArray<T_numtype,N_rank>* array )

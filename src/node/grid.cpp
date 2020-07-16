@@ -371,6 +371,23 @@ namespace xios {
    }
    CATCH
 
+   
+   CArray<bool,1>& CGrid::getMask(void)
+   {
+      
+      if (mask_.isEmpty())
+      {  
+        if (!mask_0d.isEmpty()) mask_.reference(CArray<bool,1>(mask_0d.dataFirst(),shape(mask_0d.numElements()), neverDeleteData)) ;
+        if (!mask_1d.isEmpty()) mask_.reference(CArray<bool,1>(mask_1d.dataFirst(),shape(mask_1d.numElements()), neverDeleteData)) ;
+        if (!mask_2d.isEmpty()) mask_.reference(CArray<bool,1>(mask_2d.dataFirst(),shape(mask_2d.numElements()), neverDeleteData)) ;
+        if (!mask_3d.isEmpty()) mask_.reference(CArray<bool,1>(mask_3d.dataFirst(),shape(mask_3d.numElements()), neverDeleteData)) ;
+        if (!mask_4d.isEmpty()) mask_.reference(CArray<bool,1>(mask_4d.dataFirst(),shape(mask_4d.numElements()), neverDeleteData)) ;
+        if (!mask_5d.isEmpty()) mask_.reference(CArray<bool,1>(mask_5d.dataFirst(),shape(mask_5d.numElements()), neverDeleteData)) ;
+        if (!mask_6d.isEmpty()) mask_.reference(CArray<bool,1>(mask_6d.dataFirst(),shape(mask_6d.numElements()), neverDeleteData)) ;
+        if (!mask_7d.isEmpty()) mask_.reference(CArray<bool,1>(mask_7d.dataFirst(),shape(mask_7d.numElements()), neverDeleteData)) ;
+      }
+      return mask_ ;
+   }
    /*
      Create mask of grid from mask of its components
    */
@@ -3043,4 +3060,40 @@ namespace xios {
    }
   CATCH_DUMP_ATTR
 
+
+  void CGrid::computeGridLocalElements()
+  {
+    std::vector<CDomain*> domainList = this->getDomains();
+    std::vector<CAxis*> axisList = this->getAxis();
+    auto domain=domainList.begin() ;
+    auto axis=axisList.begin() ;
+    vector<CLocalElement*> elements;
+    for(auto order : order_)
+    {
+      if (order==2) 
+      {
+        elements.push_back((*domain)->getLocalElement());
+        domain++ ;
+      }
+      else if (order==1)
+      {
+        elements.push_back((*axis)->getLocalElement());
+        axis++ ;
+      }
+      else if (order==0)
+      { 
+      }
+    }
+    if (hasMask()) 
+    {
+      vector<bool> mask(getMask().getVector()) ;
+      gridLocalElements_ = new CGridLocalElements(elements, mask) ;  
+    }
+    else gridLocalElements_ = new CGridLocalElements(elements) ;  
+  }
+
+  void CGrid::computeModelToWorkflowConnector(void)
+  {
+    modelToWorkflowConnector_ = getGridLocalElements()->getConnector(CElementView::MODEL,CElementView::WORKFLOW) ;
+  }
 } // namespace xios

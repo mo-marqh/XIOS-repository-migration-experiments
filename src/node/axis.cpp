@@ -332,10 +332,66 @@ namespace xios {
       this->checkMask();
       this->checkData();
       this->checkLabel();
-      
+      initializeLocalElement() ;
+      addFullView() ;
+      addWorkflowView() ;
+      addModelView() ;
+
       checkAttributes_done_ = true ;
    }
    CATCH_DUMP_ATTR
+
+
+
+   void CAxis::initializeLocalElement(void)
+   {
+      // after checkAttribute index of size n
+      int rank = CContext::getCurrent()->getIntraCommRank() ;
+      
+      CArray<size_t,1> ind(n) ;
+      for (int i=0;i<n;i++) ind(i)=index(i) ;
+
+      localElement_ = new CLocalElement(rank, n_glo, ind) ;
+   }
+
+   void CAxis::addFullView(void)
+   {
+      CArray<int,1> index(n) ;
+      for(int i=0; i<n ; i++) index(i)=i ;
+      localElement_ -> addView(CElementView::FULL, index) ;
+   }
+
+   void CAxis::addWorkflowView(void)
+   {
+     // mask + data are included into data_index
+     int nk=data_index.numElements() ;
+     int nMask=0 ;
+     for(int k=0;k<nk;k++) if (data_index(k)>=0 && data_index(k)<n) nMask++ ;
+     
+     CArray<int,1> index(nMask) ;
+     nMask=0 ;
+     for(int k=0;k<nk;k++) 
+       if (data_index(k)>=0 && data_index(k)<n) 
+       {
+         index(nMask) = data_index(k) ;
+         nMask++ ;
+       }
+     localElement_ -> addView(CElementView::WORKFLOW, index) ;
+   }
+
+   void CAxis::addModelView(void)
+   {
+     // information for model view is stored in data_index
+     localElement_->addView(CElementView::MODEL, data_index) ;
+   }
+
+   void CAxis::computeModelToWorkflowConnector(void)
+   { 
+     CLocalView* srcView=getLocalView(CElementView::MODEL) ;
+     CLocalView* dstView=getLocalView(CElementView::WORKFLOW) ;
+     modelToWorkflowConnector_ = new CLocalConnector(srcView, dstView); 
+     modelToWorkflowConnector_->computeConnector() ;
+   }
 
    /*!
       Check the validity of data, fill in values if any, and apply mask.

@@ -42,10 +42,8 @@ namespace xios
     }
     else
     {
-      if (mask)
-        grid->maskField(data, packet->data);
-      else
-        grid->inputField(data, packet->data);
+      if (mask) grid->maskField(data, packet->data);
+      else grid->inputField(data, packet->data);
     }
     // Convert missing values to NaN
     if (hasMissingValue)

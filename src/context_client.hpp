@@ -66,6 +66,9 @@ namespace xios
 
       int getRemoteSize(void) {return serverSize;}
       int getServerSize(void) {return serverSize;}
+      MPI_Comm getIntraComm(void)  {return intraComm ;} 
+      int getIntraCommSize(void) {return clientSize ;}
+      int getIntraCommRank(void) {return clientRank ;}
 
       /*! set the associated server (dual chanel client/server) */      
       void setAssociatedServer(CContextServer* associatedServer) { associatedServer=associatedServer_;}

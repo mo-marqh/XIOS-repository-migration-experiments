@@ -8,6 +8,12 @@ namespace xios
 {
 
    CMessage::CMessage(void) {}
+
+   CMessage::CMessage(const CMessage& msg) 
+   {
+     for(auto type : msg.typeList) push(*type) ;
+   }
+
    
    CMessage& CMessage::push(const CBaseType& type)
    {
