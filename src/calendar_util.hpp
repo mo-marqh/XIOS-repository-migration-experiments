@@ -16,6 +16,9 @@ namespace xios
       CDuration operator*(const CDuration& ddr, const double& scal);
       CDuration operator-(const CDuration& ddr);
 
+      bool operator>(const CDuration& ddr, const CDuration& dr);
+      bool operator<(const CDuration& ddr, const CDuration& dr);
+      
       CDate operator+(const CDate& dt, const CDuration& dr); // Non testée.
       CDate operator-(const CDate& dt, const CDuration& dr);
 

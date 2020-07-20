@@ -2049,6 +2049,19 @@ namespace xios{
        else
          freq_op.setValue(TimeStep);
      }
+     else
+     {
+       //if(file->output_freq.getValue() < freq_op.getValue())
+       if(freq_op.getValue() > file->output_freq.getValue() )
+       {
+         ERROR("void CField::checkTimeAttributes(void)",
+               << "output file has output_freq < freq_op" << std::endl
+               << "field_id = "<< getId() << std::endl
+               << "file_id = "<< file->getId() << std::endl
+               << "output_freq = "<< file->output_freq.getValue() << std::endl
+               << "freq_op = "<< freq_op.getValue() << std::endl)
+       }
+     }
      if (freq_offset.isEmpty())
        freq_offset.setValue(isFieldRead ? NoneDu : (freq_op.getValue() - TimeStep));
    }

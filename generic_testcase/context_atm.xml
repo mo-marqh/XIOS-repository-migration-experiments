@@ -298,7 +298,7 @@
   
 
   <file_definition  type="one_file" >
-    <file id="atm_output_reduction" output_freq="6ts" type="one_file" enabled="true">
+    <file id="atm_output_reduction" output_freq="6ts" type="one_file" enabled="true" split_freq="12ts"  >
        <field field_ref="field2D" freq_op="3ts" operation="average" name="field2D_average"/>
        <field field_ref="field2D" freq_op="3ts" operation="accumulate" name="field2D_sum"/>
        <field field_ref="field2D" freq_op="3ts" operation="maximum" name="field2D_max"/>
