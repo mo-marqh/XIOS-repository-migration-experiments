@@ -7,7 +7,7 @@
 
       <variable id="timestep"> 1h </variable>
       <variable id="domain"> lmdz </variable>
-      <variable id="domain_mask"> true </variable>
+      <variable id="domain_mask"> false </variable>
       <variable id="axis_mask"> false </variable>
       <variable id="init_field2D"> rank </variable>
       <variable id="ni"> 36 </variable>

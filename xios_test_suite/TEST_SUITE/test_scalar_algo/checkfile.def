@@ -1,4 +1,3 @@
-#atm_output1.nc
-
-atm_output.nc
-atm_output_zoom.nc
+atm_output_scalar_transformation_reduce_axis.nc
+atm_output_scalar_transformation_reduce_domain.nc
+atm_output_scalar_transformation_extract.nc

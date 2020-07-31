@@ -1,12 +1,7 @@
 #all
 
-atm_output.nc
+atm_output_domain_transformation_reorder.nc
+atm_output_domain_transformation_extract.nc
+atm_output_domain_transformation_zoom.nc
+atm_output_domain_transformation_interpolate.nc
 
-atm_output_expand.nc
-
-
-atm_output_extract.nc
-
-atm_output_interpolate.nc
-
-atm_output_zoom.nc

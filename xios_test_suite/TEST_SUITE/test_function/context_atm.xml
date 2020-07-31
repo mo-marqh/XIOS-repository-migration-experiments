@@ -6,25 +6,19 @@
   <domain_definition>
     <domain id="domain" />
     <domain id="other_domain" />
-  </domain>
-  
+  </domain_definition>
+
   <axis_definition>
     <axis id="axis" />
-    <axis id="axis_dup" />
     <axis id="domain_X" />
     <axis id="domain_Y" />
     <axis id="ensemble" />
+
 
     <axis id="other_axis" />
     <axis id="other_domain_X" />
     <axis id="other_domain_Y" />
     <axis id="other_ensemble" />
-  </axis_definition>
-
-  <axis_definition>
-    <axis id="axis_zoom" axis_ref="axis">
-        <zoom_axis begin="0" n="5"/>
-    </axis>
   </axis_definition>
 
   <scalar_definition>
@@ -47,6 +41,9 @@
     <grid id="grid1D">
       <axis axis_ref="axis" />
     </grid>
+   
+
+
 
     <grid id="grid_X">
       <axis axis_ref="domain_X" />
@@ -129,9 +126,6 @@
       <axis axis_ref="ensemble" />
     </grid>
 
- 
- 
- 
  
  
     <grid id="other_grid3D">
@@ -228,84 +222,24 @@
       <axis axis_ref="other_ensemble" />
     </grid>
 
-
-
-
-
-
-
-
-
-
-    <grid id="grid_vert_reduce">
-      <domain domain_ref="domain" />
-      <scalar >
-        <reduce_axis operation="sum" />
-      </scalar>
-    </grid>
-
-    <grid id="grid_horiz_reduce">
-      <scalar >
-        <reduce_domain operation="sum" />
-      </scalar>
-      <axis axis_ref="axis" />
-    </grid>
-      
-    <grid id="grid_zoom_vert">
-      <domain domain_ref="domain" />
-      <axis axis_ref="axis_zoom" />
-    </grid>
-
-    <grid id="grid_zoom_vert_sum">
-      <scalar >
-        <reduce_domain operation="sum" />
-      </scalar>
-      <axis axis_ref="axis_zoom" />
-    </grid>
-
-   <grid id="grid_lat">
-       <axis axis_ref="domain_Y">
-         <reduce_domain direction="iDir" operation="sum"/> 
-       </axis>
-       <axis axis_ref="axis" />
-    </grid>
-    
-
-    <grid id="grid3D_invert">
-      <domain domain_ref="domain">
-        <reorder_domain invert_lat="true" />
-      </domain>
-      <axis axis_ref="axis" />
-    </grid>
-    
-    <grid id="grid2D_invert">
-      <domain domain_ref="domain">
-        <reorder_domain invert_lat="true" shift_lon_fraction="0.5" min_lon="0" max_lon="360"/>
-      </domain>
-    </grid>
-
-    
+   
   </grid_definition>
   
   
   <field_definition level="1" prec="8" operation="instant" freq_op="1ts" enabled=".true." default_value="1.e+20" detect_missing_value="true">
-    <field id="field2D" grid_ref="grid2D" build_workflow_graph="false" />
-    <field id="field3D" grid_ref="grid3D" build_workflow_graph="true"  />
+    <field id="field2D" grid_ref="grid2D" />
+    <field id="field3D" grid_ref="grid3D"  />
     <field id="pressure" grid_ref="grid3D"  />
     <field id="field3D_recv" read_access="true" grid_ref="grid3D"  field_ref="field3D" />
     <field id="field3D_resend" grid_ref="grid3D" />
 
-    <field id="field_X" grid_ref="grid_X" build_workflow_graph="false" />
-    <field id="field_Y" grid_ref="grid_Y" build_workflow_graph="false" />
-    <field id="field_Z" grid_ref="grid1D" build_workflow_graph="false" />
+    <field id="field_X" grid_ref="grid_X" />
+    <field id="field_Y" grid_ref="grid_Y" />
+    <field id="field_Z" grid_ref="grid1D" />
     <field id="field_XY" grid_ref="grid_XY" />
     <field id="field_XYZ" grid_ref="grid_XYZ" />
     <field id="field_XZ" grid_ref="grid_XZ" />
     <field id="field_YZ" grid_ref="grid_YZ" />
-
-    <field id="field_zoom_vert" field_ref="field3D" grid_ref="grid_zoom_vert"  />
-    <field id="field_zoom_vert_sum" field_ref="field_zoom_vert" grid_ref="grid_zoom_vert_sum"  />
-
 
 
     <field id="field2D_W" grid_ref="grid2D_W"/>
@@ -321,8 +255,6 @@
     <field id="field_XYZW" grid_ref="grid_XYZW" />
     <field id="field_XZW" grid_ref="grid_XZW" />
     <field id="field_YZW" grid_ref="grid_YZW" />
-
-
 
 
     <field id="other_field2D" grid_ref="other_grid2D"/>
@@ -353,114 +285,87 @@
     <field id="other_field_XZW" grid_ref="other_grid_XZW" />
     <field id="other_field_YZW" grid_ref="other_grid_YZW" />
 
-
-
-
     
     
   </field_definition>
+
+
+
+<!-- implementation of specifics test case -->
+<!-- simplest test cases : output data to file -->
+
   
 
   <file_definition  type="one_file" >
-    
-     <file id="atm_output_max" output_freq="4ts" enabled="true" >
-       <field field_ref="field2D"  operation = "maximum" />
-       <field field_ref="field3D"  operation = "maximum" />
-       <field field_ref="pressure" operation = "maximum" />
-     </file>
-
-
-     <file id="atm_output_min" output_freq="4ts" enabled="true" >
-       <field field_ref="field2D"  operation = "minimum" />
-       <field field_ref="field3D"  operation = "minimum" />
-       <field field_ref="pressure" operation = "minimum" />
-     </file>
-
-     <file id="atm_output_ave" output_freq="4ts" enabled="true" >
-       <field field_ref="field2D"  operation = "average" />
-       <field field_ref="field3D"  operation = "average" />
-       <field field_ref="pressure" operation = "average" />
-     </file>
-
-     <file id="atm_output_sum" output_freq="4ts" enabled="true" >
-       <field field_ref="field2D"  operation = "accumulate" />
-       <field field_ref="field3D"  operation = "accumulate" />
-       <field field_ref="pressure" operation = "accumulate" />
-     </file>
-     
-     <file id="atm_output_once" output_freq="4ts" enabled="true" >
-       <field field_ref="field2D"  operation = "once" />
-       <field field_ref="field3D"  operation = "once" />
-       <field field_ref="pressure" operation = "once" />
-     </file>
-     
-     <file id="atm_output_instant" output_freq="4ts" enabled="true" >
-       <field field_ref="field2D"  operation = "instant" />
-       <field field_ref="field3D"  operation = "instant" />
-       <field field_ref="pressure" operation = "instant" />
-     </file>
-
-
-     <file id="atm_output" output_freq="4ts" enabled="false" >
-       
-       <field field_ref="field2D" operation="average" enabled="true"/>
-       <field field_ref="field3D" operation="average" enabled="false"/>
-       <field field_ref="pressure" operation="average" enabled="false"/>
-       <field field_ref="field3D_recv" operation="average" enabled="false"/>
-       <field field_ref="field3D_resend" operation="average" enabled="false"/>
-       
-       <!-- <field field_ref="field_X" operation="average" enabled="true"/>
-       <field field_ref="field_Y" operation="average" enabled="true"/>
-       <field field_ref="field_Z" operation="average" enabled="true"/>
-       <field field_ref="field_XY" operation="average" enabled="true"/>
-       <field field_ref="field_XYZ" operation="average" enabled="true"/>
-       <field field_ref="field_XZ" operation="average" enabled="true"/>
-       <field field_ref="field_YZ" operation="average" enabled="true"/>
-       
-       <field field_ref="field_zoom_vert" operation="average" enabled="true"/>
-       <field field_ref="field_zoom_vert_sum" operation="average" enabled="true"/> -->
-       
+    <file id="atm_output_reduction_1D" output_freq="6ts" type="one_file" enabled="true" >
+       <field field_ref="field_Z" freq_op="3ts" operation="average" name="field1D_average"/>
+       <field field_ref="field_Z" freq_op="3ts" operation="accumulate" name="field1D_sum"/>
+       <field field_ref="field_Z" freq_op="3ts" operation="maximum" name="field1D_max"/>
+       <field field_ref="field_Z" freq_op="3ts" operation="minimum" name="field1D_min"/>
+    </file>
+   
+    <file id="atm_output_reduction_2D" output_freq="6ts" type="one_file" enabled="true"  >
+       <field field_ref="field2D" freq_op="3ts" operation="average" name="field2D_average"/>
+       <field field_ref="field2D" freq_op="3ts" operation="accumulate" name="field2D_sum"/>
+       <field field_ref="field2D" freq_op="3ts" operation="maximum" name="field2D_max"/>
+       <field field_ref="field2D" freq_op="3ts" operation="minimum" name="field2D_min"/>
+    </file>
+   
+    <file id="atm_output_reduction_3D" output_freq="6ts" type="one_file" enabled="true"  >
+       <field field_ref="field3D" freq_op="3ts" operation="average" name="field3D_average"/>
+       <field field_ref="field3D" freq_op="3ts" operation="accumulate" name="field3D_sum"/>
+       <field field_ref="field3D" freq_op="3ts" operation="maximum" name="field3D_max"/>
+       <field field_ref="field3D" freq_op="3ts" operation="minimum" name="field3D_min"/>
+    </file>
+   
+    <file id="atm_output_reduction_ref" output_freq="1ts" type="one_file" enabled="true">
+       <field field_ref="field_Z"   />
+       <field field_ref="field2D"   />
+       <field field_ref="field3D"   />
     </file>
 
 
-    <file id="atm_output_ensemble" output_freq="4ts" enabled="false">
-       <field field_ref="field2D_W" operation="average" />
-       <field field_ref="field3D_W" operation="average" />
-       <field field_ref="pressure_W" operation="average" />
-       <field field_ref="field3D_recv_W" operation="average" />
-       <field field_ref="field3D_resend_W" operation="average" />
-
-       <field field_ref="field_XW" operation="average" enabled="false" />
-       <field field_ref="field_YW" operation="average" enabled="false" />
-       <field field_ref="field_XYW" operation="average" enabled="false" />
-       <field field_ref="field_ZW" operation="average" enabled="false" />
-       <field field_ref="field_XYZW" operation="average" enabled="false" />
-       <field field_ref="field_XZW" operation="average" enabled="false" />
-       <field field_ref="field_YZW" operation="average" enabled="false" />
+  
+    <file id="atm_output" output_freq="1ts" type="one_file" enabled="false">
+       <field field_ref="field3D" />
+       <field field_ref="field2D" /> 
+       <field field_ref="field_X" />
+       <field field_ref="field_Y" />
+       <field field_ref="field_XY" />
+       <field field_ref="field_Z" />
+       <field field_ref="field_XYZ" />
+       <field field_ref="field_XZ" />
+       <field field_ref="field_YZ" />
+       <field field_ref="pressure"  /> 
+       <field field_ref="field3D_resend" />
     </file>
 
+    <file id="atm_output_other" output_freq="1ts" type="one_file" enabled="false">
+       <field field_ref="other_field3D" />
+       <field field_ref="other_field2D" /> 
+       <field field_ref="other_field_X" />
+       <field field_ref="other_field_Y" />
+       <field field_ref="other_field_XY" />
+       <field field_ref="other_field_Z" />
+       <field field_ref="other_field_XYZ" />
+       <field field_ref="other_field_XZ" />
+       <field field_ref="other_field_YZ" />
+       <field field_ref="other_pressure"  /> 
+       <field field_ref="other_field3D_resend" />
+    </file>
 
-    <file id="atm_output_other" output_freq="1ts"  enabled="false">
-       <field field_ref="other_field3D" enabled="false"/>
-       <field field_ref="other_field2D" enabled="true"/> 
-       <field field_ref="other_field_X" enabled="false"/>
-       <field field_ref="other_field_Y" enabled="false"/>
-       <field field_ref="other_field_XY" enabled="false"/>
-       <field field_ref="other_field_Z" enabled="false"/>
-       <field field_ref="other_field_XYZ" enabled="false"/>
-       <field field_ref="other_field_XZ" enabled="false"/>
-       <field field_ref="other_field_YZ" enabled="false"/>
+    <file id="atm_output_W" output_freq="1ts" enabled="false">
+       <field field_ref="field3D_W" />
+       <field field_ref="field2D_W" /> 
+       <field field_ref="field_XW" />
+       <field field_ref="field_YW" />
+       <field field_ref="field_XYW" />
+       <field field_ref="field_ZW" />
+       <field field_ref="field_XYZW" />
+       <field field_ref="field_XZW" />
+       <field field_ref="field_YZW" />
     </file>
     
-
-    <file id="atm_output_reorder" output_freq="1ts" enabled="false" >
-       <field field_ref="field2D" grid_ref="grid2D_invert" enabled="true"/>
-    </file>
-    
-    <file id="test_grid_lat" output_freq="1ts" enabled="false">
-      <field field_ref="field3D" operation="instant" />
-      <field id="field_reduce_lat" field_ref="field3D" grid_ref="grid_lat" operation="instant" />
-    </file>
     
   </file_definition>
   
