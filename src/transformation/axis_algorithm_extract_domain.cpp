@@ -77,6 +77,8 @@ void CAxisAlgorithmExtractDomain::apply(const std::vector<std::pair<int,double> 
                                         bool ignoreMissingValue, bool firstPass)
 TRY
 {
+  double defaultValue = std::numeric_limits<double>::quiet_NaN();
+  if(firstPass) dataOut = defaultValue;
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
 }
 CATCH

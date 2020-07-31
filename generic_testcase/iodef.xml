@@ -39,7 +39,7 @@
 
 
 
-  <context id="atm" src="./context_atm.xml"/>
+  <context id="atm" src="./lk_context_atm.xml"/>
   <context id="grid_dynamico" src="./context_grid_dynamico.xml"/>
   
   <context id="xios">
@@ -60,7 +60,7 @@
         <variable id="pure_one_sided" type="bool">false</variable>
         <variable id="check_event_sync" type="bool">true</variable>
       </variable_group>
-      <variable id="activate_non_distributed_transformation" type="bool">true</variable>
+      <variable id="activate_non_distributed_transformation" type="bool">false</variable>
     </variable_definition>
   </context>
 

@@ -355,7 +355,7 @@ CONTAINS
          
     pressure=1e20
     DO j=0,z-1
-      pressure(:,j)=axis_value(j) ;
+      pressure(:,j)=axis_value(j) * 100000;
       DO i=0,xy-1
         IF (domain_index(i)/=-1) THEN
           k=domain_index(i)
@@ -558,9 +558,9 @@ CONTAINS
       ENDIF
     ENDDO
          
-    pressure=1e20
+    other_pressure=1e20
     DO j=0,z-1
-      pressure(:,j)=axis_value(j) ;
+      other_pressure(:,j)=axis_value(j) * 100000 ;
       DO i=0,xy-1
         IF (domain_index(i)/=-1) THEN
           k=domain_index(i)

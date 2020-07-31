@@ -8,7 +8,7 @@
       <variable id="timestep"> 1h </variable>
       <variable id="domain"> XIOS::ATMdomain </variable>
       <variable id="domain_mask"> true </variable>
-      <variable id="axis_mask"> true </variable>
+      <variable id="axis_mask"> false </variable>
       <variable id="init_field2D"> rank </variable>
       <variable id="ni"> 36 </variable>
       <variable id="nj"> 18 </variable>
@@ -60,7 +60,7 @@
         <variable id="pure_one_sided" type="bool">false</variable>
         <variable id="check_event_sync" type="bool">true</variable>
       </variable_group>
-      <variable id="activate_non_distributed_transformation" type="bool">true</variable>
+      <variable id="activate_non_distributed_transformation" type="bool">false</variable>
     </variable_definition>
   </context>
 

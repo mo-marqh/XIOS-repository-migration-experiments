@@ -6,15 +6,13 @@
   <domain_definition>
     <domain id="domain" />
     <domain id="other_domain" />
-    <domain id="dst_domain" ni_glo="36" nj_glo="18" type="rectilinear"/>
-  </domain_definition>
-
+  </domain>
+  
   <axis_definition>
     <axis id="axis" />
     <axis id="domain_X" />
     <axis id="domain_Y" />
     <axis id="ensemble" />
-
 
     <axis id="other_axis" />
     <axis id="other_domain_X" />
@@ -43,8 +41,6 @@
       <axis axis_ref="axis" />
     </grid>
    
-
-
 
     <grid id="grid_X">
       <axis axis_ref="domain_X" />
@@ -298,17 +294,10 @@
   
 
   <file_definition  type="one_file" >
-    <file id="atm_output_reduction" output_freq="6ts" type="one_file" enabled="true" split_freq="12ts"  >
-       <field field_ref="field2D" freq_op="3ts" operation="average" name="field2D_average"/>
-       <field field_ref="field2D" freq_op="3ts" operation="accumulate" name="field2D_sum"/>
-       <field field_ref="field2D" freq_op="3ts" operation="maximum" name="field2D_max"/>
-       <field field_ref="field2D" freq_op="3ts" operation="minimum" name="field2D_min"/>
+    <file id="atm_output_inverse_axis" output_freq="4ts" type="one_file" enabled="true">
+       <field field_ref="field_Z" />
+       <field id="field_inverse_axis" field_ref="field_Z" grid_ref="grid1D_inverse_axis"   />
     </file>
-   
-    <file id="atm_output_ref" output_freq="1ts" type="one_file" enabled="true">
-       <field field_ref="field2D"   />
-    </file>
-
 
   
     <file id="atm_output" output_freq="1ts" type="one_file" enabled="false">
