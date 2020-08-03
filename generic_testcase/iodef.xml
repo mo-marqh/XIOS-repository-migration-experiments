@@ -39,7 +39,7 @@
 
 
 
-  <context id="atm" src="./lk_context_atm.xml"/>
+  <context id="atm" src="./context_atm.xml"/>
   <context id="grid_dynamico" src="./context_grid_dynamico.xml"/>
   
   <context id="xios">

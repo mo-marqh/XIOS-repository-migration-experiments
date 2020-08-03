@@ -294,13 +294,9 @@
   
 
   <file_definition  type="one_file" >
-    <file id="atm_output_inverse_axis" output_freq="4ts" type="one_file" enabled="true">
-       <field field_ref="field_Z" />
-       <field id="field_inverse_axis" field_ref="field_Z" grid_ref="grid1D_inverse_axis"   />
-    </file>
 
   
-    <file id="atm_output" output_freq="1ts" type="one_file" enabled="false">
+    <file id="atm_output" output_freq="1ts" type="one_file" enabled="true">
        <field field_ref="field3D" />
        <field field_ref="field2D" /> 
        <field field_ref="field_X" />
