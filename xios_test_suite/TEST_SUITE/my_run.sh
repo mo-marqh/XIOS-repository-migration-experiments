@@ -27,8 +27,8 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   while [ ! -z "$output" ]
   do
     echo "job" $jobid "pending/running for about" ${i} seconds
-    sleep 5
-    ((i+=5))
+    sleep 30
+    ((i+=30))
     output=$(ccc_mpp | grep ${jobid})
   done
 fi
@@ -43,8 +43,8 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
   while [ ! -z "$output" ]
   do
     echo "job" $jobid "pending/running for about" ${i} seconds
-    sleep 5
-    ((i+=5))
+    sleep 30
+    ((i+=30))
     output=$(squeue -u rpsl954 | grep ${jobid})
   done
 fi

@@ -6,9 +6,9 @@
     <variable_definition>
 
       <variable id="timestep"> 1h </variable>
-      <variable id="domain"> XIOS::ATMdomain </variable>
-      <variable id="domain_mask"> false </variable>
-      <variable id="axis_mask"> false </variable>
+      <variable id="domain"> XIOS::Domain </variable>
+      <variable id="domain_mask"> XIOS::DomMask </variable>
+      <variable id="axis_mask"> XIOS::AxisMask </variable>
       <variable id="init_field2D"> rank </variable>
       <variable id="ni"> 36 </variable>
       <variable id="nj"> 18 </variable>
@@ -52,15 +52,15 @@
 
       <variable_group id="parameters" >
         <variable id="using_server" type="bool">true</variable>
-        <variable id="info_level" type="int">XIOS::InfoLevel</variable>
+        <variable id="info_level" type="int">100</variable>
         <variable id="print_file" type="bool">true</variable>
-        <variable id="using_server2" type="bool">XIOS::UsingServer2</variable>
-        <variable id="ratio_server2" type="int">XIOS::RatioServer2</variable>
-        <variable id="number_pools_server2" type="int">XIOS::NumberPoolsServer2</variable>
-        <variable id="pure_one_sided" type="bool">false</variable>
+        <variable id="using_server2" type="bool">XIOS::UseServer2</variable>
+        <variable id="ratio_server2" type="int">XIOS::PctServer2</variable>
+        <variable id="number_pools_server2" type="int">1</variable>
+        <variable id="pure_one_sided" type="bool">XIOS::OneSided</variable>
         <variable id="check_event_sync" type="bool">true</variable>
       </variable_group>
-      <variable id="activate_non_distributed_transformation" type="bool">false</variable>
+      <variable id="activate_non_distributed_transformation" type="bool">XIOS::NonDistTran</variable>
     </variable_definition>
   </context>
 

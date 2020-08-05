@@ -1,14 +1,14 @@
 [
 	{
-		"ATMdomain": ["lmdz"],
-		"UsingServer2": ["true"],
+		"Domain": ["lmdz"],
+		"UseServer2": ["true"],
 		"NumberServers": [2, 4],
-		"RatioServer2": [50]
+        "AxisMask": ["false"]
 	},
 	{
-		"UsingServer2": ["true"],
+		"Domain": ["lmdz"],
+		"UseServer2": ["true"],
 		"NumberServers": [6, 8],
-		"ATMdomain": ["lmdz"],
-		"RatioServer2": [50]
+        "AxisMask": ["false"]
 	}
 ]

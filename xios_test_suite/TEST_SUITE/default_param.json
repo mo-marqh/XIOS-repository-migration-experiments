@@ -1,12 +1,14 @@
 [
   {
-    "ATMdomain": "lmdz",
-    "UsingServer2": "true",
-    "RatioServer2": 50,
-    "NumberPoolsServer2": 1,
+    "Domain": "lmdz",
+    "DomMask": "false",
+    "AxisMask": "false",
+    "UseServer2": "true",
+    "PctServer2": 50,
     "Duration": "1d",
     "NumberClients": 4,
     "NumberServers": 4,
-    "InfoLevel": 100
+    "OneSided": "false",
+    "NonDistTran": "false"
   }
 ]
