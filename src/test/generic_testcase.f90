@@ -1935,13 +1935,10 @@ CONTAINS
      LOGICAL           :: mask(:)
      INTEGER :: i,x
 
-     x=size(mask)
      mask(:)=.TRUE.
      IF (params%domain_mask) THEN
-       DO i=0,x-1
-         IF (lon(i)-2*lat(i)>-10 .AND. lon(i)-2*lat(i) <10) mask(i)=.FALSE.
-         IF (2*lat(i)+lon(i)>-10 .AND. 2*lat(i)+lon(i)<10) mask(i)=.FALSE.
-       ENDDO
+       WHERE (lon(:)-2*lat(:)>-10 .AND. lon(:)-2*lat(:) <10) mask(:)=.FALSE. 
+       WHERE (2*lat(:)+lon(:)>-10 .AND. 2*lat(:)+lon(:)<10) mask(:)=.FALSE. 
      ENDIF
 
   END SUBROUTINE set_domain_mask
@@ -2132,7 +2129,7 @@ CONTAINS
     DO i=0,y-1
       IF (Y_mask(i)) THEN
          return_fieldY(i)=(coef-SIN(dp_pi*(ACOS(COS(Y_lat(i)*dp_conv)*&
-                            COS(Y_lon(X/2)*dp_conv))/dp_length)))
+                            COS(Y_lon(i)*dp_conv))/dp_length)))
       ENDIF
     ENDDO
 
