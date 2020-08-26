@@ -1603,7 +1603,7 @@ CONTAINS
       DO i=0,ni-1
         i_glo=i
         j_glo=jbegin+j
-        ij=j*ni+i
+        ij=j_glo*ni_glo+i_glo
         IF ( ij>=ij_begin .AND. ij<=ij_end) THEN
            IF ((MOD(j_glo,3)==1 .OR. MOD(j_glo,3)==2) .AND. (MOD(i_glo,5)==3 .OR. MOD(i_glo,5)==4)) CYCLE
            pos=pos+1
@@ -1618,7 +1618,7 @@ CONTAINS
       DO i=0,ni-1
         i_glo=i
         j_glo=jbegin+j
-        ij=j*ni+i
+        ij=j_glo*ni_glo+i_glo
         IF ( ij>=ij_begin .AND. ij<=ij_end) THEN
            IF ((MOD(j_glo,3)==1 .OR. MOD(j_glo,3)==2) .AND. (MOD(i_glo,5)==3 .OR. MOD(i_glo,5)==4)) CYCLE
             return_index(pos)=i+j*ni
