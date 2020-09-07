@@ -146,9 +146,7 @@ namespace xios {
          void sendAddDomain(const std::string& id="");
          void sendAddAxis(const std::string& id="");
          void sendAddScalar(const std::string& id="");
-         void sendAllDomains();
-         void sendAllAxis();
-         void sendAllScalars();
+         void sendGrid(void) ;
 
          static void recvAddDomain(CEventServer& event);
          void recvAddDomain(CBufferIn& buffer);

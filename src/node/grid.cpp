@@ -2648,51 +2648,38 @@ namespace xios {
   CATCH
 
   /*!
-    Send all attributes of domains from client to server
+    Send all attributes of grid and all domain, axis, scalar from client to server
   */
-  void CGrid::sendAllDomains()
+
+  void CGrid::sendGrid(void)
   TRY
   {
-    std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
-    int dSize = domList.size();
-    for (int i = 0; i < dSize; ++i)
+    this->sendAllAttributesToServer();
+    auto domainList=getDomains() ;
+    auto axisList=getAxis() ;
+    auto scalarList=getScalars() ;
+    int domainIdx = 0, axisIdx = 0, scalarIdx = 0;
+    
+    for (int idx = 0; idx < axis_domain_order.numElements(); ++idx)
     {
-      sendAddDomain(domList[i]->getId());
-      domList[i]->sendAllAttributesToServer();
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-    Send all attributes of axis from client to server
-  */
-  void CGrid::sendAllAxis()
-  TRY
-  {
-    std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
-    int aSize = aList.size();
-
-    for (int i = 0; i < aSize; ++i)
-    {
-      sendAddAxis(aList[i]->getId());
-      aList[i]->sendAllAttributesToServer();
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-    Send all attributes of scalars from client to server
-  */
-  void CGrid::sendAllScalars()
-  TRY
-  {
-    std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
-    int sSize = sList.size();
-
-    for (int i = 0; i < sSize; ++i)
-    {
-      sendAddScalar(sList[i]->getId());
-      sList[i]->sendAllAttributesToServer();
+      if (2 == axis_domain_order(idx)) // This is domain
+      {
+        sendAddDomain(domainList[domainIdx]->getId()) ;
+        domainList[domainIdx]->sendAllAttributesToServer();
+        domainIdx++ ;
+      }
+      else if (1 == axis_domain_order(idx))  // This is axis
+      {
+        sendAddAxis(axisList[axisIdx]->getId()) ;
+        axisList[axisIdx]->sendAllAttributesToServer();
+        axisIdx++ ;
+      }
+      else  // Of course, this is scalar
+      {
+        sendAddScalar(scalarList[scalarIdx]->getId()) ;
+        scalarList[scalarIdx]->sendAllAttributesToServer();
+        scalarIdx++ ;
+      }
     }
   }
   CATCH_DUMP_ATTR

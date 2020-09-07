@@ -1883,10 +1883,7 @@ namespace xios {
      for (it = gridIds.begin(); it != itE; ++it)
      {
        gridPtr->sendCreateChild(*it);
-       CGrid::get(*it)->sendAllAttributesToServer();
-       CGrid::get(*it)->sendAllDomains();
-       CGrid::get(*it)->sendAllAxis();
-       CGrid::get(*it)->sendAllScalars();
+       CGrid::get(*it)->sendGrid() ;
      }
    }
    CATCH_DUMP_ATTR
