@@ -18,10 +18,10 @@ namespace xios {
   void CField::setData(const CArray<double, N>& _data)
   TRY
   {
-    if (clientSourceFilter)
+    if (modelToClientSourceFilter_)
     {
       if (check_if_active.isEmpty() || (!check_if_active.isEmpty() && (!check_if_active) || isActive(true)))
-        clientSourceFilter->streamData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
+        modelToClientSourceFilter_->streamData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
     }
     else if (instantDataFilter)
       ERROR("void CField::setData(const CArray<double, N>& _data)",
@@ -33,9 +33,9 @@ namespace xios {
   void CField::getData(CArray<double, N>& _data) const
   TRY
   {
-    if (storeFilter)
+    if (clientToModelStoreFilter_)
     {
-      CDataPacket::StatusCode status = storeFilter->getData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
+      CDataPacket::StatusCode status = clientToModelStoreFilter_->getData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
 
       if (status == CDataPacket::END_OF_STREAM)
         ERROR("void CField::getData(CArray<double, N>& _data) const",

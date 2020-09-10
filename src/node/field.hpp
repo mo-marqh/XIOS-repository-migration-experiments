@@ -18,10 +18,16 @@
 #include "context_client.hpp"
 #include "pass_through_filter.hpp"
 #include "temporal_filter.hpp"
+#include "model_to_client_source_filter.hpp"
+#include "client_from_client_source_filter.hpp"
+#include "client_from_server_source_filter.hpp"
+#include "client_to_model_store_filter.hpp"
 
 
 
-namespace xios {
+
+namespace xios 
+{
 
    /// ////////////////////// Déclarations ////////////////////// ///
 
@@ -39,11 +45,12 @@ namespace xios {
    class CGarbageCollector;
    class COutputPin;
    class CSourceFilter;
-   class CStoreFilter;
    class CFileWriterFilter;
    class CFileServerWriterFilter;
-   class CFileServerReaderFilter;
+   class CFileReaderSourceFilter;
    class CServerToClientFilter;
+   class CModelToClientSourceFilter;
+   class CServerFromClientSourceFilter;
    ///--------------------------------------------------------------
 
    // Declare/Define CFieldAttribute
@@ -65,6 +72,7 @@ namespace xios {
          typedef CObjectTemplate<CField>   SuperClass;
          typedef CFieldAttributes SuperClassAttribute;
 
+      public :   
          enum EReadField
          {
            RF_NODATA, RF_EOF, RF_DATA
@@ -187,19 +195,22 @@ namespace xios {
         void sendUpdateDataServerToClient(bool isEOF, const CArray<double,1>& data, CContextClient* client) ;
 
         static void recvUpdateData(CEventServer& event);
-        void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
-        void recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers);
-        void recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers);
+        void receiveUpdateData(CEventServer& event);  
+        
+        void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
+        void recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
+        void recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
         
         void writeField(const CArray<double,1>& data);
         bool sendReadDataRequest(const CDate& tsDataRequested, CContextClient* client);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
-        void recvReadDataRequest(CContextServer* server);
+        void recvReadDataRequest(void);
         EReadField readField(CArray<double,1>& data);
         static void recvReadDataReady(CEventServer& event);
-        void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
-        void recvDataFromCoupler(vector<int> ranks, vector<CBufferIn*> buffers) ;
+        void receiveReadDataReady(CEventServer& event);
+        void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers); // old interface to remove
+        void recvDataFromCoupler(vector<int> ranks, vector<CBufferIn*> buffers) ; // old interface to remove
         void checkForLateDataFromServer(void);
         void checkForLateDataFromCoupler(void) ;
 
@@ -392,13 +403,28 @@ namespace xios {
          std::shared_ptr<COutputPin> selfReferenceFilter; // probably redondant with inputFilter
 
          //! The source filter for data provided by the client
-         std::shared_ptr<CSourceFilter> clientSourceFilter;
+         std::shared_ptr<CSourceFilter> clientSourceFilter; // obsolete to remove
+ 
+         //! The source filter for data provided by the model to enter the client workflow
+         std::shared_ptr<CModelToClientSourceFilter> modelToClientSourceFilter_;
+
+         //! The source filter for data provided by the model to enter the client workflow
+         std::shared_ptr<CClientToModelStoreFilter> clientToModelStoreFilter_;
+
+         //! The source filter for data provided by the client that send data to server workflow
+         std::shared_ptr<CServerFromClientSourceFilter> serverFromClientSourceFilter_;
+
+         //! The source filter for data provided by an other to enter the current client workflow (coupling mode)
+         std::shared_ptr<CClientFromClientSourceFilter> clientFromClientSourceFilter_;
+
+         //! The source filter for data provided by server to enter the current client workflow (reading mode)
+         std::shared_ptr<CClientFromServerSourceFilter> clientFromServerSourceFilter_;
          
+         //! The source filter for data read from file on server side 
+         std::shared_ptr<CFileReaderSourceFilter> fileReaderSourceFilter_;
+
          //! The source filter for data provided by the server
-         std::shared_ptr<CSourceFilter> serverSourceFilter;
-         
-         //! The terminal filter which stores the instant data
-         std::shared_ptr<CStoreFilter> storeFilter;
+         std::shared_ptr<CSourceFilter> serverSourceFilter; // obsolete to remove
         
          //! The terminal filter which writes the data to file
          std::shared_ptr<CFileWriterFilter> fileWriterFilter;
@@ -406,10 +432,7 @@ namespace xios {
          //! The terminal filter which writes data to file
          std::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
 
-         //! The source filter which read data from file
-         std::shared_ptr<CFileServerReaderFilter> fileServerReaderFilter_;
-
-         //! The terminal filter which send data from file server to client
+         //! The terminal filter which send data from server to client
          std::shared_ptr<CServerToClientFilter> serverToClientFilter_;
 
 

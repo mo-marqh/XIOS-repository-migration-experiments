@@ -14,12 +14,37 @@ namespace xios
     public:
 
       CDistributedView(CDistributedElement* parent, CElementView::type type, const std::map<int,CArray<int,1>>& indexView) ;
+      CDistributedView(CDistributedElement* parent, CElementView::type type, const std::map<int,CArray<bool,1>>& maskView) ;
       
       std::map<int,CArray<int,1>>&  getIndex(void) { return index_ ;}
       std::map<int,CArray<size_t,1>>&  getGlobalIndex(void) { return globalIndex_ ;}
       std::map<int, int>& getSize(void) { return size_ ;}
       std::map<int, int>& getLocalSize(void) { return localSize_ ;}
       size_t getGlobalSize(void) { return globalSize_ ;}
+
+      void getGlobalIndexView(map<int,CArray<size_t,1>>& globalIndexView)
+      {
+        for(auto& it : globalIndex_)
+        {
+          int rank=it.first ;
+          auto& globalIndex = it.second;
+          auto& globalIndView = globalIndexView[rank] ;
+          auto& index = index_[rank] ;
+          auto& size = size_[rank] ;
+          auto& localSize = localSize_[rank] ;
+          globalIndView.resize(size) ;
+          int pos=0 ;
+          for(int i=0 ; i<size ; i++)
+          {
+            if (index(i)>=0 && index(i)<localSize) 
+            {
+              globalIndView(i) = globalIndex(index(i)) ;
+              pos++ ;
+            }
+          }
+          globalIndView.resizeAndPreserve(pos) ;
+      }
+    }   
 
       void getGlobalIndex(int rank, vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, CDistributedView** view, int pos)
       {

@@ -39,6 +39,7 @@ namespace xios
     }
 
     void addView(CElementView::type type, std::map<int, CArray<int,1>>& indexView) ;
+    void addView(CElementView::type type, std::map<int, CArray<bool,1>>& maskView) ;
     void sendToServer(CEventClient& event, const CMessage& messageHeader) ;
 
     friend class CDistributedView ;
@@ -54,8 +55,9 @@ namespace xios
       CLocalElement(int localRank, size_t globalSize, CArray<size_t,1>& globalIndex) ;
       CLocalElement(int localRank, CEventServer& event) ;
       void recvFromClient(int localRank, CEventServer& event) ;
-      
+      const CArray<size_t,1>& getGlobalIndex(void) { return globalIndex_ ;}
       void addView(CElementView::type type, CArray<int,1>& indexView) ;
+      void addView(CElementView::type type, CArray<bool,1>& maskView) ;
       void addFullView(void) ;
       CLocalView* getView(CElementView::type type) 
       { 

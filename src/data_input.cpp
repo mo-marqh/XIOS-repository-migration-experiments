@@ -18,9 +18,9 @@ namespace xios
 
   //----------------------------------------------------------------
 
-  void CDataInput::readFieldData(CField* field, CArray<double,1>& data)
+  void CDataInput::readFieldData(CField* field, int record, CArray<double,1>& data)
   {
-    this->readFieldData_(field,data);
+    this->readFieldData_(field, record, data);
   }
 
   //----------------------------------------------------------------

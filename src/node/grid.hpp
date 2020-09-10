@@ -17,6 +17,9 @@
 #include "transformation_enum.hpp"
 #include "grid_local_connector.hpp"
 #include "grid_elements.hpp"
+#include "grid_scatterer_connector.hpp"
+#include "grid_gatherer_connector.hpp"
+
 
 namespace xios {
 
@@ -51,6 +54,19 @@ namespace xios {
          typedef CObjectTemplate<CGrid>   SuperClass;
          typedef CGridAttributes SuperClassAttribute;
 
+      private:
+        
+        // define a structure to store elements (CDomain, CAxis, CScalar) using a void* and a type to cast the pointer
+         enum EElementType { TYPE_SCALAR, TYPE_AXIS, TYPE_DOMAIN } ;
+         struct SElement {void* ptr ; EElementType type ; CScalar* scalar ;  CAxis* axis ; CDomain* domain ; } ;
+         vector<SElement> elements_ ;
+         bool elementsComputed_ = false ; 
+         /** retrieve the vector of elements as a structure containing a void* and the type of pointer */
+         vector<SElement>& getElements(void) { if (!elementsComputed_) computeElements() ; return elements_ ; } 
+         void computeElements(void) ;
+         /** List order of axis and domain in a grid, if there is a domain, it will take value 2, axis 1, scalar 0 */
+         std::vector<int> order_;
+
       public:
 
          typedef CGridAttributes RelAttributes;
@@ -71,7 +87,7 @@ namespace xios {
 //         void solveReference(void);
 
          void checkEligibilityForCompressedOutput();
-
+         
 
 
          void checkMaskIndex(bool doCalculateIndex);
@@ -503,9 +519,12 @@ namespace xios {
 //        std::map<CContextClient*, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
         std::map<int, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
 
+      
 
-/** List order of axis and domain in a grid, if there is a domain, it will take value 2, axis 1, scalar 0 */
-        std::vector<int> order_;
+     //////////////////////////////////////////////////////////////////////////////////////
+     //  this part is related to distribution, element definition, views and connectors  //
+     //////////////////////////////////////////////////////////////////////////////////////
+
 
       private:  
         CGridLocalElements* gridLocalElements_= nullptr ;
@@ -518,6 +537,56 @@ namespace xios {
       public:
         void computeModelToWorkflowConnector(void) ;
         CGridLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_;}
+
+      private:
+        CGridLocalConnector* workflowToModelConnector_ ;
+      public:
+        void computeWorkflowToModelConnector(void) ;
+        CGridLocalConnector* getWorkflowToModelConnector(void) { if (workflowToModelConnector_==nullptr) computeWorkflowToModelConnector() ; return workflowToModelConnector_;}
+
+      public: //? 
+        void distributeGridToFileServer(CContextClient* client);
+      
+      private:
+         map<CContextClient*, CGridScattererConnector*> clientToServerConnector_ ;
+      public:
+         CGridScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;} // make some test to see if connector exits for the given client
+         
+      private:
+         CGridGathererConnector* serverFromClientConnector_ = nullptr ;
+      public:
+         CGridGathererConnector* getServerFromClientConnector(void) { if (serverFromClientConnector_==nullptr) computeServerFromClientConnector() ; return serverFromClientConnector_;}
+         void computeServerFromClientConnector(void) ;
+         
+      private:
+        CGridLocalConnector* workflowToFullConnector_ = nullptr;
+      public:
+        void computeWorkflowToFullConnector(void) ;
+        CGridLocalConnector* getWorkflowToFullConnector(void) { if (workflowToFullConnector_==nullptr) computeWorkflowToFullConnector() ; return workflowToFullConnector_;}
+
+      private:
+        CGridLocalConnector* fullToWorkflowConnector_ = nullptr;
+      public:
+        void computeFullToWorkflowConnector(void) ;
+        CGridLocalConnector* getFullToWorkflowConnector(void) { if (fullToWorkflowConnector_==nullptr) computeFullToWorkflowConnector() ; return fullToWorkflowConnector_;}
+
+      private:
+         CGridGathererConnector* clientFromClientConnector_ = nullptr ;
+      public:
+         CGridGathererConnector* getClientFromClientConnector(void) { if (clientFromClientConnector_==nullptr) computeClientFromClientConnector() ; return clientFromClientConnector_;}
+         void computeClientFromClientConnector(void) ;
+
+      private:
+         map<CContextClient*, CGridScattererConnector*> clientToClientConnector_ ;
+      public:
+         CGridScattererConnector* getClientToClientConnector(CContextClient* client) { return clientToClientConnector_[client] ;} // make some test to see if connector exits for the given client
+  
+
+      private:
+         CGridGathererConnector* clientFromServerConnector_ = nullptr ;
+      public:
+         CGridGathererConnector* getClientFromServerConnector(void) { if (clientFromServerConnector_==nullptr) computeClientFromServerConnector() ; return clientFromServerConnector_;}
+         void computeClientFromServerConnector(void) ;
 
    }; // class CGrid
 

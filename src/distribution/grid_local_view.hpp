@@ -13,10 +13,12 @@ namespace xios
     private:
       std::vector<CLocalView*> views_ ;
       std::vector<bool>& localMask_ ;
+      int size_ ;
     
     public:
       CGridLocalView(CGridLocalElements* parent, CElementView::type type) ;
       std::vector<CLocalView*>& getViews(void) {return views_ ;}
+      int getSize() { return size_ ;}
   } ;
 }
 

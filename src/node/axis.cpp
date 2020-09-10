@@ -343,56 +343,6 @@ namespace xios {
 
 
 
-   void CAxis::initializeLocalElement(void)
-   {
-      // after checkAttribute index of size n
-      int rank = CContext::getCurrent()->getIntraCommRank() ;
-      
-      CArray<size_t,1> ind(n) ;
-      for (int i=0;i<n;i++) ind(i)=index(i) ;
-
-      localElement_ = new CLocalElement(rank, n_glo, ind) ;
-   }
-
-   void CAxis::addFullView(void)
-   {
-      CArray<int,1> index(n) ;
-      for(int i=0; i<n ; i++) index(i)=i ;
-      localElement_ -> addView(CElementView::FULL, index) ;
-   }
-
-   void CAxis::addWorkflowView(void)
-   {
-     // mask + data are included into data_index
-     int nk=data_index.numElements() ;
-     int nMask=0 ;
-     for(int k=0;k<nk;k++) if (data_index(k)>=0 && data_index(k)<n) nMask++ ;
-     
-     CArray<int,1> index(nMask) ;
-     nMask=0 ;
-     for(int k=0;k<nk;k++) 
-       if (data_index(k)>=0 && data_index(k)<n) 
-       {
-         index(nMask) = data_index(k) ;
-         nMask++ ;
-       }
-     localElement_ -> addView(CElementView::WORKFLOW, index) ;
-   }
-
-   void CAxis::addModelView(void)
-   {
-     // information for model view is stored in data_index
-     localElement_->addView(CElementView::MODEL, data_index) ;
-   }
-
-   void CAxis::computeModelToWorkflowConnector(void)
-   { 
-     CLocalView* srcView=getLocalView(CElementView::MODEL) ;
-     CLocalView* dstView=getLocalView(CElementView::WORKFLOW) ;
-     modelToWorkflowConnector_ = new CLocalConnector(srcView, dstView); 
-     modelToWorkflowConnector_->computeConnector() ;
-   }
-
    /*!
       Check the validity of data, fill in values if any, and apply mask.
    */
@@ -542,6 +492,14 @@ namespace xios {
            return true;
            break;
          case EVENT_ID_DISTRIBUTED_ATTRIBUTES:
+           recvDistributedAttributes_old(event);
+           return true;
+           break;
+         case EVENT_ID_AXIS_DISTRIBUTION:
+           recvAxisDistribution(event);
+           return true;
+           break;
+         case EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE:
            recvDistributedAttributes(event);
            return true;
            break;
@@ -670,7 +628,7 @@ namespace xios {
      if ((orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
          || (index.numElements() != n_glo))
      {
-       sendDistributedAttributes(client, axisId);       
+       sendDistributedAttributes_old(client, axisId);       
      }
      else
      {
@@ -1170,7 +1128,7 @@ namespace xios {
     supposing that these attributes are distributed among the clients of the sending group
     In future, if new attributes are added, they should also be processed in this function
   */
-  void CAxis::sendDistributedAttributes(CContextClient* client, const string& axisId)
+  void CAxis::sendDistributedAttributes_old(CContextClient* client, const string& axisId)
   TRY
   {
     string serverAxisId = axisId.empty() ? this->getId() : axisId ; 
@@ -1277,7 +1235,7 @@ namespace xios {
     Receive the distributed attributes from another group of clients
     \param [in] event event containing data of these attributes
   */
-  void CAxis::recvDistributedAttributes(CEventServer& event)
+  void CAxis::recvDistributedAttributes_old(CEventServer& event)
   TRY
   {
     string axisId;
@@ -1292,7 +1250,7 @@ namespace xios {
       *buffer >> axisId;
       buffers.push_back(buffer);
     }
-    get(axisId)->recvDistributedAttributes(ranks, buffers);
+    get(axisId)->recvDistributedAttributes_old(ranks, buffers);
   }
   CATCH
 
@@ -1301,7 +1259,7 @@ namespace xios {
     \param [in] ranks rank of the sender
     \param [in] buffers buffer containing data sent from the sender
   */
-  void CAxis::recvDistributedAttributes(vector<int>& ranks, vector<CBufferIn*> buffers)
+  void CAxis::recvDistributedAttributes_old(vector<int>& ranks, vector<CBufferIn*> buffers)
   TRY
   {
     int nbReceived = ranks.size(), idx, ind, gloInd, locInd;
@@ -1583,6 +1541,305 @@ namespace xios {
     }
   }
   CATCH_DUMP_ATTR
+
+
+   //////////////////////////////////////////////////////////////////////////////////////
+   //  this part is related to distribution, element definition, views and connectors  //
+   //////////////////////////////////////////////////////////////////////////////////////
+
+   void CAxis::initializeLocalElement(void)
+   {
+      // after checkAttribute index of size n
+      int rank = CContext::getCurrent()->getIntraCommRank() ;
+      
+      CArray<size_t,1> ind(n) ;
+      for (int i=0;i<n;i++) ind(i)=index(i) ;
+
+      localElement_ = new CLocalElement(rank, n_glo, ind) ;
+   }
+
+   void CAxis::addFullView(void)
+   {
+      CArray<int,1> index(n) ;
+      for(int i=0; i<n ; i++) index(i)=i ;
+      localElement_ -> addView(CElementView::FULL, index) ;
+   }
+
+   void CAxis::addWorkflowView(void)
+   {
+     // mask + data are included into data_index
+     int nk=data_index.numElements() ;
+     int nMask=0 ;
+     for(int k=0;k<nk;k++) if (data_index(k)>=0 && data_index(k)<n) nMask++ ;
+     
+     CArray<int,1> index(nMask) ;
+     nMask=0 ;
+     for(int k=0;k<nk;k++) 
+       if (data_index(k)>=0 && data_index(k)<n) 
+       {
+         index(nMask) = data_index(k) ;
+         nMask++ ;
+       }
+     localElement_ -> addView(CElementView::WORKFLOW, index) ;
+   }
+
+   void CAxis::addModelView(void)
+   {
+     // information for model view is stored in data_index
+     localElement_->addView(CElementView::MODEL, data_index) ;
+   }
+
+   void CAxis::computeModelToWorkflowConnector(void)
+   { 
+     CLocalView* srcView=getLocalView(CElementView::MODEL) ;
+     CLocalView* dstView=getLocalView(CElementView::WORKFLOW) ;
+     modelToWorkflowConnector_ = new CLocalConnector(srcView, dstView); 
+     modelToWorkflowConnector_->computeConnector() ;
+   }
+
+
+   void CAxis::computeRemoteElement(CContextClient* client, EDistributionType type)
+  {
+    CContext* context = CContext::getCurrent();
+    map<int, CArray<size_t,1>> globalIndex ;
+
+    if (type==EDistributionType::BANDS) // Bands distribution to send to file server
+    {
+      int nbServer = client->serverSize;
+      int nbClient = client->clientSize ;
+      int rankClient = client->clientRank ;
+      int size = nbServer / nbClient ;
+      int start ;
+      if (nbServer%nbClient > rankClient)
+      {
+       start = (size+1) * rankClient ;
+       size++ ;
+      }
+      else start = size*rankClient + nbServer%nbClient ;
+     
+      for(int i=0; i<size; i++)
+      { 
+        int rank=start+i ; 
+        size_t indSize = n_glo/nbServer ;
+        size_t indStart ;
+        if (n_glo % nbServer > rank)
+        {
+          indStart = (indSize+1) * rank ;
+          indSize++ ;
+        }
+        else indStart = indSize*rank + n_glo%nbServer ;
+       
+        auto& globalInd =  globalIndex[rank] ;
+        globalInd.resize(indSize) ;
+        for(size_t n = 0 ; n<indSize; n++) globalInd(n)=indStart+n ;
+      }
+    }
+    else if (type==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
+    {
+      int nbServer = client->serverSize;
+      size_t nglo=n_glo ;
+      CArray<size_t,1> indGlo(nglo) ;
+      for(size_t i=0;i<nglo;i++) indGlo(i) = i ;
+      for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer].reference(indGlo.copy()); ; 
+    }
+    remoteElement_[client] = new CDistributedElement(n_glo, globalIndex) ;
+    remoteElement_[client]->addFullView() ;
+  }
+ 
+  void CAxis::distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& axisId)
+  {
+    string serverAxisId = axisId.empty() ? this->getId() : axisId ;
+    CContext* context = CContext::getCurrent();
+
+    this->sendAllAttributesToServer(client, serverAxisId)  ;
+
+    CDistributedElement scatteredElement(n_glo,globalIndex) ;
+    scatteredElement.addFullView() ;
+    CScattererConnector scattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    scattererConnector.computeConnector() ;
+    
+    // phase 0
+    // send remote element to construct the full view on server, ie without hole 
+    CEventClient event0(getType(), EVENT_ID_AXIS_DISTRIBUTION);
+    CMessage message0 ;
+    message0<<serverAxisId<<0 ; 
+    remoteElement_[client]->sendToServer(client,event0,message0) ; 
+    
+    // phase 1
+    // send the full view of element to construct the connector which connect distributed data coming from client to the full local view
+    CEventClient event1(getType(), EVENT_ID_AXIS_DISTRIBUTION);
+    CMessage message1 ;
+    message1<<serverAxisId<<1<<localElement_->getView(CElementView::FULL)->getGlobalSize() ; 
+    scattererConnector.transfer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event1,message1) ;
+
+    sendDistributedAttributes(client, scattererConnector, axisId) ;
+  
+    // phase 2 send the mask : data index + mask2D
+    CArray<bool,1> maskIn(localElement_->getView(CElementView::WORKFLOW)->getSize());
+    CArray<bool,1> maskOut ;
+    CLocalConnector workflowToFull(localElement_->getView(CElementView::WORKFLOW), localElement_->getView(CElementView::FULL)) ;
+    workflowToFull.computeConnector() ;
+    maskIn=true ;
+    workflowToFull.transfer(maskIn,maskOut,false) ;
+
+    // phase 3 : prepare grid scatterer connector to send data from client to server
+    map<int,CArray<size_t,1>> workflowGlobalIndex ;
+    map<int,CArray<bool,1>> maskOut2 ; 
+    scattererConnector.transfer(maskOut, maskOut2) ;
+    scatteredElement.addView(CElementView::WORKFLOW, maskOut2) ;
+    scatteredElement.getView(CElementView::WORKFLOW)->getGlobalIndexView(workflowGlobalIndex) ;
+    // create new workflow view for scattered element
+    CDistributedElement clientToServerElement(scatteredElement.getGlobalSize(), workflowGlobalIndex) ;
+    clientToServerElement.addFullView() ;
+    CEventClient event2(getType(), EVENT_ID_AXIS_DISTRIBUTION);
+    CMessage message2 ;
+    message2<<serverAxisId<<2 ; 
+    clientToServerElement.sendToServer(client, event2, message2) ; 
+    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW),
+                                                              clientToServerElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    clientToServerConnector_[client]->computeConnector() ;
+
+
+    CEventClient event3(getType(), EVENT_ID_AXIS_DISTRIBUTION);
+    CMessage message3 ;
+    message3<<serverAxisId<<3 ; 
+    clientToServerConnector_[client]->transfer(maskIn,client,event3,message3) ; 
+
+
+
+  }
+
+  void CAxis::recvAxisDistribution(CEventServer& event)
+  TRY
+  {
+    string axisId;
+    int phasis ;
+    for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> axisId >> phasis ;
+    get(axisId)->receivedAxisDistribution(event, phasis);
+  }
+  CATCH
+
+
+  void CAxis::receivedAxisDistribution(CEventServer& event, int phasis)
+  TRY
+  {
+    CContext* context = CContext::getCurrent();
+    if (phasis==0) // receive the remote element to construct the full view
+    {
+      localElement_ = new  CLocalElement(context->getIntraCommRank(),event) ;
+      localElement_->addFullView() ;
+      // construct the local dimension and indexes
+      auto& globalIndex=localElement_->getGlobalIndex() ;
+      int nk=globalIndex.numElements() ;
+      int minK=n_glo,maxK=-1 ;
+      int nGlo=n_glo ;
+      int indGlo ;
+      for(int k=0;k<nk;k++)
+      {
+        indGlo=globalIndex(k) ;
+        if (indGlo<minK) minK=indGlo ;
+        if (indGlo>maxK) maxK=indGlo ;
+      }  
+      if (maxK>=minK) { begin=minK ; n=maxK-minK+1 ; }
+      else {begin=0; n=0 ;}
+
+    }
+    else if (phasis==1) // receive the sent view from client to construct the full distributed full view on server
+    {
+      CContext* context = CContext::getCurrent();
+      CDistributedElement* elementFrom = new  CDistributedElement(event) ;
+      elementFrom->addFullView() ;
+      gathererConnector_ = new CGathererConnector(elementFrom->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
+      gathererConnector_->computeConnector() ; 
+    }
+    else if (phasis==2)
+    {
+      delete gathererConnector_ ;
+      elementFrom_ = new  CDistributedElement(event) ;
+      elementFrom_->addFullView() ;
+      gathererConnector_ =  new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
+      gathererConnector_ -> computeConnector() ;
+    }
+    else if (phasis==3)
+    {
+      CArray<bool,1> localMask ;
+      gathererConnector_->transfer(event,localMask,false) ;
+      localElement_->addView(CElementView::WORKFLOW, localMask) ;
+      mask.reference(localMask.copy()) ;
+ 
+      serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
+      serverFromClientConnector_->computeConnector() ;
+    }
+  }
+  CATCH
+
+  void CAxis::sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector, const string& axisId)
+  {
+    string serverAxisId = axisId.empty() ? this->getId() : axisId ;
+    CContext* context = CContext::getCurrent();
+
+    if (hasValue)
+    {
+      { // send level value
+        CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
+        CMessage message ;
+        message<<serverAxisId<<string("value") ; 
+        scattererConnector.transfer(value, client, event,message) ;
+      }
+    }
+
+    if (hasBounds)
+    {
+      { // send bounds level value
+        CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
+        CMessage message ;
+        message<<serverAxisId<<string("bounds") ; 
+        scattererConnector.transfer(2, bounds, client, event,message) ;
+      }
+    }
+
+    if (hasLabel)
+    {
+      { // send label
+        CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
+        CMessage message ;
+        message<<serverAxisId<<string("label") ;
+        // something to do ? => convert string label into char ?
+        //clientToServerConnector_[client]->transfer(2, bounds, client, event,message) ;
+      }
+    }
+  }
+
+  void CAxis::recvDistributedAttributes(CEventServer& event)
+  TRY
+  {
+    string axisId;
+    string type ;
+    for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> axisId >> type ;
+    get(axisId)->recvDistributedAttributes(event, type);
+  }
+  CATCH
+
+  void CAxis::recvDistributedAttributes(CEventServer& event, const string& type)
+  TRY
+  {
+    if (type=="value") 
+    {
+      gathererConnector_->transfer(event, value, 0.); 
+    }
+    else if (type=="bounds")
+    {
+      CArray<double,1> value ;
+      gathererConnector_->transfer(event, 2, value, 0.); 
+      bounds.resize(2,n) ;
+      bounds=CArray<double,2>(bounds.dataFirst(),shape(2,n),neverDeleteData) ; 
+    }
+    else if (type=="label")
+    {
+       
+    }
+  }
+  CATCH
 
   DEFINE_REF_FUNC(Axis,axis)
 

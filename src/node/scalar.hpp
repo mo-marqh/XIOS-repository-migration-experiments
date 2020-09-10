@@ -13,6 +13,13 @@
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
 
+#include "element.hpp"
+#include "local_connector.hpp"
+#include "scatterer_connector.hpp"
+#include "gatherer_connector.hpp"
+#include "distribution_type.hpp"
+
+
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
@@ -131,6 +138,52 @@ namespace xios
          }
          void setCompleted(void) { isCompleted_=true ; }
          void unsetCompleted(void) { isCompleted_=false ; }
+
+
+
+       //////////////////////////////////////////////////////////////////////////////////////
+       //  this part is related to distribution, element definition, views and connectors  //
+       //////////////////////////////////////////////////////////////////////////////////////
+       private:
+         CLocalElement* localElement_ = nullptr ;
+         void initializeLocalElement(void) ;
+       
+       public:  
+         CLocalElement* getLocalElement(void) { if (localElement_==nullptr) initializeLocalElement() ; return localElement_ ; }
+         CLocalView* getLocalView(CElementView::type type) { return getLocalElement()->getView(type) ;}
+       
+       private:  
+         void addFullView(void) ;
+         void addWorkflowView(void) ;
+         void addModelView(void) ;
+        
+       private:
+         CLocalConnector* modelToWorkflowConnector_ ;
+         void computeModelToWorkflowConnector(void)  ;
+       public:
+         CLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_ ;}
+
+       public:
+         void computeRemoteElement(CContextClient* client, EDistributionType) ;
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex) ;
+       private:
+         map<CContextClient*, CDistributedElement*> remoteElement_ ;
+       public: 
+         CDistributedElement* getRemoteElement(CContextClient* client) {return remoteElement_[client] ;}
+       private:
+         map<CContextClient*, CScattererConnector*> clientToServerConnector_ ;
+       public: 
+         CScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;}
+
+       private:
+         CGathererConnector*  gathererConnector_ ;
+         CGathererConnector* serverFromClientConnector_ ;
+       public:
+        CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
+
+
+
+
 
       private:
             DECLARE_REF_FUNC(Scalar,scalar)

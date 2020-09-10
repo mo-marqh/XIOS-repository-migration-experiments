@@ -6,6 +6,7 @@
 #include "object_factory.hpp"
 #include "xios_spl.hpp"
 #include "type.hpp"
+#include "context.hpp"
 
 namespace xios {
 
@@ -229,6 +230,75 @@ namespace xios {
       node.goToParentElement();
     }
   }
+
+   //////////////////////////////////////////////////////////////////////////////////////
+   //  this part is related to distribution, element definition, views and connectors  //
+   //////////////////////////////////////////////////////////////////////////////////////
+
+   void CScalar::initializeLocalElement(void)
+   {
+      // after checkAttribute index of size n
+      int rank = CContext::getCurrent()->getIntraCommRank() ;
+      
+      CArray<size_t,1> ind(1) ;
+      ind(0)=0 ;
+
+      localElement_ = new CLocalElement(rank, 1, ind) ;
+   }
+
+   void CScalar::addFullView(void)
+   {
+      CArray<int,1> index(1) ;
+      for(int i=0; i<1 ; i++) index(0)=0 ;
+      localElement_ -> addView(CElementView::FULL, index) ;
+   }
+
+   void CScalar::addWorkflowView(void)
+   {
+     CArray<int,1> index(1) ;
+     for(int i=0; i<1 ; i++) index(0)=0 ;
+     localElement_ -> addView(CElementView::WORKFLOW, index) ;
+   }
+
+   void CScalar::addModelView(void)
+   {
+     CArray<int,1> index(1) ;
+     for(int i=0; i<1 ; i++) index(0)=0 ;
+     localElement_->addView(CElementView::MODEL, index) ;
+   }
+
+   void CScalar::computeModelToWorkflowConnector(void)
+   { 
+     CLocalView* srcView=getLocalView(CElementView::MODEL) ;
+     CLocalView* dstView=getLocalView(CElementView::WORKFLOW) ;
+     modelToWorkflowConnector_ = new CLocalConnector(srcView, dstView); 
+     modelToWorkflowConnector_->computeConnector() ;
+   }
+
+
+   void CScalar::computeRemoteElement(CContextClient* client, EDistributionType type)
+  {
+    CContext* context = CContext::getCurrent();
+    map<int, CArray<size_t,1>> globalIndex ;
+
+    int nbServer = client->serverSize;
+    size_t nglo=1 ;
+    CArray<size_t,1> indGlo ;
+    for(size_t i=0;i<nglo;i++) indGlo(i) = i ;
+    for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer] = indGlo ; 
+
+    remoteElement_[client] = new CDistributedElement(nglo, globalIndex) ;
+    remoteElement_[client]->addFullView() ;
+  }
+ 
+  void CScalar::distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex)
+  {
+    CContext* context = CContext::getCurrent();
+    CDistributedElement scatteredElement(1,globalIndex) ;
+    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    clientToServerConnector_[client] ->computeConnector() ;
+  }
+
 
   // Definition of some macros
   DEFINE_REF_FUNC(Scalar,scalar)

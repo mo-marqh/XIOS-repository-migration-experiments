@@ -57,7 +57,7 @@ namespace xios
       {
         StdString lonName,latName ;
          
-        domain->computeWrittenIndex();
+        //domain->computeWrittenIndex();
         domain->computeWrittenCompressedIndex(comm_file);
 
         if (domain->type == CDomain::type_attr::unstructured)
@@ -318,27 +318,27 @@ namespace xios
                    switch (domain->type)
                    {
                      case CDomain::type_attr::curvilinear :                       
-                       SuperClassWriter::writeData(writtenLat, latid, isCollective, 0);
-                       SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0);
+                       SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0);
+                       SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0);
                        break;
                      case CDomain::type_attr::rectilinear :
-                       CArray<double,1> lat = writtenLat(Range(fromStart,toEnd,domain->ni)) ;
+                       CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->ni)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
-                       CArray<double,1> lon = writtenLon(Range(0,domain->ni-1)) ;
+                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->ni-1)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
                        break;
                    }
 
                    if (domain->hasBounds)
                    {
-                     SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0);
-                     SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0);
+                     SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0);
+                     SuperClassWriter::writeData(domain->bounds_latvalue, bounds_latid, isCollective, 0);
                    }
                  }
 
                  if (domain->hasArea)
                  {
-                   SuperClassWriter::writeData(writtenArea, areaId, isCollective, 0);                   
+                   SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0);                   
                  }
 
                  SuperClassWriter::definition_start();
@@ -431,8 +431,11 @@ namespace xios
 
                      if (domain->hasLonLat)
                      {
-                       SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
-                       SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
+//                       SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
+//                       SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
+                       SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0,&start,&count);
+                       SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0,&start,&count);
+
                      }
                      break;
                    }
@@ -442,25 +445,16 @@ namespace xios
                      {
                        std::vector<StdSize> start(1) ;
                        std::vector<StdSize> count(1) ;
-                       if (domain->isEmpty())
-                       {
-                         start[0]=0 ;
-                         count[0]=0 ;
-                         SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
-                         SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
-                       }
-                       else
-                       { 
-                         start[0]=domain->jbegin;
-                         count[0]=domain->nj;
-                         CArray<double,1> lat = writtenLat(Range(fromStart,toEnd,domain->ni));
-                         SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
+                       
+                       start[0]=domain->jbegin;
+                       count[0]=domain->nj;
+                       CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->ni));
+                       SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
-                         start[0]=domain->ibegin;
-                         count[0]=domain->ni;
-                         CArray<double,1> lon = writtenLon(Range(0,domain->ni-1));
-                         SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
-                       }
+                       start[0]=domain->ibegin;
+                       count[0]=domain->ni;
+                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->ni-1));
+                       SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
                      }
                      break;
                    }
@@ -485,8 +479,10 @@ namespace xios
                      count[0] = domain->nj;
                    }
                  
-                   SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0, &start, &count);
-                   SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0, &start, &count);
+//                   SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0, &start, &count);
+//                   SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0, &start, &count);
+                   SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0, &start, &count); // will probably not working for rectilinear
+                   SuperClassWriter::writeData(domain->bounds_latvalue, bounds_latid, isCollective, 0, &start, &count);
                  }
 
                  if (domain->hasArea)
@@ -494,20 +490,12 @@ namespace xios
                    std::vector<StdSize> start(2);
                    std::vector<StdSize> count(2);
 
-                   if (domain->isEmpty())
-                   {
-                     start[0] = 0; start[1] = 0;
-                     count[0] = 0; count[1] = 0;
-                   }
-                   else
-                   {
-                     start[1] = domain->ibegin;
-                     start[0] = domain->jbegin;
-                     count[1] = domain->ni;
-                     count[0] = domain->nj;
-                   }
+                   start[1] = domain->ibegin;
+                   start[0] = domain->jbegin;
+                   count[1] = domain->ni;
+                   count[0] = domain->nj;
                    
-                   SuperClassWriter::writeData(writtenArea, areaId, isCollective, 0, &start, &count);
+                   SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0, &start, &count);
                  }
 
                  SuperClassWriter::definition_start();
@@ -1043,17 +1031,22 @@ namespace xios
 
                  if (domain->hasLonLat)
                  {
-                   SuperClassWriter::writeData(writtenLat, latid, isCollective, 0);
-                   SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0);
+//                   SuperClassWriter::writeData(writtenLat, latid, isCollective, 0);
+//                   SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0);
+                   SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0);
+                   SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0);
                    if (domain->hasBounds)
                    {
-                     SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0);
-                     SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0);
+//                     SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0);
+//                     SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0);
+                     SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0);
+                     SuperClassWriter::writeData(domain->bounds_latvalue, bounds_latid, isCollective, 0);
                    }
                  }
 
                  if (domain->hasArea)
-                   SuperClassWriter::writeData(writtenArea, areaId, isCollective, 0);
+//                   SuperClassWriter::writeData(writtenArea, areaId, isCollective, 0);
+                   SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0);
 
                  SuperClassWriter::definition_start();
                  break ;
@@ -1125,17 +1118,17 @@ namespace xios
 
                  if (domain->hasLonLat)
                  {
-                   SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
-                   SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
+                   SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0,&start,&count);
+                   SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0,&start,&count);
                    if (domain->hasBounds)
                    {
-                     SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0,&startBounds,&countBounds);
-                     SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0,&startBounds,&countBounds);
+                     SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0,&startBounds,&countBounds);
+                     SuperClassWriter::writeData(domain->bounds_latvalue, bounds_latid, isCollective, 0,&startBounds,&countBounds);
                    }
                  }
 
                  if (domain->hasArea)
-                   SuperClassWriter::writeData(writtenArea, areaId, isCollective, 0, &start, &count);
+                   SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0, &start, &count);
 
                  SuperClassWriter::definition_start();
 
@@ -1165,7 +1158,7 @@ namespace xios
         if (axis->IsWritten(this->filename)) return;
         axis->checkAttributes();
 
-        axis->computeWrittenIndex();
+//        axis->computeWrittenIndex();
         axis->computeWrittenCompressedIndex(comm_file);
        
         int size  = (MULTI_FILE == SuperClass::type) ? axis->n.getValue()
@@ -1302,7 +1295,7 @@ namespace xios
               if (axis->label.isEmpty())
               {
                 if (!axis->value.isEmpty())
-                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
+                  SuperClassWriter::writeData(axis->value, axisid, isCollective, 0);
 
                 if (!axis->bounds.isEmpty())
                 {
@@ -1320,7 +1313,7 @@ namespace xios
                       axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
                     }
                   }
-                  SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
+                  SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0);
                 }
               }
               else
@@ -1341,7 +1334,7 @@ namespace xios
               if (axis->label.isEmpty())
               {
                 if (!axis->value.isEmpty())
-                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
+                  SuperClassWriter::writeData(axis->value, axisid, isCollective, 0, &start, &count);
 
                 if (!axis->bounds.isEmpty())
                 {
@@ -1359,7 +1352,7 @@ namespace xios
                       axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
                     }
                   }
-                  SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
+                  SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
                 }
               }
               else
@@ -2474,7 +2467,11 @@ namespace xios
            if (field->getUseCompressedOutput())
              field->outputCompressedField(dataIn, fieldData);
            else
-             field->outputField(dataIn, fieldData);
+           {
+             //field->outputField(dataIn, fieldData);
+             if (!field->default_value.isEmpty()) field->getGrid()->getWorkflowToFullConnector()->transfer(dataIn, fieldData, (double)field->default_value ) ;
+             else field->getGrid()->getWorkflowToFullConnector()->transfer(dataIn, fieldData ) ;
+           }
 
            if (!field->prec.isEmpty() && field->prec == 2) fieldData = round(fieldData);
 

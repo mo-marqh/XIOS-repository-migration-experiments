@@ -18,6 +18,11 @@
 #include "grid_transformation.hpp"
 #include "grid_generate.hpp"
 #include "server.hpp"
+#include "distribution_type.hpp"
+#include "grid_remote_connector.hpp"
+#include "grid_elements.hpp"
+#include "grid_local_view.hpp"
+
 
 namespace xios {
 
@@ -78,6 +83,496 @@ namespace xios {
    StdString CGrid::GetName(void)    { return StdString("grid"); }
    StdString CGrid::GetDefName(void) { return CGrid::GetName(); }
    ENodeType CGrid::GetType(void)    { return eGrid; }
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////              MEMBER FUNCTION RELATED TO GRID CONSTRUCTION by ELEMNTS AND MANAGEMENT                      /////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+   CGrid* CGrid::createGrid(CDomain* domain)
+   TRY
+   {
+     std::vector<CDomain*> vecDom(1, domain);
+     std::vector<CAxis*> vecAxis;
+     return createGrid(vecDom, vecAxis);
+   }
+   CATCH
+
+   CGrid* CGrid::createGrid(CDomain* domain, CAxis* axis)
+   TRY
+  {
+      std::vector<CDomain*> vecDom(1, domain);
+      std::vector<CAxis*> vecAxis(1, axis);
+
+      return createGrid(vecDom, vecAxis);
+   }
+   CATCH
+
+   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                            const CArray<int,1>& axisDomainOrder)
+   TRY
+   {
+     std::vector<CScalar*> vecScalar;
+     return createGrid(generateId(domains, axis, vecScalar, axisDomainOrder), domains, axis, vecScalar, axisDomainOrder);
+   }
+   CATCH
+
+   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                            const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
+   TRY
+   {
+     return createGrid(generateId(domains, axis, scalars, axisDomainOrder), domains, axis, scalars, axisDomainOrder);
+   }
+   CATCH
+
+   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                            const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
+   TRY
+   {
+      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size() + scalars.size()))
+        ERROR("CGrid* CGrid::createGrid(...)",
+              << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
+              << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
+
+      CGrid* grid = CGridGroup::get("grid_definition")->createChild(id);
+      grid->setDomainList(domains);
+      grid->setAxisList(axis);
+      grid->setScalarList(scalars);
+
+      // By default, domains are always the first elements of a grid
+      if (0 == axisDomainOrder.numElements())
+      {
+        int size = domains.size() + axis.size() + scalars.size();
+        int nb = 0;
+        grid->axis_domain_order.resize(size);
+        for (int i = 0; i < size; ++i)
+        {
+          if (i < domains.size()) {
+            grid->axis_domain_order(i) = 2;
+
+          }
+          else if ((scalars.size() < (size-nb)) < size) {
+            grid->axis_domain_order(i) = 1;
+          }
+          else
+            grid->axis_domain_order(i) = 0;
+          ++nb;
+        }
+      }
+      else
+      {
+        grid->axis_domain_order.resize(axisDomainOrder.numElements());
+        grid->axis_domain_order = axisDomainOrder;
+      }
+
+ //     grid->solveElementsRefInheritance(true);
+
+      return grid;
+   }
+   CATCH
+
+   //----------------------------------------------------------------
+
+   //! Change virtual field group to a new one
+   void CGrid::setVirtualDomainGroup(CDomainGroup* newVDomainGroup)
+   TRY
+   {
+      this->vDomainGroup_ = newVDomainGroup;
+   }
+   CATCH_DUMP_ATTR
+
+   //! Change virtual variable group to new one
+   void CGrid::setVirtualAxisGroup(CAxisGroup* newVAxisGroup)
+   TRY
+   {
+      this->vAxisGroup_ = newVAxisGroup;
+   }
+   CATCH_DUMP_ATTR
+
+   //! Change virtual variable group to new one
+   void CGrid::setVirtualScalarGroup(CScalarGroup* newVScalarGroup)
+   TRY
+   {
+      this->vScalarGroup_ = newVScalarGroup;
+   }
+   CATCH_DUMP_ATTR
+
+   //----------------------------------------------------------------
+
+   CDomainGroup* CGrid::getVirtualDomainGroup() const
+   TRY
+   {
+     return this->vDomainGroup_;
+   }
+   CATCH
+
+   CAxisGroup* CGrid::getVirtualAxisGroup() const
+   TRY
+   {
+     return this->vAxisGroup_;
+   }
+   CATCH
+
+   CScalarGroup* CGrid::getVirtualScalarGroup() const
+   TRY
+   {
+     return this->vScalarGroup_;
+   }
+   CATCH
+
+  ///---------------------------------------------------------------
+
+   CDomain* CGrid::addDomain(const std::string& id)
+   TRY
+   {
+     order_.push_back(2);
+     axis_domain_order.resize(order_.size());
+     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
+     return vDomainGroup_->createChild(id);
+   }
+   CATCH_DUMP_ATTR
+
+   CAxis* CGrid::addAxis(const std::string& id)
+   TRY
+   {
+     order_.push_back(1);
+     axis_domain_order.resize(order_.size());
+     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
+     return vAxisGroup_->createChild(id);
+   }
+   CATCH_DUMP_ATTR
+
+   CScalar* CGrid::addScalar(const std::string& id)
+   TRY
+   {
+     order_.push_back(0);
+     axis_domain_order.resize(order_.size());
+     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
+     return vScalarGroup_->createChild(id);
+   }
+   CATCH_DUMP_ATTR
+
+
+
+
+  /*!
+  \brief Get the list of domain pointers
+  \return list of domain pointers
+  */
+  std::vector<CDomain*> CGrid::getDomains()
+  TRY
+  {
+    std::vector<CDomain*> domList;
+    if (!domList_.empty())
+    {
+      for (int i = 0; i < domList_.size(); ++i) domList.push_back(CDomain::get(domList_[i]));
+    }
+    return domList;
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Get the list of  axis pointers
+  \return list of axis pointers
+  */
+  std::vector<CAxis*> CGrid::getAxis()
+  TRY
+  {
+    std::vector<CAxis*> aList;
+    if (!axisList_.empty())
+      for (int i =0; i < axisList_.size(); ++i) aList.push_back(CAxis::get(axisList_[i]));
+
+    return aList;
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Get the list of  axis pointers
+  \return list of axis pointers
+  */
+  std::vector<CScalar*> CGrid::getScalars()
+  TRY
+  {
+    std::vector<CScalar*> sList;
+    if (!scalarList_.empty())
+      for (int i =0; i < scalarList_.size(); ++i) sList.push_back(CScalar::get(scalarList_[i]));
+
+    return sList;
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Get domain pointer with index
+  \return domain pointer
+  */
+  CDomain* CGrid::getDomain(int domainIndex)
+  TRY
+  {
+    std::vector<CDomain*> domainListP = this->getDomains();
+    if (domainListP.empty())
+    {
+      ERROR("CGrid::getDomain(int domainIndex)",
+            << "No domain associated to this grid. " << std::endl
+            << "Grid id = " << this->getId());
+    }
+
+    if (domainIndex >= domainListP.size() || (domainIndex < 0))
+      ERROR("CGrid::getDomain(int domainIndex)",
+            << "Domain with the index doesn't exist " << std::endl
+            << "Grid id = " << this->getId() << std::endl
+            << "Grid has only " << domainListP.size() << " domain but domain index required is " << domainIndex << std::endl);
+
+    return domainListP[domainIndex];
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Get the axis pointer with index
+  \return axis pointer
+  */
+  CAxis* CGrid::getAxis(int axisIndex)
+  TRY
+  {
+    std::vector<CAxis*> axisListP = this->getAxis();
+    if (axisListP.empty())
+    {
+      ERROR("CGrid::getDomain(int axisIndex)",
+            << "No axis associated to this grid. " << std::endl
+            << "Grid id = " << this->getId());
+    }
+
+    if (axisIndex >= axisListP.size() || (axisIndex < 0))
+      ERROR("CGrid::getDomain(int axisIndex)",
+            << "Domain with the index doesn't exist " << std::endl
+            << "Grid id = " << this->getId() << std::endl
+            << "Grid has only " << axisListP.size() << " axis but axis index required is " << axisIndex << std::endl);
+
+    return axisListP[axisIndex];
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Get the a scalar pointer
+  \return scalar pointer
+  */
+  CScalar* CGrid::getScalar(int scalarIndex)
+  TRY
+  {
+    std::vector<CScalar*> scalarListP = this->getScalars();
+    if (scalarListP.empty())
+    {
+      ERROR("CGrid::getScalar(int scalarIndex)",
+            << "No scalar associated to this grid. " << std::endl
+            << "Grid id = " << this->getId());
+    }
+
+    if (scalarIndex >= scalarListP.size() || (scalarIndex < 0))
+      ERROR("CGrid::getScalar(int scalarIndex)",
+            << "Scalar with the index doesn't exist " << std::endl
+            << "Grid id = " << this->getId() << std::endl
+            << "Grid has only " << scalarListP.size() << " scalar but scalar index required is " << scalarIndex << std::endl);
+
+    return scalarListP[scalarIndex];
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Set domain(s) of a grid from a list
+  \param[in] domains list of domains
+  */
+  void CGrid::setDomainList(const std::vector<CDomain*> domains)
+  TRY
+  {
+    if (isDomListSet) return;
+    std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
+    if (!domains.empty() && domList.empty())
+    {
+      for (int i = 0; i < domains.size(); ++i)
+        this->getVirtualDomainGroup()->addChild(domains[i]);
+      domList = this->getVirtualDomainGroup()->getAllChildren();
+    }
+
+    if (!domList.empty())
+    {
+      int sizeDom = domList.size();
+      domList_.resize(sizeDom);
+      for (int i = 0; i < sizeDom; ++i)
+      {
+        domList_[i] = domList[i]->getId();
+      }
+      isDomListSet = true;
+    }
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Set axis(s) of a grid from a list
+  \param[in] axis list of axis
+  */
+  void CGrid::setAxisList(const std::vector<CAxis*> axis)
+  TRY
+  {
+    if (isAxisListSet) return;
+    std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
+    if (!axis.empty() && aList.empty())
+    {
+      for (int i = 0; i < axis.size(); ++i)
+        this->getVirtualAxisGroup()->addChild(axis[i]);
+      aList = this->getVirtualAxisGroup()->getAllChildren();
+    }
+
+    if (!aList.empty())
+    {
+      int sizeAxis = aList.size();
+      axisList_.resize(sizeAxis);
+      for (int i = 0; i < sizeAxis; ++i)
+      {
+        axisList_[i] = aList[i]->getId();
+      }
+      isAxisListSet = true;
+    }
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Set scalar(s) of a grid from a list
+  \param[in] scalars list of scalars
+  */
+  void CGrid::setScalarList(const std::vector<CScalar*> scalars)
+  TRY
+  {
+    if (isScalarListSet) return;
+    std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
+    if (!scalars.empty() && sList.empty())
+    {
+      for (int i = 0; i < scalars.size(); ++i)
+        this->getVirtualScalarGroup()->addChild(scalars[i]);
+      sList = this->getVirtualScalarGroup()->getAllChildren();
+    }
+
+    if (!sList.empty())
+    {
+      int sizeScalar = sList.size();
+      scalarList_.resize(sizeScalar);
+      for (int i = 0; i < sizeScalar; ++i)
+      {
+        scalarList_[i] = sList[i]->getId();
+      }
+      isScalarListSet = true;
+    }
+  }
+  CATCH_DUMP_ATTR
+
+  /*!
+  \brief Get list of id of domains
+  \return id list of domains
+  */
+  std::vector<StdString> CGrid::getDomainList()
+  TRY
+  {
+    setDomainList();
+    return domList_;
+  }
+  CATCH
+
+  /*!
+  \brief Get list of id of axis
+  \return id list of axis
+  */
+  std::vector<StdString> CGrid::getAxisList()
+  TRY
+  {
+    setAxisList();
+    return axisList_;
+  }
+  CATCH
+
+  /*!
+  \brief Get list of id of scalar
+  \return id list of scalar
+  */
+  std::vector<StdString> CGrid::getScalarList()
+  TRY
+  {
+    setScalarList();
+    return scalarList_;
+  }
+  CATCH
+
+
+  void CGrid::computeElements(void)
+  {
+    const auto& domains = getDomains() ;
+    const auto& axis = getAxis() ;
+    const auto& scalars = getScalars() ;
+    int idxDomain = 0, idxAxis=0 , idxScalar=0 ; 
+ 
+    for(auto type : order_)
+    {
+      if      (type == 0) { elements_.push_back({scalars[idxScalar], TYPE_SCALAR, scalars[idxScalar], nullptr, nullptr } ) ; idxScalar++;}
+      else if (type == 1) { elements_.push_back({axis[idxAxis], TYPE_AXIS, nullptr, axis[idxAxis], nullptr}) ; idxAxis++;}
+      else if (type == 2) { elements_.push_back({domains[idxDomain], TYPE_DOMAIN, nullptr, nullptr, domains[idxDomain] }) ; idxDomain++;}        
+    }
+    elementsComputed_ = true ;
+  }
+  
+  
+ /*!
+    Parse a grid, for now, it contains only domain, axis and scalar
+  */
+  void CGrid::parse(xml::CXMLNode& node)
+  TRY
+  {
+    SuperClass::parse(node);
+
+    if (node.goToChildElement())
+    {
+      StdString domainName("domain");
+      StdString axisName("axis");
+      StdString scalarName("scalar");
+      do
+      {
+        if (node.getElementName() == domainName) {
+          order_.push_back(2);
+          this->getVirtualDomainGroup()->parseChild(node);
+        }
+        if (node.getElementName() == axisName) {
+          order_.push_back(1);
+          this->getVirtualAxisGroup()->parseChild(node);
+        }
+        if (node.getElementName() == scalarName) {
+          order_.push_back(0);
+          this->getVirtualScalarGroup()->parseChild(node);
+        }
+      } while (node.goToNextElement());
+      node.goToParentElement();
+    }
+
+    if (!order_.empty())
+    {
+      int sizeOrd = order_.size();
+      axis_domain_order.resize(sizeOrd);
+      for (int i = 0; i < sizeOrd; ++i)
+      {
+        axis_domain_order(i) = order_[i];
+      }
+    }
+
+    setDomainList();
+    setAxisList();
+    setScalarList();
+   }
+   CATCH_DUMP_ATTR
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
    StdSize CGrid::getDimension(void)
@@ -1168,88 +1663,7 @@ namespace xios {
    CATCH_DUMP_ATTR
 //----------------------------------------------------------------
 
-   CGrid* CGrid::createGrid(CDomain* domain)
-   TRY
-   {
-      std::vector<CDomain*> vecDom(1, domain);
-      std::vector<CAxis*> vecAxis;
 
-      return createGrid(vecDom, vecAxis);
-   }
-   CATCH
-
-   CGrid* CGrid::createGrid(CDomain* domain, CAxis* axis)
-   TRY
-  {
-      std::vector<CDomain*> vecDom(1, domain);
-      std::vector<CAxis*> vecAxis(1, axis);
-
-      return createGrid(vecDom, vecAxis);
-   }
-   CATCH
-
-   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                            const CArray<int,1>& axisDomainOrder)
-   TRY
-   {
-     std::vector<CScalar*> vecScalar;
-     return createGrid(generateId(domains, axis, vecScalar, axisDomainOrder), domains, axis, vecScalar, axisDomainOrder);
-   }
-   CATCH
-
-   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                            const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
-   TRY
-   {
-     return createGrid(generateId(domains, axis, scalars, axisDomainOrder), domains, axis, scalars, axisDomainOrder);
-   }
-   CATCH
-
-   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                            const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
-   TRY
-   {
-      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size() + scalars.size()))
-        ERROR("CGrid* CGrid::createGrid(...)",
-              << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
-              << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
-
-      CGrid* grid = CGridGroup::get("grid_definition")->createChild(id);
-      grid->setDomainList(domains);
-      grid->setAxisList(axis);
-      grid->setScalarList(scalars);
-
-      // By default, domains are always the first elements of a grid
-      if (0 == axisDomainOrder.numElements())
-      {
-        int size = domains.size() + axis.size() + scalars.size();
-        int nb = 0;
-        grid->axis_domain_order.resize(size);
-        for (int i = 0; i < size; ++i)
-        {
-          if (i < domains.size()) {
-            grid->axis_domain_order(i) = 2;
-
-          }
-          else if ((scalars.size() < (size-nb)) < size) {
-            grid->axis_domain_order(i) = 1;
-          }
-          else
-            grid->axis_domain_order(i) = 0;
-          ++nb;
-        }
-      }
-      else
-      {
-        grid->axis_domain_order.resize(axisDomainOrder.numElements());
-        grid->axis_domain_order = axisDomainOrder;
-      }
-
- //     grid->solveElementsRefInheritance(true);
-
-      return grid;
-   }
-   CATCH
 
    CGrid* CGrid::cloneGrid(const StdString& idNewGrid, CGrid* gridSrc)
    TRY
@@ -1352,28 +1766,6 @@ namespace xios {
    }
    CATCH
 
-   //----------------------------------------------------------------
-
-   CDomainGroup* CGrid::getVirtualDomainGroup() const
-   TRY
-   {
-     return this->vDomainGroup_;
-   }
-   CATCH
-
-   CAxisGroup* CGrid::getVirtualAxisGroup() const
-   TRY
-   {
-     return this->vAxisGroup_;
-   }
-   CATCH
-
-   CScalarGroup* CGrid::getVirtualScalarGroup() const
-   TRY
-   {
-     return this->vScalarGroup_;
-   }
-   CATCH
 
    //----------------------------------------------------------------
 
@@ -2085,7 +2477,7 @@ namespace xios {
   bool CGrid::doGridHaveDataToWrite()
   TRY
   {
-     return (0 != getWrittenDataSize());
+     return (0 != getGridLocalElements()->getView(CElementView::FULL)->getSize());
   }
   CATCH_DUMP_ATTR
 
@@ -2098,7 +2490,7 @@ namespace xios {
   size_t CGrid::getWrittenDataSize() 
   TRY
   {
-    return getServerDistribution()->getGridSize();
+    return getGridLocalElements()->getView(CElementView::FULL)->getSize() ;
   }
   CATCH
 
@@ -2204,62 +2596,7 @@ namespace xios {
   }
   CATCH
 
-   ///---------------------------------------------------------------
-
-   CDomain* CGrid::addDomain(const std::string& id)
-   TRY
-   {
-     order_.push_back(2);
-     axis_domain_order.resize(order_.size());
-     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
-     return vDomainGroup_->createChild(id);
-   }
-   CATCH_DUMP_ATTR
-
-   CAxis* CGrid::addAxis(const std::string& id)
-   TRY
-   {
-     order_.push_back(1);
-     axis_domain_order.resize(order_.size());
-     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
-     return vAxisGroup_->createChild(id);
-   }
-   CATCH_DUMP_ATTR
-
-   CScalar* CGrid::addScalar(const std::string& id)
-   TRY
-   {
-     order_.push_back(0);
-     axis_domain_order.resize(order_.size());
-     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
-     return vScalarGroup_->createChild(id);
-   }
-   CATCH_DUMP_ATTR
-
-   //! Change virtual field group to a new one
-   void CGrid::setVirtualDomainGroup(CDomainGroup* newVDomainGroup)
-   TRY
-   {
-      this->vDomainGroup_ = newVDomainGroup;
-   }
-   CATCH_DUMP_ATTR
-
-   //! Change virtual variable group to new one
-   void CGrid::setVirtualAxisGroup(CAxisGroup* newVAxisGroup)
-   TRY
-   {
-      this->vAxisGroup_ = newVAxisGroup;
-   }
-   CATCH_DUMP_ATTR
-
-   //! Change virtual variable group to new one
-   void CGrid::setVirtualScalarGroup(CScalarGroup* newVScalarGroup)
-   TRY
-   {
-      this->vScalarGroup_ = newVScalarGroup;
-   }
-   CATCH_DUMP_ATTR
-
+ 
 
   void CGrid::sendGridToFileServer(CContextClient* client)
   {
@@ -2270,31 +2607,167 @@ namespace xios {
     CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
     gridPtr->sendCreateChild(this->getId(),client);
     this->sendAllAttributesToServer(client);
-    if (isScalarGrid())  sendIndexScalarGrid(client);
-    else  sendIndex(client);
-    this->sendAllDomains(client);
-    this->sendAllAxis(client);
-    this->sendAllScalars(client);
+    //if (isScalarGrid())  sendIndexScalarGrid(client);
+    //else  sendIndex(client);
+    //this->sendAllDomains(client);
+    //this->sendAllAxis(client);
+    //this->sendAllScalars(client);
+
+    distributeGridToFileServer(client) ;
   }
+
+
+  void CGrid::distributeGridToFileServer(CContextClient* client)
+  {
+    CContext* context = CContext::getCurrent();
+    // simple Distribution for now 
+    // distribute over the fisrt element except if it is a scalar
+    auto& elements = getElements() ;
+    int posDistributed = 0 ;
+    for(auto& element : elements)
+    {
+      if (element.type==TYPE_DOMAIN) break ;
+      else if (element.type==TYPE_AXIS) break ;
+      else if (element.type==TYPE_SCALAR) posDistributed++ ;
+    }
+    
+    vector<CLocalView*> localViews ;
+    vector<CDistributedView*> remoteViews ;
+
+    for(int i=0 ; i<elements.size() ; i++)
+    {
+      if (elements[i].type==TYPE_DOMAIN) 
+      { 
+         CDomain* domain = (CDomain*) elements[i].ptr ;
+         domain->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
+         remoteViews.push_back(domain->getRemoteElement(client)->getView(CElementView::FULL)) ;
+         localViews.push_back(domain->getLocalView(CElementView::FULL)) ;
+      }
+      else if (elements[i].type==TYPE_AXIS)
+      {
+        CAxis* axis = (CAxis*) elements[i].ptr ;
+        axis->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
+        remoteViews.push_back(axis->getRemoteElement(client)->getView(CElementView::FULL)) ;
+        localViews.push_back(axis->getLocalView(CElementView::FULL)) ;
+      }
+      else if (elements[i].type==TYPE_SCALAR)
+      {
+        CScalar* scalar = (CScalar*) elements[i].ptr ;
+        scalar->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
+        remoteViews.push_back(scalar->getRemoteElement(client)->getView(CElementView::FULL)) ;
+        localViews.push_back(scalar->getLocalView(CElementView::FULL)) ;
+      }
+    }
+    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm()) ;
+    gridRemoteConnector.computeConnector() ;
+    
+    vector<CScattererConnector*> clientToServerConnectors ;
+    for(int i=0 ; i<elements.size() ; i++)
+    {
+      if (elements[i].type==TYPE_DOMAIN) 
+      { 
+         CDomain* domain = (CDomain*) elements[i].ptr ;
+         sendAddDomain(domain->getId(),client) ;
+         domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
+         clientToServerConnectors.push_back(domain->getClientToServerConnector(client)) ;
+      }
+      else if (elements[i].type==TYPE_AXIS)
+      {
+        CAxis* axis = (CAxis*) elements[i].ptr ;
+        sendAddAxis(axis->getId(),client) ;
+        axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
+        clientToServerConnectors.push_back(axis->getClientToServerConnector(client)) ;
+      }
+      else if (elements[i].type==TYPE_SCALAR)
+      {
+        CScalar* scalar = (CScalar*) elements[i].ptr ;
+        sendAddScalar(scalar->getId(),client) ;
+        scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
+        clientToServerConnectors.push_back(scalar->getClientToServerConnector(client)) ;
+      }
+    }
+    
+    // compute the grid clientToServerConnector to send flux from client to servers
+    clientToServerConnector_[client] = new CGridScattererConnector(clientToServerConnectors) ;
+
+  }
+
 
   void CGrid::sendGridToCouplerOut(CContextClient* client, const string& fieldId)
   {
     if (sendGridToCouplerOut_done_.count(client)!=0) return ;
     else sendGridToCouplerOut_done_.insert(client) ;
-    string gridId="_grid_of_"+fieldId ;
-    this->sendAllAttributesToServer(client, gridId);
+ 
+    CContext* context = CContext::getCurrent();
+    // simple Distribution for now 
+    // distribute over the fisrt element except if it is a scalar
+    auto& elements = getElements() ;
+    int posDistributed = 0 ;
+    for(auto& element : elements)
+    {
+      if (element.type==TYPE_DOMAIN) break ;
+      else if (element.type==TYPE_AXIS) break ;
+      else if (element.type==TYPE_SCALAR) posDistributed++ ;
+    }
     
-    if (isScalarGrid())  sendIndexScalarGrid(client, gridId);
-    else sendIndex(client, gridId);
+    vector<CLocalView*> localViews ;
+    vector<CDistributedView*> remoteViews ;
 
-    const auto& domVect = getDomains() ;
-    for (int pos=0; pos<domVect.size();pos++) domVect[pos]->sendDomainToCouplerOut(client, fieldId, pos);
-
-    const auto& axisVect=getAxis() ;
-    for (int pos=0; pos<axisVect.size();pos++) axisVect[pos]->sendAxisToCouplerOut(client, getGlobalDimension(), getAxisPositionInGrid()[pos], fieldId, pos);
-
-    const auto& scalVect=getScalars() ;
-    for (int pos=0; pos<scalVect.size();pos++) scalVect[pos]->sendScalarToCouplerOut(client, fieldId, pos);
+    for(int i=0 ; i<elements.size() ; i++)
+    {
+      if (elements[i].type==TYPE_DOMAIN) 
+      { 
+         CDomain* domain = (CDomain*) elements[i].ptr ;
+         domain->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
+         remoteViews.push_back(domain->getRemoteElement(client)->getView(CElementView::FULL)) ;
+         localViews.push_back(domain->getLocalView(CElementView::FULL)) ;
+      }
+      else if (elements[i].type==TYPE_AXIS)
+      {
+        CAxis* axis = (CAxis*) elements[i].ptr ;
+        axis->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
+        remoteViews.push_back(axis->getRemoteElement(client)->getView(CElementView::FULL)) ;
+        localViews.push_back(axis->getLocalView(CElementView::FULL)) ;
+      }
+      else if (elements[i].type==TYPE_SCALAR)
+      {
+        CScalar* scalar = (CScalar*) elements[i].ptr ;
+        scalar->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
+        remoteViews.push_back(scalar->getRemoteElement(client)->getView(CElementView::FULL)) ;
+        localViews.push_back(scalar->getLocalView(CElementView::FULL)) ;
+      }
+    }
+    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm()) ;
+    gridRemoteConnector.computeConnector() ;
+    
+    vector<CScattererConnector*> clientToClientConnectors ;
+    for(int i=0 ; i<elements.size() ; i++)
+    {
+      if (elements[i].type==TYPE_DOMAIN) 
+      { 
+         CDomain* domain = (CDomain*) elements[i].ptr ;
+         sendAddDomain(domain->getId(),client) ;
+         domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
+         clientToClientConnectors.push_back(domain->getClientToServerConnector(client)) ;
+      }
+      else if (elements[i].type==TYPE_AXIS)
+      {
+        CAxis* axis = (CAxis*) elements[i].ptr ;
+        sendAddAxis(axis->getId(),client) ;
+        axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
+        clientToClientConnectors.push_back(axis->getClientToServerConnector(client)) ;
+      }
+      else if (elements[i].type==TYPE_SCALAR)
+      {
+        CScalar* scalar = (CScalar*) elements[i].ptr ;
+        sendAddScalar(scalar->getId(),client) ;
+        scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
+        clientToClientConnectors.push_back(scalar->getClientToServerConnector(client)) ;
+      }
+    }
+    
+    // compute the grid clientToServerConnector to send flux from client to servers
+    clientToClientConnector_[client] = new CGridScattererConnector(clientToClientConnectors) ;
   }
 
   void CGrid::makeAliasForCoupling(const string& fieldId)
@@ -2709,249 +3182,7 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-  /*!
-  \brief Get the list of domain pointers
-  \return list of domain pointers
-  */
-  std::vector<CDomain*> CGrid::getDomains()
-  TRY
-  {
-    std::vector<CDomain*> domList;
-    if (!domList_.empty())
-    {
-      for (int i = 0; i < domList_.size(); ++i) domList.push_back(CDomain::get(domList_[i]));
-    }
-    return domList;
-  }
-  CATCH_DUMP_ATTR
 
-  /*!
-  \brief Get the list of  axis pointers
-  \return list of axis pointers
-  */
-  std::vector<CAxis*> CGrid::getAxis()
-  TRY
-  {
-    std::vector<CAxis*> aList;
-    if (!axisList_.empty())
-      for (int i =0; i < axisList_.size(); ++i) aList.push_back(CAxis::get(axisList_[i]));
-
-    return aList;
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Get the list of  axis pointers
-  \return list of axis pointers
-  */
-  std::vector<CScalar*> CGrid::getScalars()
-  TRY
-  {
-    std::vector<CScalar*> sList;
-    if (!scalarList_.empty())
-      for (int i =0; i < scalarList_.size(); ++i) sList.push_back(CScalar::get(scalarList_[i]));
-
-    return sList;
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Get domain pointer with index
-  \return domain pointer
-  */
-  CDomain* CGrid::getDomain(int domainIndex)
-  TRY
-  {
-    std::vector<CDomain*> domainListP = this->getDomains();
-    if (domainListP.empty())
-    {
-      ERROR("CGrid::getDomain(int domainIndex)",
-            << "No domain associated to this grid. " << std::endl
-            << "Grid id = " << this->getId());
-    }
-
-    if (domainIndex >= domainListP.size() || (domainIndex < 0))
-      ERROR("CGrid::getDomain(int domainIndex)",
-            << "Domain with the index doesn't exist " << std::endl
-            << "Grid id = " << this->getId() << std::endl
-            << "Grid has only " << domainListP.size() << " domain but domain index required is " << domainIndex << std::endl);
-
-    return domainListP[domainIndex];
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Get the axis pointer with index
-  \return axis pointer
-  */
-  CAxis* CGrid::getAxis(int axisIndex)
-  TRY
-  {
-    std::vector<CAxis*> axisListP = this->getAxis();
-    if (axisListP.empty())
-    {
-      ERROR("CGrid::getDomain(int axisIndex)",
-            << "No axis associated to this grid. " << std::endl
-            << "Grid id = " << this->getId());
-    }
-
-    if (axisIndex >= axisListP.size() || (axisIndex < 0))
-      ERROR("CGrid::getDomain(int axisIndex)",
-            << "Domain with the index doesn't exist " << std::endl
-            << "Grid id = " << this->getId() << std::endl
-            << "Grid has only " << axisListP.size() << " axis but axis index required is " << axisIndex << std::endl);
-
-    return axisListP[axisIndex];
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Get the a scalar pointer
-  \return scalar pointer
-  */
-  CScalar* CGrid::getScalar(int scalarIndex)
-  TRY
-  {
-    std::vector<CScalar*> scalarListP = this->getScalars();
-    if (scalarListP.empty())
-    {
-      ERROR("CGrid::getScalar(int scalarIndex)",
-            << "No scalar associated to this grid. " << std::endl
-            << "Grid id = " << this->getId());
-    }
-
-    if (scalarIndex >= scalarListP.size() || (scalarIndex < 0))
-      ERROR("CGrid::getScalar(int scalarIndex)",
-            << "Scalar with the index doesn't exist " << std::endl
-            << "Grid id = " << this->getId() << std::endl
-            << "Grid has only " << scalarListP.size() << " scalar but scalar index required is " << scalarIndex << std::endl);
-
-    return scalarListP[scalarIndex];
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Set domain(s) of a grid from a list
-  \param[in] domains list of domains
-  */
-  void CGrid::setDomainList(const std::vector<CDomain*> domains)
-  TRY
-  {
-    if (isDomListSet) return;
-    std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
-    if (!domains.empty() && domList.empty())
-    {
-      for (int i = 0; i < domains.size(); ++i)
-        this->getVirtualDomainGroup()->addChild(domains[i]);
-      domList = this->getVirtualDomainGroup()->getAllChildren();
-    }
-
-    if (!domList.empty())
-    {
-      int sizeDom = domList.size();
-      domList_.resize(sizeDom);
-      for (int i = 0; i < sizeDom; ++i)
-      {
-        domList_[i] = domList[i]->getId();
-      }
-      isDomListSet = true;
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Set axis(s) of a grid from a list
-  \param[in] axis list of axis
-  */
-  void CGrid::setAxisList(const std::vector<CAxis*> axis)
-  TRY
-  {
-    if (isAxisListSet) return;
-    std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
-    if (!axis.empty() && aList.empty())
-    {
-      for (int i = 0; i < axis.size(); ++i)
-        this->getVirtualAxisGroup()->addChild(axis[i]);
-      aList = this->getVirtualAxisGroup()->getAllChildren();
-    }
-
-    if (!aList.empty())
-    {
-      int sizeAxis = aList.size();
-      axisList_.resize(sizeAxis);
-      for (int i = 0; i < sizeAxis; ++i)
-      {
-        axisList_[i] = aList[i]->getId();
-      }
-      isAxisListSet = true;
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Set scalar(s) of a grid from a list
-  \param[in] scalars list of scalars
-  */
-  void CGrid::setScalarList(const std::vector<CScalar*> scalars)
-  TRY
-  {
-    if (isScalarListSet) return;
-    std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
-    if (!scalars.empty() && sList.empty())
-    {
-      for (int i = 0; i < scalars.size(); ++i)
-        this->getVirtualScalarGroup()->addChild(scalars[i]);
-      sList = this->getVirtualScalarGroup()->getAllChildren();
-    }
-
-    if (!sList.empty())
-    {
-      int sizeScalar = sList.size();
-      scalarList_.resize(sizeScalar);
-      for (int i = 0; i < sizeScalar; ++i)
-      {
-        scalarList_[i] = sList[i]->getId();
-      }
-      isScalarListSet = true;
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-  \brief Get list of id of domains
-  \return id list of domains
-  */
-  std::vector<StdString> CGrid::getDomainList()
-  TRY
-  {
-    setDomainList();
-    return domList_;
-  }
-  CATCH
-
-  /*!
-  \brief Get list of id of axis
-  \return id list of axis
-  */
-  std::vector<StdString> CGrid::getAxisList()
-  TRY
-  {
-    setAxisList();
-    return axisList_;
-  }
-  CATCH
-
-  /*!
-  \brief Get list of id of scalar
-  \return id list of scalar
-  */
-  std::vector<StdString> CGrid::getScalarList()
-  TRY
-  {
-    setScalarList();
-    return scalarList_;
-  }
-  CATCH
 
   /*!
     Send all attributes of domains from client to server
@@ -3013,54 +3244,7 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-  /*!
-    Parse a grid, for now, it contains only domain, axis and scalar
-  */
-  void CGrid::parse(xml::CXMLNode& node)
-  TRY
-  {
-    SuperClass::parse(node);
-
-    if (node.goToChildElement())
-    {
-      StdString domainName("domain");
-      StdString axisName("axis");
-      StdString scalarName("scalar");
-      do
-      {
-        if (node.getElementName() == domainName) {
-          order_.push_back(2);
-          this->getVirtualDomainGroup()->parseChild(node);
-        }
-        if (node.getElementName() == axisName) {
-          order_.push_back(1);
-          this->getVirtualAxisGroup()->parseChild(node);
-        }
-        if (node.getElementName() == scalarName) {
-          order_.push_back(0);
-          this->getVirtualScalarGroup()->parseChild(node);
-        }
-      } while (node.goToNextElement());
-      node.goToParentElement();
-    }
-
-    if (!order_.empty())
-    {
-      int sizeOrd = order_.size();
-      axis_domain_order.resize(sizeOrd);
-      for (int i = 0; i < sizeOrd; ++i)
-      {
-        axis_domain_order(i) = order_[i];
-      }
-    }
-
-    setDomainList();
-    setAxisList();
-    setScalarList();
-   }
-  CATCH_DUMP_ATTR
-
-
+ 
   void CGrid::computeGridLocalElements()
   {
     std::vector<CDomain*> domainList = this->getDomains();
@@ -3095,5 +3279,44 @@ namespace xios {
   void CGrid::computeModelToWorkflowConnector(void)
   {
     modelToWorkflowConnector_ = getGridLocalElements()->getConnector(CElementView::MODEL,CElementView::WORKFLOW) ;
+  }
+
+  void CGrid::computeWorkflowToFullConnector(void)
+  {
+    workflowToFullConnector_ = getGridLocalElements()->getConnector(CElementView::WORKFLOW,CElementView::FULL) ;
+  }
+
+  void CGrid::computeWorkflowToModelConnector(void)
+  {
+    workflowToModelConnector_ = getGridLocalElements()->getConnector(CElementView::WORKFLOW,CElementView::MODEL) ;
+  }
+
+  void CGrid::computeFullToWorkflowConnector(void)
+  {
+    fullToWorkflowConnector_ = getGridLocalElements()->getConnector(CElementView::FULL,CElementView::WORKFLOW) ;
+  }
+
+  void CGrid::computeServerFromClientConnector(void)
+  {
+    vector<CGathererConnector*> connectors ;
+    for(auto& element : getElements())
+    {
+      if (element.type==TYPE_DOMAIN) connectors.push_back(element.domain->getServerFromClientConnector()) ;
+      else if (element.type==TYPE_AXIS) connectors.push_back(element.axis->getServerFromClientConnector()) ; 
+      else if (element.type==TYPE_SCALAR) connectors.push_back(element.scalar->getServerFromClientConnector()) ; 
+    }
+    serverFromClientConnector_ = new CGridGathererConnector(connectors) ;
+  }
+
+  void CGrid::computeClientFromClientConnector(void)
+  {
+    vector<CGathererConnector*> connectors ;
+    for(auto& element : getElements())
+    {
+      if (element.type==TYPE_DOMAIN) connectors.push_back(element.domain->getServerFromClientConnector()) ;
+      else if (element.type==TYPE_AXIS) connectors.push_back(element.axis->getServerFromClientConnector()) ; 
+      else if (element.type==TYPE_SCALAR) connectors.push_back(element.scalar->getServerFromClientConnector()) ; 
+    }
+    clientFromClientConnector_ = new CGridGathererConnector(connectors) ;
   }
 } // namespace xios

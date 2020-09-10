@@ -16,8 +16,25 @@ namespace xios
   {
     public:
     CLocalView(CLocalElement* parent, CElementView::type type, const CArray<int,1>& indexView) ;
+    CLocalView(CLocalElement* parent, CElementView::type type, const CArray<bool,1>& maskView) ;
+
     const CArray<int,1>& getIndex(void) { return index_ ;}
     const CArray<size_t,1>& getGlobalIndex(void) { return globalIndex_ ;}
+    
+    void getGlobalIndexView(CArray<size_t,1>& globalIndexView)
+    {
+      globalIndexView.resize(size_) ;
+      int pos=0 ;
+      for(int i=0 ; i<size_ ; i++)
+      {
+        if (index_(i)>=0 && index_(i)<localSize_) 
+        {
+          globalIndexView(i) = globalIndex_(index_(i)) ;
+          pos++ ;
+        }
+      }
+      globalIndexView.resizeAndPreserve(pos) ;
+    }    
 
     void getGlobalIndex(vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, CLocalView** localView, int pos)
     {

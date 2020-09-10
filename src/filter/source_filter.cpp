@@ -39,21 +39,28 @@ namespace xios
     {
       packet->data = defaultValue;
       grid->uncompressField(data, packet->data);    
+      
+      // Convert missing values to NaN
+      if (hasMissingValue) // probably to removed later
+      {
+        const double nanValue = std::numeric_limits<double>::quiet_NaN();
+        const size_t nbData = packet->data.numElements();
+        for (size_t idx = 0; idx < nbData; ++idx)
+        {
+          if (defaultValue == packet->data(idx))
+          packet->data(idx) = nanValue;
+        }
+      }
     }
     else
     {
-      if (mask) grid->maskField(data, packet->data);
-      else grid->inputField(data, packet->data);
-    }
-    // Convert missing values to NaN
-    if (hasMissingValue)
-    {
-      const double nanValue = std::numeric_limits<double>::quiet_NaN();
-      const size_t nbData = packet->data.numElements();
-      for (size_t idx = 0; idx < nbData; ++idx)
+      if (mask) grid->maskField(data, packet->data);       // => ie coming from model
+      //else grid->inputField(data, packet->data);
+      else 
       {
-        if (defaultValue == packet->data(idx))
-          packet->data(idx) = nanValue;
+        packet->data.resize(data.numElements()) ; // temporary solution, create own source filter for data coming from client
+        CArray<double,1> tmp( (double*)data.dataFirst(),shape(data.numElements()),duplicateData) ;
+        packet->data.reference(tmp) ;   // nothing to do if coming from client to server => workflow view
       }
     }
 

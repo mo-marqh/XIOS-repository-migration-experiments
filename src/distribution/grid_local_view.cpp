@@ -5,7 +5,13 @@ namespace xios
 {
   CGridLocalView::CGridLocalView(CGridLocalElements* parent, CElementView::type type) : localMask_(parent->getLocalMask())
   {
-    for(auto element : parent->getElements()) views_.push_back(element->getView(type)) ;
+    size_ = 1 ;
+    for(auto element : parent->getElements()) 
+    {
+      views_.push_back(element->getView(type)) ;
+      size_ *= element->getView(type)->getSize() ;
+    }
+
   }
 
 }

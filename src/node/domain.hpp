@@ -19,7 +19,10 @@
 #include "mesh.hpp"
 #include "element.hpp"
 #include "local_connector.hpp"
+#include "scatterer_connector.hpp"
 #include "gatherer_connector.hpp"
+#include "distribution_type.hpp"
+
 
 namespace xios {
 
@@ -53,7 +56,7 @@ namespace xios {
            EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, 
            EVENT_ID_AREA,
            EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT,
-           EVENT_ID_DOMAIN_DISTRIBUTION
+           EVENT_ID_DOMAIN_DISTRIBUTION, EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE
          } ;
 
       public:
@@ -219,10 +222,6 @@ namespace xios {
 
        private:
 
-         static void recvDomainDistribution(CEventServer& event) ;
-         void receivedDomainDistribution(CEventServer& event, int phasis) ;
-        
-
          void sendDomainDistribution(CContextClient* client, const string& domainId="") ; //for testing
          void sendAttributes(); // ym obsolete -> to be removed
          void sendIndex(CContextClient* client, const string& domainId="");
@@ -309,7 +308,9 @@ namespace xios {
          static std::map<StdString, ETranformationType> transformationMapList_;
          static bool _dummyTransformationMapList;
 
- 
+       //////////////////////////////////////////////////////////////////////////////////////
+       //  this part is related to distribution, element definition, views and connectors  //
+       //////////////////////////////////////////////////////////////////////////////////////
        private:
          CLocalElement* localElement_ = nullptr ;
          void initializeLocalElement(void) ;
@@ -326,11 +327,36 @@ namespace xios {
        private:
          CLocalConnector* modelToWorkflowConnector_ ;
          void computeModelToWorkflowConnector(void)  ;
-         CGathererConnector*  gathererConnector_ ;
-
        public:
          CLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_ ;}
+
+       public:
+         void computeRemoteElement(CContextClient* client, EDistributionType) ;
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& domainId="") ;
+
+         static void recvDomainDistribution(CEventServer& event) ;
+         void receivedDomainDistribution(CEventServer& event, int phasis) ;
+
+         void sendDistributedAttributes(CContextClient* client, CScattererConnector& scaterrerConnector, const string& domainId) ;
+         static void recvDistributedAttributes(CEventServer& event) ;
+         void recvDistributedAttributes(CEventServer& event, const string& type) ;
+       private:
+         map<CContextClient*, CDistributedElement*> remoteElement_ ;
+       public: 
+         CDistributedElement* getRemoteElement(CContextClient* client) {return remoteElement_[client] ;}
+       private:
+         map<CContextClient*, CScattererConnector*> clientToServerConnector_ ;
+       public: 
+         CScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;}
+       private:
+         CGathererConnector*  gathererConnector_ ;
+         CGathererConnector* serverFromClientConnector_ ;
+         CDistributedElement* elementFrom_ ;
+       public:
+        CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
+
          
+
          DECLARE_REF_FUNC(Domain,domain)
 
    }; // class CDomain

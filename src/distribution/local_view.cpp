@@ -14,6 +14,14 @@ namespace xios
 
   }
 
+  CLocalView::CLocalView(CLocalElement* parent, CElementView::type type, const CArray<bool,1>& maskView) 
+                        : CDistributedView( parent, type, {{  parent->localRank_,  maskView }} ),
+                          localRank_(parent->localRank_),
+                          globalIndex_(parent->globalIndex_), size_(CDistributedView::size_[parent->localRank_]),
+                          index_(CDistributedView::index_[parent->localRank_]), localSize_(CDistributedView::localSize_[parent->localRank_]) 
+  {
+
+  }
 
   void CLocalView::sendRemoteElement(CRemoteConnector& connector, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
   {

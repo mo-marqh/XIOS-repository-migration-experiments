@@ -30,6 +30,11 @@ namespace xios
     views_[type] = new CDistributedView(this, type, indexView) ;
   } 
 
+  void CDistributedElement::addView(CElementView::type type, std::map<int, CArray<bool,1>>& maskView)
+  {
+    views_[type] = new CDistributedView(this, type, maskView) ;
+  } 
+
   void CDistributedElement::addFullView(void)
   {
     if (views_[CElementView::FULL]!=nullptr) return ;
@@ -115,6 +120,11 @@ namespace xios
   void CLocalElement::addView(CElementView::type type, CArray<int,1>& indexView)
   {
     views_[type] = new CLocalView(this, type, indexView) ;
+  } 
+
+  void CLocalElement::addView(CElementView::type type, CArray<bool,1>& maskView)
+  {
+    views_[type] = new CLocalView(this, type, maskView) ;
   } 
 
   void CLocalElement::addFullView(void)

@@ -42,25 +42,21 @@ namespace xios
   }
   CATCH
 
-  void CNc4DataInput::readFieldData_(CField* field, CArray<double,1>& dataOut)
+  void CNc4DataInput::readFieldData_(CField* field, int record, CArray<double,1>& dataOut)
   TRY
   {
     CContext* context = CContext::getCurrent();
 
     CGrid* grid = field->getGrid();
 
-    if (!grid->doGridHaveDataToWrite())
-      if (SuperClass::type==MULTI_FILE || !isCollective) return;
+    if (!grid->doGridHaveDataToWrite())  if (SuperClass::type==MULTI_FILE || !isCollective) return;
 
     StdString fieldId = field->getFieldOutputName();
-
-    CArray<double,1> fieldData(grid->getWrittenDataSize());
-    if (!field->default_value.isEmpty()) fieldData = field->default_value;
 
     switch (SuperClass::type)
     {
       case MULTI_FILE:
-        SuperClassWriter::getData(fieldData, fieldId, isCollective, (field->getNStep() - 1)%field->nstepMax );
+        SuperClassWriter::getData(dataOut, fieldId, isCollective, record );
         break;
       case ONE_FILE:
       {
@@ -107,19 +103,9 @@ namespace xios
           }
         }
 
-        SuperClassWriter::getData(fieldData, fieldId, isCollective, (field->getNStep() - 1)%field->nstepMax, &start, &count);
+        SuperClassWriter::getData(dataOut, fieldId, isCollective, record, &start, &count);
         break;
       }
-    }
-
-    field->inputField(fieldData, dataOut);
-
-    if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
-    {
-      double scaleFactor = 1.0, addOffset = 0.0;
-      if (!field->scale_factor.isEmpty()) scaleFactor = field->scale_factor;
-      if (!field->add_offset.isEmpty()) addOffset = field->add_offset;
-      field->invertScaleFactorAddOffset(dataOut,scaleFactor, addOffset);
     }
   }
   CATCH

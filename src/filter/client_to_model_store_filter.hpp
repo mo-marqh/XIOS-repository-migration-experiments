@@ -7,11 +7,12 @@ namespace xios
 {
   class CContext;
   class CGrid;
+  class CField ;
 
   /*!
    * A terminal filter which stores all the packets it receives.
    */
-  class CStoreFilter : public CInputPin
+  class CClientToModelStoreFilter : public CInputPin
   {
     public:
       /*!
@@ -24,8 +25,7 @@ namespace xios
        * \param detectMissingValues whether missing values should be detected
        * \param missingValue the value to use to replace missing values
        */
-      CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid,
-                   bool detectMissingValues = false, double missingValue = 0.0);
+      CClientToModelStoreFilter(CGarbageCollector& gc, CField* field);
 
       /*!
        * Accesses the filter storage and retuns the packet corresponding
@@ -81,13 +81,14 @@ namespace xios
       void virtual onInputReady(std::vector<CDataPacketPtr> data);
 
     private:
-      CGarbageCollector& gc; //!< The garbage collector associated to the filter
-      CContext* context; //!< The context to which the data belongs
-      CGrid* grid; //!< The grid attached to the data the filter can accept
-      const bool detectMissingValues; //!< Whether missing values should be detected
-      const double missingValue; //!< The value to use to replace missing values
-      std::map<Time, CDataPacketPtr> packets; //<! The stored packets
-  }; // class CStoreFilter
+      CGarbageCollector& gc_; //!< The garbage collector associated to the filter
+      CContext* context_; //!< The context to which the data belongs
+      CGrid* grid_; //!< The grid attached to the data the filter can accept
+      bool detectMissingValues_; //!< Whether missing values should be detected
+      double missingValue_; //!< The value to use to replace missing values
+      bool hasMissingValue_ ;
+      std::map<Time, CDataPacketPtr> packets_; //<! The stored packets
+  }; // class CClientToModelStoreFilter
 } // namespace xios
 
 #endif //__XIOS_CStoreFilter__

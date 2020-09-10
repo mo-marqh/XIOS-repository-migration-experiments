@@ -31,7 +31,8 @@ namespace xios
      *
      * \return a deep copy of the packet
      */
-    CDataPacket* copy() const {
+    CDataPacket* copy() const 
+    {
       CDataPacket* p = new CDataPacket;
       p->data.resize(data.shape());
       p->data = data;

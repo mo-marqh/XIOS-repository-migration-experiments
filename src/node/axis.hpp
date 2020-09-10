@@ -17,6 +17,10 @@
 #include "transformation_enum.hpp"
 #include "element.hpp"
 #include "local_connector.hpp"
+#include "scatterer_connector.hpp"
+#include "gatherer_connector.hpp"
+#include "distribution_type.hpp"
+
 
 namespace xios {
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -49,7 +53,9 @@ namespace xios {
            EVENT_ID_DISTRIBUTED_VALUE,
            EVENT_ID_NON_DISTRIBUTED_VALUE,
            EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES,
-           EVENT_ID_DISTRIBUTED_ATTRIBUTES
+           EVENT_ID_DISTRIBUTED_ATTRIBUTES,
+           EVENT_ID_AXIS_DISTRIBUTION,
+           EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE
          } ;
 
       public:
@@ -163,13 +169,13 @@ namespace xios {
          
 
          void sendNonDistributedAttributes(CContextClient* client, const string& axisId="");
-         void sendDistributedAttributes(CContextClient* client, const string& axisId="");
+         void sendDistributedAttributes_old(CContextClient* client, const string& axisId="");
 
          static void recvNonDistributedAttributes(CEventServer& event);
-         static void recvDistributedAttributes(CEventServer& event);
+         static void recvDistributedAttributes_old(CEventServer& event);
          static void recvDistributionAttribute(CEventServer& event);
          void recvNonDistributedAttributes(int rank, CBufferIn& buffer);
-         void recvDistributedAttributes(vector<int>& rank, vector<CBufferIn*> buffers);
+         void recvDistributedAttributes_old(vector<int>& rank, vector<CBufferIn*> buffers);
          void recvDistributionAttribute(CBufferIn& buffer);
 
          void setTransformations(const TransMapTypes&);
@@ -224,6 +230,9 @@ namespace xios {
          static bool dummyTransformationMapList_;
 
 
+       //////////////////////////////////////////////////////////////////////////////////////
+       //  this part is related to distribution, element definition, views and connectors  //
+       //////////////////////////////////////////////////////////////////////////////////////
          
         private:
          CLocalElement* localElement_ = nullptr ;
@@ -241,6 +250,32 @@ namespace xios {
          void computeModelToWorkflowConnector(void)  ;
         public:
          CLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_ ;}
+       
+       public:
+         void computeRemoteElement(CContextClient* client, EDistributionType) ;
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& axisId="") ;
+
+         static void recvAxisDistribution(CEventServer& event) ;
+         void receivedAxisDistribution(CEventServer& event, int phasis) ;
+
+         void sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector, const string& axisId) ;
+         static void recvDistributedAttributes(CEventServer& event) ;
+         void recvDistributedAttributes(CEventServer& event, const string& type) ;
+       private:
+         map<CContextClient*, CDistributedElement*> remoteElement_ ;
+       public: 
+         CDistributedElement* getRemoteElement(CContextClient* client) {return remoteElement_[client] ;}
+       private:
+         map<CContextClient*, CScattererConnector*> clientToServerConnector_ ;
+       public: 
+         CScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;}
+       private:
+         CGathererConnector*  gathererConnector_ ;
+         CGathererConnector* serverFromClientConnector_ ;
+         CDistributedElement* elementFrom_ ;
+       public:
+        CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
+
 
 
          DECLARE_REF_FUNC(Axis,axis)
