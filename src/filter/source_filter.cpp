@@ -138,7 +138,7 @@ namespace xios
           packet->data(idx) = nanValue;
       }
     }
-
+    if(CXios::isClient) buildGraph(packet);
     onOutputReady(packet);
   }
 
@@ -149,7 +149,7 @@ namespace xios
     CDataPacketPtr packet(new CDataPacket);
     packet->date = date;
     packet->timestamp = date;
-    packet->status = CDataPacket::END_OF_STREAM;
+    packet->status = CDataPacket::END_OF_STREAM; 
     onOutputReady(packet);
   }
 } // namespace xios
