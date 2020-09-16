@@ -184,7 +184,8 @@ CONTAINS
     INTEGER :: ni,nj,nk
     INTEGER :: i,j,k,xy,x,y,z,w
     DOUBLE PRECISION :: scale,dist
-    LOGICAL :: ierr,ok      
+    LOGICAL :: ok
+    INTEGER :: ierr      
 
     LOGICAL :: ok_field2D, ok_field3D, ok_pressure, ok_field2D_sub, ok_field3D_sub,ok_field3D_recv, ok_field3D_send
     LOGICAL :: ok_field_X, ok_field_Y, ok_field_XY, ok_field_Z, ok_field_XYZ, ok_field_XZ, ok_field_YZ
