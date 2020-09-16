@@ -13,6 +13,7 @@ namespace xios
      : COutputPin(gc, true)
     {
       CContext* context = CContext::getCurrent();
+      field_=field ;
       grid_= field-> getGrid();
 
       freqOp_ = field->freq_op ;

@@ -6,12 +6,13 @@
 namespace xios
 {
   class CField;
+  class CGrid ;
   class CContextClient ;
 
   /*!
    * A terminal filter which transmits the packets it receives to a field for writting in a file.
    */
-  class CServerToClientFilter : public CInputPin
+  class CServerToClientStoreFilter : public CInputPin
   {
     public:
       /*!
@@ -21,7 +22,7 @@ namespace xios
        * \param gc the associated garbage collector
        * \param field the associated field
        */
-      CServerToClientFilter(CGarbageCollector& gc, CField* field, CContextClient* client);
+      CServerToClientStoreFilter(CGarbageCollector& gc, CField* field, CContextClient* client);
 
       /*!
        * Tests if the filter must auto-trigger.
@@ -47,9 +48,11 @@ namespace xios
 
     private:
       CField* field_; //<! The associated field
+      CGrid* grid_; //<! The associated grid
       CContextClient* client_ ; //! the associated context client
       std::map<Time, CDataPacketPtr> packets; //<! The stored packets
-  }; // class CFileWriterFilter
+      int nStep_ = 0 ;
+  }; // class CServerToClientStoreFilter
 } // namespace xios
 
 #endif // XIOS_SERVER_TO_CLIENT_FILTER_HPP

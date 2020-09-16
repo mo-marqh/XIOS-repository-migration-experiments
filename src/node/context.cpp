@@ -1245,9 +1245,10 @@ namespace xios {
     {
       for(auto field : fileInField) 
       {
-        field->connectToServerInput(garbageCollector) ; // connect tFhe field to server filter
-        field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
+        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
+    // obsolete    field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
         field->sendFieldToInputFileServer() ;
+        fileInFields_.push_back(field) ;
       }
     }
 

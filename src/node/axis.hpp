@@ -276,7 +276,15 @@ namespace xios {
        public:
         CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
 
+       private:
+         CScattererConnector*  serverToClientConnector_ = nullptr ;
+       public: 
+         CScattererConnector* getServerToClientConnector(void) { return serverToClientConnector_ ;} 
 
+       private:
+          map<CContextClient*,CGathererConnector*>  clientFromServerConnector_  ;
+       public: 
+         CGathererConnector* getClientFromServerConnector(CContextClient* client) { return clientFromServerConnector_[client] ;} 
 
          DECLARE_REF_FUNC(Axis,axis)
    }; // class CAxis

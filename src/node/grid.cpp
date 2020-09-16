@@ -150,15 +150,21 @@ namespace xios {
         grid->axis_domain_order.resize(size);
         for (int i = 0; i < size; ++i)
         {
-          if (i < domains.size()) {
+          if (i < domains.size())
+          {
             grid->axis_domain_order(i) = 2;
-
+            grid->order_.push_back(2) ;
           }
-          else if ((scalars.size() < (size-nb)) < size) {
+          else if ((scalars.size() < (size-nb)) < size)
+          {
             grid->axis_domain_order(i) = 1;
+            grid->order_.push_back(1) ;
           }
           else
+          {
             grid->axis_domain_order(i) = 0;
+            grid->order_.push_back(0) ;
+          }
           ++nb;
         }
       }
@@ -166,6 +172,9 @@ namespace xios {
       {
         grid->axis_domain_order.resize(axisDomainOrder.numElements());
         grid->axis_domain_order = axisDomainOrder;
+        grid->order_.clear() ;
+        for(int i=0; i<axisDomainOrder.numElements();i++) grid->order_.push_back(axisDomainOrder(i)) ;
+
       }
 
  //     grid->solveElementsRefInheritance(true);
@@ -2662,6 +2671,7 @@ namespace xios {
     gridRemoteConnector.computeConnector() ;
     
     vector<CScattererConnector*> clientToServerConnectors ;
+    vector<CGathererConnector*>  clientFromServerConnectors ;
     for(int i=0 ; i<elements.size() ; i++)
     {
       if (elements[i].type==TYPE_DOMAIN) 
@@ -2670,6 +2680,7 @@ namespace xios {
          sendAddDomain(domain->getId(),client) ;
          domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
          clientToServerConnectors.push_back(domain->getClientToServerConnector(client)) ;
+         clientFromServerConnectors.push_back(domain->getClientFromServerConnector(client)) ;
       }
       else if (elements[i].type==TYPE_AXIS)
       {
@@ -2677,6 +2688,8 @@ namespace xios {
         sendAddAxis(axis->getId(),client) ;
         axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
         clientToServerConnectors.push_back(axis->getClientToServerConnector(client)) ;
+        clientFromServerConnectors.push_back(axis->getClientFromServerConnector(client)) ;
+
       }
       else if (elements[i].type==TYPE_SCALAR)
       {
@@ -2684,11 +2697,14 @@ namespace xios {
         sendAddScalar(scalar->getId(),client) ;
         scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
         clientToServerConnectors.push_back(scalar->getClientToServerConnector(client)) ;
+        clientFromServerConnectors.push_back(scalar->getClientFromServerConnector(client)) ;
       }
     }
     
     // compute the grid clientToServerConnector to send flux from client to servers
     clientToServerConnector_[client] = new CGridScattererConnector(clientToServerConnectors) ;
+    clientFromServerConnector_[client] = new CGridGathererConnector(clientFromServerConnectors) ;
+
 
   }
 
@@ -3308,6 +3324,18 @@ namespace xios {
     serverFromClientConnector_ = new CGridGathererConnector(connectors) ;
   }
 
+  void CGrid::computeServerToClientConnector(void)
+  {
+    vector<CScattererConnector*> connectors ;
+    for(auto& element : getElements())
+    {
+      if (element.type==TYPE_DOMAIN) connectors.push_back(element.domain->getServerToClientConnector()) ;
+      else if (element.type==TYPE_AXIS) connectors.push_back(element.axis->getServerToClientConnector()) ; 
+      else if (element.type==TYPE_SCALAR) connectors.push_back(element.scalar->getServerToClientConnector()) ; 
+    }
+    serverToClientConnector_ = new CGridScattererConnector(connectors) ;
+  }
+
   void CGrid::computeClientFromClientConnector(void)
   {
     vector<CGathererConnector*> connectors ;
@@ -3319,4 +3347,6 @@ namespace xios {
     }
     clientFromClientConnector_ = new CGridGathererConnector(connectors) ;
   }
+
+  
 } // namespace xios

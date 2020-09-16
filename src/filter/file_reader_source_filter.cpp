@@ -29,22 +29,22 @@ namespace xios
     packet->timestamp = timeStamp;
     packet->status = CDataPacket::NO_ERROR;
 
-    CArray<double,1> data ;
     if (!isInitialized_)  initialize() ;
     CField::EReadField readState = CField::RF_DATA;
-
     if ( nStepMax_==0 || (nStep_ >= nStepMax_ && !isCyclic_)) readState = CField::RF_EOF;
   
     if (CField::RF_EOF != readState)
     {
-      if (file_->isEmptyZone()) readData(data) ;
+      if (!file_->isEmptyZone()) readData(packet->data) ;
       else readState = CField::RF_NODATA;
     }
     nStep_++ ;
     
     if (readState == CField::RF_DATA) packet->status = CDataPacket::NO_ERROR;
     else packet->status = CDataPacket::END_OF_STREAM;
-            
+    
+    info(20)<<"Read data from file : FieldId "<<field_->getId()<<"  nStep "<<nStep_<<"  date : "<<packet->date<<endl ;
+           
     onOutputReady(packet);
   }
 
@@ -52,20 +52,22 @@ namespace xios
   {
     CContext* context = CContext::getCurrent();
     file_->initRead();
-    if (file_->isEmptyZone())
+    if (!file_->isEmptyZone())
     {      
       file_->checkReadFile();
       nStepMax_ = file_->getDataInput()->getFieldNbRecords(field_);
       nStep_ = 0 ;
     }
     MPI_Allreduce(MPI_IN_PLACE, &nStepMax_, 1, MPI_INT, MPI_MAX, context->getIntraComm());
+    isInitialized_=true;
   }
 
   void CFileReaderSourceFilter::readData(CArray<double,1>& data)
   {
     CGridLocalConnector*  connector = grid_->getFullToWorkflowConnector() ;
-    CArray<double,1> dataIn(connector->getDstSize()) ;
+    CArray<double,1> dataIn(connector->getSrcSize()) ;
     file_->getDataInput()->readFieldData(field_, nStep_%nStepMax_, dataIn);
+    data.resize(connector->getDstSize()) ;
     connector->transfer(dataIn, data) ; 
 
     if (hasScaleFactor_ || hasAddOffset_) data = data * scaleFactor_ + addOffset_; // possibility of optimization

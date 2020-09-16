@@ -22,6 +22,7 @@
 #include "client_from_client_source_filter.hpp"
 #include "client_from_server_source_filter.hpp"
 #include "client_to_model_store_filter.hpp"
+#include "server_to_client_store_filter.hpp"
 
 
 
@@ -202,7 +203,7 @@ namespace xios
         void recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
         
         void writeField(const CArray<double,1>& data);
-        bool sendReadDataRequest(const CDate& tsDataRequested, CContextClient* client);
+        bool sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
@@ -433,7 +434,7 @@ namespace xios
          std::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
 
          //! The terminal filter which send data from server to client
-         std::shared_ptr<CServerToClientFilter> serverToClientFilter_;
+         std::shared_ptr<CServerToClientStoreFilter> serverToClientStoreFilter_;
 
 
    }; // class CField

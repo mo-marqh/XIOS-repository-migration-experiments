@@ -67,7 +67,7 @@ namespace xios
       void sendToServer(const map<int, CArray<T,1>>& dataOut, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
       {
         list<CMessage> messages;
-        for(auto ranksData : dataOut)
+        for(auto& ranksData : dataOut)
         {
           int rank = ranksData.first ;
           auto& data = ranksData.second ;
@@ -77,8 +77,21 @@ namespace xios
           event.push(rank, nbSenders_[rank], messages.back());
         }
         client->sendEvent(event) ;
-      }
- 
+      } 
+      
+      void transfer(CContextClient* client, CEventClient& event, const CMessage& messageHeader)
+      {
+        list<CMessage> messages;
+        for(auto& it : nbSenders_)
+        {
+          int rank = it.first ;
+          auto& nbSender = it.second ;
+
+          messages.push_back(CMessage(messageHeader));
+          event.push(rank, nbSenders_[rank], messages.back());
+        }
+        client->sendEvent(event) ;
+      }  
   };
 }
 

@@ -5,6 +5,7 @@
 
 #include "output_pin.hpp"
 #include "event_server.hpp"
+#include "context_client.hpp"
 #include "calendar_util.hpp"
 
 
@@ -37,14 +38,21 @@ namespace xios
       void streamData(CEventServer& event);
       bool isDataLate(void) ;
       bool isEOF() {return isEOF_ ;}
+      int  sendReadDataRequest(const CDate& tsDataRequested) ;
+      bool sendReadDataRequestIfNeeded(void) ;
+      void checkForLateData(void) ;
 
      private:
+      CField* field_;
       CGrid* grid_;             //!< The grid attached to the data the filter can accept
       CDuration freqOp_ ;
       CDuration offset_ ;
-
+      CContextClient* client_ = nullptr ;
       bool wasDataAlreadyReceived_= false ;
       CDate lastDateReceived_ ;
+      bool wasDataRequestedFromServer_ = false ;
+      CDate lastDataRequestedFromServer_ ;
+
       bool isEOF_ = false ;
       CDate dateEOF_ ;
   }; // class CClientFromServerSourceFilter

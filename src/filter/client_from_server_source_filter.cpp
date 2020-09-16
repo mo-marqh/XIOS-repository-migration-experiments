@@ -5,6 +5,9 @@
 #include "exception.hpp"
 #include "calendar_util.hpp"
 #include "context.hpp"
+#include "event_client.hpp"
+#include "timer.hpp"
+#include "tracer.hpp"
 #include <limits> 
 
 namespace xios
@@ -13,8 +16,10 @@ namespace xios
     : COutputPin(gc, true)
   {
     CContext* context = CContext::getCurrent();
+    field_ = field ;
     grid_= field->getGrid();
-    freqOp_ = field->fileIn_->output_freq ;
+    freqOp_ = field->getRelFile()->output_freq ;
+    client_= field->getRelFile()->getContextClient() ;
     lastDateReceived_ = context->getCalendar()->getInitDate();
     offset_ = field->freq_offset ;
   }
@@ -38,16 +43,114 @@ namespace xios
     {
       if (!wasEOF) dateEOF_ = lastDateReceived_;
       packet->status = CDataPacket::END_OF_STREAM;
+      info(20)<<"Receiv Data from server to client: FieldId : "<<field_->getId()<<endl ;
+      info(20)<<"lastDateReceived_ "<<lastDateReceived_<< "  date "<<packet->date<<"  ----> EOF"<<endl; 
+
     }
     else 
     {
-      grid_->getServerFromClientConnector()->transfer(event, packet->data) ;
+      CContextClient* client = event.getContextServer()->getAssociatedClient() ;
+      grid_->getClientFromServerConnector(client)->transfer(event, packet->data) ; // to avoid to make a search in map for corresponding client connector, 
+     
+      info(20)<<"Receiv Data from server to client: FieldId : "<<field_->getId()<<endl ;
+      info(20)<<"lastDateReceived_ "<<lastDateReceived_<< "  date "<<packet->date<<endl;                                                                                    // make a registration at initialization once
       packet->status = CDataPacket::NO_ERROR;
     }
     onOutputReady(packet);
 
   }
  
+  int CClientFromServerSourceFilter::sendReadDataRequest(const CDate& tsDataRequested)
+  {
+    CContext* context = CContext::getCurrent();
+    lastDataRequestedFromServer_ = tsDataRequested;
+
+    // No need to send the request if we are sure that we are already at EOF
+    if (!isEOF_ || context->getCalendar()->getCurrentDate() <= dateEOF_)
+    {
+      CEventClient event(field_->getType(), CField::EVENT_ID_READ_DATA);
+      if (client_->isServerLeader())
+      {
+        CMessage msg;
+        msg << field_->getId();
+        for(auto& rank : client_->getRanksServerLeader()) event.push(rank, 1, msg);
+        client_->sendEvent(event);
+      }
+      else client_->sendEvent(event);
+    }
+    else 
+    {
+      CDataPacketPtr packet(new CDataPacket);
+      packet->date = tsDataRequested;
+      packet->timestamp = packet->date ;
+      packet->status = CDataPacket::END_OF_STREAM;
+      onOutputReady(packet);
+    }
+
+    wasDataRequestedFromServer_ = true;
+
+    return !isEOF_;
+  }
+
+  bool CClientFromServerSourceFilter::sendReadDataRequestIfNeeded(void)
+  TRY
+  {
+    const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
+
+    bool dataRequested = false;
+
+    while (currentDate >= lastDataRequestedFromServer_)
+    {
+      info(20) << "currentDate : " << currentDate << endl ;
+      info(20) << "Field : " << field_->getId() << endl ;
+      info(20) << "lastDataRequestedFromServer : " << lastDataRequestedFromServer_ << endl ;
+      info(20) << "freqOp : " << freqOp_ << endl ;
+      info(20) << "lastDataRequestedFromServer + fileIn_->output_freq.getValue() : " << lastDataRequestedFromServer_ + freqOp_ << endl ;
+
+      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer_ + freqOp_);
+    }
+
+    return dataRequested;
+  }
+  CATCH
+
+  void CClientFromServerSourceFilter::checkForLateData(void)
+  TRY
+  {
+    CContext* context = CContext::getCurrent();
+    // Check if data previously requested has been received as expected
+    if (wasDataRequestedFromServer_ && ! isEOF_)
+    {
+      CTimer timer("CClientFromServerSourceFilter::checkForLateDataFromServer");
+      timer.resume();
+      traceOff() ;
+      timer.suspend();
+      
+      bool isLate;
+      do
+      {
+        isLate = isDataLate();
+        if (isLate)
+        {
+          timer.resume();
+          context->globalEventLoop();
+          timer.suspend();
+        }
+      }
+      while (isLate && timer.getCumulatedTime() < CXios::recvFieldTimeout);
+      timer.resume();
+      traceOn() ;
+      timer.suspend() ;
+
+
+      if (isLate)
+        ERROR("void CClientFromServerSourceFilter::checkForLateDataFromServer(void)",
+              << "Late data at timestep = " << context->getCalendar()->getCurrentDate());
+    }
+  }
+  CATCH
+
+  
   bool CClientFromServerSourceFilter::isDataLate(void)
   {
     bool isDataLate ;
@@ -59,4 +162,6 @@ namespace xios
     return isDataLate ; 
     
   }
+
+
 } // namespace xios

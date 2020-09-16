@@ -36,6 +36,7 @@ namespace xios
       bool isDataLate(void) ;
 
     private:
+      CField* field_ ;
       CGrid* grid_;             //!< The grid attached to the data the filter can accept
       CDuration freqOp_ ;
       CDuration offset_ ;

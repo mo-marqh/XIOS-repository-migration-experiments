@@ -2353,6 +2353,9 @@ namespace xios {
     message3<<serverDomainId<<3 ; 
     clientToServerConnector_[client]->transfer(maskIn,client,event3,message3) ; 
     
+    clientFromServerConnector_[client] = new CGathererConnector(clientToServerElement.getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW));
+    clientFromServerConnector_[client]->computeConnector() ;
+
   }
   CATCH
  
@@ -2420,6 +2423,11 @@ namespace xios {
  
       serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
       serverFromClientConnector_->computeConnector() ;
+      
+      serverToClientConnector_ = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), elementFrom_->getView(CElementView::FULL),
+                                                         context->getIntraComm()) ;
+      serverToClientConnector_->computeConnector() ;
+ 
     }
   }
   CATCH

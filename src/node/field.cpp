@@ -149,65 +149,6 @@ namespace xios
   }
   CATCH
 
-/* obsolete old interface
-  void CField::sendUpdateData(Time timeStamp, const CArray<double,1>& data, CContextClient* client)
-  TRY
-  {
-    CTimer::get("Field : send data").resume();
-    int receiverSize = client->serverSize;
-
-    CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
-
-    map<int, CArray<int,1> >::iterator it;
-    list<CMessage> list_msg;
-    list<CArray<double,1> > list_data;
-
-    if (!grid_->doGridHaveDataDistributed(client))
-    {
-       if (client->isServerLeader())
-       {
-          for (it = grid_->storeIndex_toSrv_[client].begin(); it != grid_->storeIndex_toSrv_[client].end(); it++)
-          {
-            int rank = it->first;
-            CArray<int,1>& index = it->second;
-
-            list_msg.push_back(CMessage());
-            list_data.push_back(CArray<double,1>(index.numElements()));
-
-            CArray<double,1>& data_tmp = list_data.back();
-            for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
-
-            list_msg.back() << getId() << timeStamp << data_tmp;
-            event.push(rank, 1, list_msg.back());
-          }
-          client->sendEvent(event);
-        }
-      else client->sendEvent(event);
-    }
-    else
-    {
-      for (it = grid_->storeIndex_toSrv_[client].begin(); it != grid_->storeIndex_toSrv_[client].end(); it++)
-      {
-        int rank = it->first;
-        CArray<int,1>& index = it->second;
-
-        list_msg.push_back(CMessage());
-        list_data.push_back(CArray<double,1>(index.numElements()));
-
-        CArray<double,1>& data_tmp = list_data.back();
-        for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
-
-        list_msg.back() << getId() << timeStamp << data_tmp;
-        event.push(rank, grid_->nbSenders_[receiverSize][rank], list_msg.back());
-      }
-      client->sendEvent(event);
-    }
-
-    CTimer::get("Field : send data").suspend();
-  }
-  CATCH_DUMP_ATTR
-*/
-
   void CField::sendUpdateData(Time timeStamp, const CArray<double,1>& data, CContextClient* client)
   TRY
   {
@@ -221,28 +162,7 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  /* old version obsolete
-  void CField::recvUpdateData(CEventServer& event)
-  TRY
-  {
-    std::map<int,CBufferIn*> rankBuffers;
-
-    list<CEventServer::SSubEvent>::iterator it;
-    string fieldId;
-    CTimer::get("Field : recv data").resume();
-    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
-    {
-      int rank = it->rank;
-      CBufferIn* buffer = it->buffer;
-      *buffer >> fieldId;
-      rankBuffers[rank] = buffer;
-    }
-    get(fieldId)->recvUpdateData(rankBuffers);
-    CTimer::get("Field : recv data").suspend();
-  }
-  CATCH
-*/
-
+  
   void CField::recvUpdateData(CEventServer& event)
   TRY
   {
@@ -259,142 +179,8 @@ namespace xios
     else serverFromClientSourceFilter_->streamData(event) ;
   }
   CATCH
-/*
-  void  CField::recvUpdateDataFromClient(CEventServer& event)
-  TRY
-  {
-    Time timeStamp ;
-    for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> timeStamp  ;
 
-    CArray<double,1> recvData ;
-    getGrid()->getServerFromClientConnector()->transfer(event,recvData) ;
-    this->setData(recvData);
-  }
-  CATCH
-*/
-
-/*  
-  void CField::recvUpdateDataFromCoupler(CEventServer& event)
-  TRY
-  {
-    CContext* context = CContext::getCurrent();
-    Time timeStamp ;
-    if (wasDataAlreadyReceivedFromServer)
-    {  
-      lastDataReceivedFromServer = lastDataReceivedFromServer + freq_op;
-    }
-    else
-    {
-      // unlikely to input from file server where data are received at ts=0
-      // for coupling, it would be after the first freq_op, because for now we don't have
-      // restart mecanism to send the value at ts=0. It must be changed in future
-      lastDataReceivedFromServer = context->getCalendar()->getInitDate();
-      wasDataAlreadyReceivedFromServer = true;
-    }
-
-    CArray<double,1> recvData ;
-    getGrid()->getServerFromClientConnector()->transfer(event,recvData) ;
-    clientSourceFilter->streamData(lastDataReceivedFromServer, recvData);
-
-  }
-  CATCH_DUMP_ATTR
-*/
-
-
-
-
-  /* old interface to be removed.... */
-  void  CField::recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers)
-  TRY
-  {
-    // ym to remove latter
-    /*
-    CContext* context = CContext::getCurrent();
-    Time timeStamp ;
-    size_t sizeData = 0;
-    if (0 == recvDataSrv.numElements())
-    {            
-      CArray<int,1>& storeClient = grid_->getStoreIndex_client();
-
-      // Gather all data from different clients      
-      recvDataSrv.resize(storeClient.numElements());
-      recvFoperationSrv = std::shared_ptr<func::CFunctor>(new func::CInstant(recvDataSrv));
-    }
-
-    CArray<double,1> recv_data_tmp(recvDataSrv.numElements());    
-    const CDate& currDate = context->getCalendar()->getCurrentDate();
-    CDuration offsetAllButMonth (freq_offset.getValue().year, 0 , freq_offset.getValue().day,
-                                 freq_offset.getValue().hour, freq_offset.getValue().minute,
-                                 freq_offset.getValue().second, freq_offset.getValue().timestep);
-    const CDate opeDate   = (last_operation_srv - offsetAllButMonth + context->getCalendar()->getTimeStep())
-                             + freq_op + freq_operation_srv - freq_op - context->getCalendar()->getTimeStep() + offsetAllButMonth;
-
-    if (opeDate <= currDate)
-    {
-      
-      auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
-      for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
-      {
-        CArray<double,1> tmp;
-        CArray<size_t,1>& indexTmp = it->second;
-        *(rankBuffers[it->first]) >> timeStamp >> tmp;
-        for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
-      }
-    }
-*/
-    Time timeStamp ;
-    CArray<int,1>& storeClient = grid_->getStoreIndex_client(); // replace it with local size
-    CArray<double,1> recv_data_tmp(storeClient.numElements());
-    auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
-    for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
-    {
-      CArray<double,1> tmp;
-      CArray<size_t,1>& indexTmp = it->second;
-      *(rankBuffers[it->first]) >> timeStamp >> tmp;
-      for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
-    }
-
-    this->setData(recv_data_tmp);
-/*
-    // delete incomming flux for server only
-    recvFoperationSrv.reset() ;
-    recvDataSrv.reset() ;
-*/
-  }
-  CATCH_DUMP_ATTR
-
-  /* ym : old interface : to be removed...
-  void CField::writeUpdateData(const CArray<double,1>& data)
-  TRY
-  {
-    CContext* context = CContext::getCurrent();
-
-    const CDate& currDate = context->getCalendar()->getCurrentDate();
-    CDuration offsetAllButMonth (freq_offset.getValue().year, 0 , freq_offset.getValue().day,
-                                   freq_offset.getValue().hour, freq_offset.getValue().minute,
-                                   freq_offset.getValue().second, freq_offset.getValue().timestep);
-    const CDate opeDate   = (last_operation_srv - offsetAllButMonth + context->getCalendar()->getTimeStep())
-                              + freq_op + freq_operation_srv - freq_op - context->getCalendar()->getTimeStep() + offsetAllButMonth;
-    const CDate writeDate = last_Write_srv + freq_write_srv;
-
-    if (opeDate <= currDate)
-    {
-      (*recvFoperationSrv)(data);
-      last_operation_srv = currDate;
-    }
-
-    if (writeDate < (currDate + freq_operation_srv))
-    {
-      recvFoperationSrv->final();
-      last_Write_srv = writeDate;
-      grid_->computeWrittenIndex();
-      writeField();
-      lastlast_Write_srv = last_Write_srv;
-    }
-  }
-  CATCH_DUMP_ATTR
-  */
-
+  
   void CField::writeUpdateData(const CArray<double,1>& data)
   TRY
   {
@@ -433,36 +219,14 @@ namespace xios
     In the future, it can be called by level-1 servers
     \param [in] tsDataRequested timestamp when the call is made
   */
-  bool CField::sendReadDataRequest(const CDate& tsDataRequested, CContextClient* client)
+  bool CField::sendReadDataRequest(const CDate& tsDataRequested)
   TRY
   {
-    CContext* context = CContext::getCurrent();
-
-    lastDataRequestedFromServer = tsDataRequested;
-
-    // No need to send the request if we are sure that we are already at EOF
-    if (!isEOF || context->getCalendar()->getCurrentDate() <= dateEOF)
-    {
-      CEventClient event(getType(), EVENT_ID_READ_DATA);
-      if (client->isServerLeader())
-      {
-        CMessage msg;
-        msg << getId();
-        const std::list<int>& ranks = client->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-          event.push(*itRank, 1, msg);
-        client->sendEvent(event);
-      }
-      else client->sendEvent(event);
-    }
-    else serverSourceFilter->signalEndOfStream(tsDataRequested);
-
-    wasDataRequestedFromServer = true;
-
-    return !isEOF;
+    return clientFromServerSourceFilter_->sendReadDataRequest(tsDataRequested) ;
   }
   CATCH_DUMP_ATTR
-
+ 
+  
   /*!
   Send request new data read from file if need be, that is the current data is out-of-date.
   \return true if and only if some data was requested
@@ -470,23 +234,10 @@ namespace xios
   bool CField::sendReadDataRequestIfNeeded(void)
   TRY
   {
-    const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
-
-    bool dataRequested = false;
-
-    while (currentDate >= lastDataRequestedFromServer)
-    {
-      info(20) << "currentDate : " << currentDate << endl ;
-      info(20) << "lastDataRequestedFromServer : " << lastDataRequestedFromServer << endl ;
-      info(20) << "fileIn_->output_freq.getValue() : " << fileIn_->output_freq.getValue() << endl ;
-      info(20) << "lastDataRequestedFromServer + fileIn_->output_freq.getValue() : " << lastDataRequestedFromServer + fileIn_->output_freq << endl ;
-
-      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer + fileIn_->output_freq, fileIn_->getContextClient());
-    }
-
-    return dataRequested;
+    return clientFromServerSourceFilter_->sendReadDataRequestIfNeeded() ;
   }
   CATCH_DUMP_ATTR
+
 
   void CField::recvReadDataRequest(CEventServer& event)
   TRY
@@ -511,20 +262,6 @@ namespace xios
   }
   CATCH_DUMP_ATTR  
 
-/* old interface -> to remove
-  void CField::recvReadDataRequest(CContextServer* server)
-  TRY
-  {
-        
-    CArray<double,1> data ;
-    EReadField hasData = readField(data);
-    CDate date = CContext::getCurrent()->getCalendar()->getCurrentDate();
-    if (hasData == RF_DATA) fileServerReaderFilter_->streamData(date,data) ;
-    else fileServerReaderFilter_->signalEndOfStream(date) ;
-
-  }
-  CATCH_DUMP_ATTR
-*/
 
   void CField::sendUpdateDataServerToClient(bool isEOF, const CArray<double,1>& data, CContextClient* client)
   TRY
@@ -582,67 +319,7 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  /*!
-    Read field from a file.
-    A field is read with the distribution of data on the server side
-    \return State of field can be read from a file
-  */
-  // obsolete to remove
-  /*
-  CField::EReadField CField::readField(CArray<double,1>& data)
-  TRY
-  {
-    CContext* context = CContext::getCurrent();
-    grid_->computeWrittenIndex();
-    getRelFile()->initRead();
-    EReadField readState = RF_DATA;
-
-    if (!getRelFile()->isEmptyZone())
-    {      
-      if (grid_->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)      
-      {
-          CArray<int,1>& storeClient = grid_->getStoreIndex_client();          
-          data.resize(storeClient.numElements());          
-        
-        getRelFile()->checkReadFile();
-
-        if (!nstepMax)
-        {
-          nstepMax = getRelFile()->getDataInput()->getFieldNbRecords(CField::get(this));
-        }
-
-        this->incrementNStep();
-
-        if (getNStep() > nstepMax && (getRelFile()->cyclic.isEmpty() || !getRelFile()->cyclic) )
-          readState = RF_EOF;
-
-        if (RF_EOF != readState)
-          getRelFile()->getDataInput()->readFieldData(CField::get(this),data);
-      }
-    }
-    else
-    {
-      this->incrementNStep();
-      if (getNStep() > nstepMax && (getRelFile()->cyclic.isEmpty() || !getRelFile()->cyclic) )
-        readState = RF_EOF;
-      else
-        readState = RF_NODATA;
-
-      if (!nstepMaxRead) // This can be a bug if we try to read field from zero time record
-        readState = RF_NODATA;
-    }
-
-    if (!nstepMaxRead)
-    {
-       MPI_Allreduce(MPI_IN_PLACE, &nstepMax, 1, MPI_INT, MPI_MAX, context->intraComm_);
-       nstepMaxRead = true;
-    }
-
-    return readState;
-  }
-  CATCH_DUMP_ATTR
-  */
-
+  
   /*
     Receive read data from server.
     At the moment, this function is called in the client side.
@@ -654,10 +331,16 @@ namespace xios
   {
     string fieldId;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> fieldId  ;
-    get(fieldId)->recvReadDataReady(event);
+    get(fieldId)->receiveReadDataReady(event);
   }
   CATCH
 
+  void CField::receiveReadDataReady(CEventServer& event)
+  TRY
+  {
+    clientFromServerSourceFilter_->streamData(event) ;    
+  }
+  CATCH_DUMP_ATTR
 
   /* old interface to be removed ..*/
   void CField::recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers)
@@ -743,16 +426,6 @@ namespace xios
   CATCH_DUMP_ATTR
 
 
-
-  void CField::receiveReadDataReady(CEventServer& event)
-  TRY
-  {
-    clientFromServerSourceFilter_->streamData(event) ;    
-  }
-  CATCH_DUMP_ATTR
-
-
-
   void CField::checkForLateDataFromCoupler(void)
   TRY
   {
@@ -785,47 +458,14 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-
   void CField::checkForLateDataFromServer(void)
   TRY
   {
-    CContext* context = CContext::getCurrent();
-    // Check if data previously requested has been received as expected
-    if (wasDataRequestedFromServer && !clientFromServerSourceFilter_->isEOF())
-    {
-      CTimer timer("CField::checkForLateDataFromServer");
-      timer.resume();
-      traceOff() ;
-      timer.suspend();
-      
-      bool isDataLate;
-      do
-      {
-        isDataLate=clientFromServerSourceFilter_->isDataLate();
-        if (isDataLate)
-        {
-          timer.resume();
-
-//ym          context->checkBuffersAndListen();
-//ym            context->eventLoop();
-          context->globalEventLoop();
-
-          timer.suspend();
-        }
-      }
-      while (isDataLate && timer.getCumulatedTime() < CXios::recvFieldTimeout);
-      timer.resume();
-      traceOn() ;
-      timer.suspend() ;
-
-
-      if (isDataLate)
-        ERROR("void CField::checkForLateDataFromServer(void)",
-              << "Late data at timestep = " << context->getCalendar()->getCurrentDate());
-    }
+    clientFromServerSourceFilter_->checkForLateData() ;
   }
-  CATCH_DUMP_ATTR
-
+  CATCH_DUMP_ATTR 
+  
+  
   void CField::triggerLateField(void)
   TRY
   {
@@ -1507,14 +1147,9 @@ namespace xios
    */
   void CField::connectToServerInput(CGarbageCollector& gc)
   {
-    const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
-    const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
-
     checkTimeAttributes();
-    serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid_, true, false, freq_offset, true,
-                                                                          detectMissingValues, defaultValue));
-    //serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc,  grid_, false, false));
-    serverSourceFilter -> connectOutput(inputFilter,0) ;
+    clientFromServerSourceFilter_ = std::shared_ptr<CClientFromServerSourceFilter>(new CClientFromServerSourceFilter(gc,this)) ;
+    clientFromServerSourceFilter_ -> connectOutput(inputFilter,0) ;
   } 
 
   /*!
@@ -1560,7 +1195,7 @@ namespace xios
   void CField::connectToFileReader(CGarbageCollector& gc)
   {
     fileReaderSourceFilter_ = std::shared_ptr<CFileReaderSourceFilter>(new CFileReaderSourceFilter(gc, this));
-    instantDataFilter->connectOutput(inputFilter, 0);
+    fileReaderSourceFilter_->connectOutput(inputFilter, 0);
   }
 
 
@@ -1577,8 +1212,8 @@ namespace xios
  
   void CField::connectToServerToClient(CGarbageCollector& gc)
   {
-    serverToClientFilter_ = std::shared_ptr<CServerToClientFilter>(new CServerToClientFilter(gc, this, client));
-    instantDataFilter->connectOutput(serverToClientFilter_, 0);
+    serverToClientStoreFilter_ = std::shared_ptr<CServerToClientStoreFilter>(new CServerToClientStoreFilter(gc, this, client));
+    instantDataFilter->connectOutput(serverToClientStoreFilter_, 0);
   }
 
   /*!
@@ -2289,6 +1924,18 @@ namespace xios
     this->sendAddAllVariables(client);
   }
 
+  void CField::sendFieldToInputFileServer(void)
+  {
+    CContext::getCurrent()->sendContextToFileServer(client);
+    getRelFile()->sendFileToFileServer(client);
+    grid_->sendGridToFileServer(client);
+    read_access=true ; // not the best solution, but on server side, the field must be a starting point of the workflow
+                       // must be replace by a better solution when implementing filters for reading and send to client
+                       // on server side
+    this->sendAllAttributesToServer(client);
+    this->sendAddAllVariables(client);
+  }
+
   void CField::sendFieldToCouplerOut(void)
   {
     if (sendFieldToCouplerOut_done_) return ;
@@ -2339,21 +1986,6 @@ namespace xios
    }
    CATCH_DUMP_ATTR
 
-
-
-
-
-  void CField::sendFieldToInputFileServer(void)
-  {
-    CContext::getCurrent()->sendContextToFileServer(client);
-    getRelFile()->sendFileToFileServer(client);
-    grid_->sendGridToFileServer(client);
-    read_access=true ; // not the best solution, but on server side, the field must be a starting point of the workflow
-                       // must be replace by a better solution when implementing filters for reading and send to client
-                       // on server side
-    this->sendAllAttributesToServer(client);
-    this->sendAddAllVariables(client);
-  }
 
   void CField::sendAddAllVariables(CContextClient* client)
   TRY

@@ -348,13 +348,23 @@ namespace xios {
          map<CContextClient*, CScattererConnector*> clientToServerConnector_ ;
        public: 
          CScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;}
+       
        private:
          CGathererConnector*  gathererConnector_ ;
          CGathererConnector* serverFromClientConnector_ ;
          CDistributedElement* elementFrom_ ;
        public:
-        CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
+         CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
 
+       private:
+         CScattererConnector*  serverToClientConnector_ = nullptr ;
+       public: 
+         CScattererConnector* getServerToClientConnector(void) { return serverToClientConnector_ ;} 
+
+       private:
+         map<CContextClient*,CGathererConnector*>  clientFromServerConnector_  ;
+       public: 
+         CGathererConnector* getClientFromServerConnector(CContextClient* client) { return clientFromServerConnector_[client] ;}        
          
 
          DECLARE_REF_FUNC(Domain,domain)

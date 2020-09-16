@@ -295,8 +295,12 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     CDistributedElement scatteredElement(1,globalIndex) ;
-    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), 
+                                                               context->getIntraComm()) ;
     clientToServerConnector_[client] ->computeConnector() ;
+
+// need to be completed    
+
   }
 
 
