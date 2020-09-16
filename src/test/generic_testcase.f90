@@ -1933,14 +1933,14 @@ CONTAINS
     
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN
       CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, data_begin=-offset_i, &
-                              data_n=ni+2*offset_i, value=return_X_lon)
+                              data_n=ni+2*offset_i, value=return_X_lon, mask=return_X_mask)
 !      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, data_index=return_X_index,&
 !                               data_n=ni+2*offset_i,  value=return_X_lon)
     ENDIF
 
     IF (xios_is_valid_axis(TRIM(domain_id)//"_Y")) THEN    
       CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, data_begin=-offset_j, &
-                              data_n=nj+2*offset_j, value=return_Y_lat)
+                              data_n=nj+2*offset_j, value=return_Y_lat, mask=return_Y_mask)
 !      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, data_index=return_Y_index, &
 !                               data_n=nj+2*offset_j, value=return_Y_lat)
     ENDIF
