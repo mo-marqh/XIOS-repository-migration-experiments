@@ -1,16 +1,17 @@
-#ifndef __XIOS_CFileServerWriterFilter__
-#define __XIOS_CFileServerWriterFilter__
+#ifndef __XIOS_CLIENT_TO_SERVER_STORE_FILTER__
+#define __XIOS_CLIENT_TO_SERVER_STORE_FILTER__
 
 #include "input_pin.hpp"
 
 namespace xios
 {
   class CField;
+  class CContextClient ;
 
   /*!
-   * A terminal filter which writes the packets it receives in a file.
+   * A terminal filter which transmits the packets it receives to a field for writting in a file.
    */
-  class CFileServerWriterFilter : public CInputPin
+  class CClientToServerStoreFilter : public CInputPin
   {
     public:
       /*!
@@ -20,7 +21,7 @@ namespace xios
        * \param gc the associated garbage collector
        * \param field the associated field
        */
-      CFileServerWriterFilter(CGarbageCollector& gc, CField* field);
+      CClientToServerStoreFilter(CGarbageCollector& gc, CField* field, CContextClient* client);
 
       /*!
        * Tests if the filter must auto-trigger.
@@ -45,9 +46,9 @@ namespace xios
       void virtual onInputReady(std::vector<CDataPacketPtr> data);
 
     private:
-      CField* field; //<! The associated field
-      std::map<Time, CDataPacketPtr> packets; //<! The stored packets
-  }; // class CFileServerWriterFilter
+      CField* field_; //<! The associated field
+      CContextClient* client_ ; //! the associated context client
+  }; // class CClientToServerStoreFilter
 } // namespace xios
 
-#endif //__XIOS_CFileServerWriterFilter__
+#endif //__XIOS_CLIENT_TO_SERVER_STORE_FILTER__

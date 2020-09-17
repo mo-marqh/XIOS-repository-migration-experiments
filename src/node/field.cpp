@@ -149,20 +149,7 @@ namespace xios
   }
   CATCH
 
-  void CField::sendUpdateData(Time timeStamp, const CArray<double,1>& data, CContextClient* client)
-  TRY
-  {
-    CTimer::get("Field : send data").resume();
-    CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
-    CMessage message ;
 
-    message<<getId() << timeStamp ;
-    this->getGrid()->getClientToServerConnector(client)->transfer(data, client, event, message) ;
-    CTimer::get("Field : send data").suspend();
-  }
-  CATCH_DUMP_ATTR
-
-  
   void CField::recvUpdateData(CEventServer& event)
   TRY
   {
@@ -262,63 +249,6 @@ namespace xios
   }
   CATCH_DUMP_ATTR  
 
-
-  void CField::sendUpdateDataServerToClient(bool isEOF, const CArray<double,1>& data, CContextClient* client)
-  TRY
-  {
-    CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
-    std::list<CMessage> msgs;
-    if (!grid_->doGridHaveDataDistributed(client))
-    {
-       if (client->isServerLeader())
-       {
-          if (0 != data.numElements())
-          {            
-            const std::list<int>& ranks = client->getRanksServerLeader();
-            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-            {
-              msgs.push_back(CMessage());
-              CMessage& msg = msgs.back();
-              msg << getId();
-              
-              if (isEOF)  msg << int(-1);
-              else msg << getNStep() - 1 << data;
-         
-              event.push(*itRank, 1, msg);
-            }
-          }
-          client->sendEvent(event);
-       }
-       else
-       {
-          client->sendEvent(event);
-       }
-    }
-    else
-    {
-      auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
-      for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
-      {
-        
-
-        msgs.push_back(CMessage());
-        CMessage& msg = msgs.back();
-        msg << getId();
-        if (isEOF) msg << int(-1);
-        else 
-        {
-          CArray<size_t,1>& indexTmp = it->second;
-          CArray<double,1> tmp(indexTmp.numElements());
-          for (int idx = 0; idx < indexTmp.numElements(); ++idx) tmp(idx) = data(indexTmp(idx));
-          msg << getNStep() - 1 << tmp;
-        }
-        event.push(it->first, grid_->getNbReadSenders(client)[it->first], msg);
-      }
-      client->sendEvent(event);
-    }
-  }
-  CATCH_DUMP_ATTR
-
   
   /*
     Receive read data from server.
@@ -343,6 +273,7 @@ namespace xios
   CATCH_DUMP_ATTR
 
   /* old interface to be removed ..*/
+/*
   void CField::recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers)
   TRY
   {
@@ -377,7 +308,7 @@ namespace xios
     
   }
   CATCH_DUMP_ATTR
- 
+*/ 
 
   /*!
     Receive read data from server
@@ -385,6 +316,7 @@ namespace xios
     \param [in] buffers buffers containing read data
   */
   // old interface to remove 
+/*
   void CField::recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers)
   TRY
   {
@@ -424,7 +356,7 @@ namespace xios
       serverSourceFilter->streamDataFromServer(lastDataReceivedFromServer, data);
   }
   CATCH_DUMP_ATTR
-
+*/
 
   void CField::checkForLateDataFromCoupler(void)
   TRY
@@ -1099,16 +1031,16 @@ namespace xios
   void CField::connectToFileServer(CGarbageCollector& gc)
   {
     // insert temporal filter before sending to files
-    fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, client));
+    clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client));
     // insert temporal filter before sending to files
-    getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(fileWriterFilter, 0);
+    getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(clientToServerStoreFilter_, 0);
   } 
 
   void CField::connectToCouplerOut(CGarbageCollector& gc)
   {
     // insert temporal filter before sending to files
-    fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this, client));
-    instantDataFilter->connectOutput(fileWriterFilter, 0);
+    clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client));
+    instantDataFilter->connectOutput(clientToServerStoreFilter_, 0);
   } 
 
   /*!
@@ -1185,8 +1117,8 @@ namespace xios
    */
   void CField::connectToFileWriter(CGarbageCollector& gc)
   {
-    fileServerWriterFilter = std::shared_ptr<CFileServerWriterFilter>(new CFileServerWriterFilter(gc, this));
-    instantDataFilter->connectOutput(fileServerWriterFilter, 0);
+    fileWriterStoreFilter_ = std::shared_ptr<CFileWriterStoreFilter>(new CFileWriterStoreFilter(gc, this));
+    instantDataFilter->connectOutput(fileWriterStoreFilter_, 0);
   } 
 
   /*!
@@ -1265,6 +1197,8 @@ namespace xios
   void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
   TRY
   {     
+   //  ==> before removing, solving dependency in spatial_transform_filter.cpp about auxilairy field
+/*
     if (!isReferenceSolvedAndTransformed) solveAllEnabledFieldsAndTransform();
     if (!isGridChecked) checkGridOfEnabledFields();
 
@@ -1365,6 +1299,7 @@ namespace xios
         }
       }
     }
+*/  
   }
   CATCH_DUMP_ATTR
 

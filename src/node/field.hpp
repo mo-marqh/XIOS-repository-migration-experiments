@@ -23,6 +23,11 @@
 #include "client_from_server_source_filter.hpp"
 #include "client_to_model_store_filter.hpp"
 #include "server_to_client_store_filter.hpp"
+#include "server_from_client_source_filter.hpp"
+#include "file_writer_store_filter.hpp"
+#include "client_to_server_store_filter.hpp"
+#include "file_reader_source_filter.hpp"
+
 
 
 
@@ -46,12 +51,7 @@ namespace xios
    class CGarbageCollector;
    class COutputPin;
    class CSourceFilter;
-   class CFileWriterFilter;
-   class CFileServerWriterFilter;
-   class CFileReaderSourceFilter;
    class CServerToClientFilter;
-   class CModelToClientSourceFilter;
-   class CServerFromClientSourceFilter;
    ///--------------------------------------------------------------
 
    // Declare/Define CFieldAttribute
@@ -404,7 +404,7 @@ namespace xios
          std::shared_ptr<COutputPin> selfReferenceFilter; // probably redondant with inputFilter
 
          //! The source filter for data provided by the client
-         std::shared_ptr<CSourceFilter> clientSourceFilter; // obsolete to remove
+//         std::shared_ptr<CSourceFilter> clientSourceFilter; // obsolete to remove
  
          //! The source filter for data provided by the model to enter the client workflow
          std::shared_ptr<CModelToClientSourceFilter> modelToClientSourceFilter_;
@@ -425,13 +425,13 @@ namespace xios
          std::shared_ptr<CFileReaderSourceFilter> fileReaderSourceFilter_;
 
          //! The source filter for data provided by the server
-         std::shared_ptr<CSourceFilter> serverSourceFilter; // obsolete to remove
+//         std::shared_ptr<CSourceFilter> serverSourceFilter; // obsolete to remove
         
-         //! The terminal filter which writes the data to file
-         std::shared_ptr<CFileWriterFilter> fileWriterFilter;
+         //! The terminal filter which send data to server for writing
+         std::shared_ptr<CClientToServerStoreFilter> clientToServerStoreFilter_;
         
          //! The terminal filter which writes data to file
-         std::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
+         std::shared_ptr<CFileWriterStoreFilter> fileWriterStoreFilter_;
 
          //! The terminal filter which send data from server to client
          std::shared_ptr<CServerToClientStoreFilter> serverToClientStoreFilter_;

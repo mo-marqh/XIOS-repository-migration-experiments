@@ -1,5 +1,5 @@
-#ifndef __XIOS_FILE_READER_SOURCE_FILTER__
-#define __XIOS_FILE_READER_SOURCE_FILTER__
+#ifndef  __XIOS_FILE_READER_SOURCE_FILTER_HPP__
+#define  __XIOS_FILE_READER_SOURCE_FILTER_HPP__
 
 #include "output_pin.hpp"
 
@@ -51,4 +51,4 @@ namespace xios
   }; // class CFileReaderSourceFilter
 } // namespace xios
 
-#endif // __XIOS_FILE_READER_SOURCE_FILTER__
+#endif //  __XIOS_FILE_READER_SOURCE_FILTER_HPP__
