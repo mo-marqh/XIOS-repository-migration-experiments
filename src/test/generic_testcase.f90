@@ -33,6 +33,7 @@ PROGRAM generic_testcase
     CHARACTER(len_str)  :: init_field2D=""
     DOUBLE PRECISION    :: pressure_factor
     LOGICAL :: domain_mask
+    CHARACTER(len_str) :: domain_mask_type="cross"
     LOGICAL :: axis_mask
     LOGICAL :: mask3d
     INTEGER             :: field_sub_freq 
@@ -754,6 +755,7 @@ CONTAINS
     IF (.NOT. xios_getvar(prefix//"timestep", params%timestep) )         params%timestep="1h"
     IF (.NOT. xios_getvar(prefix//"domain", params%domain) )             params%domain="lmdz"
     IF (.NOT. xios_getvar(prefix//"domain_mask", params%domain_mask) )   params%domain_mask=.FALSE.
+    IF (.NOT. xios_getvar(prefix//"domain_mask_type", params%domain_mask_type) )   params%domain_mask_type="cross"
     IF (.NOT. xios_getvar(prefix//"axis", params%axis) )                 params%axis="pressure"
     IF (.NOT. xios_getvar(prefix//"axis_mask", params%axis_mask) )       params%axis_mask=.FALSE.
     IF (.NOT. xios_getvar(prefix//"ni", params%ni) )                     params%ni=36
@@ -1938,8 +1940,12 @@ CONTAINS
 
      mask(:)=.TRUE.
      IF (params%domain_mask) THEN
-       WHERE (lon(:)-2*lat(:)>-10 .AND. lon(:)-2*lat(:) <10) mask(:)=.FALSE. 
-       WHERE (2*lat(:)+lon(:)>-10 .AND. 2*lat(:)+lon(:)<10) mask(:)=.FALSE. 
+       IF (params%domain_mask_type=="cross") THEN
+         WHERE (lon(:)-2*lat(:)>-10 .AND. lon(:)-2*lat(:) <10) mask(:)=.FALSE. 
+         WHERE (2*lat(:)+lon(:)>-10 .AND. 2*lat(:)+lon(:)<10) mask(:)=.FALSE.
+       ELSE IF (params%domain_mask_type=="latitude_band") THEN
+         WHERE (lat(:)>-30 .AND. lat(:)<30) mask(:)=.FALSE.
+      ENDIF 
      ENDIF
 
   END SUBROUTINE set_domain_mask

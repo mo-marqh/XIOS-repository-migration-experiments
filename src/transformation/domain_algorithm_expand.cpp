@@ -258,10 +258,20 @@ TRY
   CArray<int,1> data_i_index_dst_full(newNbLocalDst);
   CArray<int,1> data_j_index_dst_full(newNbLocalDst);
 
-  domainDestination->lonvalue.resizeAndPreserve(newNbLocalDst);
-  domainDestination->latvalue.resizeAndPreserve(newNbLocalDst);
-  domainDestination->bounds_lon_1d.resizeAndPreserve(nVertex, newNbLocalDst);
-  domainDestination->bounds_lat_1d.resizeAndPreserve(nVertex, newNbLocalDst);
+  if (newNbLocalDst==0)
+  {
+    domainDestination->lonvalue.resize(newNbLocalDst);
+    domainDestination->latvalue.resize(newNbLocalDst);
+    domainDestination->bounds_lon_1d.resize(nVertex, newNbLocalDst);
+    domainDestination->bounds_lat_1d.resize(nVertex, newNbLocalDst);
+  }
+  else 
+  {
+    domainDestination->lonvalue.resizeAndPreserve(newNbLocalDst);
+    domainDestination->latvalue.resizeAndPreserve(newNbLocalDst);
+    domainDestination->bounds_lon_1d.resizeAndPreserve(nVertex, newNbLocalDst);
+    domainDestination->bounds_lat_1d.resizeAndPreserve(nVertex, newNbLocalDst);
+  }
   CArray<double,1>& lon_dst   = domainDestination->lonvalue;
   CArray<double,1>& lat_dst   = domainDestination->latvalue;
   CArray<double,2>& bounds_lon_dst = domainDestination->bounds_lon_1d;
@@ -531,13 +541,26 @@ TRY
   int newNbLocalDst = nbNeighbor + oldNbLocal;
   int nVertex       = bounds_lon_dst.shape()[0];
 
-  mask_1d_dst.resizeAndPreserve(newNbLocalDst);
-  i_index_dst.resizeAndPreserve(newNbLocalDst);
-  j_index_dst.resizeAndPreserve(newNbLocalDst);
-  lon_dst.resizeAndPreserve(newNbLocalDst);
-  lat_dst.resizeAndPreserve(newNbLocalDst);
-  bounds_lon_dst.resizeAndPreserve(nVertex, newNbLocalDst);
-  bounds_lat_dst.resizeAndPreserve(nVertex, newNbLocalDst);
+  if (newNbLocalDst==0)
+  {
+    mask_1d_dst.resize(newNbLocalDst);
+    i_index_dst.resize(newNbLocalDst);
+    j_index_dst.resize(newNbLocalDst);
+    lon_dst.resize(newNbLocalDst);
+    lat_dst.resize(newNbLocalDst);
+    bounds_lon_dst.resize(nVertex, newNbLocalDst);
+    bounds_lat_dst.resize(nVertex, newNbLocalDst);
+  }
+  else
+  {
+    mask_1d_dst.resizeAndPreserve(newNbLocalDst);
+    i_index_dst.resizeAndPreserve(newNbLocalDst);
+    j_index_dst.resizeAndPreserve(newNbLocalDst);
+    lon_dst.resizeAndPreserve(newNbLocalDst);
+    lat_dst.resizeAndPreserve(newNbLocalDst);
+    bounds_lon_dst.resizeAndPreserve(nVertex, newNbLocalDst);
+    bounds_lat_dst.resizeAndPreserve(nVertex, newNbLocalDst);
+  }
   CArray<int,1> data_i_index_dst_full(newNbLocalDst);
   data_i_index_dst_full(Range(0,oldNbLocal-1)) = data_i_index_src_full;
   data_i_index_dst_full(Range(oldNbLocal,newNbLocalDst-1)) = -1;

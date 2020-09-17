@@ -42,7 +42,8 @@ namespace xios
               pos++ ;
             }
           }
-          globalIndView.resizeAndPreserve(pos) ;
+          if (pos==0) globalIndView.resize(pos) ;
+          else globalIndView.resizeAndPreserve(pos) ;
       }
     }   
 

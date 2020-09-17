@@ -33,7 +33,8 @@ namespace xios
           pos++ ;
         }
       }
-      globalIndexView.resizeAndPreserve(pos) ;
+      if(pos==0) globalIndexView.resize(pos) ;
+      else globalIndexView.resizeAndPreserve(pos) ;
     }    
 
     void getGlobalIndex(vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, CLocalView** localView, int pos)

@@ -28,7 +28,8 @@ namespace xios
       int pos=0 ;
       for(int i=0 ; i < size ; i++)
         if (mask(i)) { index(pos) = i ; pos++ ; }
-      index.resizeAndPreserve(pos) ;
+      if (pos==0) index.resize(pos) ;
+      else index.resizeAndPreserve(pos) ;
       size_[rank] = pos ;
     }
   } 

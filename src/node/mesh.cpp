@@ -538,7 +538,8 @@ namespace xios {
             }
           }
         }
-        nodeHashList.resizeAndPreserve(nbHash);
+        if (nbHash==0) nodeHashList.resize(nbHash);
+        else nodeHashList.resizeAndPreserve(nbHash);
 
         // (2.2) Generating global node indexes
         // The ownership criterion: priority of the process of smaller index
@@ -985,7 +986,8 @@ namespace xios {
             }
           }
         }
-        edgeHashList.resizeAndPreserve(nEdgeHash);
+        if (nEdgeHash==0) edgeHashList.resize(nEdgeHash);
+        else edgeHashList.resizeAndPreserve(nEdgeHash);
 
         // (2.3) Generating global edge indexes
         // The ownership criterion: priority of the process with smaller rank
@@ -1326,7 +1328,8 @@ namespace xios {
             }
           }
         }
-        nodeIdxList.resizeAndPreserve(nIdx);
+        if (nIdx==0) nodeIdxList.resize(nIdx);
+        else nodeIdxList.resizeAndPreserve(nIdx);
         CClientClientDHTSizet dhtNodeIdx(nodeIdx2Idx, comm);
         dhtNodeIdx.computeIndexInfoMapping(nodeIdxList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeIdx2IdxGlo = dhtNodeIdx.getInfoIndexMap();
@@ -1376,7 +1379,8 @@ namespace xios {
             face_nodes(nv1,nf) = nodeIdxGlo1;
           }
         }
-        edgeHashList.resizeAndPreserve(nEdgeHash);
+        if (nEdgeHash==0) edgeHashList.resize(nEdgeHash);
+        else edgeHashList.resizeAndPreserve(nEdgeHash);
 
         // (3.4) Generating global edge indexes
         // Maps generated in this step are:
@@ -1753,7 +1757,8 @@ namespace xios {
         }
       }
     }
-    nghbFaces.resizeAndPreserve(2, nbNghb);
+    if (nbNghb==0) nghbFaces.resize(2, nbNghb);
+    else nghbFaces.resizeAndPreserve(2, nbNghb);
   } // getGloNghbFacesNodeType
 
   ///----------------------------------------------------------------
@@ -1805,7 +1810,8 @@ namespace xios {
         }
       }
     }
-    nodeHashList.resizeAndPreserve(iIdx);
+    if (iIdx==0) nodeHashList.resize(iIdx);
+    else nodeHashList.resizeAndPreserve(iIdx);
 
     // (1.2) Generating node indexes
     // The ownership criterion: priority of the process holding the smaller index
@@ -1933,7 +1939,8 @@ namespace xios {
         } // nodeIdxMin1 != nodeIdxMin2
       }
     }
-    nghbFaces.resizeAndPreserve(2, nbNghb);
+    if (nbNghb==0) nghbFaces.resize(2, nbNghb);
+    else nghbFaces.resizeAndPreserve(2, nbNghb);
   } // getGloNghbFacesEdgeType
 
   ///----------------------------------------------------------------
