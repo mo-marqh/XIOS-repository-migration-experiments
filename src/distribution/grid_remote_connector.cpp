@@ -1,13 +1,14 @@
 #include "grid_remote_connector.hpp"
 #include "client_client_dht_template.hpp"
+#include "mpi.hpp"
 
 
 
 namespace xios
 {
   
-  CGridRemoteConnector::CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, MPI_Comm localComm) 
-                       : srcView_(srcView), dstView_(dstView), localComm_(localComm) 
+  CGridRemoteConnector::CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, MPI_Comm localComm, int remoteSize) 
+                       : srcView_(srcView), dstView_(dstView), localComm_(localComm), remoteSize_(remoteSize) 
   {}
 
   void CGridRemoteConnector::computeConnector(void)
@@ -73,31 +74,10 @@ namespace xios
     }
 
     CClientClientDHTTemplate<int> dataRanks(dataInfo, localComm_) ;
-/*
-    CClientClientDHTTemplate<int>::Index2VectorInfoTypeMap info ; // info map
-        
-// generate list of global index for dst view, and insert it into DHT map
-    int nDst = dstView_.size() ;
-    vector<size_t> dstGlobalIndex ;
-    vector<size_t> dstSliceSize(nDst) ;
-    dstSliceSize[nDst-1] = 1 ;  
-    for(int i=nDst-2; i>=0; i--)  dstSliceSize[i] = dstView_[i+1]->getGlobalSize()*dstSliceSize[i+1] ;
-    for(auto& ranks : dstView_[0]->getLocalSize())
-    {
-      dstGlobalIndex.clear() ;
-      int rank=ranks.first ;
-      size_t sliceIndex=0 ;
-      dstView_[nDst-1]->getGlobalIndex(rank, dstGlobalIndex, sliceIndex, dstSliceSize.data(), dstView_.data(), nDst-1) ;
-      for(auto globalIndex : dstGlobalIndex) info[globalIndex].push_back(rank) ; // insert into DHT
-    }
-    
-    CClientClientDHTTemplate<int> dataRanks(info, localComm_) ;
-*/    
+
     // generate list of global index for src view
     int nSrc = srcView_.size() ;
     vector<size_t> srcSliceSize(nSrc) ;
-//    srcSliceSize[nSrc-1] = 1 ;
-//    for(int i=nSrc-2; i>=0; i--)  srcSliceSize[i] = srcView_[i+1]->getGlobalSize()*srcSliceSize[i+1] ;
    
     srcSliceSize[0] = 1 ;  
     for(int i=1; i<nSrc; i++)  srcSliceSize[i] = srcView_[i-1]->getGlobalSize()*srcSliceSize[i-1] ;
@@ -111,9 +91,6 @@ namespace xios
     const auto& returnInfo = dataRanks.getInfoIndexMap() ;
 
     vector<map<int, set<size_t>>> elements(nSrc) ; // internal representation of elements composing the grid
-
-//    srcSliceSize[nSrc-1] = srcView_[nSrc-1]->getGlobalSize() ;
-//    for(int i=nSrc-2 ; i>=0 ; i--) srcSliceSize[i] = srcView_[i]->getGlobalSize()*srcSliceSize[i+1] ;
 
     for(auto& indRanks : returnInfo)
     {
@@ -142,6 +119,25 @@ namespace xios
         for (auto index : indGlo) { indGloArray(j) = index ; j++; }
       }
     }
+    
+    // So what about when there is some server that have no data to receive
+    // they must be inform they receive an event with no data.
+    // So find remote servers with no data, and one client will take in charge 
+    // that it receive global index with no data (0-size) 
+    vector<int> ranks(remoteSize_,0) ;
+    for(auto& it : elements_[0]) ranks[it.first] = 1 ;
+    MPI_Allreduce(MPI_IN_PLACE, ranks.data(), remoteSize_, MPI_INT, MPI_SUM, localComm_) ;
+    int commRank, commSize ;
+    MPI_Comm_rank(localComm_,&commRank) ;
+    MPI_Comm_size(localComm_,&commSize) ;
+    int pos=0 ;
+    for(int i=0; i<remoteSize_ ; i++)
+      if (ranks[i]==0)
+      {
+        if (pos%commSize==commRank) for(auto& element : elements_) element[i] = CArray<size_t,1>(0) ;
+        pos++ ;
+      }
   }
+
 
 }

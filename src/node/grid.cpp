@@ -2667,7 +2667,7 @@ namespace xios {
         localViews.push_back(scalar->getLocalView(CElementView::FULL)) ;
       }
     }
-    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm()) ;
+    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
     gridRemoteConnector.computeConnector() ;
     
     vector<CScattererConnector*> clientToServerConnectors ;
@@ -2753,7 +2753,7 @@ namespace xios {
         localViews.push_back(scalar->getLocalView(CElementView::FULL)) ;
       }
     }
-    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm()) ;
+    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
     gridRemoteConnector.computeConnector() ;
     
     vector<CScattererConnector*> clientToClientConnectors ;

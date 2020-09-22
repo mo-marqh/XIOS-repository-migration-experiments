@@ -2274,7 +2274,10 @@ namespace xios {
         auto& ranks=indexRanks.second ;
         for(int rank : ranks) vectGlobalIndex[rank].push_back(index) ;
       }
-      for(auto& vect : vectGlobalIndex ) globalIndex.emplace(vect.first, CArray<size_t,1>(vect.second.data(), shape(vect.second.size()),duplicateData)) ; 
+      for(auto& vect : vectGlobalIndex ) globalIndex.emplace(vect.first, CArray<size_t,1>(vect.second.data(), shape(vect.second.size()),duplicateData)) ;
+    // some servers receves no index (zeroIndex array) => root process take them into account.
+      if (context->getIntraCommRank()==0) 
+        for(auto& rank : zeroIndex) globalIndex[rank] = CArray<size_t,1>() ; 
     }
     else if (type==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
     {
@@ -2499,35 +2502,35 @@ namespace xios {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, value, 0.); 
       lonvalue_2d.resize(ni,nj) ;
-      lonvalue_2d=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
+      if (lonvalue_2d.numElements()>0) lonvalue_2d=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
     }
     else if (type=="lat")
     {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, value, 0.); 
       latvalue_2d.resize(ni,nj) ;
-      latvalue_2d=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
+      if (latvalue_2d.numElements()>0) latvalue_2d=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
     }
     else if (type=="boundslon")
     {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, nvertex, value, 0.); 
       bounds_lon_2d.resize(nvertex,ni,nj) ;
-      bounds_lon_2d=CArray<double,3>(value.dataFirst(),shape(nvertex,ni,nj),neverDeleteData) ; 
+      if (bounds_lon_2d.numElements()>0) bounds_lon_2d=CArray<double,3>(value.dataFirst(),shape(nvertex,ni,nj),neverDeleteData) ; 
     }
     else if (type=="boundslat")
     {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, nvertex, value, 0.); 
       bounds_lat_2d.resize(nvertex,ni,nj) ;
-      bounds_lat_2d=CArray<double,3>(value.dataFirst(),shape(nvertex,ni,nj),neverDeleteData) ; 
+      if (bounds_lat_2d.numElements()>0) bounds_lat_2d=CArray<double,3>(value.dataFirst(),shape(nvertex,ni,nj),neverDeleteData) ; 
     }
     else if (type=="area") 
     {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, value, 0.); 
       area.resize(ni,nj) ;
-      area=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
+      if (area.numElements()>0) area=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
     }
   }
   CATCH

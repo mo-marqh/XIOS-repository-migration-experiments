@@ -1839,7 +1839,7 @@ namespace xios {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, 2, value, 0.); 
       bounds.resize(2,n) ;
-      bounds=CArray<double,2>(bounds.dataFirst(),shape(2,n),neverDeleteData) ; 
+      if (bounds.numElements() > 0 ) bounds=CArray<double,2>(bounds.dataFirst(),shape(2,n),neverDeleteData) ; 
     }
     else if (type=="label")
     {
