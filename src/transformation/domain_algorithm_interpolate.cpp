@@ -127,6 +127,7 @@ TRY
   if (hasBoundSrc) nVertexSrc = domainSrc_->nvertex.getValue();
   CArray<double,2> boundsLonSrc(nVertexSrc,localDomainSrcSize);
   CArray<double,2> boundsLatSrc(nVertexSrc,localDomainSrcSize);
+  CArray<double,1> areaSrc;
 
   if (domainSrc_->hasPole) srcPole[2] = 1;
   if (hasBoundSrc)  // Suppose that domain source is curvilinear or unstructured
@@ -177,7 +178,18 @@ TRY
     nVertexSrc = constNVertex;
     domainSrc_->fillInRectilinearBoundLonLat(lon_g,lat_g, boundsLonSrc, boundsLatSrc);
   }
-
+  
+  if (domainSrc_->hasArea) 
+  {
+    areaSrc.resize(niSrc*njSrc);
+    for (int j = 0; j < njSrc; ++j)
+      for (int i = 0; i < niSrc; ++i)
+      {
+        int k = j * niSrc + i;
+        areaSrc(k) = domainSrc_->area(i,j);
+      }
+  }
+  
   std::map<int,std::vector<std::pair<int,double> > > interpMapValueNorthPole;
   std::map<int,std::vector<std::pair<int,double> > > interpMapValueSouthPole;
 
@@ -187,6 +199,7 @@ TRY
   if (hasBoundDest) nVertexDest = domainDest_->nvertex.getValue();
   CArray<double,2> boundsLonDest(nVertexDest,localDomainDestSize);
   CArray<double,2> boundsLatDest(nVertexDest,localDomainDestSize);
+  CArray<double,1> areaDest;
 
   if (domainDest_->hasPole) dstPole[2] = 1;
   if (hasBoundDest)
@@ -268,7 +281,18 @@ TRY
     nVertexDest = constNVertex;
     domainDest_->fillInRectilinearBoundLonLat(lon_g,lat_g, boundsLonDest, boundsLatDest);
   }
-
+ 
+  if (domainDest_->hasArea) 
+  {
+    areaDest.resize(niDest*njDest);
+    for (int j = 0; j < njDest; ++j)
+      for (int i = 0; i < niDest; ++i)
+      {
+        int k = j * niDest + i;
+        areaDest(k) = domainDest_->area(i,j);
+      }
+  }
+ 
 
 
   // Ok, now use mapper to calculate
@@ -328,7 +352,7 @@ TRY
         boundsLonSrcUnmasked(n,nSrcLocalUnmasked) = boundsLonSrc(n,idx) ;
         boundsLatSrcUnmasked(n,nSrcLocalUnmasked) = boundsLatSrc(n,idx) ;
       }
-      if (hasSrcArea) areaSrcUnmasked(nSrcLocalUnmasked) = domainSrc_->areavalue(idx)*srcAreaFactor ;
+      if (hasSrcArea) areaSrcUnmasked(nSrcLocalUnmasked) = areaSrc(idx)*srcAreaFactor ;
       globalSrcUnmasked[nSrcLocalUnmasked]=globalSrc[idx] ;
       ++nSrcLocalUnmasked ;
     }
@@ -357,7 +381,7 @@ TRY
         boundsLonDestUnmasked(n,nDstLocalUnmasked) = boundsLonDest(n,idx) ;
         boundsLatDestUnmasked(n,nDstLocalUnmasked) = boundsLatDest(n,idx) ;
       }
-      if (hasDstArea) areaDstUnmasked(nDstLocalUnmasked) = domainDest_->areavalue(idx)*dstAreaFactor ;
+      if (hasDstArea) areaDstUnmasked(nDstLocalUnmasked) = areaDest(idx)*dstAreaFactor ;
       globalDstUnmasked[nDstLocalUnmasked]=globalDst[idx] ;
       ++nDstLocalUnmasked ;
     }
