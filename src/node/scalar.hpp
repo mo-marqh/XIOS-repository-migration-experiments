@@ -40,11 +40,20 @@ namespace xios
          : public CObjectTemplate<CScalar>
          , public CScalarAttributes
       {
+           friend class CScalarGroup;
+
             /// typedef ///
             typedef CObjectTemplate<CScalar>   SuperClass;
             typedef CScalarAttributes SuperClassAttribute;
 
-            friend class CScalarGroup;
+         public:
+           enum EEventId
+           {
+             EVENT_ID_SCALAR_DISTRIBUTION,
+             EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE,
+           } ;
+           static bool dispatchEvent(CEventServer& event);      
+           
 
          public :
 
@@ -165,7 +174,13 @@ namespace xios
 
        public:
          void computeRemoteElement(CContextClient* client, EDistributionType) ;
-         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex) ;
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& scalarId="") ;
+         static void recvScalarDistribution(CEventServer& event) ;
+         void receivedScalarDistribution(CEventServer& event, int phasis) ;
+         void sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector, const string& scalarId) ;
+         static void recvDistributedAttributes(CEventServer& event) ;
+         void recvDistributedAttributes(CEventServer& event, const string& type) ;
+
        private:
          map<CContextClient*, CDistributedElement*> remoteElement_ ;
        public: 
@@ -178,6 +193,7 @@ namespace xios
        private:
          CGathererConnector*  gathererConnector_ ;
          CGathererConnector* serverFromClientConnector_ ;
+         CDistributedElement* elementFrom_ ;
        public:
         CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
 

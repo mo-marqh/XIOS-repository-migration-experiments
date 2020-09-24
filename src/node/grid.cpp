@@ -3265,8 +3265,10 @@ namespace xios {
   {
     std::vector<CDomain*> domainList = this->getDomains();
     std::vector<CAxis*> axisList = this->getAxis();
+    std::vector<CScalar*> scalarList = this->getScalars();
     auto domain=domainList.begin() ;
     auto axis=axisList.begin() ;
+    auto scalar=scalarList.begin() ;
     vector<CLocalElement*> elements;
     for(auto order : order_)
     {
@@ -3282,6 +3284,8 @@ namespace xios {
       }
       else if (order==0)
       { 
+        elements.push_back((*scalar)->getLocalElement());
+        scalar++ ;
       }
     }
     if (hasMask()) 
