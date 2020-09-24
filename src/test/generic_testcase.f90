@@ -32,8 +32,10 @@ PROGRAM generic_testcase
     INTEGER             :: nlev
     CHARACTER(len_str)  :: init_field2D=""
     DOUBLE PRECISION    :: pressure_factor
-    LOGICAL :: domain_mask
-    CHARACTER(len_str) :: domain_mask_type="cross"
+    LOGICAL             :: domain_mask 
+    CHARACTER(len_str)  :: domain_mask_type=""
+    LOGICAL             :: scalar_mask
+    CHARACTER(len_str) :: scalar_mask_type=""
     LOGICAL :: axis_mask
     LOGICAL :: mask3d
     INTEGER             :: field_sub_freq 
@@ -131,6 +133,7 @@ CONTAINS
     LOGICAL, POINTER          :: domain_mask(:)
     INTEGER, POINTER          :: domain_index(:)
     LOGICAL, POINTER          :: axis_mask(:)
+    LOGICAL                   :: scalar_mask
     INTEGER, POINTER          :: axis_index(:)
     DOUBLE PRECISION, POINTER :: ensemble_value(:)
     
@@ -150,6 +153,7 @@ CONTAINS
     DOUBLE PRECISION, POINTER :: fieldXY_init(:,:)
 
     DOUBLE PRECISION, POINTER :: field2D(:), other_field2D(:)
+    DOUBLE PRECISION          :: field0D, other_field0D
     DOUBLE PRECISION, POINTER :: field_X(:), other_field_X(:)
     DOUBLE PRECISION, POINTER :: field_Y(:), other_field_Y(:)
     DOUBLE PRECISION, POINTER :: field_Z(:), other_field_Z(:)
@@ -165,6 +169,7 @@ CONTAINS
     DOUBLE PRECISION, POINTER :: pressure(:,:), other_pressure(:,:)
 
     DOUBLE PRECISION, POINTER :: field2D_W(:,:), other_field2D_W(:,:)
+    DOUBLE PRECISION, POINTER :: field0D_W(:), other_field0D_W(:)
     DOUBLE PRECISION, POINTER :: field_XW(:,:), other_field_XW(:,:)
     DOUBLE PRECISION, POINTER :: field_YW(:,:), other_field_YW(:,:)
     DOUBLE PRECISION, POINTER :: field_ZW(:,:), other_field_ZW(:,:)
@@ -189,14 +194,14 @@ CONTAINS
     LOGICAL :: ok
     INTEGER :: ierr      
 
-    LOGICAL :: ok_field2D, ok_field3D, ok_pressure, ok_field2D_sub, ok_field3D_sub,ok_field3D_recv, ok_field3D_send
+    LOGICAL :: ok_field0D, ok_field2D, ok_field3D, ok_pressure, ok_field2D_sub, ok_field3D_sub,ok_field3D_recv, ok_field3D_send
     LOGICAL :: ok_field_X, ok_field_Y, ok_field_XY, ok_field_Z, ok_field_XYZ, ok_field_XZ, ok_field_YZ
-    LOGICAL :: ok_field2D_W, ok_field3D_W, ok_pressure_W, ok_field2D_sub_W, ok_field3D_sub_W,ok_field3D_recv_W, ok_field3D_send_W
+    LOGICAL :: ok_field0D_W, ok_field2D_W, ok_field3D_W, ok_pressure_W, ok_field2D_sub_W, ok_field3D_sub_W,ok_field3D_recv_W, ok_field3D_send_W
     LOGICAL :: ok_field_XW, ok_field_YW, ok_field_XYW, ok_field_ZW, ok_field_XYZW, ok_field_XZW, ok_field_YZW
 
-    LOGICAL :: ok_other_field2D, ok_other_field3D, ok_other_pressure, ok_other_field2D_sub, ok_other_field3D_sub,ok_other_field3D_recv, ok_other_field3D_send
+    LOGICAL :: ok_other_field0D, ok_other_field2D, ok_other_field3D, ok_other_pressure, ok_other_field2D_sub, ok_other_field3D_sub,ok_other_field3D_recv, ok_other_field3D_send
     LOGICAL :: ok_other_field_X, ok_other_field_Y, ok_other_field_XY, ok_other_field_Z, ok_other_field_XYZ, ok_other_field_XZ, ok_other_field_YZ
-    LOGICAL :: ok_other_field2D_W, ok_other_field3D_W, ok_other_pressure_W, ok_other_field2D_sub_W, ok_other_field3D_sub_W,ok_other_field3D_recv_W, ok_other_field3D_send_W
+    LOGICAL :: ok_other_field0D_W, ok_other_field2D_W, ok_other_field3D_W, ok_other_pressure_W, ok_other_field2D_sub_W, ok_other_field3D_sub_W,ok_other_field3D_recv_W, ok_other_field3D_send_W
     LOGICAL :: ok_other_field_XW, ok_other_field_YW, ok_other_field_XYW, ok_other_field_ZW, ok_other_field_XYZW, ok_other_field_XZW, ok_other_field_YZW
     
       !! XIOS Initialization (get the local communicator)
@@ -234,6 +239,7 @@ CONTAINS
                                                      Y_lon, Y_lat, Y_mask, Y_index)
                                                      
     CALL init_axis("axis", comm, params, axis_value, axis_mask, axis_index)
+    CALL init_scalar("scalar", comm, params,  scalar_mask)
     CALL init_ensemble("ensemble", comm, params, ensemble_value)
 
     CALL set_mask3d("grid3D",params, ni, nj, lon, lat , axis_value)
@@ -310,6 +316,7 @@ CONTAINS
     ALLOCATE(field_XYZW(0:x-1,0:y-1,0:z-1,0:w-1))
     ALLOCATE(field_XZW(0:x-1,0:z-1,0:w-1))
     ALLOCATE(field_YZW(0:y-1,0:z-1,0:w-1))
+    ALLOCATE(field0D_W(0:w-1))
     
 
 
@@ -366,6 +373,7 @@ CONTAINS
       ENDDO
     ENDDO
     
+    field0D=1
 
 
     field2D_W(:,0) = field2D(:)*(1+0.1*ensemble_value(0))
@@ -378,7 +386,7 @@ CONTAINS
     field_XYZW(:,:,:,0) = field_XYZ(:,:,:)*(1+0.1*ensemble_value(0))
     field_XZW(:,:,0) = field_XZ(:,:)*(1+0.1*ensemble_value(0))
     field_YZW(:,:,0) = field_YZ(:,:)*(1+0.1*ensemble_value(0))
-    
+    field0D_W(0) = field0D*(1+0.1*ensemble_value(0))
     
     ok_field2D=xios_is_valid_field("field2D") ;
     ok_field3D=xios_is_valid_field("field3D") ;
@@ -392,6 +400,7 @@ CONTAINS
     ok_field_XYZ=xios_is_valid_field("field_XYZ") ;
     ok_field_XZ=xios_is_valid_field("field_XZ") ;
     ok_field_YZ=xios_is_valid_field("field_YZ") ;
+    ok_field0D=xios_is_valid_field("field0D") ;
 
     ok_field2D_W=xios_is_valid_field("field2D_W") ;
     ok_field3D_W=xios_is_valid_field("field3D_W") ;
@@ -405,6 +414,7 @@ CONTAINS
     ok_field_XYZW=xios_is_valid_field("field_XYZW") ;
     ok_field_XZW=xios_is_valid_field("field_XZW") ;
     ok_field_YZW=xios_is_valid_field("field_YZW") ;
+    ok_field0D_W=xios_is_valid_field("field0D_W") ;
 
 
 
@@ -439,6 +449,7 @@ CONTAINS
                                                      Y_lon, Y_lat, Y_mask, Y_index)
                                                      
     CALL init_axis("other_axis", comm, other_params, axis_value, axis_mask, axis_index)
+    CALL init_scalar("other_scalar", comm, params, scalar_mask)
     CALL init_ensemble("other_ensemble", comm, other_params, ensemble_value)
 
     CALL set_mask3d("other_grid3D",other_params, ni, nj, lon, lat , axis_value)
@@ -515,6 +526,7 @@ CONTAINS
     ALLOCATE(other_field_XYZW(0:x-1,0:y-1,0:z-1,0:w-1))
     ALLOCATE(other_field_XZW(0:x-1,0:z-1,0:w-1))
     ALLOCATE(other_field_YZW(0:y-1,0:z-1,0:w-1))
+    ALLOCATE(other_field0D_W(0:w-1))
     
 
 
@@ -571,6 +583,7 @@ CONTAINS
       ENDDO
     ENDDO
     
+    other_field0D = 1
 
 
     other_field2D_W(:,0) = other_field2D(:)*(1+0.1*ensemble_value(0))
@@ -583,6 +596,7 @@ CONTAINS
     other_field_XYZW(:,:,:,0) = other_field_XYZ(:,:,:)*(1+0.1*ensemble_value(0))
     other_field_XZW(:,:,0) = other_field_XZ(:,:)*(1+0.1*ensemble_value(0))
     other_field_YZW(:,:,0) = other_field_YZ(:,:)*(1+0.1*ensemble_value(0))
+    other_field0D_W(0) = other_field0D*(1+0.1*ensemble_value(0))
     
     
     ok_other_field2D=xios_is_valid_field("other_field2D") ;
@@ -597,6 +611,7 @@ CONTAINS
     ok_other_field_XYZ=xios_is_valid_field("other_field_XYZ") ;
     ok_other_field_XZ=xios_is_valid_field("other_field_XZ") ;
     ok_other_field_YZ=xios_is_valid_field("other_field_YZ") ;
+    ok_other_field0D=xios_is_valid_field("other_field0D") ;
 
     ok_other_field2D_W=xios_is_valid_field("other_field2D_W") ;
     ok_other_field3D_W=xios_is_valid_field("other_field3D_W") ;
@@ -610,6 +625,7 @@ CONTAINS
     ok_other_field_XYZW=xios_is_valid_field("other_field_XYZW") ;
     ok_other_field_XZW=xios_is_valid_field("other_field_XZW") ;
     ok_other_field_YZW=xios_is_valid_field("other_field_YZW") ;
+    ok_other_field0D_W=xios_is_valid_field("other_field0D_W") ;
 
 
 !!!!!!!!!!!!!!!!!!!!! end of duplicated section   !!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -635,6 +651,7 @@ CONTAINS
       IF (ok_field_XYZ) CALL xios_send_field("field_XYZ",field_XYZ)
       IF (ok_field_XZ) CALL xios_send_field("field_XZ",field_XZ)
       IF (ok_field_YZ) CALL xios_send_field("field_YZ",field_YZ)
+      IF (ok_field0D)  CALL xios_send_field("field0D",field0D)
       
       IF ( MOD(params%field_sub_offset+ts-1,params%field_sub_freq)==0) THEN
         IF (ok_field2D_sub) CALL xios_send_field("field2D_sub",field2D*10)
@@ -659,6 +676,7 @@ CONTAINS
       IF (ok_field_XYZW) CALL xios_send_field("field_XYZW",field_XYZW)
       IF (ok_field_XZW) CALL xios_send_field("field_XZW",field_XZW)
       IF (ok_field_YZW) CALL xios_send_field("field_YZW",field_YZW)
+      IF (ok_field0D_W) CALL xios_send_field("field0D_W",field0D_W)
       
       IF ( MOD(params%field_sub_offset+ts-1,params%field_sub_freq)==0) THEN
         IF (ok_field2D_sub_W) CALL xios_send_field("field2D_sub_W",field2D_W*10)
@@ -674,6 +692,7 @@ CONTAINS
 
       field2D=field2D+1
       field3D=field3D+1
+      field0D=field0D+1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !              duplicated section for other_                    !
@@ -690,6 +709,7 @@ CONTAINS
       IF (ok_other_field_XY) CALL xios_send_field("other_field_XYZ", other_field_XYZ)
       IF (ok_other_field_XY) CALL xios_send_field("other_field_XZ", other_field_XZ)
       IF (ok_other_field_XY) CALL xios_send_field("other_field_YZ", other_field_YZ)
+      IF (ok_other_field0D)  CALL xios_send_field("other_field0D", other_field0D)
       
       IF ( MOD(other_params%field_sub_offset+ts-1,other_params%field_sub_freq)==0) THEN
         IF (ok_other_field2D_sub) CALL xios_send_field("other_field2D_sub",other_field2D*10)
@@ -707,13 +727,14 @@ CONTAINS
       IF (ok_other_field2D_W) CALL xios_send_field("other_field2D_W",other_field2D_W)
       IF (ok_other_field3D_W) CALL xios_send_field("other_field3D_W",other_field3D_W)
       IF (ok_other_pressure_W) CALL xios_send_field("other_pressure_W",other_pressure_W)
-      IF (ok_other_field_XW) CALL xios_send_field("other_field_XW",other_field_XW)
-      IF (ok_other_field_YW) CALL xios_send_field("other_field_YW",other_field_YW)
+      IF (ok_other_field_XW)  CALL xios_send_field("other_field_XW",other_field_XW)
+      IF (ok_other_field_YW)  CALL xios_send_field("other_field_YW",other_field_YW)
       IF (ok_other_field_XYW) CALL xios_send_field("other_field_XYW",other_field_XYW)
-      IF (ok_other_field_ZW) CALL xios_send_field("other_field_ZW",other_field_ZW)
+      IF (ok_other_field_ZW)  CALL xios_send_field("other_field_ZW",other_field_ZW)
       IF (ok_other_field_XYW) CALL xios_send_field("other_field_XYZW",other_field_XYZW)
       IF (ok_other_field_XYW) CALL xios_send_field("other_field_XZW",other_field_XZW)
       IF (ok_other_field_XYW) CALL xios_send_field("other_field_YZW",other_field_YZW)
+      IF (ok_other_field0D_W)   CALL xios_send_field("other_field0D_W",other_field0D_W)
       
       IF ( MOD(other_params%field_sub_offset+ts-1,other_params%field_sub_freq)==0) THEN
         IF (ok_other_field2D_sub_W) CALL xios_send_field("other_field2D_sub_W",other_field2D_W*10)
@@ -729,6 +750,7 @@ CONTAINS
 
       other_field2D=other_field2D+1
       other_field3D=other_field3D+1
+      other_field0D=other_field0D+1
 
 
 !!!!!!!!!!!!!!!!!!!!!! end of duplicated section !!!!!!!!!!!!!!!!!
@@ -756,6 +778,8 @@ CONTAINS
     IF (.NOT. xios_getvar(prefix//"domain", params%domain) )             params%domain="lmdz"
     IF (.NOT. xios_getvar(prefix//"domain_mask", params%domain_mask) )   params%domain_mask=.FALSE.
     IF (.NOT. xios_getvar(prefix//"domain_mask_type", params%domain_mask_type) )   params%domain_mask_type="cross"
+    IF (.NOT. xios_getvar(prefix//"scalar_mask", params%scalar_mask) )   params%scalar_mask=.FALSE.
+    IF (.NOT. xios_getvar(prefix//"scalar_mask_type", params%scalar_mask_type) )   params%scalar_mask_type="none"
     IF (.NOT. xios_getvar(prefix//"axis", params%axis) )                 params%axis="pressure"
     IF (.NOT. xios_getvar(prefix//"axis_mask", params%axis_mask) )       params%axis_mask=.FALSE.
     IF (.NOT. xios_getvar(prefix//"ni", params%ni) )                     params%ni=36
@@ -2076,6 +2100,43 @@ CONTAINS
      ENDIF
 
   END SUBROUTINE set_axis_mask  
+
+  SUBROUTINE init_scalar(scalar_id, comm, params,  return_mask)
+  IMPLICIT NONE 
+     CHARACTER(LEN=*) :: scalar_id
+     TYPE(tmodel_params) :: params
+     INTEGER             :: comm
+     LOGICAL             :: return_mask
+     DOUBLE PRECISION    :: value =10.
+
+    CALL set_scalar_mask(comm, params, return_mask)    
+    CALL xios_set_scalar_attr(scalar_id, value=value, mask=return_mask) 
+
+  END SUBROUTINE init_scalar
+
+  SUBROUTINE set_scalar_mask(comm, params, mask)
+   IMPLICIT NONE 
+     TYPE(tmodel_params) :: params
+     INTEGER             :: comm
+     LOGICAL             :: mask
+     INTEGER             :: ierr,rank
+
+     mask=.TRUE.
+     IF (params%scalar_mask) THEN
+       IF (params%scalar_mask_type=="none") THEN
+         mask=.TRUE.
+       ELSE IF (params%scalar_mask_type=="full") THEN
+         mask=.FALSE.
+       ELSE IF (params%scalar_mask_type=="root") THEN
+         CALL MPI_COMM_RANK(comm,rank,ierr)
+         mask = (rank==0)
+       ELSE IF (params%scalar_mask_type=="sparse") THEN
+         CALL MPI_COMM_RANK(comm,rank,ierr)
+         mask = (MOD(rank,2)==0)
+      ENDIF 
+     ENDIF
+
+  END SUBROUTINE set_scalar_mask
 
   SUBROUTINE init_field2D_academic(comm,params, lon, lat, mask, return_field,            &
                                    X_lon, X_lat, X_mask, return_fieldX,                  &
