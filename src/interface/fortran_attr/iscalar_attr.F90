@@ -11,8 +11,8 @@ MODULE iscalar_attr
 CONTAINS
 
   SUBROUTINE xios(set_scalar_attr)  &
-    ( scalar_id, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-    , scalar_ref, standard_name, unit, value )
+    ( scalar_id, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+    , prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalar))  :: scalar_hdl
@@ -23,6 +23,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: label
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask
+      LOGICAL (KIND=C_BOOL) :: mask_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
       INTEGER  , OPTIONAL, INTENT(IN) :: prec
@@ -34,14 +36,14 @@ CONTAINS
       CALL xios(get_scalar_handle) &
       (scalar_id,scalar_hdl)
       CALL xios(set_scalar_attr_hdl_)   &
-      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-      , scalar_ref, standard_name, unit, value )
+      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+      , prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(set_scalar_attr)
 
   SUBROUTINE xios(set_scalar_attr_hdl)  &
-    ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-    , scalar_ref, standard_name, unit, value )
+    ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+    , prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalar)) , INTENT(IN) :: scalar_hdl
@@ -51,6 +53,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: label
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask
+      LOGICAL (KIND=C_BOOL) :: mask_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
       INTEGER  , OPTIONAL, INTENT(IN) :: prec
@@ -60,14 +64,14 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value
 
       CALL xios(set_scalar_attr_hdl_)  &
-      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-      , scalar_ref, standard_name, unit, value )
+      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+      , prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(set_scalar_attr_hdl)
 
   SUBROUTINE xios(set_scalar_attr_hdl_)   &
-    ( scalar_hdl, axis_type_, bounds_, bounds_name_, comment_, label_, long_name_, name_, positive_  &
-    , prec_, scalar_ref_, standard_name_, unit_, value_ )
+    ( scalar_hdl, axis_type_, bounds_, bounds_name_, comment_, label_, long_name_, mask_, name_  &
+    , positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(scalar)) , INTENT(IN) :: scalar_hdl
@@ -77,6 +81,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: label_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name_
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_
+      LOGICAL (KIND=C_BOOL) :: mask__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive_
       INTEGER  , OPTIONAL, INTENT(IN) :: prec_
@@ -113,6 +119,12 @@ CONTAINS
       IF (PRESENT(long_name_)) THEN
         CALL cxios_set_scalar_long_name &
       (scalar_hdl%daddr, long_name_, len(long_name_))
+      ENDIF
+
+      IF (PRESENT(mask_)) THEN
+        mask__tmp = mask_
+        CALL cxios_set_scalar_mask &
+      (scalar_hdl%daddr, mask__tmp)
       ENDIF
 
       IF (PRESENT(name_)) THEN
@@ -153,8 +165,8 @@ CONTAINS
   END SUBROUTINE xios(set_scalar_attr_hdl_)
 
   SUBROUTINE xios(get_scalar_attr)  &
-    ( scalar_id, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-    , scalar_ref, standard_name, unit, value )
+    ( scalar_id, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+    , prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalar))  :: scalar_hdl
@@ -165,6 +177,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: label
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL (KIND=C_BOOL) :: mask_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec
@@ -176,14 +190,14 @@ CONTAINS
       CALL xios(get_scalar_handle) &
       (scalar_id,scalar_hdl)
       CALL xios(get_scalar_attr_hdl_)   &
-      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-      , scalar_ref, standard_name, unit, value )
+      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+      , prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(get_scalar_attr)
 
   SUBROUTINE xios(get_scalar_attr_hdl)  &
-    ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-    , scalar_ref, standard_name, unit, value )
+    ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+    , prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalar)) , INTENT(IN) :: scalar_hdl
@@ -193,6 +207,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: label
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL (KIND=C_BOOL) :: mask_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec
@@ -202,14 +218,14 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value
 
       CALL xios(get_scalar_attr_hdl_)  &
-      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-      , scalar_ref, standard_name, unit, value )
+      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+      , prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(get_scalar_attr_hdl)
 
   SUBROUTINE xios(get_scalar_attr_hdl_)   &
-    ( scalar_hdl, axis_type_, bounds_, bounds_name_, comment_, label_, long_name_, name_, positive_  &
-    , prec_, scalar_ref_, standard_name_, unit_, value_ )
+    ( scalar_hdl, axis_type_, bounds_, bounds_name_, comment_, label_, long_name_, mask_, name_  &
+    , positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(scalar)) , INTENT(IN) :: scalar_hdl
@@ -219,6 +235,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: label_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name_
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_
+      LOGICAL (KIND=C_BOOL) :: mask__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive_
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec_
@@ -255,6 +273,12 @@ CONTAINS
       IF (PRESENT(long_name_)) THEN
         CALL cxios_get_scalar_long_name &
       (scalar_hdl%daddr, long_name_, len(long_name_))
+      ENDIF
+
+      IF (PRESENT(mask_)) THEN
+        CALL cxios_get_scalar_mask &
+      (scalar_hdl%daddr, mask__tmp)
+        mask_ = mask__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
@@ -295,8 +319,8 @@ CONTAINS
   END SUBROUTINE xios(get_scalar_attr_hdl_)
 
   SUBROUTINE xios(is_defined_scalar_attr)  &
-    ( scalar_id, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-    , scalar_ref, standard_name, unit, value )
+    ( scalar_id, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+    , prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalar))  :: scalar_hdl
@@ -313,6 +337,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: label_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL(KIND=C_BOOL) :: long_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL(KIND=C_BOOL) :: mask_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive
@@ -331,14 +357,14 @@ CONTAINS
       CALL xios(get_scalar_handle) &
       (scalar_id,scalar_hdl)
       CALL xios(is_defined_scalar_attr_hdl_)   &
-      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-      , scalar_ref, standard_name, unit, value )
+      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+      , prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_scalar_attr)
 
   SUBROUTINE xios(is_defined_scalar_attr_hdl)  &
-    ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-    , scalar_ref, standard_name, unit, value )
+    ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+    , prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalar)) , INTENT(IN) :: scalar_hdl
@@ -354,6 +380,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: label_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL(KIND=C_BOOL) :: long_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL(KIND=C_BOOL) :: mask_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive
@@ -370,14 +398,14 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: value_tmp
 
       CALL xios(is_defined_scalar_attr_hdl_)  &
-      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, name, positive, prec  &
-      , scalar_ref, standard_name, unit, value )
+      ( scalar_hdl, axis_type, bounds, bounds_name, comment, label, long_name, mask, name, positive  &
+      , prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_scalar_attr_hdl)
 
   SUBROUTINE xios(is_defined_scalar_attr_hdl_)   &
-    ( scalar_hdl, axis_type_, bounds_, bounds_name_, comment_, label_, long_name_, name_, positive_  &
-    , prec_, scalar_ref_, standard_name_, unit_, value_ )
+    ( scalar_hdl, axis_type_, bounds_, bounds_name_, comment_, label_, long_name_, mask_, name_  &
+    , positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(scalar)) , INTENT(IN) :: scalar_hdl
@@ -393,6 +421,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: label__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name_
       LOGICAL(KIND=C_BOOL) :: long_name__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_
+      LOGICAL(KIND=C_BOOL) :: mask__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
       LOGICAL(KIND=C_BOOL) :: name__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive_
@@ -442,6 +472,12 @@ CONTAINS
         long_name__tmp = cxios_is_defined_scalar_long_name &
       (scalar_hdl%daddr)
         long_name_ = long_name__tmp
+      ENDIF
+
+      IF (PRESENT(mask_)) THEN
+        mask__tmp = cxios_is_defined_scalar_mask &
+      (scalar_hdl%daddr)
+        mask_ = mask__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN

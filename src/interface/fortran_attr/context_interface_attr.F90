@@ -9,6 +9,25 @@ MODULE context_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_context_attached_mode(context_hdl, attached_mode) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: attached_mode
+    END SUBROUTINE cxios_set_context_attached_mode
+
+    SUBROUTINE cxios_get_context_attached_mode(context_hdl, attached_mode) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
+      LOGICAL (KIND=C_BOOL)             :: attached_mode
+    END SUBROUTINE cxios_get_context_attached_mode
+
+    FUNCTION cxios_is_defined_context_attached_mode(context_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_context_attached_mode
+      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
+    END FUNCTION cxios_is_defined_context_attached_mode
+
+
     SUBROUTINE cxios_set_context_output_dir(context_hdl, output_dir, output_dir_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl

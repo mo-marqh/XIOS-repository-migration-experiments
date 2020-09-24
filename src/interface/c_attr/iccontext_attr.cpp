@@ -16,6 +16,29 @@ extern "C"
 {
   typedef xios::CContext* context_Ptr;
 
+  void cxios_set_context_attached_mode(context_Ptr context_hdl, bool attached_mode)
+  {
+    CTimer::get("XIOS").resume();
+    context_hdl->attached_mode.setValue(attached_mode);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_context_attached_mode(context_Ptr context_hdl, bool* attached_mode)
+  {
+    CTimer::get("XIOS").resume();
+    *attached_mode = context_hdl->attached_mode.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_context_attached_mode(context_Ptr context_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = context_hdl->attached_mode.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_context_output_dir(context_Ptr context_hdl, const char * output_dir, int output_dir_size)
   {
     std::string output_dir_str;

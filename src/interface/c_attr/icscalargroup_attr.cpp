@@ -197,6 +197,29 @@ extern "C"
   }
 
 
+  void cxios_set_scalargroup_mask(scalargroup_Ptr scalargroup_hdl, bool mask)
+  {
+    CTimer::get("XIOS").resume();
+    scalargroup_hdl->mask.setValue(mask);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalargroup_mask(scalargroup_Ptr scalargroup_hdl, bool* mask)
+  {
+    CTimer::get("XIOS").resume();
+    *mask = scalargroup_hdl->mask.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalargroup_mask(scalargroup_Ptr scalargroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalargroup_hdl->mask.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_scalargroup_name(scalargroup_Ptr scalargroup_hdl, const char * name, int name_size)
   {
     std::string name_str;

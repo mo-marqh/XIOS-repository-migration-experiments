@@ -156,6 +156,25 @@ MODULE scalargroup_interface_attr
     END FUNCTION cxios_is_defined_scalargroup_long_name
 
 
+    SUBROUTINE cxios_set_scalargroup_mask(scalargroup_hdl, mask) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: mask
+    END SUBROUTINE cxios_set_scalargroup_mask
+
+    SUBROUTINE cxios_get_scalargroup_mask(scalargroup_hdl, mask) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: mask
+    END SUBROUTINE cxios_get_scalargroup_mask
+
+    FUNCTION cxios_is_defined_scalargroup_mask(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_mask
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_mask
+
+
     SUBROUTINE cxios_set_scalargroup_name(scalargroup_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl

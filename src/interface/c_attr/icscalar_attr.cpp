@@ -171,6 +171,29 @@ extern "C"
   }
 
 
+  void cxios_set_scalar_mask(scalar_Ptr scalar_hdl, bool mask)
+  {
+    CTimer::get("XIOS").resume();
+    scalar_hdl->mask.setValue(mask);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_mask(scalar_Ptr scalar_hdl, bool* mask)
+  {
+    CTimer::get("XIOS").resume();
+    *mask = scalar_hdl->mask.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_mask(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->mask.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_scalar_name(scalar_Ptr scalar_hdl, const char * name, int name_size)
   {
     std::string name_str;
