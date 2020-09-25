@@ -177,6 +177,7 @@ namespace xios
          void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& scalarId="") ;
          static void recvScalarDistribution(CEventServer& event) ;
          void receivedScalarDistribution(CEventServer& event, int phasis) ;
+         void setServerMask(CArray<bool,1>& serverMask, CContextClient* client) ;
          void sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector, const string& scalarId) ;
          static void recvDistributedAttributes(CEventServer& event) ;
          void recvDistributedAttributes(CEventServer& event, const string& type) ;
@@ -192,6 +193,9 @@ namespace xios
 
        private:
          CGathererConnector*  gathererConnector_ ;
+       public:
+         CGathererConnector* getGathererConnector(void) { return gathererConnector_ ;}
+       private:
          CGathererConnector* serverFromClientConnector_ ;
          CDistributedElement* elementFrom_ ;
        public:

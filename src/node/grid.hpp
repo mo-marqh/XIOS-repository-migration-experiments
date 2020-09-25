@@ -74,7 +74,9 @@ namespace xios {
 
          enum EEventId
          {
-           EVENT_ID_INDEX, EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS, EVENT_ID_ADD_SCALAR
+           EVENT_ID_INDEX, EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS, EVENT_ID_ADD_SCALAR,
+           EVENT_ID_SEND_MASK,
+
          };
 
          /// Constructeurs ///
@@ -517,14 +519,15 @@ namespace xios {
   * -> grid masking is not included.
   */
 //        std::map<CContextClient*, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
-        std::map<int, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
-
-      
+      std::map<int, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
+     
 
      //////////////////////////////////////////////////////////////////////////////////////
      //  this part is related to distribution, element definition, views and connectors  //
      //////////////////////////////////////////////////////////////////////////////////////
-
+      private:
+       static void recvMask(CEventServer& event) ;
+       void receiveMask(CEventServer& event) ;
 
       private:  
         CGridLocalElements* gridLocalElements_= nullptr ;

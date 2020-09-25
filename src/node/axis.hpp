@@ -257,7 +257,7 @@ namespace xios {
 
          static void recvAxisDistribution(CEventServer& event) ;
          void receivedAxisDistribution(CEventServer& event, int phasis) ;
-
+         void setServerMask(CArray<bool,1>& serverMask, CContextClient* client ) ;
          void sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector, const string& axisId) ;
          static void recvDistributedAttributes(CEventServer& event) ;
          void recvDistributedAttributes(CEventServer& event, const string& type) ;
@@ -271,6 +271,9 @@ namespace xios {
          CScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;}
        private:
          CGathererConnector*  gathererConnector_ ;
+       public:
+         CGathererConnector* getGathererConnector(void) { return gathererConnector_ ;}
+       private:
          CGathererConnector* serverFromClientConnector_ ;
          CDistributedElement* elementFrom_ ;
        public:

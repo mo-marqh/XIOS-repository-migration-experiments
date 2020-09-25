@@ -211,8 +211,7 @@ namespace xios {
          void sendDomainToFileServer(CContextClient* client) ;
        private:
          std::set<CContextClient*> sendDomainToFileServer_done_ ;
-       private:
-         public:
+       public:
          void sendDomainToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid) ;
        private:
          std::set<CContextClient*> sendDomainToCouplerOut_done_ ;
@@ -340,6 +339,8 @@ namespace xios {
          void sendDistributedAttributes(CContextClient* client, CScattererConnector& scaterrerConnector, const string& domainId) ;
          static void recvDistributedAttributes(CEventServer& event) ;
          void recvDistributedAttributes(CEventServer& event, const string& type) ;
+         void setServerMask(CArray<bool,1>& serverMask, CContextClient* client) ;
+
        private:
          map<CContextClient*, CDistributedElement*> remoteElement_ ;
        public: 
@@ -351,6 +352,9 @@ namespace xios {
        
        private:
          CGathererConnector*  gathererConnector_ ;
+       public:
+         CGathererConnector* getGathererConnector(void) { return gathererConnector_ ;}
+        private:
          CGathererConnector* serverFromClientConnector_ ;
          CDistributedElement* elementFrom_ ;
        public:

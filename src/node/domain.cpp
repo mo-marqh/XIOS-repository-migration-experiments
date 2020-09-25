@@ -2304,7 +2304,8 @@ namespace xios {
 
     CDistributedElement scatteredElement(ni_glo*nj_glo, globalIndex) ;
     scatteredElement.addFullView() ;
-    CScattererConnector scattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    CScattererConnector scattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), 
+                                           context->getIntraComm(), client->getRemoteSize()) ;
     scattererConnector.computeConnector() ;
 
     // phase 0
@@ -2346,16 +2347,10 @@ namespace xios {
     CMessage message2 ;
     message2<<serverDomainId<<2 ; 
     clientToServerElement.sendToServer(client, event2, message2) ; 
-    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW),
-                                                              clientToServerElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), clientToServerElement.getView(CElementView::FULL),
+                                                               context->getIntraComm(), client->getRemoteSize()) ;
     clientToServerConnector_[client]->computeConnector() ;
 
-
-    CEventClient event3(getType(), EVENT_ID_DOMAIN_DISTRIBUTION);
-    CMessage message3 ;
-    message3<<serverDomainId<<3 ; 
-    clientToServerConnector_[client]->transfer(maskIn,client,event3,message3) ; 
-    
     clientFromServerConnector_[client] = new CGathererConnector(clientToServerElement.getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW));
     clientFromServerConnector_[client]->computeConnector() ;
 
@@ -2417,23 +2412,26 @@ namespace xios {
       gathererConnector_ =  new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
       gathererConnector_ -> computeConnector() ;
     }
-    else if (phasis==3)
-    {
-      CArray<bool,1> localMask ;
-      gathererConnector_->transfer(event,localMask,false) ;
-      localElement_->addView(CElementView::WORKFLOW, localMask) ;
-      mask_1d.reference(localMask.copy()) ;
- 
-      serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
-      serverFromClientConnector_->computeConnector() ;
-      
-      serverToClientConnector_ = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), elementFrom_->getView(CElementView::FULL),
-                                                         context->getIntraComm()) ;
-      serverToClientConnector_->computeConnector() ;
- 
-    }
   }
   CATCH
+
+  void CDomain::setServerMask(CArray<bool,1>& serverMask, CContextClient* client)
+  TRY
+  {
+    // nota : the client is needed to get the remote size for the scatterer connector. Maybe it is not the good place for this
+    // Later, server to client connector can be computed on demand, with "client" as argument
+    CContext* context = CContext::getCurrent();
+    localElement_->addView(CElementView::WORKFLOW, serverMask) ;
+    mask_1d.reference(serverMask.copy()) ;
+ 
+    serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
+    serverFromClientConnector_->computeConnector() ;
+      
+    serverToClientConnector_ = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), elementFrom_->getView(CElementView::FULL),
+                                                       context->getIntraComm(), client->getRemoteSize()) ;
+    serverToClientConnector_->computeConnector() ;
+  }
+  CATCH_DUMP_ATTR
 
 
   void CDomain::sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector,  const string& domainId)
@@ -2578,7 +2576,8 @@ namespace xios {
     remoteConnector.computeConnector() ;
     CDistributedElement scatteredElement(remoteElement.getGlobalSize(), remoteConnector.getDistributedGlobalIndex()) ;
     scatteredElement.addFullView() ;
-    CScattererConnector scatterConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    CScattererConnector scatterConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), 
+                                         context->getIntraComm(), client->getRemoteSize()) ;
     scatterConnector.computeConnector() ;
     CGridScattererConnector gridScatter({&scatterConnector}) ;
 

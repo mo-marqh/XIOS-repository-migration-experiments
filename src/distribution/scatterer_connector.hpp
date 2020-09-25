@@ -20,6 +20,7 @@ namespace xios
       map<int, vector<int>> connector_ ;
       map<int, vector<bool>> mask_ ;  // mask is on dst view
       MPI_Comm localComm_ ;
+      int remoteCommSize_ ;
 
       CLocalView* srcView_ ;
       CDistributedView* dstView_ ;
@@ -29,8 +30,8 @@ namespace xios
 
     public:
 
-    CScattererConnector(CLocalView* srcView, CDistributedView* dstView, MPI_Comm localComm) 
-                       : srcView_(srcView), dstView_(dstView), localComm_(localComm) {}
+    CScattererConnector(CLocalView* srcView, CDistributedView* dstView, MPI_Comm localComm, int remoteCommSize) 
+                       : srcView_(srcView), dstView_(dstView), localComm_(localComm), remoteCommSize_(remoteCommSize) {}
     void computeConnector(void) ;
     
     template<typename T, int n>

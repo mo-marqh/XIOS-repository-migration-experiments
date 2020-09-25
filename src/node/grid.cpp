@@ -22,6 +22,7 @@
 #include "grid_remote_connector.hpp"
 #include "grid_elements.hpp"
 #include "grid_local_view.hpp"
+#include "grid_mask_connector.hpp"
 
 
 namespace xios {
@@ -274,6 +275,7 @@ namespace xios {
   std::vector<CDomain*> CGrid::getDomains()
   TRY
   {
+    setDomainList();
     std::vector<CDomain*> domList;
     if (!domList_.empty())
     {
@@ -290,6 +292,7 @@ namespace xios {
   std::vector<CAxis*> CGrid::getAxis()
   TRY
   {
+    setAxisList();
     std::vector<CAxis*> aList;
     if (!axisList_.empty())
       for (int i =0; i < axisList_.size(); ++i) aList.push_back(CAxis::get(axisList_[i]));
@@ -305,6 +308,7 @@ namespace xios {
   std::vector<CScalar*> CGrid::getScalars()
   TRY
   {
+    setScalarList() ;
     std::vector<CScalar*> sList;
     if (!scalarList_.empty())
       for (int i =0; i < scalarList_.size(); ++i) sList.push_back(CScalar::get(scalarList_[i]));
@@ -2596,8 +2600,13 @@ namespace xios {
            recvAddScalar(event);
            return true;
            break;
+
+         case EVENT_ID_SEND_MASK :
+           recvMask(event);
+           return true;
+           break;
         default :
-          ERROR("bool CDomain::dispatchEvent(CEventServer& event)",
+          ERROR("bool CGrid::dispatchEvent(CEventServer& event)",
                 << "Unknown Event");
           return false;
       }
@@ -2670,8 +2679,7 @@ namespace xios {
     CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
     gridRemoteConnector.computeConnector() ;
     
-    vector<CScattererConnector*> clientToServerConnectors ;
-    vector<CGathererConnector*>  clientFromServerConnectors ;
+    vector<CScattererConnector*> scattererConnectors ;
     for(int i=0 ; i<elements.size() ; i++)
     {
       if (elements[i].type==TYPE_DOMAIN) 
@@ -2679,25 +2687,56 @@ namespace xios {
          CDomain* domain = (CDomain*) elements[i].ptr ;
          sendAddDomain(domain->getId(),client) ;
          domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-         clientToServerConnectors.push_back(domain->getClientToServerConnector(client)) ;
-         clientFromServerConnectors.push_back(domain->getClientFromServerConnector(client)) ;
+         scattererConnectors.push_back(domain->getClientToServerConnector(client)) ;
       }
       else if (elements[i].type==TYPE_AXIS)
       {
         CAxis* axis = (CAxis*) elements[i].ptr ;
         sendAddAxis(axis->getId(),client) ;
         axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-        clientToServerConnectors.push_back(axis->getClientToServerConnector(client)) ;
-        clientFromServerConnectors.push_back(axis->getClientFromServerConnector(client)) ;
-
+        scattererConnectors.push_back(axis->getClientToServerConnector(client)) ;
       }
       else if (elements[i].type==TYPE_SCALAR)
       {
         CScalar* scalar = (CScalar*) elements[i].ptr ;
         sendAddScalar(scalar->getId(),client) ;
         scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-        clientToServerConnectors.push_back(scalar->getClientToServerConnector(client)) ;
-        clientFromServerConnectors.push_back(scalar->getClientFromServerConnector(client)) ;
+        scattererConnectors.push_back(scalar->getClientToServerConnector(client)) ;
+      }
+    }
+
+    CGridScattererConnector gridScattererConnector(scattererConnectors) ;
+    CGridLocalConnector* workflowToFull = getGridLocalElements()->getConnector(CElementView::WORKFLOW, CElementView::FULL) ;
+    CArray<bool,1> maskIn(workflowToFull->getSrcSize()) ;
+    CArray<bool,1> maskOut(workflowToFull->getDstSize()) ;
+    maskIn = true ;
+    workflowToFull->transfer(maskIn,maskOut,false) ;
+
+    CEventClient event(getType(), EVENT_ID_SEND_MASK);
+    CMessage message ;
+    message<<getId() ; 
+    gridScattererConnector.transfer(maskOut, client, event, message) ;
+
+
+    vector<CScattererConnector*> clientToServerConnectors ;
+    vector<CGathererConnector*>  clientFromServerConnectors ;
+    for(auto& element : elements)
+    {
+      if (element.type==TYPE_DOMAIN) 
+      { 
+         clientToServerConnectors.push_back(element.domain->getClientToServerConnector(client)) ;
+         clientFromServerConnectors.push_back(element.domain->getClientFromServerConnector(client)) ;
+      }
+      else if (element.type==TYPE_AXIS)
+      {
+        clientToServerConnectors.push_back(element.axis->getClientToServerConnector(client)) ;
+        clientFromServerConnectors.push_back(element.axis->getClientFromServerConnector(client)) ;
+
+      }
+      else if (element.type==TYPE_SCALAR)
+      {
+        clientToServerConnectors.push_back(element.scalar->getClientToServerConnector(client)) ;
+        clientFromServerConnectors.push_back(element.scalar->getClientFromServerConnector(client)) ;
       }
     }
     
@@ -2706,6 +2745,55 @@ namespace xios {
     clientFromServerConnector_[client] = new CGridGathererConnector(clientFromServerConnectors) ;
 
 
+  }
+
+  void CGrid::recvMask(CEventServer& event)
+  {
+    string gridId;
+    for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> gridId  ;
+    get(gridId)->receiveMask(event);
+  }
+  
+  void CGrid::receiveMask(CEventServer& event)
+  {
+    vector<CGathererConnector*> gathererConnectors ;
+    vector<CLocalView*> fullViews ;
+
+    for(auto& element : getElements())
+    {
+      if (element.type==TYPE_DOMAIN) 
+      {
+        gathererConnectors.push_back(element.domain->getGathererConnector());
+        fullViews.push_back(element.domain->getLocalElement()->getView(CElementView::FULL));
+        
+      }
+      else if (element.type==TYPE_AXIS)
+      {
+       gathererConnectors.push_back(element.axis->getGathererConnector());
+       fullViews.push_back(element.axis->getLocalElement()->getView(CElementView::FULL));
+      }
+      else if (element.type==TYPE_SCALAR) 
+      {
+        gathererConnectors.push_back(element.scalar->getGathererConnector());
+        fullViews.push_back(element.scalar->getLocalElement()->getView(CElementView::FULL));
+      }
+    }
+    CGridGathererConnector gridGathererConnector(gathererConnectors) ;
+    CGridMaskConnector gridMaskConnector(fullViews) ;
+
+    CArray<bool,1> maskOut ;
+    gridGathererConnector.transfer(event,maskOut,false) ;
+    gridMaskConnector.computeConnector(maskOut) ;
+
+    CContextClient* client = event.getContextServer()->getAssociatedClient() ;
+    int i=0 ;
+    for(auto& element : getElements())
+    {
+      if (element.type==TYPE_DOMAIN) element.domain->setServerMask(gridMaskConnector.getElementMask(i),client);
+      else if (element.type==TYPE_AXIS) element.axis->setServerMask(gridMaskConnector.getElementMask(i),client);
+      else if (element.type==TYPE_SCALAR) element.scalar->setServerMask(gridMaskConnector.getElementMask(i),client);
+      i++ ;
+    }
   }
 
 

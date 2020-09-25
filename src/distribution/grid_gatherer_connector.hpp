@@ -40,6 +40,19 @@ namespace xios
         }
       } 
 
+      template<typename T> 
+      void transfer(const map<int, CArray<T,1>>& input, CArray<T,1>& output, T missingValue)
+      {
+        int n = elementsConnector_.size()-1 ;
+        CGathererConnector** connector = elementsConnector_.data() + n ;
+        output.resize(dstSize_) ;
+        output = missingValue ;
+        for(auto& rankDataIn : input) 
+        {
+          elementsConnector_[n]->transfer(rankDataIn.first, connector, n, rankDataIn.second.dataFirst(), output.dataFirst()) ;
+        }
+      } 
+
       template<typename T>
       void transfer(CEventServer& event, CArray<T,1>& dataOut)
       {
@@ -51,7 +64,19 @@ namespace xios
         }
         transfer(dataIn, dataOut) ;
       }
-  
+ 
+      template<typename T>
+      void transfer(CEventServer& event, CArray<T,1>& dataOut, T missingValue)
+      {
+        map<int, CArray<T,1>> dataIn ;
+        for (auto& subEvent : event.subEvents) 
+        {
+          auto& data = dataIn[subEvent.rank]; 
+          (*subEvent.buffer) >> data ;
+        }
+        transfer(dataIn, dataOut, missingValue) ;
+      }
+
   };
 }
 

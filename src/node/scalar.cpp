@@ -312,7 +312,8 @@ namespace xios
 
     CDistributedElement scatteredElement(1,globalIndex) ;
     scatteredElement.addFullView() ;
-    CScattererConnector scattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    CScattererConnector scattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), 
+                                           context->getIntraComm(), client->getRemoteSize()) ;
     scattererConnector.computeConnector() ;
     
     // phase 0
@@ -352,15 +353,9 @@ namespace xios
     CMessage message2 ;
     message2<<serverScalarId<<2 ; 
     clientToServerElement.sendToServer(client, event2, message2) ; 
-    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW),
-                                                              clientToServerElement.getView(CElementView::FULL), context->getIntraComm()) ;
+    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), clientToServerElement.getView(CElementView::FULL),
+                                                               context->getIntraComm(), client->getRemoteSize()) ;
     clientToServerConnector_[client]->computeConnector() ;
-
-
-    CEventClient event3(getType(), EVENT_ID_SCALAR_DISTRIBUTION);
-    CMessage message3 ;
-    message3<<serverScalarId<<3 ; 
-    clientToServerConnector_[client]->transfer(maskIn,client,event3,message3) ; 
 
     clientFromServerConnector_[client] = new CGathererConnector(clientToServerElement.getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW));
     clientFromServerConnector_[client]->computeConnector() ;
@@ -406,23 +401,24 @@ namespace xios
       gathererConnector_ =  new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
       gathererConnector_ -> computeConnector() ;
     }
-    else if (phasis==3)
-    {
-      CArray<bool,1> localMask ;
-      gathererConnector_->transfer(event,localMask,false) ;
-      localElement_->addView(CElementView::WORKFLOW, localMask) ;
-      mask = localMask(0) ;
-       
-      serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
-      serverFromClientConnector_->computeConnector() ;
-
-      serverToClientConnector_ = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), elementFrom_->getView(CElementView::FULL),
-                                                         context->getIntraComm()) ;
-      serverToClientConnector_->computeConnector() ;
-
-    }
   }
   CATCH
+
+  void CScalar::setServerMask(CArray<bool,1>& serverMask, CContextClient* client)
+  TRY
+  {
+    CContext* context = CContext::getCurrent();
+    localElement_->addView(CElementView::WORKFLOW, serverMask) ;
+    mask = serverMask(0) ;
+ 
+    serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
+    serverFromClientConnector_->computeConnector() ;
+      
+    serverToClientConnector_ = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), elementFrom_->getView(CElementView::FULL),
+                                                         context->getIntraComm(), client->getRemoteSize()) ;
+    serverToClientConnector_->computeConnector() ;
+  }
+  CATCH_DUMP_ATTR
 
   void CScalar::sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector, const string& scalarId)
   {

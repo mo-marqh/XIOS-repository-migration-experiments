@@ -50,11 +50,9 @@ namespace xios
     }
 
    // compute the number of senders for a remote destination view
-    int commSize ;
-    MPI_Comm_size(localComm_, &commSize) ;
-    vector<int> ranks(commSize,0) ;
+    vector<int> ranks(remoteCommSize_,0) ;
     for(auto& rank : connector_) ranks[rank.first] = 1 ;
-    MPI_Allreduce(MPI_IN_PLACE,ranks.data(),commSize,MPI_INT,MPI_SUM,localComm_) ;
+    MPI_Allreduce(MPI_IN_PLACE,ranks.data(),remoteCommSize_,MPI_INT,MPI_SUM,localComm_) ;
     for(auto& rank : connector_) nbSenders_[rank.first] = ranks[rank.first] ;
 
   }
