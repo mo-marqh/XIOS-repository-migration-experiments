@@ -3,6 +3,8 @@ import sys
 import subprocess
 import os
 
+user_acct=os.getenv("user_account")
+
 def OSinfo(runthis):
 	red = lambda text: '\033[0;31m' + text + '\033[0m'
 	osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
@@ -29,7 +31,7 @@ def generate_compile_job_irene(revision):
         f.write("#MSUB -x\n")
         f.write("#MSUB -T 1800\n")
         f.write("#MSUB -q skylake\n")
-        f.write("#MSUB -A gen0826\n")
+        f.write("#MSUB -A "+user_acct+"\n")
         f.write("#MSUB -Q test\n")
         f.write("#MSUB -m work,scratch\n")
         f.write("cd $BRIDGE_MSUB_PWD\n")
@@ -52,7 +54,7 @@ def generate_compile_job_jeanzay(revision):
         f.write("#SBATCH -t 00:30:00\n")
         f.write("#SBATCH -o output.out\n") 
         f.write("#SBATCH -e error.err \n") 
-        f.write("#SBATCH -A psl@cpu\n")
+        f.write("#SBATCH -A "+user_acct+"\n")
         f.write("#SBATCH --job-name=XIOS_rev"+revision+"\n")
         f.write("cd ${SLURM_SUBMIT_DIR}\n")
         f.write("cmake .\n")
