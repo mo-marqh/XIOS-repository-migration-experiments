@@ -4,10 +4,54 @@ export build_dir=xios_test_suite/RUN_TEST_SUITE/build_${arch}_${mode}
 export svnR=$(svn info --show-item revision ../../)
 
 echo "Start Building XIOS ... "
-bash -c "cd ../.. && ./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 4"
 
-export build_status=$?
-if [[ ${build_status} == 0 ]]
+if [[ ${xios_machine_name} == "jeanzay" ]]; then
+
+  rm -f compile.sh
+  echo "#!/bin/bash" >> compile.sh 
+  echo "#SBATCH --ntasks=4 ">> compile.sh
+  echo "#SBATCH --hint=nomultithread ">> compile.sh
+  echo "#SBATCH -t 00:30:00  " >> compile.sh
+  echo "#SBATCH -o compile.out ">> compile.sh
+  echo "#SBATCH -e compile.err ">> compile.sh
+  echo "#SBATCH --account="$user_account  >> compile.sh
+  echo "cd \${SLURM_SUBMIT_DIR}">> compile.sh
+  echo "ulimit -c 0">> compile.sh
+  echo "cd ../.. ">> compile.sh
+  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 4" >> compile.sh
+  sbatch --wait compile.sh
+fi
+
+if [[ ${xios_machine_name} == "irene" ]]; then
+
+  rm -f compile.sh
+  echo "#!/bin/bash" >> compile.sh 
+  echo "#MSUB -o compile.out" >> compile.sh
+  echo "#MSUB -e compile.err" >> compile.sh
+  echo "#MSUB -eo" >> compile.sh
+  echo "#MSUB -c 4" >> compile.sh
+  echo "#MSUB -n 1" >> compile.sh
+  echo "#MSUB -X" >> compile.sh
+  echo "#MSUB -x" >> compile.sh
+  echo "#MSUB -T 1800" >> compile.sh
+  echo "#MSUB -q skylake" >> compile.sh
+  echo "#MSUB -A "$user_account >> compile.sh
+  echo "#MSUB -Q test" >> compile.sh
+  echo "#MSUB -m work,scratch" >> compile.sh
+  echo "cd ../.. ">> compile.sh
+  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 4" >> compile.sh
+  ccc_msub -E "--wait" compile.sh
+fi
+
+export build_info=$(tail -n 1 compile.out)
+if [[ $build_info == *"Build command finished"* ]]; then
+  build_ok=true
+else
+  build_ok=false
+fi
+
+
+if [ "$build_ok" = true ]
 then
   echo "XIOS Build Finished. Start Unit Tests"
   bash ./my_run.sh
