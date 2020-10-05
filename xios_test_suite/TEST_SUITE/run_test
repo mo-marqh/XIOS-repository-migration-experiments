@@ -16,6 +16,7 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
   echo "#SBATCH -o compile.out ">> compile.sh
   echo "#SBATCH -e compile.err ">> compile.sh
   echo "#SBATCH --account="$user_account  >> compile.sh
+  echo "#SBATCH --job-name=XIOS_rev"$svnR >> compile.sh
   echo "cd \${SLURM_SUBMIT_DIR}">> compile.sh
   echo "ulimit -c 0">> compile.sh
   echo "cd ../.. ">> compile.sh
@@ -48,12 +49,13 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   echo "#MSUB -q skylake" >> compile.sh
   echo "#MSUB -A "$user_account >> compile.sh
   echo "#MSUB -Q test" >> compile.sh
+  echo "#MSUB -r XIOS_rev"$svnR >> compile.sh
   echo "#MSUB -m work,scratch" >> compile.sh
   echo "cd ../.. ">> compile.sh
   echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16" >> compile.sh
   cmd=$(ccc_msub compile.sh)
-  output=$(ccc_mpp | grep ${jobid})
   jobid="${cmd//[!0-9]/}"
+  output=$(ccc_mpp | grep ${jobid})
   while [ ! -z "$output" ]
   do
     echo "compiling job " $jobid "pending/running for about" ${i} seconds
