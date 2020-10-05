@@ -43,7 +43,7 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   ccc_msub -E "--wait" compile.sh
 fi
 
-export build_info=$(tail -n 1 compile.out)
+export build_info=$(tail -n 50 compile.out)
 if [[ $build_info == *"Build command finished"* ]]; then
   build_ok=true
 else
