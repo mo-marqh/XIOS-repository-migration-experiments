@@ -1260,34 +1260,7 @@ namespace xios
           }
 
           SuperClassWriter::definition_end();
-
-          CArray<int, 1>& indexToWrite = axis->localIndexToWriteOnServer;
-          int nbWritten = indexToWrite.numElements();
-          CArray<double,1> axis_value(indexToWrite.numElements());
-          if (!axis->value.isEmpty())
-          {
-            for (int i = 0; i < nbWritten; i++)
-            {
-              if (indexToWrite(i) < 0)
-                axis_value(i) = -1;   // Some value in case of a hole
-              else
-                axis_value(i) = axis->value(indexToWrite(i));
-            }
-          }
-          CArray<double,2> axis_bounds;
-          CArray<string,1> axis_label;
-          if (!axis->label.isEmpty())
-          {
-            axis_label.resize(indexToWrite.numElements());
-            for (int i = 0; i < nbWritten; i++)
-            {
-              if (indexToWrite(i) < 0)
-                axis_label(i) = boost::lexical_cast<string>(-1);  // Some value in case of a hole
-              else
-                axis_label(i) = axis->label(indexToWrite(i));
-            }
-          }
-
+          
           switch (SuperClass::type)
           {
             case MULTI_FILE:
@@ -1298,26 +1271,10 @@ namespace xios
                   SuperClassWriter::writeData(axis->value, axisid, isCollective, 0);
 
                 if (!axis->bounds.isEmpty())
-                {
-                  axis_bounds.resize(2, indexToWrite.numElements());
-                  for (int i = 0; i < nbWritten; ++i)
-                  {
-                    if (indexToWrite(i) < 0)
-                    {
-                      axis_bounds(0, i) = -1.; // Some value in case of a hole
-                      axis_bounds(1, i) = -1.;
-                    }
-                    else
-                    {
-                      axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
-                      axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
-                    }
-                  }
                   SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0);
-                }
               }
               else
-                SuperClassWriter::writeData(axis_label, axisid, isCollective, 0);
+                SuperClassWriter::writeData(axis->label, axisid, isCollective, 0);
 
               SuperClassWriter::definition_start();
               break;
@@ -1337,30 +1294,14 @@ namespace xios
                   SuperClassWriter::writeData(axis->value, axisid, isCollective, 0, &start, &count);
 
                 if (!axis->bounds.isEmpty())
-                {
-                  axis_bounds.resize(2, indexToWrite.numElements());
-                  for (int i = 0; i < nbWritten; ++i)
-                  {
-                    if (indexToWrite(i) < 0)
-                    {
-                      axis_bounds(0, i) = -1.;
-                      axis_bounds(1, i) = -1.;
-                    }
-                    else
-                    {
-                      axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
-                      axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
-                    }
-                  }
                   SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
-                }
               }
               else
               {
                 std::vector<StdSize> startLabel(2), countLabel(2);
                 startLabel[0] = start[0]; startLabel[1] = 0;
                 countLabel[0] = count[0]; countLabel[1] = stringArrayLen;
-                SuperClassWriter::writeData(axis_label, axisid, isCollective, 0, &startLabel, &countLabel);
+                SuperClassWriter::writeData(axis->label, axisid, isCollective, 0, &startLabel, &countLabel);
               }
 
               SuperClassWriter::definition_start();

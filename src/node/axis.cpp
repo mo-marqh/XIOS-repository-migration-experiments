@@ -1805,11 +1805,25 @@ namespace xios {
     if (hasLabel)
     {
       { // send label
+        // need to transform array of string (no fixed size for string) into array of array of char
+        // to use connector to transfer
+        // the strings must have fixed size which the maximum lenght over the string label.  
+        int maxSize=0 ;
+        for(int i=0; i<label.numElements();i++) 
+          if (maxSize < label(i).size()) maxSize=label(i).size() ;
+        MPI_Allreduce(MPI_IN_PLACE, &maxSize,1,MPI_INT,MPI_MAX, context->getIntraComm()) ;
+        maxSize=maxSize+1 ;
+        CArray<char,2> charArray(maxSize,label.numElements()) ;
+        for(int j=0; j<label.numElements();j++) 
+        {
+          const char* str = label(j).c_str() ;
+          int strSize=label(j).size()+1 ;
+          for(int i=0; i<strSize; i++) charArray(i,j) = str[i] ;
+        }
         CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
         CMessage message ;
-        message<<serverAxisId<<string("label") ;
-        // something to do ? => convert string label into char ?
-        //clientToServerConnector_[client]->transfer(2, bounds, client, event,message) ;
+        message<<serverAxisId<<string("label")<<maxSize ;
+        scattererConnector.transfer(maxSize, charArray, client, event,message) ;
       }
     }
   }
@@ -1836,11 +1850,29 @@ namespace xios {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, 2, value, 0.); 
       bounds.resize(2,n) ;
-      if (bounds.numElements() > 0 ) bounds=CArray<double,2>(bounds.dataFirst(),shape(2,n),neverDeleteData) ; 
+      if (bounds.numElements() > 0 ) bounds=CArray<double,2>(value.dataFirst(),shape(2,n),neverDeleteData) ; 
     }
     else if (type=="label")
     {
-       
+      int maxSize ;
+      for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> maxSize ;
+      CArray<char,1> value ;
+      gathererConnector_->transfer(event, maxSize, value, '\0'); 
+      CArray<char,2> charArray(maxSize,n) ;
+      label.resize(n) ;
+      if (n>0)
+      {
+        charArray=CArray<char,2>(value.dataFirst(),shape(maxSize,n),neverDeleteData) ;
+        for(int j=0;j<n;j++)
+        {
+          int strSize ;
+          for(int i=0;i<maxSize;i++) 
+            if (charArray(i,j)=='\0') { strSize=i ; break; }
+          string str(strSize,'\0') ;
+          for(int i=0;i<strSize;i++) str[i]=charArray(i,j) ; 
+          label(j)=str ;
+        }
+      } 
     }
   }
   CATCH
