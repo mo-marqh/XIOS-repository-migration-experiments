@@ -19,6 +19,7 @@ namespace xios
   macroAtt(double)
   macroAtt(float)
   macroAtt(int)
+  macroAtt(size_t)
   macroAtt(long)
   macroAtt(short)
   macroAtt(char)
@@ -32,6 +33,7 @@ namespace xios
   macroPutVar(double)
   macroPutVar(float)
   macroPutVar(int)
+  macroPutVar(size_t)
   macroPutVar(char)
   
 #define macroType(type, ncType) \
@@ -40,6 +42,7 @@ namespace xios
   macroType(double, NC_DOUBLE)
   macroType(float, NC_FLOAT)
   macroType(int, NC_INT)
+  macroType(size_t, NC_UINT64)
   macroType(long, NC_LONG)
   macroType(short, NC_SHORT)
   macroType(char, NC_CHAR)

@@ -10,6 +10,8 @@ namespace xios
  
   macro(int, 1)
   macro(int, 2)
+  macro(size_t, 1)
+  macro(size_t, 2)
   macro(double, 1)
   macro(double, 2)
   macro(double, 3)

@@ -893,6 +893,12 @@ int CNetCdfInterface::ncGetAttType(int ncid, int varid, const char* attrName, lo
 }
 
 template<>
+int CNetCdfInterface::ncGetAttType(int ncid, int varid, const char* attrName, size_t* data)
+{
+  return nc_get_att_ulonglong(ncid, varid, attrName, (unsigned long long*)data);
+}
+
+template<>
 int CNetCdfInterface::ncGetAttType(int ncid, int varid, const char* attrName, short* data)
 {
   return nc_get_att_short(ncid, varid, attrName, data);
@@ -935,6 +941,13 @@ int CNetCdfInterface::ncPutAttType(int ncid, int varid, const char* attrName,
 
 template<>
 int CNetCdfInterface::ncPutAttType(int ncid, int varid, const char* attrName,
+                                   StdSize numVal, const size_t* data)
+{
+  return nc_put_att_ulonglong(ncid, varid, attrName, NC_UINT64, numVal, (unsigned long long*) data);
+}
+
+template<>
+int CNetCdfInterface::ncPutAttType(int ncid, int varid, const char* attrName,
                                    StdSize numVal, const short* data)
 {
   return nc_put_att_short(ncid, varid, attrName, NC_SHORT, numVal, data);
@@ -967,6 +980,12 @@ int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, c
 }
 
 template<>
+int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, size_t* data)
+{
+  return nc_get_vara_ulonglong(ncid, varid, start, count, (unsigned long long*) data);
+}
+
+template<>
 int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, char* data)
 {
   return nc_get_vara_text(ncid, varid, start, count, data);
@@ -989,6 +1008,12 @@ template<>
 int CNetCdfInterface::ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const int* data)
 {
   return nc_put_vara_int(ncid, varid, start, count, data);
+}
+
+template<>
+int CNetCdfInterface::ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const size_t* data)
+{
+  return nc_put_vara_ulonglong(ncid, varid, start, count, (unsigned long long*)data);
 }
 
 template<>

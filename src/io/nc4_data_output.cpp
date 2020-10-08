@@ -58,7 +58,7 @@ namespace xios
         StdString lonName,latName ;
          
         //domain->computeWrittenIndex();
-        domain->computeWrittenCompressedIndex(comm_file);
+        //domain->computeWrittenCompressedIndex(comm_file);
 
         if (domain->type == CDomain::type_attr::unstructured)
         {
@@ -1159,7 +1159,7 @@ namespace xios
         axis->checkAttributes();
 
 //        axis->computeWrittenIndex();
-        axis->computeWrittenCompressedIndex(comm_file);
+//        axis->computeWrittenCompressedIndex(comm_file);
        
         int size  = (MULTI_FILE == SuperClass::type) ? axis->n.getValue()
                                                           : axis->n_glo.getValue();
@@ -1496,221 +1496,176 @@ namespace xios
 
      void CNc4DataOutput::writeGridCompressed_(CGrid* grid)
      {
-       if (grid->isScalarGrid() || grid->isWrittenCompressed(this->filename)) return;
+        if (grid->isScalarGrid() || grid->isWrittenCompressed(this->filename)) return;
+        
+        // NOTA : The cuurent algorithm to write compress elements of the grid
+        //        will work pretting well when on server side you dont't get
+        //        partial overlap on elements between differents participating process
+        //        So the element must be totally distributed or non distributed
+        //        If an element is partially overlaping betwwen process then the
+        //        total compressed part will apear artificially greater than expected
+        //        For the current implementation of writer which is decomposed only on
+        //        one element, it will work as expected, but for future, it must be 
+        //        reconsidered again. 
+        try
+        {
+          CArray<int,1> axisDomainOrder = grid->axis_domain_order;
+          std::vector<StdString> domainList = grid->getDomainList();
+          std::vector<StdString> axisList   = grid->getAxisList();
+          std::vector<StdString> scalarList = grid->getScalarList();
+          int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
+          int commRank ;
+          MPI_Comm_rank(comm_file,&commRank) ;
 
-       try
-       {
-         CArray<int,1> axisDomainOrder = grid->axis_domain_order;
-         std::vector<StdString> domainList = grid->getDomainList();
-         std::vector<StdString> axisList   = grid->getAxisList();
-         std::vector<StdString> scalarList = grid->getScalarList();
-         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
+          std::vector<StdString> dims;
 
-         std::vector<StdString> dims;
+          for (int i = 0; i < numElement; ++i)
+          {
+            StdString varId, compress;
+            CArray<size_t, 1> indexes;
+            bool isDistributed;
+            size_t nbIndexes, totalNbIndexes, offset;
+            size_t firstGlobalIndex;
+            
+            if (2 == axisDomainOrder(i))
+            {
+              CDomain* domain = CDomain::get(domainList[idxDomain]);
+              StdString domId = domain->getDomainOutputName();
 
-         if (grid->isCompressible())
-         {
-           StdString varId = grid->getId() + "_points";
+              if (!domain->isCompressible()
+                  || domain->type == CDomain::type_attr::unstructured
+                  || domain->isWrittenCompressed(this->filename)
+                  || isWrittenCompressedDomain(domId))
+                continue;
+            
+              // unstructured grid seems not be taken into account why ?
 
-           int nbIndexes = (SuperClass::type == MULTI_FILE) ? grid->getNumberWrittenIndexes() : grid->getTotalNumberWrittenIndexes();
-           SuperClassWriter::addDimension(varId, nbIndexes);
+              string lonName,latName ;
 
-           dims.push_back(varId);
-           SuperClassWriter::addVariable(varId, NC_INT, dims);
+              if (domain->lon_name.isEmpty())
+              { 
+                if (domain->type==CDomain::type_attr::curvilinear) lonName = "nav_lon";
+                else lonName = "lon";
+              }
+              else lonName = domain->lon_name;
 
-           StdOStringStream compress;
-           for (int i = numElement - 1; i >= 0; --i)
-           {
-             if (2 == axisDomainOrder(i))
-             {
-               CDomain* domain = CDomain::get(domainList[domainList.size() - idxDomain - 1]);
-               StdString domId = domain->getDomainOutputName();
-               StdString appendDomId  = singleDomain ? "" : "_" + domId;
+              if (domain->lat_name.isEmpty())
+              {
+                if (domain->type==CDomain::type_attr::curvilinear) latName = "nav_lat";
+                else latName = "lat";
+              }
+              else latName = domain->lat_name;
+             
+              StdString appendDomId  = singleDomain ? "" : "_" + domId;
 
-               switch (domain->type)
-               {
-                 case CDomain::type_attr::curvilinear:
-                   compress << "y" << appendDomId << " x" << appendDomId;
-                   break;
-                 case CDomain::type_attr::rectilinear:
-                   compress << "lat" << appendDomId << " lon" << appendDomId;
-                   break;
-                 case CDomain::type_attr::unstructured:
-                   StdString cellName = (!domain->dim_i_name.isEmpty()) ? cellName=domain->dim_i_name : "cell";
-                   compress << cellName << appendDomId;
-//                   compress << "cell" << appendDomId;
-                   break;
-               }
-               ++idxDomain;
-             }
-             else if (1 == axisDomainOrder(i))
-             {
-               CAxis* axis = CAxis::get(axisList[axisList.size() - idxAxis - 1]);
-               compress << axis->getAxisOutputName();
-               ++idxAxis;
-             }
-             else
-             {
-               CScalar* scalar = CScalar::get(scalarList[scalarList.size() - idxScalar - 1]);
-               compress << scalar->getScalarOutputName();
-               ++idxScalar;
-             }
+              varId = domId + "_points";
+              compress = latName + appendDomId + " " + lonName + appendDomId;
+     
+              CLocalView* workflowView = domain->getLocalView(CElementView::WORKFLOW) ;
+              workflowView->getGlobalIndexView(indexes) ;
+              nbIndexes = workflowView->getSize() ;
+              isDistributed = domain->isDistributed();
+              if (isDistributed)
+              {
+                MPI_Exscan(&nbIndexes, &offset, 1, MPI_SIZE_T, MPI_SUM, comm_file) ;
+                if (commRank==0) offset=0 ;
+                MPI_Allreduce(&nbIndexes,&totalNbIndexes,1 , MPI_SIZE_T, MPI_SUM, comm_file) ;
+              }
+              else
+              {
+                offset=0 ;
+                totalNbIndexes = nbIndexes ;
+              }
 
-             if (i != 0) compress << ' ';
-           }
-           SuperClassWriter::addAttribute("compress", compress.str(), &varId);         
+              firstGlobalIndex = domain->ibegin + domain->jbegin * domain->ni_glo;
 
-           CArray<int, 1> indexes(grid->getNumberWrittenIndexes());
-           indexes = grid->localIndexToWriteOnServer_;
-
-           switch (SuperClass::type)
-           {
-             case (MULTI_FILE):
-             {
-               SuperClassWriter::writeData(indexes, varId, isCollective, 0);
-               break;
-             }
-             case (ONE_FILE):
-             {
-               if (grid->doGridHaveDataDistributed())
-                 grid->getServerDistribution()->computeGlobalIndex(indexes);
-
-               std::vector<StdSize> start, count;
-               start.push_back(grid->getOffsetWrittenIndexes());
-               count.push_back(grid->getNumberWrittenIndexes());
-
-               SuperClassWriter::writeData(indexes, varId, isCollective, 0, &start, &count);
-               break;
-             }
-           }
-         }
-         else
-         {
-           for (int i = 0; i < numElement; ++i)
-           {
-             StdString varId, compress;
-             CArray<int, 1> indexes;
-             bool isDistributed;
-             StdSize nbIndexes, totalNbIndexes, offset;
-             int firstGlobalIndex;
-
-             if (2 == axisDomainOrder(i))
-             {
-               CDomain* domain = CDomain::get(domainList[idxDomain]);
-               StdString domId = domain->getDomainOutputName();
-
-               if (!domain->isCompressible()
-                    || domain->type == CDomain::type_attr::unstructured
-                    || domain->isWrittenCompressed(this->filename)
-                    || isWrittenCompressedDomain(domId))
-                 continue;
-
-               StdString appendDomId  = singleDomain ? "" : "_" + domId;
-
-               varId = domId + "_points";
-               switch (domain->type)
-               {
-                 case CDomain::type_attr::curvilinear:
-                   compress = "y" + appendDomId + " x" + appendDomId;
-                   break;
-                 case CDomain::type_attr::rectilinear:
-                   compress = "lat" + appendDomId + " lon" + appendDomId;
-                   break;
-               }
-
-               // indexes.resize(domain->compressedIndexToWriteOnServer[comm_file].numElements());
-               // indexes = domain->compressedIndexToWriteOnServer[com_file];
-               indexes.resize(domain->getCompressedIndexToWriteOnServer(comm_file).numElements());
-               indexes = domain->getCompressedIndexToWriteOnServer(comm_file);
-
-               isDistributed = domain->isDistributed();
-               nbIndexes = domain->getNumberWrittenIndexes(comm_file);
-               totalNbIndexes = domain->getTotalNumberWrittenIndexes(comm_file);
-               offset = domain->getOffsetWrittenIndexes(comm_file);
-               firstGlobalIndex = domain->ibegin + domain->jbegin * domain->ni_glo;
-
-               domain->addRelFileCompressed(this->filename);
-               setWrittenCompressedDomain(domId);
-               ++idxDomain;
-             }
-             else if (1 == axisDomainOrder(i))
-             {
-               CAxis* axis = CAxis::get(axisList[idxAxis]);
-               StdString axisId = axis->getAxisOutputName();
-
-               if (!axis->isCompressible()
-                    || axis->isWrittenCompressed(this->filename)
-                    || isWrittenCompressedAxis(axisId))
-                 continue;
-
-               varId = axisId + "_points";
-               compress = axisId;
-
-               // indexes.resize(axis->compressedIndexToWriteOnServer.numElements());
-               // indexes = axis->compressedIndexToWriteOnServer;
-
-               indexes.resize(axis->getCompressedIndexToWriteOnServer(comm_file).numElements());
-               indexes = axis->getCompressedIndexToWriteOnServer(comm_file);
-
-               isDistributed = axis->isDistributed();
-               nbIndexes = axis->getNumberWrittenIndexes(comm_file);
-               totalNbIndexes = axis->getTotalNumberWrittenIndexes(comm_file);
-               offset = axis->getOffsetWrittenIndexes(comm_file);
-               firstGlobalIndex = axis->begin;
-
-               axis->addRelFileCompressed(this->filename);
-               setWrittenCompressedAxis(axisId);
-               ++idxAxis;
-             }
-             else
-             {
-             }
-
-             if (!varId.empty())
-             {
-               SuperClassWriter::addDimension(varId, (SuperClass::type == MULTI_FILE) ? nbIndexes : totalNbIndexes);
-
-               dims.clear();
-               dims.push_back(varId);
-               SuperClassWriter::addVariable(varId, NC_INT, dims);
-
-               SuperClassWriter::addAttribute("compress", compress, &varId);
-
-               switch (SuperClass::type)
-               {
-                 case (MULTI_FILE):
-                 {
-                   indexes -= firstGlobalIndex;
-                   SuperClassWriter::writeData(indexes, varId, isCollective, 0);
-                   break;
-                 }
-                 case (ONE_FILE):
-                 {
-                   std::vector<StdSize> start, count;
-                   start.push_back(offset);
-                   count.push_back(nbIndexes);
-
-                   SuperClassWriter::writeData(indexes, varId, isCollective, 0, &start, &count);
-                   break;
-                 }
-               }
-             }
+              domain->addRelFileCompressed(this->filename);
+              setWrittenCompressedDomain(domId);
+              ++idxDomain;
             }
-         }
+            else if (1 == axisDomainOrder(i))
+            {
+              CAxis* axis = CAxis::get(axisList[idxAxis]);
+              StdString axisId = axis->getAxisOutputName();
 
-         grid->addRelFileCompressed(this->filename);
-       }
-       catch (CNetCdfException& e)
-       {
-         StdString msg("On writing compressed grid : ");
-         msg.append(grid->getId()); msg.append("\n");
-         msg.append("In the context : ");
-         CContext* context = CContext::getCurrent();
-         msg.append(context->getId()); msg.append("\n");
-         msg.append(e.what());
-         ERROR("CNc4DataOutput::writeGridCompressed_(CGrid* grid)", << msg);
-       }
-     }
+              if (!axis->isCompressible()
+                  || axis->isWrittenCompressed(this->filename)
+                  || isWrittenCompressedAxis(axisId))
+                continue;
+
+              varId = axisId + "_points";
+              compress = axisId;
+
+              CLocalView* workflowView = axis->getLocalView(CElementView::WORKFLOW) ;
+              workflowView->getGlobalIndexView(indexes) ;
+              nbIndexes = workflowView->getSize() ;
+              isDistributed = axis->isDistributed();
+              if (isDistributed)
+              {
+                MPI_Exscan(&nbIndexes, &offset, 1, MPI_SIZE_T, MPI_SUM, comm_file) ;
+                if (commRank==0) offset=0 ;
+                MPI_Allreduce(&nbIndexes,&totalNbIndexes,1 , MPI_SIZE_T, MPI_SUM, comm_file) ;
+              }
+              else
+              {
+                offset=0 ;
+                totalNbIndexes = nbIndexes ;
+              }
+              firstGlobalIndex = axis->begin;
+              
+              axis->addRelFileCompressed(this->filename);
+              setWrittenCompressedAxis(axisId);
+              ++idxAxis;
+            }
+            else
+            {
+              //for scalar 
+            }
+
+            if (!varId.empty())
+            {
+              SuperClassWriter::addDimension(varId, (SuperClass::type == MULTI_FILE) ? nbIndexes : totalNbIndexes);
+
+              dims.clear();
+              dims.push_back(varId);
+              SuperClassWriter::addVariable(varId, NC_UINT64, dims);
+
+              SuperClassWriter::addAttribute("compress", compress, &varId);
+
+              switch (SuperClass::type)
+              {
+                case (MULTI_FILE):
+                {
+                  indexes -= firstGlobalIndex;
+                  SuperClassWriter::writeData(indexes, varId, isCollective, 0);
+                  break;
+                }
+                case (ONE_FILE):
+                {
+                  std::vector<StdSize> start, count;
+                  start.push_back(offset);
+                  count.push_back(nbIndexes);
+
+                  SuperClassWriter::writeData(indexes, varId, isCollective, 0, &start, &count);
+                  break;
+                }
+              }
+            }
+          }
+
+          grid->addRelFileCompressed(this->filename);
+        }
+        catch (CNetCdfException& e)
+        {
+          StdString msg("On writing compressed grid : ");
+          msg.append(grid->getId()); msg.append("\n");
+          msg.append("In the context : ");
+          CContext* context = CContext::getCurrent();
+          msg.append(context->getId()); msg.append("\n");
+          msg.append(e.what());
+          ERROR("CNc4DataOutput::writeGridCompressed_(CGrid* grid)", << msg);
+        }
+      }
 
      //--------------------------------------------------------------
 
@@ -2405,8 +2360,8 @@ namespace xios
            CArray<double,1> fieldData(writtenSize);
            if (!field->default_value.isEmpty()) fieldData = field->default_value;
 
-           if (field->getUseCompressedOutput())
-             field->outputCompressedField(dataIn, fieldData);
+           if (field->getUseCompressedOutput()) fieldData.reference(dataIn) ;
+             // field->outputCompressedField(dataIn, fieldData);
            else
            {
              //field->outputField(dataIn, fieldData);
@@ -2447,69 +2402,82 @@ namespace xios
 
                 if (field->getUseCompressedOutput())
                 {
-                  if (grid->isCompressible())
-                  {
-                    start.push_back(grid->getOffsetWrittenIndexes());
-                    count.push_back(grid->getNumberWrittenIndexes());
-                  }
-                  else
-                  {
-                    CArray<int,1> axisDomainOrder = grid->axis_domain_order;
-                    std::vector<StdString> domainList = grid->getDomainList();
-                    std::vector<StdString> axisList   = grid->getAxisList();
-                    int numElement = axisDomainOrder.numElements();
-                    int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
-                    int idx = domainList.size() * 2 + axisList.size() - 1;
+                  CArray<int,1> axisDomainOrder = grid->axis_domain_order;
+                  std::vector<StdString> domainList = grid->getDomainList();
+                  std::vector<StdString> axisList   = grid->getAxisList();
+                  int numElement = axisDomainOrder.numElements();
+                  int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
+                  int idx = domainList.size() * 2 + axisList.size() - 1;
+                  int commRank ;
 
-                    start.reserve(idx+1);
-                    count.reserve(idx+1);
+                  MPI_Comm_rank(comm_file,&commRank) ;
 
-                    for (int i = numElement - 1; i >= 0; --i)
+                  start.reserve(idx+1);
+                  count.reserve(idx+1);
+
+                  for (int i = numElement - 1; i >= 0; --i)
+                  {
+                    if (2 == axisDomainOrder(i))
                     {
-                      if (2 == axisDomainOrder(i))
-                      {
-                        CDomain* domain = CDomain::get(domainList[idxDomain]);
+                      CDomain* domain = CDomain::get(domainList[idxDomain]);
 
-                        if (domain->isCompressible())
+                      if (domain->isCompressible())
+                      {
+                        size_t offset ;
+                        size_t nbIndexes = domain->getLocalView(CElementView::WORKFLOW)->getSize() ;
+                        if (domain->isDistributed())
                         {
-                          start.push_back(domain->getOffsetWrittenIndexes(comm_file));
-                          count.push_back(domain->getNumberWrittenIndexes(comm_file));
-                          idx -= 2;
+                          MPI_Exscan(&nbIndexes, &offset, 1, MPI_SIZE_T, MPI_SUM, comm_file) ;
+                          if (commRank==0) offset=0 ;
                         }
-                        else
-                        {
-                          if ((domain->type) != CDomain::type_attr::unstructured)
-                          {
-                            start.push_back(domain->jbegin);
-                            count.push_back(domain->nj);
-                          }
-                          --idx;
-                          start.push_back(domain->ibegin);
-                          count.push_back(domain->ni);
-                          --idx;
-                        }
-                        --idxDomain;
+                        else offset=0 ;
+
+                        start.push_back(offset);
+                        count.push_back(nbIndexes);
+                        idx -= 2;
                       }
-                      else if (1 == axisDomainOrder(i))
+                      else
                       {
-                        CAxis* axis = CAxis::get(axisList[idxAxis]);
-
-                        if (axis->isCompressible())
+                        if ((domain->type) != CDomain::type_attr::unstructured)
                         {
-                          start.push_back(axis->getOffsetWrittenIndexes(comm_file));
-                          count.push_back(axis->getNumberWrittenIndexes(comm_file));
+                          start.push_back(domain->jbegin);
+                          count.push_back(domain->nj);
                         }
-                        else
-                        {
-                          start.push_back(axis->begin);
-                          count.push_back(axis->n);
-                        }
-                        --idxAxis;
+                        --idx;
+                        start.push_back(domain->ibegin);
+                        count.push_back(domain->ni);
                         --idx;
                       }
+                      --idxDomain;
+                    }
+                    else if (1 == axisDomainOrder(i))
+                    {
+                      CAxis* axis = CAxis::get(axisList[idxAxis]);
+
+                      if (axis->isCompressible())
+                      {
+                        size_t offset ;
+                        size_t nbIndexes = axis->getLocalView(CElementView::WORKFLOW)->getSize() ;
+                        if (axis->isDistributed())
+                        {
+                          MPI_Exscan(&nbIndexes, &offset, 1, MPI_SIZE_T, MPI_SUM, comm_file) ;
+                          if (commRank==0) offset=0 ;
+                        }
+                        else offset=0 ;
+
+                        start.push_back(offset);
+                        count.push_back(nbIndexes);
+                      }
+                      else
+                      {
+                        start.push_back(axis->begin);
+                        count.push_back(axis->n);
+                      }
+                      --idxAxis;
+                      --idx;
                     }
                   }
-                }
+              }
                 else
                 {
                   CArray<int,1> axisDomainOrder = grid->axis_domain_order;
