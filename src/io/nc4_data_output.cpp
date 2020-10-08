@@ -56,9 +56,6 @@ namespace xios
       TRY
       {
         StdString lonName,latName ;
-         
-        //domain->computeWrittenIndex();
-        //domain->computeWrittenCompressedIndex(comm_file);
 
         if (domain->type == CDomain::type_attr::unstructured)
         {
@@ -145,66 +142,6 @@ namespace xios
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
 
-         CArray<int, 1>& indexToWrite = domain->localIndexToWriteOnServer;
-         int nbWritten = indexToWrite.numElements();
-         CArray<double,1> writtenLat, writtenLon;
-         CArray<double,2> writtenBndsLat, writtenBndsLon;
-         CArray<double,1> writtenArea;
-
-         if (domain->hasLonLat)
-         {
-           writtenLat.resize(nbWritten);
-           writtenLon.resize(nbWritten);
-           for (int idx = 0; idx < nbWritten; ++idx)
-           {
-             if (indexToWrite(idx) < 0)
-             {
-               writtenLat(idx) = -1.;   // hole
-               writtenLon(idx) = -1.;
-             }
-             else
-             {
-               writtenLat(idx) = domain->latvalue(indexToWrite(idx));
-               writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
-             }
-           }
-
-           if (domain->hasBounds)
-           {         
-             int nvertex = domain->nvertex, idx;
-             writtenBndsLat.resize(nvertex, nbWritten);
-             writtenBndsLon.resize(nvertex, nbWritten);
-             CArray<double,2>& boundslat = domain->bounds_latvalue;
-             CArray<double,2>& boundslon = domain->bounds_lonvalue;   
-             for (idx = 0; idx < nbWritten; ++idx)
-               for (int nv = 0; nv < nvertex; ++nv)
-               {
-                 if (indexToWrite(idx) < 0)
-                 {
-                   writtenBndsLat(nv, idx) = -1.;  // hole
-                   writtenBndsLon(nv, idx) = -1.;
-                 }
-                 else
-                 {
-                   writtenBndsLat(nv, idx) = boundslat(nv, int(indexToWrite(idx)));
-                   writtenBndsLon(nv, idx) = boundslon(nv, int(indexToWrite(idx)));
-                 }
-               }
-           }
-         }
-
-         if (domain->hasArea)
-         {
-           writtenArea.resize(nbWritten);           
-           for (int idx = 0; idx < nbWritten; ++idx)
-           {
-        	  if (indexToWrite(idx) < 0)
-              writtenArea(idx) = -1.;
-        	  else
-              writtenArea(idx) = domain->areavalue(indexToWrite(idx));
-           }
-         }
-
          try
          {
            switch (SuperClass::type)
@@ -288,21 +225,6 @@ namespace xios
                  dim0.clear();
                  dim0.push_back(dimYid);
                  dim0.push_back(dimXid);
-
-
-  // supress mask               if (context->intraCommSize_ > 1)
-  // supress mask               {
-  // supress mask                  SuperClassWriter::addVariable(maskid, NC_INT, dim0);
-  // supress mask
-  // supress mask                  this->writeMaskAttributes(maskid,
-  // supress mask                     domain->data_dim.getValue()/*,
-  // supress mask                     domain->data_ni.getValue(),
-  // supress mask                     domain->data_nj.getValue(),
-  // supress mask                     domain->data_ibegin.getValue(),
-  // supress mask                     domain->data_jbegin.getValue()*/);
-  // supress mask               }
-
-                 //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
                  if (domain->hasArea)
                  {
@@ -416,26 +338,14 @@ namespace xios
                    {
                      std::vector<StdSize> start(2) ;
                      std::vector<StdSize> count(2) ;
-// Comment out: it is not working for a hole
-//                     if (domain->isEmpty())
-//                     {
-//                       start[0]=0 ; start[1]=0 ;
-//                       count[0]=0 ; count[1]=0 ;
-//                     }
-//                     else
-                     {
-                       start[1]=domain->ibegin;
-                       start[0]=domain->jbegin;
-                       count[1]=domain->ni ; count[0]=domain->nj ;
-                     }
+                     start[1]=domain->ibegin;
+                     start[0]=domain->jbegin;
+                     count[1]=domain->ni ; count[0]=domain->nj ;
 
                      if (domain->hasLonLat)
                      {
-//                       SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
-//                       SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
                        SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0,&start,&count);
                        SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0,&start,&count);
-
                      }
                      break;
                    }
@@ -479,8 +389,6 @@ namespace xios
                      count[0] = domain->nj;
                    }
                  
-//                   SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0, &start, &count);
-//                   SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0, &start, &count);
                    SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0, &start, &count); // will probably not working for rectilinear
                    SuperClassWriter::writeData(domain->bounds_latvalue, bounds_latid, isCollective, 0, &start, &count);
                  }
@@ -921,68 +829,6 @@ namespace xios
 
          int nvertex = (domain->nvertex.isEmpty()) ? 0 : domain->nvertex;
 
-         CArray<int, 1>& indexToWrite = domain->localIndexToWriteOnServer;
-         int nbWritten = indexToWrite.numElements();
-         CArray<double,1> writtenLat, writtenLon;
-         CArray<double,2> writtenBndsLat, writtenBndsLon;
-         CArray<double,1> writtenArea;
-
-         if (domain->hasLonLat)
-         {
-           writtenLat.resize(nbWritten);
-           writtenLon.resize(nbWritten);
-           for (int idx = 0; idx < nbWritten; ++idx)
-           {
-       	     if (indexToWrite(idx) < 0)
-       	     {
-               writtenLat(idx) = -1.;
-               writtenLon(idx) = -1.;
-       	     }
-       	     else
-       	     {
-       	       writtenLat(idx) = domain->latvalue(indexToWrite(idx));
-       	       writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
-       	     }
-           }
-         }
-         
-         if (domain->hasBounds)
-         {
-           int nvertex = domain->nvertex, idx;
-           writtenBndsLat.resize(nvertex, nbWritten);
-           writtenBndsLon.resize(nvertex, nbWritten);
-           CArray<double,2>& boundslat = domain->bounds_latvalue;
-           CArray<double,2>& boundslon = domain->bounds_lonvalue;
-           for (idx = 0; idx < nbWritten; ++idx)
-           {
-             for (int nv = 0; nv < nvertex; ++nv)
-             {
-               if (indexToWrite(idx) < 0)
-               {
-                 writtenBndsLat(nv, idx) = -1.;
-                 writtenBndsLon(nv, idx) = -1.;
-               }
-               else
-               {
-                 writtenBndsLat(nv, idx) = boundslat(nv, int(indexToWrite(idx)));
-                 writtenBndsLon(nv, idx) = boundslon(nv, int(indexToWrite(idx)));
-                }
-             }
-           }
-         }
-
-         if (domain->hasArea)
-         {
-           writtenArea.resize(nbWritten);           
-           for (int idx = 0; idx < nbWritten; ++idx)
-           {
-             if (indexToWrite(idx) < 0)
-               writtenArea(idx) = -1.;
-             else
-               writtenArea(idx) = domain->areavalue(indexToWrite(idx));
-           }
-         }
-
          try
          {
            switch (SuperClass::type)
@@ -1031,21 +877,16 @@ namespace xios
 
                  if (domain->hasLonLat)
                  {
-//                   SuperClassWriter::writeData(writtenLat, latid, isCollective, 0);
-//                   SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0);
                    SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0);
                    SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0);
                    if (domain->hasBounds)
                    {
-//                     SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0);
-//                     SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0);
                      SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0);
                      SuperClassWriter::writeData(domain->bounds_latvalue, bounds_latid, isCollective, 0);
                    }
                  }
 
                  if (domain->hasArea)
-//                   SuperClassWriter::writeData(writtenArea, areaId, isCollective, 0);
                    SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0);
 
                  SuperClassWriter::definition_start();
@@ -1158,9 +999,6 @@ namespace xios
         if (axis->IsWritten(this->filename)) return;
         axis->checkAttributes();
 
-//        axis->computeWrittenIndex();
-//        axis->computeWrittenCompressedIndex(comm_file);
-       
         int size  = (MULTI_FILE == SuperClass::type) ? axis->n.getValue()
                                                           : axis->n_glo.getValue();
 
