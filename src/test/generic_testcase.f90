@@ -2090,12 +2090,13 @@ CONTAINS
      DOUBLE PRECISION  :: value(:)
      LOGICAL           :: mask(:)
      INTEGER :: i,x
-
+     
+     mask(:)=.TRUE.
      x=size(mask)
      IF (params%axis_mask) THEN
        DO i=0,x-1
-         IF (MOD(i,3)==0) mask(i)=.FALSE.
-         IF (MOD(i,4)==0) mask(i)=.FALSE.
+         IF (MOD(i,3)==0) mask(i+1)=.FALSE.
+         IF (MOD(i,4)==0) mask(i+1)=.FALSE.
        ENDDO
      ENDIF
 
