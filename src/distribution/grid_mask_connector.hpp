@@ -44,7 +44,11 @@ namespace xios
       }
       else
       {  
-        for(int i=0; i<size_[level] ; i++) recursiveInternal(level-1, mask) ;
+        for(int i=0; i<size_[level] ; i++) 
+        {
+          recursiveInternal(level-1, mask) ;
+          index_[level]++ ;
+        }
         index_[level] = 0 ;
       }
     }
