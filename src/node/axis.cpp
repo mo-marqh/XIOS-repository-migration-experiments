@@ -98,14 +98,21 @@ namespace xios {
    CATCH
 
    /*!
-    * Test whether the data defined on the axis can be outputted in a compressed way.
-    *
-    * \return true if and only if a mask was defined for this axis
+    * Compute if the axis can be ouput in a compressed way.
+    * In this case the workflow view on server side must be the same
+    * than the full view for all context rank. The result is stored on
+    * internal isCompressible_ attribute.
     */
-   bool CAxis::isCompressible(void) const
+   void CAxis::computeIsCompressible(void)
    TRY
    {
-      return isCompressible_;
+     // mesh is compressible contains some masked or indexed value, ie if full view is different of workflow view.
+     // But now assume that the size of the 2 view must be equal for everybody. True on server side
+     int isSameView = getLocalView(CElementView::FULL)->getSize() ==  getLocalView(CElementView::WORKFLOW)->getSize();
+     MPI_Allreduce(MPI_IN_PLACE, &isSameView, 1, MPI_INT, MPI_LAND, CContext::getCurrent()->getIntraComm()) ;
+     if (isSameView) isCompressible_ = false ;
+     else isCompressible_ = true ;
+     isCompressibleComputed_=true ;
    }
    CATCH
 
@@ -461,17 +468,7 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-  /*!
-    Check whether we can do compressed output
-  */
-  void CAxis::checkEligibilityForCompressedOutput()
-  TRY
-  {
-    // We don't check if the mask is valid here, just if a mask has been defined at this point.
-    isCompressible_ = !mask.isEmpty();
-  }
-  CATCH_DUMP_ATTR
-
+ 
   /*!
     Dispatch event from the lower communication layer then process event according to its type
   */
@@ -1646,7 +1643,8 @@ namespace xios {
     remoteElement_[client]->addFullView() ;
   }
  
-  void CAxis::distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& axisId)
+  void CAxis::distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, 
+                                 CScattererConnector* &scattererConnector, const string& axisId)
   {
     string serverAxisId = axisId.empty() ? this->getId() : axisId ;
     CContext* context = CContext::getCurrent();
@@ -1655,9 +1653,9 @@ namespace xios {
 
     CDistributedElement scatteredElement(n_glo,globalIndex) ;
     scatteredElement.addFullView() ;
-    CScattererConnector scattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), 
-                                           context->getIntraComm(), client->getRemoteSize()) ;
-    scattererConnector.computeConnector() ;
+    scattererConnector = new CScattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), 
+                                                 context->getIntraComm(), client->getRemoteSize()) ;
+    scattererConnector->computeConnector() ;
     
     // phase 0
     // send remote element to construct the full view on server, ie without hole 
@@ -1671,9 +1669,9 @@ namespace xios {
     CEventClient event1(getType(), EVENT_ID_AXIS_DISTRIBUTION);
     CMessage message1 ;
     message1<<serverAxisId<<1<<localElement_->getView(CElementView::FULL)->getGlobalSize() ; 
-    scattererConnector.transfer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event1,message1) ;
+    scattererConnector->transfer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event1,message1) ;
 
-    sendDistributedAttributes(client, scattererConnector, axisId) ;
+    sendDistributedAttributes(client, *scattererConnector, axisId) ;
   
     // phase 2 send the mask : data index + mask2D
     CArray<bool,1> maskIn(localElement_->getView(CElementView::WORKFLOW)->getSize());
@@ -1686,7 +1684,7 @@ namespace xios {
     // phase 3 : prepare grid scatterer connector to send data from client to server
     map<int,CArray<size_t,1>> workflowGlobalIndex ;
     map<int,CArray<bool,1>> maskOut2 ; 
-    scattererConnector.transfer(maskOut, maskOut2) ;
+    scattererConnector->transfer(maskOut, maskOut2) ;
     scatteredElement.addView(CElementView::WORKFLOW, maskOut2) ;
     scatteredElement.getView(CElementView::WORKFLOW)->getGlobalIndexView(workflowGlobalIndex) ;
     // create new workflow view for scattered element
@@ -1751,11 +1749,11 @@ namespace xios {
     }
     else if (phasis==2)
     {
-      delete gathererConnector_ ;
+//      delete gathererConnector_ ;
       elementFrom_ = new  CDistributedElement(event) ;
       elementFrom_->addFullView() ;
-      gathererConnector_ =  new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
-      gathererConnector_ -> computeConnector() ;
+//      gathererConnector_ =  new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
+//      gathererConnector_ -> computeConnector() ;
     }
   
   }

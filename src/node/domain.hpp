@@ -86,7 +86,6 @@ namespace xios {
 
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation();
-         void checkEligibilityForCompressedOutput(void);
 
          void sendCheckedAttributes();
 
@@ -111,8 +110,20 @@ namespace xios {
 
          bool isEmpty(void) const;
          bool isDistributed(void) const;
-         bool isCompressible(void) const; 
- 
+
+        public :
+         /*!
+            \brief return if the domain can be written or not in a compressed way.
+            ie if there are some masked or indexed point on the domain. Valid only on server side.
+            \return true if domain can be writtedn in a compressed way
+         */ 
+         bool isCompressible(void) { if (!isCompressibleComputed_) computeIsCompressible() ; return isCompressible_ ;} 
+        private :
+         bool isCompressible_ ; /** specify if the domain can be written in a compressed way */ 
+         bool isCompressibleComputed_=false ; /** Indicate if compressability has been computed*/
+         void computeIsCompressible() ;
+
+      public :
          std::vector<int> getNbGlob();
          bool isEqual(CDomain* domain);
 
@@ -295,8 +306,6 @@ namespace xios {
          std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;     
          std::map<int, std::vector<int> > connectedServerRank_;
 
-         //! True if and only if the data defined on the domain can be outputted in a compressed way
-         bool isCompressible_;
          bool isRedistributed_;
          TransMapTypes transformationMap_;         
          bool isUnstructed_;
@@ -331,7 +340,8 @@ namespace xios {
 
        public:
          void computeRemoteElement(CContextClient* client, EDistributionType) ;
-         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& domainId="") ;
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, CScattererConnector* &scattererConnector,
+                                 const string& domainId="") ;
 
          static void recvDomainDistribution(CEventServer& event) ;
          void receivedDomainDistribution(CEventServer& event, int phasis) ;

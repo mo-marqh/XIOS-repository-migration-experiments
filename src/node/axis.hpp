@@ -87,7 +87,20 @@ namespace xios {
          bool IsWritten(const StdString & filename) const;
          bool isWrittenCompressed(const StdString& filename) const;
          bool isDistributed(void) const;
-         bool isCompressible(void) const;
+        
+        public:
+        /*!
+            \brief return if the axis can be written or not in a compressed way.
+            ie if there are some masked or indexed point on the domain. Valid only on server side.
+            \return true if domain can be writtedn in a compressed way
+         */ 
+         bool isCompressible(void) { if (!isCompressibleComputed_) computeIsCompressible() ; return isCompressible_ ;} 
+        private:
+         bool isCompressible_ ; /** specify if the domain can be written in a compressed way */ 
+         bool isCompressibleComputed_=false ; /** Indicate if compressability has been computed*/
+         void computeIsCompressible() ;
+        
+        public:
 
          /// Mutateur ///
          void addRelFile(const StdString & filename);
@@ -119,7 +132,6 @@ namespace xios {
          void sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 
-         void checkEligibilityForCompressedOutput();
          size_t getGlobalWrittenSize(void) ;
 
          void computeWrittenIndex();
@@ -212,8 +224,6 @@ namespace xios {
          bool isClientAfterTransformationChecked;
          std::set<StdString> relFiles, relFilesCompressed;
          TransMapTypes transformationMap_;         
-         //! True if and only if the data defined on the axis can be outputted in a compressed way
-         bool isCompressible_;
 
          std::map<int, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
          std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
@@ -253,7 +263,8 @@ namespace xios {
        
        public:
          void computeRemoteElement(CContextClient* client, EDistributionType) ;
-         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& axisId="") ;
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, CScattererConnector* &scattererConnector,
+                                 const string& axisId="") ;
 
          static void recvAxisDistribution(CEventServer& event) ;
          void receivedAxisDistribution(CEventServer& event, int phasis) ;

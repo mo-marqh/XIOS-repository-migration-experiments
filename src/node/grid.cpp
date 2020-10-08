@@ -2680,28 +2680,29 @@ namespace xios {
     gridRemoteConnector.computeConnector() ;
     
     vector<CScattererConnector*> scattererConnectors ;
+    CScattererConnector* scattererConnector;
     for(int i=0 ; i<elements.size() ; i++)
     {
       if (elements[i].type==TYPE_DOMAIN) 
       { 
          CDomain* domain = (CDomain*) elements[i].ptr ;
          sendAddDomain(domain->getId(),client) ;
-         domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-         scattererConnectors.push_back(domain->getClientToServerConnector(client)) ;
+         domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+         scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_AXIS)
       {
         CAxis* axis = (CAxis*) elements[i].ptr ;
         sendAddAxis(axis->getId(),client) ;
-        axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-        scattererConnectors.push_back(axis->getClientToServerConnector(client)) ;
+        axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+        scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_SCALAR)
       {
         CScalar* scalar = (CScalar*) elements[i].ptr ;
         sendAddScalar(scalar->getId(),client) ;
-        scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-        scattererConnectors.push_back(scalar->getClientToServerConnector(client)) ;
+        scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+        scattererConnectors.push_back(scattererConnector) ;
       }
     }
 
@@ -2716,7 +2717,7 @@ namespace xios {
     CMessage message ;
     message<<getId() ; 
     gridScattererConnector.transfer(maskOut, client, event, message) ;
-
+    for(auto& it : scattererConnectors) delete it ;
 
     vector<CScattererConnector*> clientToServerConnectors ;
     vector<CGathererConnector*>  clientFromServerConnectors ;
@@ -2799,7 +2800,7 @@ namespace xios {
 
   void CGrid::sendGridToCouplerOut(CContextClient* client, const string& fieldId)
   {
-    if (sendGridToCouplerOut_done_.count(client)!=0) return ;
+/*    if (sendGridToCouplerOut_done_.count(client)!=0) return ;
     else sendGridToCouplerOut_done_.insert(client) ;
  
     CContext* context = CContext::getCurrent();
@@ -2871,7 +2872,7 @@ namespace xios {
     }
     
     // compute the grid clientToServerConnector to send flux from client to servers
-    clientToClientConnector_[client] = new CGridScattererConnector(clientToClientConnectors) ;
+    clientToClientConnector_[client] = new CGridScattererConnector(clientToClientConnectors) ;*/
   }
 
   void CGrid::makeAliasForCoupling(const string& fieldId)

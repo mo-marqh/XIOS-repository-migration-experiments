@@ -2402,7 +2402,7 @@ namespace xios {
 
       // Check if some axis, domains or grids are eligible to for compressed indexed output.
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
-      checkAxisDomainsGridsEligibilityForCompressedOutput();      // only for field written on IO_SERVER service ????
+      //checkAxisDomainsGridsEligibilityForCompressedOutput();      // only for field written on IO_SERVER service ????
 
       // Check if some automatic time series should be generated
       // Warning: This must be done after solving the inheritance and before the rest of post-processing      
@@ -2538,26 +2538,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   //! Client side: Check if the defined axis, domains and grids are eligible for compressed indexed output
-   void CContext::checkAxisDomainsGridsEligibilityForCompressedOutput()
-   TRY
-   {
-     if (!(serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)) return;
-
-     const vector<CAxis*> allAxis = CAxis::getAll();
-     for (vector<CAxis*>::const_iterator it = allAxis.begin(); it != allAxis.end(); it++)
-       (*it)->checkEligibilityForCompressedOutput();
-
-     const vector<CDomain*> allDomains = CDomain::getAll();
-     for (vector<CDomain*>::const_iterator it = allDomains.begin(); it != allDomains.end(); it++)
-       (*it)->checkEligibilityForCompressedOutput();
-
-     const vector<CGrid*> allGrids = CGrid::getAll();
-     for (vector<CGrid*>::const_iterator it = allGrids.begin(); it != allGrids.end(); it++)
-       (*it)->checkEligibilityForCompressedOutput();
-   }
-   CATCH_DUMP_ATTR
-
+  
    //! Client side: Prepare the timeseries by adding the necessary files
    void CContext::prepareTimeseries()
    TRY
