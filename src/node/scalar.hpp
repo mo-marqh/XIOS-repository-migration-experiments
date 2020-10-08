@@ -174,7 +174,9 @@ namespace xios
 
        public:
          void computeRemoteElement(CContextClient* client, EDistributionType) ;
-         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, const string& scalarId="") ;
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, CScattererConnector* &scattererConnector,
+                                 const string& scalarId="") ;
+
          static void recvScalarDistribution(CEventServer& event) ;
          void receivedScalarDistribution(CEventServer& event, int phasis) ;
          void setServerMask(CArray<bool,1>& serverMask, CContextClient* client) ;
