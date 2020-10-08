@@ -59,9 +59,9 @@ namespace xios
    
     CArray<size_t,1>& globalIndex_ ;
     CArray<int,1>& index_ ;
-    int& size_ ;
+    int& size_ ;        /** The number of index composing the view, ie the size of the corresponding data, ie the size of index_ */
     int& localRank_ ;
-    int& localSize_ ;
+    int& localSize_ ;   /** The local size of the element, ie the size of globalIndex_ */
   } ;
 
 }
