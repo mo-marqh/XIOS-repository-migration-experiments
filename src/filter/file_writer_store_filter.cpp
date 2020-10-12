@@ -22,7 +22,7 @@ namespace xios
          needToWrite_=true ;
     else needToWrite_=false;
     lastFileSplit_ = file_->getLastSplit() ;
-    nstep_ = 0 ;
+    nstep_ = file_->record_offset.isEmpty() ? 0 : file_->record_offset; // record_offset < 0 ==> no output (debugging)
     if (!field->scale_factor.isEmpty()) { scaleFactor_ = field->scale_factor ; hasScaleFactor_ = true ; }
     if (!field->add_offset.isEmpty()) { addOffset_ = field->add_offset ; hasAddOffset_ = true ; }
     if (!field->prec.isEmpty() && field->prec == 2) hasRounding_ = true ;

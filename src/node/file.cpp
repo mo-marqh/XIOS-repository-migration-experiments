@@ -239,11 +239,6 @@ namespace xios {
       }
       isOpen = false;      
 
-//      if (!record_offset.isEmpty() && record_offset < 0)
-//        ERROR("void CFile::initFile(void)",
-//              "Invalid 'record_offset', this attribute cannot be negative.");
-      const int recordOffset = record_offset.isEmpty() ? 0 : record_offset;
-
       set<StdString> setAxis;
       set<StdString> setDomains;
 
@@ -257,8 +252,6 @@ namespace xios {
          std::vector<CDomain*> vecDomains = field->getGrid()->getDomains();
          for (size_t i = 0; i < vecDomains.size(); ++i)
            setDomains.insert(vecDomains[i]->getDomainOutputName());
-
-         field->resetNStep(recordOffset);
       }
       nbAxis = setAxis.size();
       nbDomains = setDomains.size();
@@ -266,7 +259,6 @@ namespace xios {
       // create sub communicator for file
       createSubComFile();
 
-      // if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
     CATCH_DUMP_ATTR

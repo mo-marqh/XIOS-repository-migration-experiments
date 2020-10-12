@@ -56,7 +56,7 @@ namespace xios
     {      
       file_->checkReadFile();
       nStepMax_ = file_->getDataInput()->getFieldNbRecords(field_);
-      nStep_ = 0 ;
+      nStep_ = file_->record_offset.isEmpty() ? 0 : file_->record_offset; ;
     }
     MPI_Allreduce(MPI_IN_PLACE, &nStepMax_, 1, MPI_INT, MPI_MAX, context->getIntraComm());
     isInitialized_=true;

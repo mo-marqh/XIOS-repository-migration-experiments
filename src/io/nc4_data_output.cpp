@@ -2100,7 +2100,7 @@ namespace xios
             if (!field->getRelFile()->time_units.isEmpty() && field->getRelFile()->time_units==CFile::time_units_attr::days)
             factorUnit=context->getCalendar()->getDayLengthInSeconds() ;
             else factorUnit=1 ;
-            nstep = getRecordFromTime(field->last_Write_srv,factorUnit) + 1;
+            nstep = getRecordFromTime(currentWrite,factorUnit) + 1;
           }
 
           field->setWritten();

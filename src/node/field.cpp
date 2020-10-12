@@ -32,7 +32,6 @@ namespace xios
   CField::CField(void)
     : CObjectTemplate<CField>(), CFieldAttributes()
     , written(false)
-    , nstep(0), nstepMax(0)
     , hasOutputFile(false)
     , domAxisScalarIds_(vector<StdString>(3,""))
     , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
@@ -40,16 +39,12 @@ namespace xios
     , useCompressedOutput(false)
     , hasTimeInstant(false)
     , hasTimeCentered(false)
-    , wasDataRequestedFromServer(false)
-    , wasDataAlreadyReceivedFromServer(false)
     , mustAutoTrigger(false)
-    , isEOF(false), nstepMaxRead(false)
   { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
   CField::CField(const StdString& id)
     : CObjectTemplate<CField>(id), CFieldAttributes()
     , written(false)
-    , nstep(0), nstepMax(0)
     , hasOutputFile(false)
     , domAxisScalarIds_(vector<StdString>(3,""))
     , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
@@ -57,11 +52,8 @@ namespace xios
     , useCompressedOutput(false)
     , hasTimeInstant(false)
     , hasTimeCentered(false)
-    , wasDataRequestedFromServer(false)
-    , wasDataAlreadyReceivedFromServer(false)
     , mustAutoTrigger(false)
-    , isEOF(false), nstepMaxRead(false)
-  { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
+    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
   CField::~CField(void)
   {}
@@ -162,35 +154,6 @@ namespace xios
   }
   CATCH
 
-/*  
-  void CField::writeUpdateData(const CArray<double,1>& data)
-  TRY
-  {
-    const CDate writeDate = last_Write_srv + freq_write_srv;
-    last_Write_srv = writeDate;
-    writeField(data);
-    lastlast_Write_srv = last_Write_srv;
-  }
-  CATCH_DUMP_ATTR
-*/
-
-/*
-  void CField::writeField(const CArray<double,1>& data)
-  TRY
-  {
-    if (!getRelFile()->isEmptyZone())
-    {
-      if (grid_->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)
-      {
-        getRelFile()->checkWriteFile();
-        this->incrementNStep();
-        getRelFile()->getDataOutput()->writeFieldData(CField::get(this), data);
-      }
-    }
-  }
-  CATCH_DUMP_ATTR
-*/
-  
   /*
     Send a request for reading data.
     Client sends a request to server for demanding server to read data and send back to it.
@@ -264,91 +227,6 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  /* old interface to be removed ..*/
-/*
-  void CField::recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers)
-  TRY
-  {
-    CContext* context = CContext::getCurrent();
-    Time timeStamp ;
-    if (wasDataAlreadyReceivedFromServer)
-    {  
-      lastDataReceivedFromServer = lastDataReceivedFromServer + freq_op;
-    }
-    else
-    {
-      // unlikely to input from file server where data are received at ts=0
-      // for coupling, it would be after the first freq_op, because for now we don't have
-      // restart mecanism to send the value at ts=0. It mus be changed in future
-      lastDataReceivedFromServer = context->getCalendar()->getInitDate();
-      wasDataAlreadyReceivedFromServer = true;
-    }
-
-    CArray<int,1>& storeClient = grid_->getStoreIndex_client();
-    CArray<double,1> recv_data_tmp(storeClient.numElements());  
-
-    auto& outLocalIndexStoreOnClient = grid_-> getOutLocalIndexStoreOnClient() ;
-    for (auto it = outLocalIndexStoreOnClient.begin(); it != outLocalIndexStoreOnClient.end(); ++it)
-    {
-      CArray<double,1> tmp;
-      CArray<size_t,1>& indexTmp = it->second;
-      *(rankBuffers[it->first]) >> timeStamp >> tmp;
-      for (int idx = 0; idx < indexTmp.numElements(); ++idx) recv_data_tmp(indexTmp(idx)) = tmp(idx);
-    }
-    
-    clientSourceFilter->streamData(lastDataReceivedFromServer, recv_data_tmp);
-    
-  }
-  CATCH_DUMP_ATTR
-*/ 
-
-  /*!
-    Receive read data from server
-    \param [in] ranks Ranks of sending processes
-    \param [in] buffers buffers containing read data
-  */
-  // old interface to remove 
-/*
-  void CField::recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers)
-  TRY
-  {
-    CContext* context = CContext::getCurrent();
-    std::map<int, CArray<double,1> > data;
-    const bool wasEOF = isEOF;
-
-    for (int i = 0; i < ranks.size(); i++)
-    {
-      int rank = ranks[i];
-      int record;
-      *buffers[i] >> record;
-      isEOF = (record == int(-1));
-
-      if (!isEOF)
-        *buffers[i] >> data[rank];
-      else
-        break;
-    }
-
-    if (wasDataAlreadyReceivedFromServer)
-      lastDataReceivedFromServer = lastDataReceivedFromServer + fileIn_->output_freq;
-    else
-    {
-      lastDataReceivedFromServer = context->getCalendar()->getInitDate();
-      wasDataAlreadyReceivedFromServer = true;
-    }
-
-    if (isEOF)
-    {
-      if (!wasEOF)
-        dateEOF = lastDataReceivedFromServer;
-
-      serverSourceFilter->signalEndOfStream(lastDataReceivedFromServer);
-    }
-    else
-      serverSourceFilter->streamDataFromServer(lastDataReceivedFromServer, data);
-  }
-  CATCH_DUMP_ATTR
-*/
 
   void CField::checkForLateDataFromCoupler(void)
   TRY
@@ -422,16 +300,7 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  //----------------------------------------------------------------
-/*
-  void CField::setRelFile(CFile* _file)
-  TRY
-  {
-    this->file = _file;
-    hasOutputFile = true;
-  }
-  CATCH_DUMP_ATTR
-*/
+
   //----------------------------------------------------------------
 
   StdString CField::GetName(void)    { return StdString("field"); }
@@ -458,13 +327,6 @@ namespace xios
   }
   CATCH
 
-  int CField::getNStep(void) const
-  TRY
-  {
-    return this->nstep;
-  }
-  CATCH
-
   func::CFunctor::ETimeType CField::getOperationTimeType() const
   TRY
   {
@@ -472,29 +334,6 @@ namespace xios
   }
   CATCH
 
-   //----------------------------------------------------------------
-
-  void CField::incrementNStep(void)
-  TRY
-  {
-    this->nstep++;
-  }
-  CATCH_DUMP_ATTR
-
-  void CField::resetNStep(int nstep /*= 0*/)
-  TRY
-  {
-    this->nstep = nstep;
-  }
-  CATCH_DUMP_ATTR
-
-  void CField::resetNStepMax(void)
-  TRY
-  {
-    this->nstepMax = 0;
-    nstepMaxRead = false;
-  }
-  CATCH_DUMP_ATTR
 
   //----------------------------------------------------------------
 
@@ -867,16 +706,6 @@ namespace xios
 
     if (freq_offset.isEmpty()) freq_offset.setValue(NoneDu);
 
-    freq_operation_srv = fileOut_->output_freq.getValue();
-    freq_write_srv     = fileOut_->output_freq.getValue();
-
-    lastlast_Write_srv = context->getCalendar()->getInitDate();
-    last_Write_srv     = context->getCalendar()->getInitDate();
-    last_operation_srv = context->getCalendar()->getInitDate();
-
-    const CDuration toffset = freq_operation_srv - freq_offset.getValue() - context->getCalendar()->getTimeStep();
-    last_operation_srv     = last_operation_srv - toffset;
-
     if (operation.isEmpty())
       ERROR("void CField::solveServerOperation(void)",
             << "An operation must be defined for field \"" << getId() << "\".");
@@ -1085,20 +914,6 @@ namespace xios
 
     if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
     if (freq_offset.isEmpty()) freq_offset.setValue(freq_op.getValue() - TimeStep);
-    
-    /* old 
-
-    freq_operation_srv = freq_op ;
-    last_operation_srv = context->getCalendar()->getInitDate();
-    const CDuration toffset = freq_operation_srv - freq_offset.getValue() - context->getCalendar()->getTimeStep();
-    last_operation_srv     = last_operation_srv - toffset;
-
-    clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid_, false, false, freq_offset, true)) ;
-    clientSourceFilter -> connectOutput(inputFilter,0) ;
-
-    */
-    // new
-
     clientFromClientSourceFilter_ = std::shared_ptr<CClientFromClientSourceFilter>(new CClientFromClientSourceFilter(gc, this)) ;
     clientFromClientSourceFilter_ -> connectOutput(inputFilter,0) ;
    
@@ -1695,56 +1510,6 @@ namespace xios
     {
       CField* child = *it;
      if (child->hasId()) owner->createChild()->field_ref.setValue(child->getId());
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  void CField::scaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset)
-  TRY
-  {
-    data = (data - addOffset) / scaleFactor;
-  }
-  CATCH_DUMP_ATTR
-
-  void CField::invertScaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset)
-  TRY
-  {
-    data = data * scaleFactor + addOffset;
-  }
-  CATCH_DUMP_ATTR
-
-  void CField::outputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
-  TRY
-  { 
-    CArray<size_t,1>& outIndexClient = grid_->localIndexToWriteOnClient_;
-    CArray<size_t,1>& outIndexServer = grid_->localIndexToWriteOnServer_;
-    for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
-    {
-      dataOut(outIndexServer(idx)) = dataIn(outIndexClient(idx));
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  void CField::inputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
-  TRY
-  {
-    CArray<size_t,1>& outIndexClient = grid_->localIndexToWriteOnClient_;
-    CArray<size_t,1>& outIndexServer = grid_->localIndexToWriteOnServer_;
-    for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
-    {
-      dataOut(outIndexClient(idx)) = dataIn(outIndexServer(idx));
-    }
-  }
-  CATCH_DUMP_ATTR
-
- void CField::outputCompressedField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
- TRY
- {
-    CArray<size_t,1>& outIndexClient = grid_->localIndexToWriteOnClient_;
-    CArray<size_t,1>& outIndexServer = grid_->localIndexToWriteOnServer_;
-    for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
-    {
-      dataOut((idx)) = dataIn(outIndexClient(idx));
     }
   }
   CATCH_DUMP_ATTR

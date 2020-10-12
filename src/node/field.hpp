@@ -104,17 +104,9 @@ namespace xios
          func::CFunctor::ETimeType getOperationTimeType() const;
 
       public:
-         int getNStep(void) const;
-
          template <int N> void getData(CArray<double, N>& _data) const;
 
          std::shared_ptr<COutputPin> getInstantDataFilter();
-
-         /// Mutateur ///
-         void setRelFile(CFile* _file);
-         void incrementNStep(void);
-         void resetNStep(int nstep = 0);
-         void resetNStepMax();
 
          std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
          // Grid data buffer size for each connection of contextclient
@@ -192,22 +184,14 @@ namespace xios
         template <int N> void setData(const CArray<double, N>& _data);
         static bool dispatchEvent(CEventServer& event);
         void sendAllAttributesToServer(CContextClient* client) ; 
-        void sendUpdateData(Time timestamp, const CArray<double,1>& data, CContextClient* client);
-        void sendUpdateDataServerToClient(bool isEOF, const CArray<double,1>& data, CContextClient* client) ;
-
+        
         static void recvUpdateData(CEventServer& event);
         void receiveUpdateData(CEventServer& event);  
-        
-        void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
-        void recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
-        void recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
-        
-//        void writeField(const CArray<double,1>& data);
+
         bool sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
-        EReadField readField(CArray<double,1>& data);
         static void recvReadDataReady(CEventServer& event);
         void receiveReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers); // old interface to remove
@@ -219,16 +203,6 @@ namespace xios
         void autoTriggerIfNeeded(void); //ym obsolete
         void triggerLateField(void) ;
 
-//        void outputField(CArray<double,3>& fieldOut);
-//        void outputField(CArray<double,2>& fieldOut);
-        void outputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-
-//        void inputField(CArray<double,3>& fieldOut);
-//        void inputField(CArray<double,2>& fieldOut);
-        void inputField(const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-        void outputCompressedField(const CArray<double,1>& dataIn, CArray<double, 1>& dataOut);
-        void scaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset);
-        void invertScaleFactorAddOffset(CArray<double,1>& data, double scaleFactor, double addOffset);
         void parse(xml::CXMLNode& node);
 
         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
@@ -245,7 +219,6 @@ namespace xios
         static void recvAddVariableGroup(CEventServer& event);
         void recvAddVariableGroup(CBufferIn& buffer);        
         void sendAddAllVariables(CContextClient* client);
-        //void writeUpdateData(const CArray<double,1>& data);
 
         const std::vector<StdString>& getRefDomainAxisIds();
 
@@ -332,22 +305,10 @@ namespace xios
          void setModelOut(void) { modelOut_ = true ;}
          void unsetModelOut(void) { modelOut_ = false ;}
 
-         CDuration freq_operation_srv, freq_write_srv;
-
+         
          bool written; //<! Was the field written at least once
-         int nstep, nstepMax;
-         bool isEOF;
-         CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;
-         CDate lastDataRequestedFromServer, lastDataReceivedFromServer, dateEOF;
-         bool wasDataRequestedFromServer, wasDataAlreadyReceivedFromServer;
          bool mustAutoTrigger;
 
-         map<int,std::shared_ptr<func::CFunctor> > foperation_srv;
-
-         // map<int, CArray<double,1> > data_srv;
-//         CArray<double,1> recvDataSrv; // not usefull anymore
-         
-         std::shared_ptr<func::CFunctor> recvFoperationSrv;
          string content;
 
          std::vector<StdString> domAxisScalarIds_;
@@ -372,7 +333,6 @@ namespace xios
          bool isReferenceSolved;
          bool isReferenceSolvedAndTransformed;
          bool isGridChecked;
-         bool nstepMaxRead;
 
        private: 
          //! define if the field is part of the active workflow. It will be tagged to true when CField::buildWorkflowGraph is successfull 
