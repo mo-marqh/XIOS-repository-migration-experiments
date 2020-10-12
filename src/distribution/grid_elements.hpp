@@ -27,7 +27,7 @@ namespace xios
 
       std::vector<CLocalElement*>& getElements(void) { return elements_ ; }
       CGridLocalView* getView(CElementView::type type) ;
-      CGridLocalConnector* getConnector(CElementView::type srcType, CElementView::type dstType) ;
+      CGridLocalConnector* getConnector(CElementView::type srcType, CElementView::type dstType, bool withMask=false) ;
   } ;
 }
 

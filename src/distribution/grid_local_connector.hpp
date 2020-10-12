@@ -24,7 +24,7 @@ namespace xios
     public:
       
       CGridLocalConnector(const std::vector<CLocalConnector*>& elementsConnector)  ;
-      CGridLocalConnector(CGridLocalElements* parent, CElementView::type srcType, CElementView::type dstType) ;
+      CGridLocalConnector(CGridLocalElements* parent, CElementView::type srcType, CElementView::type dstType, bool withMask=false) ;
       int getSrcSize(void) { return srcSize_ ;}
       int getDstSize(void) { return dstSize_ ;}
 

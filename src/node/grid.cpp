@@ -3387,7 +3387,7 @@ namespace xios {
 
   void CGrid::computeModelToWorkflowConnector(void)
   {
-    modelToWorkflowConnector_ = getGridLocalElements()->getConnector(CElementView::MODEL,CElementView::WORKFLOW) ;
+    modelToWorkflowConnector_ = getGridLocalElements()->getConnector(CElementView::MODEL,CElementView::WORKFLOW,true) ;
   }
 
   void CGrid::computeWorkflowToFullConnector(void)
@@ -3397,7 +3397,7 @@ namespace xios {
 
   void CGrid::computeWorkflowToModelConnector(void)
   {
-    workflowToModelConnector_ = getGridLocalElements()->getConnector(CElementView::WORKFLOW,CElementView::MODEL) ;
+    workflowToModelConnector_ = getGridLocalElements()->getConnector(CElementView::WORKFLOW,CElementView::MODEL,true) ;
   }
 
   void CGrid::computeFullToWorkflowConnector(void)

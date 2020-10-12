@@ -15,7 +15,7 @@ namespace xios
     for(auto connector : elementsConnector_) dstSize_*=connector->getDstSize() ;
   } 
 
-  CGridLocalConnector::CGridLocalConnector(CGridLocalElements* parent, CElementView::type srcType, CElementView::type dstType)
+  CGridLocalConnector::CGridLocalConnector(CGridLocalElements* parent, CElementView::type srcType, CElementView::type dstType, bool withMask)
   {
     CGridLocalView* srcView=parent->getView(srcType) ;
     CGridLocalView* dstView=parent->getView(dstType) ;
@@ -30,7 +30,7 @@ namespace xios
     dstSize_=1 ;
     for(auto connector : elementsConnector_) dstSize_*=connector->getDstSize() ;
 
-    if (parent->hasLocalMask())
+    if (parent->hasLocalMask() && withMask)
     {
       vector<CLocalConnector*> elementsConnector ;
       for(auto element : elements) elementsConnector.push_back(element->getConnector(CElementView::FULL, dstType)) ;
