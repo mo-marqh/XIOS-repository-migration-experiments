@@ -162,23 +162,19 @@ namespace xios
   }
   CATCH
 
-  
+/*  
   void CField::writeUpdateData(const CArray<double,1>& data)
   TRY
   {
     const CDate writeDate = last_Write_srv + freq_write_srv;
     last_Write_srv = writeDate;
-    // grid_->computeWrittenIndex(); -> obselete function need to be removed
-    /*
-    recvDataSrv.resize(data.numElements()) ;
-    recvDataSrv = data ;
-    */
     writeField(data);
     lastlast_Write_srv = last_Write_srv;
   }
   CATCH_DUMP_ATTR
+*/
 
-
+/*
   void CField::writeField(const CArray<double,1>& data)
   TRY
   {
@@ -193,7 +189,8 @@ namespace xios
     }
   }
   CATCH_DUMP_ATTR
-
+*/
+  
   /*
     Send a request for reading data.
     Client sends a request to server for demanding server to read data and send back to it.

@@ -317,20 +317,15 @@ namespace xios {
     TRY
     {
       CContext* context = CContext::getCurrent();
-      // Done by classical server or secondary server
-      // This condition should be changed soon
-//ym      if (CServer::serverLevel == 0 || CServer::serverLevel == 2)
-       if (context->getServiceType()==CServicesManager::IO_SERVER || context->getServiceType()==CServicesManager::OUT_SERVER)
-       {
-        if (mode.isEmpty() || mode.getValue() == mode_attr::write)
-        {
-          CTimer::get("Files : create headers").resume();
-          if (!isOpen) createHeader();
-          CTimer::get("Files : create headers").suspend();
-          checkSync();
-        }        
-        checkSplit(); // REally need this?
-      }
+
+      if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+      {
+        CTimer::get("Files : create headers").resume();
+        if (!isOpen) createHeader();
+        CTimer::get("Files : create headers").suspend();
+        checkSync();
+      }        
+      checkSplit(); 
     }
     CATCH_DUMP_ATTR
 
@@ -416,11 +411,11 @@ namespace xios {
         {
           lastSplit = lastSplit + split_freq.getValue();
           std::vector<CField*>::iterator it, end = this->enabledFields.end();
-          for (it = this->enabledFields.begin(); it != end; it++)
+/*          for (it = this->enabledFields.begin(); it != end; it++)
           {
             (*it)->resetNStep();
             (*it)->resetNStepMax();
-          }
+          }*/
           if (mode.isEmpty() || mode.getValue() == mode_attr::write)
             createHeader();
           else
@@ -431,6 +426,7 @@ namespace xios {
       return false;
     }
     CATCH_DUMP_ATTR
+
 
    /*!
    \brief Create header of netcdf file

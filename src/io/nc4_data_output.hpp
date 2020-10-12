@@ -55,7 +55,7 @@ namespace xios
             virtual void writeField_    (CField* field);
             virtual void writeAttribute_(CVariable* var);
             virtual void writeAttribute_(CVariable* var, const string& fieldId);
-            virtual void writeFieldData_(CField* field, const CArray<double,1>& data);
+            virtual int  writeFieldData_(CField* field, const CArray<double,1>& data, const CDate& lastWrite, const CDate& currentWrite, int nstep);
             virtual void writeFile_     (CFile* file);
             virtual void closeFile_     (void);
             virtual void syncFile_      (void);

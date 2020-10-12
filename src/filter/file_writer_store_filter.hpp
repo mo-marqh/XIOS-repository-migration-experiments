@@ -6,6 +6,8 @@
 namespace xios
 {
   class CField;
+  class CFile;
+  class CGrid;
 
   /*!
    * A terminal filter which writes the packets it receives in a file.
@@ -45,8 +47,22 @@ namespace xios
       void virtual onInputReady(std::vector<CDataPacketPtr> data);
 
     private:
-      CField* field; //<! The associated field
-      std::map<Time, CDataPacketPtr> packets; //<! The stored packets
+      CField* field_; //<! The associated field
+      CFile* file_ ;
+      CGrid* grid_ ;
+      CDate lastWrite_ ;
+      CDate lastFileSplit_ ;
+      CDuration freqWrite_ ;
+      int nstep_ ;
+      bool needToWrite_ ;
+      double scaleFactor_ = 1.0;
+      double addOffset_ = 0.0;
+      bool hasScaleFactor_ = false ;
+      bool hasAddOffset_ = false ;
+      double defaultValue_ ;
+      bool hasDefaultValue_=false;
+      bool hasRounding_=false ;
+
   }; // class CFileWriterStoreFilter
 } // namespace xios
 

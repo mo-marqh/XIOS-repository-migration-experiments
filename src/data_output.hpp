@@ -27,7 +27,7 @@ namespace xios
             void writeFieldTimeAxis(CField* field) ;
             void writeFieldGrid(CField* field);
             void writeTimeDimension(void);
-            void writeFieldData(CField* field, const CArray<double,1>& data);
+            int  writeFieldData(CField* field, const CArray<double,1>& data, const CDate& lastWrite, const CDate& currentWrite, int nstep);
 
             virtual void definition_start(void) = 0;
             virtual void definition_end(void)   = 0;
@@ -51,7 +51,7 @@ namespace xios
             virtual void closeFile_     (void)               = 0;
             virtual void syncFile_      (void)               = 0;
             virtual void writeField_    (CField*     field)  = 0;
-            virtual void writeFieldData_(CField*     field, const CArray<double,1>& data)  = 0;
+            virtual int writeFieldData_ (CField*     field, const CArray<double,1>& data, const CDate& lastWrite, const CDate& currentWrite, int nstep)  = 0;
             virtual void writeDomain_   (CDomain*    domain) = 0;
             virtual void writeAxis_     (CAxis*      axis)   = 0;
             virtual void writeScalar_   (CScalar*    scalar) = 0;

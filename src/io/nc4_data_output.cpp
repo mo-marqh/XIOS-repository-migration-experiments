@@ -1712,18 +1712,10 @@ namespace xios
           dims.push_back(timeid);
         }
 
-        if (compressedOutput && grid->isCompressible())
+        while (!dimIdList.empty())
         {
-          dims.push_back(grid->getId() + "_points");
-          field->setUseCompressedOutput();
-        }
-        else
-        {
-          while (!dimIdList.empty())
-          {
-            dims.push_back(dimIdList.back());
-            dimIdList.pop_back();
-          }
+          dims.push_back(dimIdList.back());
+          dimIdList.pop_back();
         }
 
         while (!dimCoordList.empty())
@@ -2069,21 +2061,21 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      void CNc4DataOutput::writeFieldData_ (CField*  field, const CArray<double,1>& data)
+      int CNc4DataOutput::writeFieldData_ (CField*  field, const CArray<double,1>& data, const CDate& lastWrite,
+                                           const CDate& currentWrite, int nstep)
       {
         CContext* context = CContext::getCurrent();
         CGrid* grid = field->getGrid();
-        CArray<double,1> dataIn(data.copy()) ;
-
-        if (field->getNStep()<1) 
+       
+        if (nstep<1) 
         {
-          return;
+          return nstep;
         }
         
         if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type == MULTI_FILE || !isCollective)
           {
-            return;
+            return nstep;
           }
 
         StdString fieldid = field->getFieldOutputName();
@@ -2108,7 +2100,7 @@ namespace xios
             if (!field->getRelFile()->time_units.isEmpty() && field->getRelFile()->time_units==CFile::time_units_attr::days)
             factorUnit=context->getCalendar()->getDayLengthInSeconds() ;
             else factorUnit=1 ;
-            field->resetNStep(getRecordFromTime(field->last_Write_srv,factorUnit) + 1);
+            nstep = getRecordFromTime(field->last_Write_srv,factorUnit) + 1;
           }
 
           field->setWritten();
@@ -2127,14 +2119,11 @@ namespace xios
 
         if (wtime)
         {
-          Time lastWrite = field->last_Write_srv;
-          Time lastLastWrite = field->lastlast_Write_srv;
-
           
           if (field->hasTimeInstant)
           {
-            time_data(0) = time_data_bound(1) = lastWrite;
-            time_data_bound(0) = time_data_bound(1) = lastWrite;
+            time_data(0) = time_data_bound(1) = (Time) lastWrite;
+            time_data_bound(0) = time_data_bound(1) = (Time) currentWrite;
             if (timeCounterType==instant)
             {
               time_counter(0) = time_data(0);
@@ -2146,9 +2135,9 @@ namespace xios
           }
           else if (field->hasTimeCentered)
           {
-            time_data(0) = (lastWrite + lastLastWrite) / 2;
-            time_data_bound(0) = lastLastWrite;
-            time_data_bound(1) = lastWrite;
+            time_data(0) = ((Time)currentWrite + (Time)lastWrite) / 2;
+            time_data_bound(0) = (Time)lastWrite;
+            time_data_bound(1) = (Time)currentWrite;
             if (timeCounterType==centered)
             {
               time_counter(0) = time_data(0) ;
@@ -2161,8 +2150,8 @@ namespace xios
 
           if (timeCounterType==record)
           {
-            time_counter(0) = field->getNStep() - 1;
-            time_counter_bound(0) = time_counter_bound(1) = field->getNStep() - 1;
+            time_counter(0) = nstep - 1;
+            time_counter_bound(0) = time_counter_bound(1) = nstep - 1;
             wtimeCounter=true ;
           }
 
@@ -2178,56 +2167,27 @@ namespace xios
 
          bool isRoot = (context->intraCommRank_ == 0);
 
-         if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
-         {
-           double scaleFactor = 1.0;
-           double addOffset = 0.0;
-           if (!field->scale_factor.isEmpty()) scaleFactor = field->scale_factor;
-           if (!field->add_offset.isEmpty()) addOffset = field->add_offset;
-           field->scaleFactorAddOffset(dataIn, scaleFactor, addOffset);
-         }
-
          try
          {
-           size_t writtenSize;
-           if (field->getUseCompressedOutput())
-             writtenSize = grid->getNumberWrittenIndexes();
-           else
-             writtenSize = grid->getWrittenDataSize();
-
-           CArray<double,1> fieldData(writtenSize);
-           if (!field->default_value.isEmpty()) fieldData = field->default_value;
-
-           if (field->getUseCompressedOutput()) fieldData.reference(dataIn) ;
-             // field->outputCompressedField(dataIn, fieldData);
-           else
-           {
-             //field->outputField(dataIn, fieldData);
-             if (!field->default_value.isEmpty()) field->getGrid()->getWorkflowToFullConnector()->transfer(dataIn, fieldData, (double)field->default_value ) ;
-             else field->getGrid()->getWorkflowToFullConnector()->transfer(dataIn, fieldData ) ;
-           }
-
-           if (!field->prec.isEmpty() && field->prec == 2) fieldData = round(fieldData);
-
            switch (SuperClass::type)
            {
               case (MULTI_FILE) :
               {
                  CTimer::get("Files : writing data").resume();
-                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1);
+                 SuperClassWriter::writeData(data, fieldid, isCollective, nstep - 1);
                  CTimer::get("Files : writing data").suspend();
                  if (wtime)
                  {
                    CTimer::get("Files : writing time axis").resume();
                    if ( wtimeData)
                    {
-                       SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
-                       SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
+                       SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, nstep - 1, isRoot);
+                       SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, nstep - 1, isRoot);
                   }
                    if (wtimeCounter)
                    {
-                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1,isRoot);
-                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
+                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, nstep - 1,isRoot);
+                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, nstep - 1, isRoot);
                    }
                    CTimer::get("Files : writing time axis").suspend();
                  }
@@ -2315,7 +2275,7 @@ namespace xios
                       --idx;
                     }
                   }
-              }
+                }
                 else
                 {
                   CArray<int,1> axisDomainOrder = grid->axis_domain_order;
@@ -2367,7 +2327,7 @@ namespace xios
 
 
                 CTimer::get("Files : writing data").resume();
-                SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1, &start, &count);
+                SuperClassWriter::writeData(data, fieldid, isCollective, nstep - 1, &start, &count);
                 CTimer::get("Files : writing data").suspend();
 
                  if (wtime)
@@ -2375,13 +2335,13 @@ namespace xios
                    CTimer::get("Files : writing time axis").resume();
                    if ( wtimeData)
                    {
-                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
-                     SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
+                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, nstep - 1, isRoot);
+                     SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, nstep - 1, isRoot);
                    }
                    if (wtimeCounter)
                    {
-                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1,isRoot);
-                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
+                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, nstep - 1,isRoot);
+                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, nstep - 1, isRoot);
 
                    }
                    CTimer::get("Files : writing time axis").suspend();  
@@ -2390,6 +2350,7 @@ namespace xios
                 break;
               }
             }
+            return nstep ;
          }
          catch (CNetCdfException& e)
          {

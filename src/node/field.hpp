@@ -202,7 +202,7 @@ namespace xios
         void recvUpdateDataFromClient(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
         void recvUpdateDataFromCoupler(std::map<int,CBufferIn*>& rankBuffers); // old interface to be removed
         
-        void writeField(const CArray<double,1>& data);
+//        void writeField(const CArray<double,1>& data);
         bool sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
@@ -245,7 +245,7 @@ namespace xios
         static void recvAddVariableGroup(CEventServer& event);
         void recvAddVariableGroup(CBufferIn& buffer);        
         void sendAddAllVariables(CContextClient* client);
-        void writeUpdateData(const CArray<double,1>& data);
+        //void writeUpdateData(const CArray<double,1>& data);
 
         const std::vector<StdString>& getRefDomainAxisIds();
 

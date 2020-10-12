@@ -178,6 +178,9 @@ namespace xios {
 
          CDate lastSync;
          CDate lastSplit;
+         
+         const CDate& getLastSplit(void) { return lastSplit ; }
+        
          int nbAxis, nbDomains;
          bool isOpen;         
          MPI_Comm fileComm;
