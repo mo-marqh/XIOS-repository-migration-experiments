@@ -388,7 +388,7 @@ namespace xios {
         }
         for (int i = 0; i < data_n; ++i)
         {
-          if ((i+data_begin) >= 0 && (i+data_begin<n) && !mask(i+data_begin))
+          if (!mask(data_index(i)))
             data_index(i) = -1;
         }
       }
