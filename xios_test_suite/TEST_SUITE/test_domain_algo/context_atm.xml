@@ -82,6 +82,12 @@
       </domain> 
     </grid>
 
+    <grid id="grid2D_expand">
+      <domain ni_glo="36" nj_glo="18" type="rectilinear" lon_start="-175" lon_end="175" lat_start="-85" lat_end="85">
+      <expand_domain order="1" type="node"/>
+      </domain> 
+    </grid>
+
 
 
 
@@ -362,6 +368,11 @@
    <file id="atm_output_domain_transformation_reorder" output_freq="12ts" type="one_file" enabled="true">
        <field field_ref="field2D" />
        <field id="field2D_reorder" field_ref="field2D" grid_ref="grid2D_reorder" />
+    </file>
+
+   <file id="atm_output_domain_transformation_expand" output_freq="12ts" type="one_file" enabled="true">
+       <field field_ref="field2D" />
+       <field id="field2D_expand" field_ref="field2D" grid_ref="grid2D_expand" />
     </file>
 
 
