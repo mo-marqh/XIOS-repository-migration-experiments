@@ -1822,6 +1822,18 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   void CDomain::initLonLatValue(void)
+   TRY
+   {
+      CContext* context=CContext::getCurrent() ;
+
+      if (context->hasClient)
+      {
+        this->completeLonLatClient();
+      }
+
+   }
+   CATCH_DUMP_ATTR
   /*!
      Compute the connection of a client to other clients to determine which clients to send attributes to.
      The sending clients are supposed to already know the distribution of receiving clients (In simple cases, it's band)

@@ -63,6 +63,7 @@ TRY
   this->type_ = (ELEMENT_MODIFICATION_WITH_DATA);
   // Make sure domain source have all valid attributes
   // domainSource->checkAllAttributes();
+  domainSource->initLonLatValue();
   expandDomain->checkValid(domainDestination);
   if (!expandDomain->i_periodic.isEmpty()) isXPeriodic_ = expandDomain->i_periodic;
   if (!expandDomain->j_periodic.isEmpty()) isYPeriodic_ = expandDomain->j_periodic;
@@ -185,8 +186,8 @@ TRY
   CArray<int,1>& data_j_index_src = domainSource->data_j_index;
   int data_i_begin_src = domainSource->data_ibegin;
   int data_j_begin_src = domainSource->data_jbegin;
-  CArray<double,1>& lon_src = domainSource->lonvalue_1d;
-  CArray<double,1>& lat_src = domainSource->latvalue_1d;
+  CArray<double,1>& lon_src = domainSource->lonvalue;
+  CArray<double,1>& lat_src = domainSource->latvalue;
   CArray<double,1> lon_g;
   CArray<double,1> lat_g;
 
@@ -194,8 +195,7 @@ TRY
   if (domainSource->bounds_lon_1d.isEmpty() || domainSource->bounds_lat_1d.isEmpty())
   {
     CArray<double,1> lon = lon_src(Range(0,niSrc-1));
-    //CArray<double,1> lat = lat_src(Range(0,lat_src.numElements()-niSrc,niSrc));
-    CArray<double,1> lat = lat_src(Range(0,lat_src.numElements()-1));
+    CArray<double,1> lat = lat_src(Range(0,lat_src.numElements()-niSrc,niSrc));
     CArray<double,2>& bounds_lon_src = domainSource->bounds_lon_1d;
     CArray<double,2>& bounds_lat_src = domainSource->bounds_lat_1d;
     domainSource->AllgatherRectilinearLonLat(lon_src, lat_src, lon_g,lat_g);
@@ -329,8 +329,8 @@ TRY
 
     //Pack data
     int dataIdx = 0;
-    //data[dataIdx] = lon_src(idx);++dataIdx;
-    //data[dataIdx] = lat_src(idx);++dataIdx;
+    data[dataIdx] = lon_src(idx);++dataIdx;
+    data[dataIdx] = lat_src(idx);++dataIdx;
     for (int i = 0; i < nVertex; ++i)
     {
       data[dataIdx] = bounds_lon_src(i,idx); ++dataIdx;

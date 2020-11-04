@@ -124,6 +124,7 @@ namespace xios {
                                            CArray<double,2>& boundsLon, CArray<double,2>& boundsLat);
          
          void fillInLonLat();
+         void initLonLatValue();
          bool distributionAttributesHaveValue() const;
 
          size_t getGlobalWrittenSize() ;
