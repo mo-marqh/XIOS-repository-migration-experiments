@@ -1,4 +1,3 @@
-#include "source_filter.hpp"
 #include "grid.hpp"
 #include "exception.hpp"
 #include "calendar_util.hpp"

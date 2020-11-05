@@ -52,9 +52,7 @@ namespace xios {
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
-           EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY,
-           EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES,
-           EVENT_ID_PROCESS_GRID_ENABLED_FIELDS,
+           EVENT_ID_SEND_REGISTRY,
            EVENT_ID_CONTEXT_FINALIZE_CLIENT,
            EVENT_ID_COUPLER_IN_READY,
            EVENT_ID_COUPLER_IN_CLOSE_DEFINITION,
@@ -116,7 +114,6 @@ namespace xios {
          bool isFinalized(void);
 
          void closeDefinition(void);
-         void closeDefinition_old(void);
 
          // to be removed     
          std::vector<CField*> findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
@@ -139,7 +136,7 @@ namespace xios {
          void updateCalendar(int step);
          void createFileHeader(void);
          void initReadFiles(void);
-        void prepareTimeseries(void);
+         void prepareTimeseries(void);
          void solveOnlyRefOfEnabledFields(void);         
          void buildFilterGraphOfEnabledFields();
          void postProcessFilterGraph();
@@ -149,8 +146,6 @@ namespace xios {
          void findFieldsWithReadAccess(void);
          void solveAllRefOfFieldsWithReadAccess();
          void buildFilterGraphOfFieldsWithReadAccess();
-         void postProcessing();
-         void postProcessingGlobalAttributes();         
          void triggerLateFields(void) ;
          void solveAllRefOfEnabledFieldsAndTransform(void);
          void checkGridEnabledFields();
@@ -182,9 +177,6 @@ namespace xios {
          void sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
          void sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles);
          void sendRefGrid(const std::vector<CFile*>& activeFiles);
-         void sendPostProcessing();
-         void sendPostProcessingGlobalAttributes();
-         void sendProcessingGridOfEnabledFields();
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
          void sendRegistry(void) ;
          void sendFinalizeClient(CContextClient* contextClient, const string& contextClientId);
@@ -205,11 +197,6 @@ namespace xios {
          void recvCreateFileHeader(CBufferIn& buffer);
          static void recvSolveInheritanceContext(CEventServer& event);
          void recvSolveInheritanceContext(CBufferIn& buffer);
-         static void recvPostProcessing(CEventServer& event);
-         void recvPostProcessing(CBufferIn& buffer);
-         static void recvProcessingGridOfEnabledFields(CEventServer& event);
-         static void recvPostProcessingGlobalAttributes(CEventServer& event);
-         void recvPostProcessingGlobalAttributes(CBufferIn& buffer);
          static void recvRegistry(CEventServer& event) ;
          void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
          static void recvFinalizeClient(CEventServer& event) ;

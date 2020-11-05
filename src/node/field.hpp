@@ -239,8 +239,6 @@ namespace xios
         void connectToFileReader(CGarbageCollector& gc) ;
         void connectToServerToClient(CGarbageCollector& gc) ;
 
-        void computeGridIndexToFileServer(void) ;
-
         void setContextClientDataBufferSize(map<CContextClient*,map<int,size_t>>& bufferSize, 
                                         map<CContextClient*,map<int,size_t>>& maxEventSize, 
                                         bool bufferForWriting) ;

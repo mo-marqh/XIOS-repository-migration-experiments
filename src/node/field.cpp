@@ -14,7 +14,6 @@
 #include "context_server.hpp"
 #include <set>
 #include "garbage_collector.hpp"
-#include "source_filter.hpp"
 #include "pass_through_filter.hpp"
 #include "filter_expr_node.hpp"
 #include "lex_parser.hpp"
@@ -623,7 +622,6 @@ namespace xios
       solveTransformedGrid();
     }
 
-    solveCheckMaskIndex(doSending2Server);
   }
   CATCH_DUMP_ATTR
 
@@ -864,14 +862,7 @@ namespace xios
     instantDataFilter->connectOutput(clientToServerStoreFilter_, 0);
   } 
 
-  /*!
-   * Compute grid index needed to send grid and data to server
-   */
-  void CField::computeGridIndexToFileServer(void)
-  {
-    grid_->computeGridIndexToFileServer(client) ;
-  }
-
+ 
   /*!
    * Connect field to a source filter to receive data from model.
    */

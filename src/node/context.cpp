@@ -897,133 +897,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CContext::postProcessingGlobalAttributes()
-   TRY
-   {
-     if (allProcessed) return;  
-     
-    // create intercommunicator with servers. 
-    // not sure it is the good place to be called here 
-    createServerInterComm() ;
-
-
-     // After xml is parsed, there are some more works with post processing
-     postProcessing();
-
-     // Distribute files between secondary servers according to the data size
-     distributeFiles(this->enabledWriteModeFiles);
-
-     // Check grid and calculate its distribution
-     checkGridEnabledFields();
-
-     setClientServerBuffer(client, (serviceType_==CServicesManager::CLIENT) ) ;
-     for (int i = 0; i < clientPrimServer.size(); ++i)
-         setClientServerBuffer(clientPrimServer[i], true);
-
-    
-     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
-     { 
-       if (serviceType_==CServicesManager::GATHERER)
-       { 
-         for (auto it=clientPrimServer.begin(); it!=clientPrimServer.end();++it) 
-         {
-           this->sendAllAttributesToServer(*it); // Send all attributes of current context to server
-           CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(*it); // Send all attributes of current calendar
-         }
-       }
-       else 
-       {
-         this->sendAllAttributesToServer(client);   // Send all attributes of current context to server
-         CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current calendar
-       }
-
-
-      // We have enough information to send to server
-      // First of all, send all enabled files
-      sendEnabledFiles(this->enabledWriteModeFiles);
-      // We only use server-level 1 (for now) to read data
-      if (serviceType_==CServicesManager::CLIENT)  sendEnabledFiles(this->enabledReadModeFiles);
-
-      // Then, send all enabled fields      
-      sendEnabledFieldsInFiles(this->enabledWriteModeFiles);
-      
-      if (serviceType_==CServicesManager::CLIENT) sendEnabledFieldsInFiles(this->enabledReadModeFiles);
-
-      // Then, check whether we have domain_ref, axis_ref or scalar_ref attached to the enabled fields
-      // If any, so send them to server
-       sendRefDomainsAxisScalars(this->enabledWriteModeFiles); 
-     
-      if (serviceType_==CServicesManager::CLIENT) sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
-
-       // Check whether enabled fields have grid_ref, if any, send this info to server
-      sendRefGrid(this->enabledFiles);
-      // This code may be useful in the future when we want to seperate completely read and write
-      // sendRefGrid(this->enabledWriteModeFiles);
-      // if (!hasServer)
-      //   sendRefGrid(this->enabledReadModeFiles);
-      
-      // A grid of enabled fields composed of several components which must be checked then their
-      // checked attributes should be sent to server
-      sendGridComponentEnabledFieldsInFiles(this->enabledFiles); // This code can be seperated in two (one for reading, another for writing)
-
-       // We have a xml tree on the server side and now, it should be also processed
-      sendPostProcessing();
-       
-      // Finally, we send information of grid itself to server 
-      sendGridEnabledFieldsInFiles(this->enabledWriteModeFiles);       
-     
-      if (serviceType_==CServicesManager::CLIENT) sendGridEnabledFieldsInFiles(this->enabledReadModeFiles);       
-     
-     }
-     allProcessed = true;
-   }
-   CATCH_DUMP_ATTR
-
-   void CContext::sendPostProcessingGlobalAttributes()
-   TRY
-   {
-
-    int nbSrvPools ;
-    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
-    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
-    else nbSrvPools = 0 ;
-    CContextClient* contextClientTmp ;
-
-    for (int i = 0; i < nbSrvPools; ++i)
-     {
-       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
-       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
-      
-       CEventClient event(getType(),EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES);
-
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         contextClientTmp->sendEvent(event);
-       }
-       else contextClientTmp->sendEvent(event);
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   void CContext::recvPostProcessingGlobalAttributes(CEventServer& event)
-   TRY
-   {
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
-      getCurrent()->recvPostProcessingGlobalAttributes(*buffer);
-   }
-   CATCH
-
-   void CContext::recvPostProcessingGlobalAttributes(CBufferIn& buffer)
-   TRY
-   {      
-      postProcessingGlobalAttributes();
-   }
-   CATCH_DUMP_ATTR
-
+   
    /*!
    \brief Close all the context defintion and do processing data
       After everything is well defined on client side, they will be processed and sent to server
@@ -1135,10 +1009,10 @@ namespace xios {
       // for now supose that all coupling out endpoint are succesfull. The difficultie is client/server buffer evaluation
       for(auto field : couplerOutField) 
       {
-        field->computeGridIndexToFileServer() ; // same kind of index than for file server -> in future distribution may change
+        // connect to couplerOut -> to do
       }
-      if (first) setClientServerBuffer(couplerOutField, true) ; // set buffer context
-
+      if (first) setClientServerBuffer(couplerOutField, true) ; // set buffer context --> to check
+   
       bool couplersReady ;
       do 
       {
@@ -1178,9 +1052,8 @@ namespace xios {
       for(auto field : fileOutField) 
       {
         field->connectToFileServer(garbageCollector) ; // connect the field to server filter
-        field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
       }
-      setClientServerBuffer(fileOutField, true) ; // set buffer context
+      setClientServerBuffer(fileOutField, true) ; // set buffer context --> to review
       for(auto field : fileOutField) field->sendFieldToFileServer() ;
     }
 
@@ -1246,7 +1119,6 @@ namespace xios {
       for(auto field : fileInField) 
       {
         field->connectToServerInput(garbageCollector) ; // connect the field to server filter
-    // obsolete    field->computeGridIndexToFileServer() ; // compute grid index for transfer to the server context
         field->sendFieldToInputFileServer() ;
         fileInFields_.push_back(field) ;
       }
@@ -1290,204 +1162,12 @@ namespace xios {
       this->eventLoop() ; 
     } while (!ok) ;
 
-    return ;
-
-
-
-
-
-
-
-
-
-
-    // For now, only read files with client and only one level server
-    // if (hasClient && !hasServer) findEnabledReadModeFiles();      
-
-    // Find all enabled fields of each file      
-    findAllEnabledFieldsInFiles(this->enabledWriteModeFiles);
-    findAllEnabledFieldsInFiles(this->enabledReadModeFiles);
-
-    // For now, only read files with client and only one level server
-    // if (hasClient && !hasServer) 
-    //   findAllEnabledFieldsInFiles(this->enabledReadModeFiles);      
-
-    if (serviceType_==CServicesManager::CLIENT)
-    {
-      initReadFiles();
-      // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
-      this->readAttributesOfEnabledFieldsInReadModeFiles();
-    }
-
-    // Only search and rebuild all reference objects of enable fields, don't transform
-    this->solveOnlyRefOfEnabledFields();
-
-    // Search and rebuild all reference object of enabled fields, and transform
-    this->solveAllRefOfEnabledFieldsAndTransform();
-
-    // Find all fields with read access from the public API
-    if (serviceType_==CServicesManager::CLIENT) findFieldsWithReadAccess();
-    // and solve the all reference for them
-    if (serviceType_==CServicesManager::CLIENT) solveAllRefOfFieldsWithReadAccess();
-
-    isPostProcessed = true;
-
-
-
-    // Distribute files between secondary servers according to the data size
-    distributeFiles(this->enabledWriteModeFiles);
-
-    // Check grid and calculate its distribution
-    checkGridEnabledFields();
-
-    setClientServerBuffer(client, (serviceType_==CServicesManager::CLIENT) ) ;
-    for (int i = 0; i < clientPrimServer.size(); ++i)
-         setClientServerBuffer(clientPrimServer[i], true);
-
-    
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
-    { 
-      if (serviceType_==CServicesManager::GATHERER)
-      { 
-        for (auto it=clientPrimServer.begin(); it!=clientPrimServer.end();++it) 
-        {
-          this->sendAllAttributesToServer(*it); // Send all attributes of current context to server
-          CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(*it); // Send all attributes of current calendar
-        }
-      }
-      else 
-      {
-        this->sendAllAttributesToServer(client);   // Send all attributes of current context to server
-        CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current calendar
-      }
-
-      // We have enough information to send to server
-      // First of all, send all enabled files
-      sendEnabledFiles(this->enabledWriteModeFiles);
-      // We only use server-level 1 (for now) to read data
-      if (serviceType_==CServicesManager::CLIENT)  sendEnabledFiles(this->enabledReadModeFiles);
-
-      // Then, send all enabled fields      
-      sendEnabledFieldsInFiles(this->enabledWriteModeFiles);
-      
-      if (serviceType_==CServicesManager::CLIENT) sendEnabledFieldsInFiles(this->enabledReadModeFiles);
-
-      // Then, check whether we have domain_ref, axis_ref or scalar_ref attached to the enabled fields
-      // If any, so send them to server
-      sendRefDomainsAxisScalars(this->enabledWriteModeFiles); 
-     
-      if (serviceType_==CServicesManager::CLIENT) sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
-
-      // Check whether enabled fields have grid_ref, if any, send this info to server
-      sendRefGrid(this->enabledFiles);
-      // This code may be useful in the future when we want to seperate completely read and write
-      // sendRefGrid(this->enabledWriteModeFiles);
-      // if (!hasServer)
-      //   sendRefGrid(this->enabledReadModeFiles);
-      
-      // A grid of enabled fields composed of several components which must be checked then their
-      // checked attributes should be sent to server
-      sendGridComponentEnabledFieldsInFiles(this->enabledFiles); // This code can be seperated in two (one for reading, another for writing)
-
-      // We have a xml tree on the server side and now, it should be also processed
-      sendPostProcessing();
-       
-      // Finally, we send information of grid itself to server 
-      sendGridEnabledFieldsInFiles(this->enabledWriteModeFiles);       
-     
-      if (serviceType_==CServicesManager::CLIENT) sendGridEnabledFieldsInFiles(this->enabledReadModeFiles);       
-    }
-    allProcessed = true;
-
-
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendPostProcessingGlobalAttributes();
-
-    // There are some processings that should be done after all of above. For example: check mask or index
-    this->buildFilterGraphOfEnabledFields();
-    
-     if (serviceType_==CServicesManager::CLIENT)
-    {
-      buildFilterGraphOfFieldsWithReadAccess();
-      postProcessFilterGraph(); // For coupling in, modify this later
-    }
-    
-    checkGridEnabledFields();   
-
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendProcessingGridOfEnabledFields();
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendCloseDefinition();
-
-    // Nettoyage de l'arborescence
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) CleanTree(); // Only on client side??
-
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendCreateFileHeader();
-    if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
-    
-    CTimer::get("Context : close definition").suspend() ;
+     CTimer::get("Context : close definition").suspend() ;
   }
   CATCH_DUMP_ATTR
 
- /*!
-  * Send context attribute and calendar to file server, it must be done once by context file server
-  * \param[in] client : context client to send   
-  */  
-  void CContext::sendContextToFileServer(CContextClient* client)
-  {
-    if (sendToFileServer_done_.count(client)!=0) return ;
-    else sendToFileServer_done_.insert(client) ;
-    
-    this->sendAllAttributesToServer(client); // Send all attributes of current context to server
-    CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current cale
-  }
 
-  // ym obsolete now to be removed
-   void CContext::closeDefinition_old(void)
-   TRY
-   {
-     CTimer::get("Context : close definition").resume() ;
-    
-    //
-    postProcessingGlobalAttributes();
-
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendPostProcessingGlobalAttributes();
-
-    // There are some processings that should be done after all of above. For example: check mask or index
-    this->buildFilterGraphOfEnabledFields();
-    
-     if (serviceType_==CServicesManager::CLIENT)
-    {
-      buildFilterGraphOfFieldsWithReadAccess();
-      postProcessFilterGraph(); // For coupling in, modify this later
-    }
-    
-    checkGridEnabledFields();   
-
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendProcessingGridOfEnabledFields();
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) this->sendCloseDefinition();
-
-    // Nettoyage de l'arborescence
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) CleanTree(); // Only on client side??
-
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) sendCreateFileHeader();
-    if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
-    
-    CTimer::get("Context : close definition").suspend() ;
-   }
-   CATCH_DUMP_ATTR
-
-   vector<CField*> CContext::findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
-   TRY
-   {
-     vector<CField*> fields ;
-     for (unsigned int i = 0; i < activeFiles.size(); i++)
-     {
-        const vector<CField*>&& field=activeFiles[i]->getEnabledFields() ;
-        fields.insert(fields.end(),field.begin(),field.end());
-     }
-     return fields ;
-   }
-   CATCH_DUMP_ATTR
-
-   vector<CField*> CContext::findAllEnabledFieldsInFileOut(const std::vector<CFile*>& activeFiles)
+  vector<CField*> CContext::findAllEnabledFieldsInFileOut(const std::vector<CFile*>& activeFiles)
    TRY
    {
      vector<CField*> fields ;
@@ -1543,8 +1223,20 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+ /*!
+  * Send context attribute and calendar to file server, it must be done once by context file server
+  * \param[in] client : context client to send   
+  */  
+  void CContext::sendContextToFileServer(CContextClient* client)
+  {
+    if (sendToFileServer_done_.count(client)!=0) return ;
+    else sendToFileServer_done_.insert(client) ;
+    
+    this->sendAllAttributesToServer(client); // Send all attributes of current context to server
+    CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current cale
+  }
 
-
+ 
    void CContext::readAttributesOfEnabledFieldsInReadModeFiles()
    TRY
    {
@@ -2109,19 +1801,8 @@ namespace xios {
              recvCreateFileHeader(event);
              return true;
              break;
-           case EVENT_ID_POST_PROCESS:
-             recvPostProcessing(event);
-             return true;
            case EVENT_ID_SEND_REGISTRY:
              recvRegistry(event);
-             return true;
-             break;
-           case EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES:
-             recvPostProcessingGlobalAttributes(event);
-             return true;
-             break;
-           case EVENT_ID_PROCESS_GRID_ENABLED_FIELDS:
-             recvProcessingGridOfEnabledFields(event);
              return true;
              break;
            case EVENT_ID_COUPLER_IN_READY:
@@ -2287,170 +1968,6 @@ namespace xios {
    {
       if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER) 
         createFileHeader();
-   }
-   CATCH_DUMP_ATTR
-
-   //! Client side: Send a message to do some post processing on server
-   void CContext::sendProcessingGridOfEnabledFields()
-   TRY
-   {
-     int nbSrvPools ;
-     if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
-     else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
-     else nbSrvPools = 0 ;
-     CContextClient* contextClientTmp ;
-
-     for (int i = 0; i < nbSrvPools; ++i)
-     {
-       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
-       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
-
-       CEventClient event(getType(),EVENT_ID_PROCESS_GRID_ENABLED_FIELDS);
-
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         contextClientTmp->sendEvent(event);
-       }
-       else contextClientTmp->sendEvent(event);
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   //! Server side: Receive a message to do some post processing
-   void CContext::recvProcessingGridOfEnabledFields(CEventServer& event)
-   TRY
-   {
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
-      // nothing to do, no call ??!!    
-   }
-   CATCH
-
-   //! Client side: Send a message to do some post processing on server
-   void CContext::sendPostProcessing()
-   TRY
-   {
-     int nbSrvPools ;
-     if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
-     else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
-     else nbSrvPools = 0 ;
-     CContextClient* contextClientTmp ;
-
-     for (int i = 0; i < nbSrvPools; ++i)
-     {
-       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
-       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
-       CEventClient event(getType(),EVENT_ID_POST_PROCESS);
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         event.push(*itRank,1,msg);
-         contextClientTmp->sendEvent(event);
-       }
-       else contextClientTmp->sendEvent(event);
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   //! Server side: Receive a message to do some post processing
-   void CContext::recvPostProcessing(CEventServer& event)
-   TRY
-   {
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
-      getCurrent()->recvPostProcessing(*buffer);
-   }
-   CATCH
-
-   //! Server side: Receive a message to do some post processing
-   void CContext::recvPostProcessing(CBufferIn& buffer)
-   TRY
-   {
-      CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
-      postProcessing();
-   }
-   CATCH_DUMP_ATTR
-
- 
-   /*!
-   \brief Do some simple post processings after parsing xml file
-      After the xml file (iodef.xml) is parsed, it is necessary to build all relations among
-   created object, e.g: inhertance among fields, domain, axis. After that, all fiels as well as their parents (reference fields),
-   which will be written out into netcdf files, are processed
-   */
-   void CContext::postProcessing()
-   TRY
-   {
-     if (isPostProcessed) return;
-
-      // Make sure the calendar was correctly created
-      if (!calendar)
-        ERROR("CContext::postProcessing()", << "A calendar must be defined for the context \"" << getId() << "!\"")
-      else if (calendar->getTimeStep() == NoneDu)
-        ERROR("CContext::postProcessing()", << "A timestep must be defined for the context \"" << getId() << "!\"")
-      // Calendar first update to set the current date equals to the start date
-      calendar->update(0);
-
-      // Find all inheritance in xml structure
-      this->solveAllInheritance();
-
-//      ShowTree(info(10));
-
-      // Check if some axis, domains or grids are eligible to for compressed indexed output.
-      // Warning: This must be done after solving the inheritance and before the rest of post-processing
-      //checkAxisDomainsGridsEligibilityForCompressedOutput();      // only for field written on IO_SERVER service ????
-
-      // Check if some automatic time series should be generated
-      // Warning: This must be done after solving the inheritance and before the rest of post-processing      
-      prepareTimeseries();
-
-      //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
-      findEnabledFiles();
-      findEnabledWriteModeFiles();
-      findEnabledReadModeFiles();
-      findEnabledCouplerIn();
-      findEnabledCouplerOut();
-      createCouplerInterCommunicator() ;
-
-      // Find all enabled fields of each file      
-      const vector<CField*>&& fileOutField = findAllEnabledFieldsInFiles(this->enabledWriteModeFiles);
-      const vector<CField*>&& fileInField = findAllEnabledFieldsInFiles(this->enabledReadModeFiles);
-      const vector<CField*>&& CouplerOutField = findAllEnabledFieldsCouplerOut(this->enabledCouplerOut);
-      const vector<CField*>&& CouplerInField = findAllEnabledFieldsCouplerIn(this->enabledCouplerIn);
-
-
-
-      // For now, only read files with client and only one level server
-      // if (hasClient && !hasServer) findEnabledReadModeFiles();      
-
-
-      // For now, only read files with client and only one level server
-      // if (hasClient && !hasServer) 
-      //   findAllEnabledFieldsInFiles(this->enabledReadModeFiles);      
-
-      if (serviceType_==CServicesManager::CLIENT)
-      {
-        initReadFiles();
-        // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
-        this->readAttributesOfEnabledFieldsInReadModeFiles();
-      }
-
-      // Only search and rebuild all reference objects of enable fields, don't transform
-      this->solveOnlyRefOfEnabledFields();
-
-      // Search and rebuild all reference object of enabled fields, and transform
-      this->solveAllRefOfEnabledFieldsAndTransform();
-
-      // Find all fields with read access from the public API
-      if (serviceType_==CServicesManager::CLIENT) findFieldsWithReadAccess();
-      // and solve the all reference for them
-      if (serviceType_==CServicesManager::CLIENT) solveAllRefOfFieldsWithReadAccess();
-
-      isPostProcessed = true;
    }
    CATCH_DUMP_ATTR
 
