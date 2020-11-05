@@ -53,9 +53,6 @@ namespace xios {
      public:
          enum EEventId
          {
-           EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, 
-           EVENT_ID_AREA,
-           EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT,
            EVENT_ID_DOMAIN_DISTRIBUTION, EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE
          } ;
 
@@ -84,11 +81,6 @@ namespace xios {
          void checkAttributes(void);
          bool checkAttributes_done_ = false ;
 
-         void checkAttributesOnClient();
-         void checkAttributesOnClientAfterTransformation();
-
-         void sendCheckedAttributes();
-
          bool hasTransformation();
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
@@ -101,11 +93,6 @@ namespace xios {
          bool IsWritten(const StdString & filename) const;
          bool isWrittenCompressed(const StdString& filename) const;
          
-         int getNumberWrittenIndexes(MPI_Comm writtenCom);
-         int getTotalNumberWrittenIndexes(MPI_Comm writtenCom);
-         int getOffsetWrittenIndexes(MPI_Comm writtenCom);
-         CArray<int,1>& getCompressedIndexToWriteOnServer(MPI_Comm writtenCom);
-
          std::map<int, StdSize> getAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
 
          bool isEmpty(void) const;
@@ -124,7 +111,6 @@ namespace xios {
          void computeIsCompressible() ;
 
       public :
-         std::vector<int> getNbGlob();
          bool isEqual(CDomain* domain);
 
          static bool dispatchEvent(CEventServer& event);
@@ -154,9 +140,6 @@ namespace xios {
          void addRelFile(const StdString & filename);
          void addRelFileCompressed(const StdString& filename);            
          
-         void computeWrittenIndex();
-         void computeWrittenCompressedIndex(MPI_Comm);
-
          void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                          CArray<double,1>& lon_g, CArray<double,1>& lat_g);
 
@@ -181,7 +164,6 @@ namespace xios {
          CArray<double, 2> bounds_lonvalue, bounds_latvalue;
          CArray<double, 1> areavalue;
 
-         CArray<int,1> localIndexToWriteOnServer;
 
          CArray<bool, 1> domainMask; // mask_1d, mask_2d -> domainMask
          CArray<bool, 1> localMask; // domainMask + indexing
@@ -197,10 +179,8 @@ namespace xios {
 
          void computeLocalMask(void) ;
       
-         void computeConnectedClients(CContextClient* client);  
-         private: std::set<CContextClient*> computeConnectedClients_done_; public:
          /** The number of server of a context client. Avoid to re-compute indice computed in a previous computeConnectedClient */
-         private: std::set<int> listNbServer_ ; public:
+         private: std::set<int> listNbServer_ ;
          
       private:
          void checkDomain(void);
@@ -232,31 +212,10 @@ namespace xios {
 
        private:
 
-         void sendDomainDistribution(CContextClient* client, const string& domainId="") ; //for testing
-         void sendAttributes(); // ym obsolete -> to be removed
-         void sendIndex(CContextClient* client, const string& domainId="");
-         void sendDistributionAttributes(CContextClient* client, const string& domainId="");
-         void sendArea(CContextClient* client, const string& domainId="");
-         void sendLonLat(CContextClient* client, const string& domainId="");         
-         void sendDataIndex(CContextClient* client, const string& domainId="");
          void convertLonLatValue();
          void fillInRectilinearLonLat();
          void fillInCurvilinearLonLat();
          void fillInUnstructuredLonLat();
-         
-         static void recvDistributionAttributes(CEventServer& event);
-         static void recvIndex(CEventServer& event);
-         static void recvLon(CEventServer& event);
-         static void recvLat(CEventServer& event);
-         static void recvArea(CEventServer& event);
-         static void recvDataIndex(CEventServer& event);
-         void recvDistributionAttributes(CBufferIn& buffer);                  
-         void recvIndex(std::map<int, CBufferIn*>& rankBuffers);         
-         void recvLon(std::map<int, CBufferIn*>& rankBuffers);
-         void recvLat(std::map<int, CBufferIn*>& rankBuffers);
-         void recvArea(std::map<int, CBufferIn*>& rankBuffers);         
-         void recvDataIndex(std::map<int, CBufferIn*>& rankBuffers);
-
          void completeLonLatClient(void);  
          
          
@@ -266,23 +225,8 @@ namespace xios {
          std::list<CContextClient*> clients;
          std::set<CContextClient*> clientsSet;
 
-         bool isChecked, computedWrittenIndex_;
+         bool isChecked ;
          std::set<StdString> relFiles, relFilesCompressed;
-         bool isClientChecked; // Verify whether all attributes of domain on the client side are good
-         bool isClientAfterTransformationChecked;
-
-/** global index of the domain on server side, sent by the clients. This is global index for lon, lat, mask elements (ie non masked elements)
-    indGlobs_[rank] -> array of global index received from the client of rank "rank"
-    indGlobs[rank](ind) -> global indices of the "ind" element sent.
-    Defined only on server side
-*/
-         std::map<int, CArray<int,1> > indGlob_;
-
-/** only on client sided : defined the number of clients which participate to a message sent to a server for longitude, lat, area, etc. attributes 
-    nbSender[nbServers] --> first map is related to the server distribution (ie associated with the contextClient)
-    nbSenders[nbServers][server_rank]-> return the number of participants of a message sent to the server of rank "server_rank"
-*/
-         std::map<int, map<int,int> > nbSenders; 
 
 /** only on client side : Global index of each client sent to server: map<serverSize, map<serverRank, indexes>> 
     indSrv_[nbServers] -->  first map is related to the server distribution (ie associated with the contextClient)
@@ -290,20 +234,7 @@ namespace xios {
     indSrv_[nbServers][server_rank](ind) --> global index on server of the local element "ind" sent (for lon, lat, mask, etc...) 
 */
          std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_;
-         
- /** make the mapping between the global index (the key) and the local index
-     globalLocalIndexMap_[global_index] --> get the local index
- */        
-         std::unordered_map<size_t,size_t> globalLocalIndexMap_;
 
-
-/** only on server side : get the rank of each clients which participate to a received message
-*   recvClientRanks_[num_receiver] : client rank of the receiver "num_receiver" 
-*/
-         std::vector<int> recvClientRanks_;
-
-         std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-         std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;     
          std::map<int, std::vector<int> > connectedServerRank_;
 
          bool isRedistributed_;

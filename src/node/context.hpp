@@ -148,11 +148,7 @@ namespace xios {
          void buildFilterGraphOfFieldsWithReadAccess();
          void triggerLateFields(void) ;
          void solveAllRefOfEnabledFieldsAndTransform(void);
-         void checkGridEnabledFields();
-         void checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
-         void sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);  
-         void sendGridComponentEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)       ;
-
+ 
          std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
          void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false); // old interface to be removed
@@ -176,7 +172,6 @@ namespace xios {
          void sendEnabledFiles(const std::vector<CFile*>& activeFiles);
          void sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
          void sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles);
-         void sendRefGrid(const std::vector<CFile*>& activeFiles);
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
          void sendRegistry(void) ;
          void sendFinalizeClient(CContextClient* contextClient, const string& contextClientId);

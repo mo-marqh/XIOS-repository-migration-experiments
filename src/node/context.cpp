@@ -1245,64 +1245,6 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CContext::sendGridComponentEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
-   TRY
-   {
-     int size = activeFiles.size();
-     for (int i = 0; i < size; ++i)
-     {       
-       activeFiles[i]->sendGridComponentOfEnabledFields();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
-      Send active (enabled) fields in file from a client to others
-      \param [in] activeFiles files contains enabled fields to send
-   */
-   void CContext::sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
-   TRY
-   {
-     int size = activeFiles.size();
-     for (int i = 0; i < size; ++i)
-     {       
-       activeFiles[i]->sendGridOfEnabledFields();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   void CContext::checkGridEnabledFields()
-   TRY
-   {
-     int size = enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       enabledFiles[i]->checkGridOfEnabledFields();       
-     }
-
-     size = enabledCouplerOut.size();
-     for (int i = 0; i < size; ++i)
-     {
-       enabledCouplerOut[i]->checkGridOfEnabledFields();       
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
-      Check grid of active (enabled) fields in file 
-      \param [in] activeFiles files contains enabled fields whose grid needs checking
-   */
-   void CContext::checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
-   TRY
-   {
-     int size = activeFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       activeFiles[i]->checkGridOfEnabledFields();       
-     }
-   }
-   CATCH_DUMP_ATTR
-
     /*!
       Go up the hierachical tree via field_ref and do check of attributes of fields
       This can be done in a client then all computed information will be sent from this client to others
@@ -2156,42 +2098,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   //! Client side: Send information of reference grid of active fields
-   void CContext::sendRefGrid(const std::vector<CFile*>& activeFiles)
-   TRY
-   {
-     std::set<pair<StdString,CContextClient*>> gridIds;
-
-     int sizeFile = activeFiles.size();
-     CFile* filePtr(NULL);
-
-     // Firstly, find all reference grids of all active fields
-     for (int i = 0; i < sizeFile; ++i)
-     {
-       filePtr = activeFiles[i];
-       std::vector<CField*> enabledFields = filePtr->getEnabledFields();
-       int sizeField = enabledFields.size();
-       for (int numField = 0; numField < sizeField; ++numField)
-       {
-         if (0 != enabledFields[numField]->getRelGrid())
-           gridIds.insert(make_pair(CGrid::get(enabledFields[numField]->getRelGrid())->getId(),enabledFields[numField]->getContextClient()));
-       }
-     }
-
-     // Create all reference grids on server side
-     StdString gridDefRoot("grid_definition");
-     CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
-     for (auto it = gridIds.begin(); it != gridIds.end(); ++it)
-     {
-       gridPtr->sendCreateChild(it->first,it->second);
-       CGrid::get(it->first)->sendAllAttributesToServer(it->second);
-       CGrid::get(it->first)->sendAllDomains(it->second);
-       CGrid::get(it->first)->sendAllAxis(it->second);
-       CGrid::get(it->first)->sendAllScalars(it->second);
-     }
-   }
-   CATCH_DUMP_ATTR
-
+  
    //! Client side: Send information of reference domain, axis and scalar of active fields
    void CContext::sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles)
    TRY

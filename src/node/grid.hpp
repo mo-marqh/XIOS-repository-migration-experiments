@@ -178,10 +178,7 @@ namespace xios {
          void sendAddDomain(const std::string& id,CContextClient* contextClient);
          void sendAddAxis(const std::string& id,CContextClient* contextClient);
          void sendAddScalar(const std::string& id,CContextClient* contextClient);
-         void sendAllDomains(CContextClient* contextClient);
-         void sendAllAxis(CContextClient* contextClient);
-         void sendAllScalars(CContextClient* contextClient);
-
+        
          static void recvAddDomain(CEventServer& event);
          void recvAddDomain(CBufferIn& buffer);
          static void recvAddAxis(CEventServer& event);
@@ -267,7 +264,6 @@ namespace xios {
         CAxisGroup* getVirtualAxisGroup() const;
         CScalarGroup* getVirtualScalarGroup() const;
 
-        void checkAttributesAfterTransformation();
         void setTransformationAlgorithms();
         int computeGridGlobalDimension(std::vector<int>& globalDim,
                                        const std::vector<CDomain*> domains,

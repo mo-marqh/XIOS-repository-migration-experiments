@@ -727,28 +727,7 @@ namespace xios {
      }
    }
 
-   void CGrid::checkAttributesAfterTransformation()
-   TRY
-   {
-      setAxisList();
-      std::vector<CAxis*> axisListP = this->getAxis();
-      for (int i = 0; i < axisListP.size(); ++i)
-        axisListP[i]->checkAttributesOnClientAfterTransformation(getGlobalDimension(), getAxisPositionInGrid()[i]);
-   
-      setDomainList();
-      std::vector<CDomain*> domListP = this->getDomains();
-      if (!domListP.empty())
-      {
-        for (int i = 0; i < domListP.size(); ++i)
-        {
-          domListP[i]->checkAttributesOnClientAfterTransformation();
-        }
-      }
-   }
-   CATCH_DUMP_ATTR
-
-   //---------------------------------------------------------------
-
+  
    /*!
     * Test whether the data defined on the grid can be outputted in a compressed way.
     *
@@ -839,18 +818,9 @@ namespace xios {
    TRY
    {
      CContext* context = CContext::getCurrent();
-     if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)     
-     {
-       if (this->isChecked && doSendingIndex && !isIndexSent) 
-       { 
-         if (isScalarGrid())  /*sendIndexScalarGrid()*/;
-         else  /*sendIndex()*/;
-         this->isIndexSent = true; 
-       }
-     }
-
+     
      if (this->isChecked) return;
-     this->checkAttributesAfterTransformation();
+     this->checkElementsAttributes();
 
      if (!(this->hasTransform() && !this->isTransformed()))
       this->isChecked = true;
@@ -896,13 +866,7 @@ namespace xios {
       setDomainList();
       std::vector<CDomain*> domListP = this->getDomains();
       if (!domListP.empty())
-      {
-        for (int i = 0; i < domListP.size(); ++i)
-        {
-          if (sendAtt) domListP[i]->sendCheckedAttributes();
-          else domListP[i]->checkAttributesOnClient();
-        }
-      }
+        for (int i = 0; i < domListP.size(); ++i) domListP[i]->checkAttributes();
    }
    CATCH_DUMP_ATTR
 
@@ -914,15 +878,7 @@ namespace xios {
       setAxisList();
       std::vector<CAxis*> axisListP = this->getAxis();
       if (!axisListP.empty())
-      {
-        for (int i = 0; i < axisListP.size(); ++i)
-        {
-          if (sendAtt)
-            axisListP[i]->sendCheckedAttributes(getGlobalDimension(),getAxisPositionInGrid()[i]);
-          else
-            axisListP[i]->checkAttributesOnClient();
-        }
-      }
+        for (int i = 0; i < axisListP.size(); ++i)  axisListP[i]->checkAttributes();
    }
    CATCH_DUMP_ATTR
 
@@ -934,14 +890,7 @@ namespace xios {
       setScalarList();
       std::vector<CScalar*> scalarListP = this->getScalars();
       if (!scalarListP.empty())
-      {
-        for (int i = 0; i < scalarListP.size(); ++i)
-        {
-          /*Nothing to do for now */
-//          if (sendAtt) scalarListP[i]->sendCheckedAttributes();
-//          else scalarListP[i]->checkAttributesOnClient();
-        }
-      }
+        for (int i = 0; i < scalarListP.size(); ++i) scalarListP[i]->checkAttributes() ;
    }
    CATCH_DUMP_ATTR
 
@@ -1940,53 +1889,6 @@ namespace xios {
     for (int idx = 0; idx < scalarList.size(); ++idx) hasTransform_ |= scalarList[idx]->hasTransformation();
 
     return hasTransform_;
-  }
-  CATCH_DUMP_ATTR
-
-
-
-  /*!
-    Send all attributes of domains from client to server
-  */
-  void CGrid::sendAllDomains(CContextClient* contextClient)
-  TRY
-  {
-    std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
-    for (auto domain : domList)
-    {
-      sendAddDomain(domain->getId(),contextClient);
-      domain->sendDomainToFileServer(contextClient);
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-    Send all attributes of axis from client to server
-  */
-  void CGrid::sendAllAxis(CContextClient* contextClient)
-  TRY
-  {
-    std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
-    for (int i=0; i<aList.size() ; ++i)
-    {
-      sendAddAxis(aList[i]->getId(),contextClient);
-      aList[i]->sendAxisToFileServer(contextClient, getGlobalDimension(), getAxisPositionInGrid()[i]);
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-    Send all attributes of scalars from client to server
-  */
-  void CGrid::sendAllScalars(CContextClient* contextClient)
-  TRY
-  {
-    std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
-    for (auto scalar : sList)
-    {
-      sendAddScalar(scalar->getId(),contextClient);
-      scalar->sendScalarToFileServer(contextClient);
-    }
   }
   CATCH_DUMP_ATTR
 
