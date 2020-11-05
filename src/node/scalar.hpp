@@ -85,14 +85,8 @@ namespace xios
             
             void addRelFile(const StdString& filename);
             bool IsWritten(const StdString& filename) const;
-            void checkAttributesOnClient();
-            virtual void parse(xml::CXMLNode & node);
+             virtual void parse(xml::CXMLNode & node);
         
-         public:
-            void sendScalarToFileServer(CContextClient* client) ;
-         private:
-            std::set<CContextClient*> sendScalarToFileServer_done_ ;
-
          public:
             void sendScalarToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid) ;
          private:

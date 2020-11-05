@@ -71,11 +71,6 @@ namespace xios
     addModelView() ;
   }
 
-  void CScalar::checkAttributesOnClient()
-  {
-
-  }
-
   /*!
     Compare two scalar objects. 
     They are equal if only if they have identical attributes as well as their values.
@@ -157,31 +152,13 @@ namespace xios
         refScalar[i]->setTransformations(scalar->getAllTransformations());
   }
  
-  void CScalar::sendScalarToFileServer(CContextClient* client)
-  {
-    if (sendScalarToFileServer_done_.count(client)!=0) return ;
-    else sendScalarToFileServer_done_.insert(client) ;
-    StdString scalarDefRoot("scalar_definition");
-    CScalarGroup* scalarPtr = CScalarGroup::get(scalarDefRoot);
-    this->sendAllAttributesToServer(client);
-  }
-
+  /* obsolete, to remove after reimplementing coupling */
   void CScalar::sendScalarToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid)
   {
     if (sendScalarToCouplerOut_done_.count(client)!=0) return ;
     else sendScalarToCouplerOut_done_.insert(client) ;
 
     string scalarId="_scalar["+std::to_string(posInGrid)+"]_of_"+fieldId ;
-   
-    if (!scalar_ref.isEmpty())
-    {
-      auto scalar_ref_tmp=scalar_ref.getValue() ;
-      scalar_ref.reset() ; // remove the reference, find an other way to do that more cleanly
-      this->sendAllAttributesToServer(client, scalarId)  ;
-      scalar_ref = scalar_ref_tmp ;
-    }
-    else this->sendAllAttributesToServer(client, scalarId)  ;
-
 
     this->sendAllAttributesToServer(client, scalarId);
   }  
