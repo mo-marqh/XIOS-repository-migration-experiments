@@ -1928,6 +1928,7 @@ CONTAINS
       CALL xios_set_domain_attr(TRIM(domain_id), ni_glo=ni_glo, ibegin=ibegin, ni=ni, data_ibegin=-offset_i, data_ni=ni+2*offset_i)
       CALL xios_set_domain_attr(TRIM(domain_id), nj_glo=nj_glo, jbegin=jbegin, nj=nj, data_jbegin=-offset_j, data_nj=nj+2*offset_j)
       CALL xios_set_domain_attr(TRIM(domain_id), data_dim=2, lonvalue_2d=lon, latvalue_2d=lat, mask_1d=return_mask)
+      CALL xios_set_domain_attr(TRIM(domain_id), bounds_lon_2d=bounds_lon, bounds_lat_2d=bounds_lat, nvertex=4)
     ENDIF
 
     
