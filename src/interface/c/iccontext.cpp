@@ -67,6 +67,13 @@ extern "C"
    }
    CATCH_DUMP_STACK
 
+   void cxios_context_get_id(XContextPtr context, char * _id, int _id_len)
+   TRY
+   {
+      string_copy(context->getId(),_id,_id_len);
+   }
+   CATCH_DUMP_STACK
+   
    void cxios_context_set_current(XContextPtr context, bool withswap)
    TRY
    {
