@@ -30,7 +30,7 @@ public:
 
   virtual ~CScalarAlgorithmTransformation();
 
-  virtual StdString getName() {return "Scalar Trans. Filter \\n Transformation";}
+  virtual StdString getName() {return "Scalar Transformation";}
 
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);

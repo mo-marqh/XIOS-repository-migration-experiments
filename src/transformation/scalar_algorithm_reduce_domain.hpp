@@ -40,7 +40,7 @@ public:
 
   static bool registerTrans();
 
-  virtual StdString getName() {return "Scalar Trans. Filter \\n Reduce Domain";}
+  virtual StdString getName() {return "reduce_domain";}
 
 protected:
   bool local ;

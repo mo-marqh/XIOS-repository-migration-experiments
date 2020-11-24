@@ -26,7 +26,7 @@ public:
 
   virtual ~CDomainAlgorithmTransformation();
 
-  virtual StdString getName() {return "Domain Trans. Filter \\n Transformation";}
+  virtual StdString getName() {return "Domain Transformation";}
 
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&);

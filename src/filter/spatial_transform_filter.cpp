@@ -330,15 +330,18 @@ namespace xios
       std::vector<bool> localInitFlag(dataCurrentDest.numElements(), true);
       currentBuff = 0;
       bool firstPass=true; 
+      
+      if(filterID >=0) // building_graph
+      {
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[filterID].filter_name += ("\\n"+(*itAlgo)->getName());
+      } 
+        
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
         const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second;
         int srcRank = itRecv->first;
 
-        if(filterID >=0) // building_graph
-        {
-           (*CWorkflowGraph::mapFilters_ptr_with_info)[filterID].filter_name = (*itAlgo)->getName();
-        } 
+        
         if (srcRank != rank)
         {
           int countSize = itRecv->second.size();

@@ -35,7 +35,7 @@ public:
 
   static bool registerTrans();
 
-  virtual StdString getName() {return "Scalar Trans. Filter \\n Reduce Scalar";}
+  virtual StdString getName() {return "reduce_scalar";}
 
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);

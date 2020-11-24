@@ -28,7 +28,7 @@ public:
 
   static bool registerTrans();
 
-  virtual StdString getName() {return "Domain Trans. Filter \\n Expand";}
+  virtual StdString getName() {return "expand_domain";}
 
 protected:
   bool isXPeriodic_; // Flag to determine the periodicity of expansion (only for rectilinear)

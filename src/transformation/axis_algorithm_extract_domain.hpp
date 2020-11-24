@@ -39,7 +39,7 @@ public:
 
   static bool registerTrans();
 
-  virtual StdString getName() {return "Axis Trans. Filter \\n Extract Domain";}
+  virtual StdString getName() {return "extract_domain";}
 
 protected:
   enum ExtractDirection {

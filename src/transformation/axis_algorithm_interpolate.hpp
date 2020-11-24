@@ -32,7 +32,7 @@ public:
 
   static bool registerTrans();
 
-  virtual StdString getName() {return "Axis Trans. Filter \\n Interpolation";}
+  virtual StdString getName() {return "interpolate_axis";}
   bool isInversed() {return isInversed_;}
 
 protected:

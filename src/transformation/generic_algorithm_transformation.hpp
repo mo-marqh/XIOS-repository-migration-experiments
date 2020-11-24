@@ -73,7 +73,7 @@ public:
                      std::vector<bool>& flagInitial,                     
                      bool ignoreMissingValue, bool firstPass);
 
-  virtual StdString getName() {return "Generic Trans. Filter";}
+  virtual StdString getName() {return "Generic Transformation";}
 
   /*!
    * Update whole dataOut (on necessary).

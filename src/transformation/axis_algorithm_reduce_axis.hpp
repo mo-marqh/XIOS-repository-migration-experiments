@@ -39,7 +39,7 @@ public:
 
   static bool registerTrans();
 
-  virtual StdString getName() {return "Axis Trans. Filter \\n Reduce Axis";}
+  virtual StdString getName() {return "reduce_axis";}
 protected:
   
 protected:
