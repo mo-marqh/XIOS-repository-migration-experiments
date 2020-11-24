@@ -161,7 +161,7 @@ CONTAINS
     DOUBLE PRECISION, POINTER :: field_in(:,:)
     DOUBLE PRECISION, POINTER :: field3D_sub(:,:), other_field3D_sub(:,:)
     DOUBLE PRECISION, POINTER :: field3D_recv(:,:), other_field3D_recv(:,:)
-    DOUBLE PRECISION, POINTER :: pressure(:,:), other_pressure(:,:)
+    DOUBLE PRECISION, POINTER :: pressure(:,:), other_pressure(:,:), pressure_shifted(:,:)
 
     DOUBLE PRECISION, POINTER :: field2D_W(:,:), other_field2D_W(:,:)
     DOUBLE PRECISION, POINTER :: field_XW(:,:), other_field_XW(:,:)
@@ -189,7 +189,7 @@ CONTAINS
     INTEGER :: ierr      
 
     LOGICAL :: ok_field_in
-    LOGICAL :: ok_field2D, ok_field3D, ok_pressure, ok_field2D_sub, ok_field3D_sub,ok_field3D_recv, ok_field3D_send
+    LOGICAL :: ok_field2D, ok_field3D, ok_pressure_shifted, ok_pressure, ok_field2D_sub, ok_field3D_sub,ok_field3D_recv, ok_field3D_send
     LOGICAL :: ok_field_X, ok_field_Y, ok_field_XY, ok_field_Z, ok_field_XYZ, ok_field_XZ, ok_field_YZ
     LOGICAL :: ok_field2D_W, ok_field3D_W, ok_pressure_W, ok_field2D_sub_W, ok_field3D_sub_W,ok_field3D_recv_W, ok_field3D_send_W
     LOGICAL :: ok_field_XW, ok_field_YW, ok_field_XYW, ok_field_ZW, ok_field_XYZW, ok_field_XZW, ok_field_YZW
@@ -295,6 +295,7 @@ CONTAINS
 
     ALLOCATE(field2D(0:xy-1))
     ALLOCATE(field3D(0:xy-1,0:z-1))
+    ALLOCATE(pressure_shifted(0:xy-1,0:z-1))
     ALLOCATE(pressure(0:xy-1,0:z-1))
     ALLOCATE(field3D_recv(0:xy-1,0:z-1))
     ALLOCATE(field_Z(0:z-1))
@@ -367,6 +368,7 @@ CONTAINS
           IF (domain_mask(k)) THEN
             dist=sqrt((lat(k)/90.)**2+(lon(k)/180.)**2) ;
             pressure(i,j)=pressure(i,j)*(1+params%pressure_factor*exp(-(4*dist)**2))
+            pressure_shifted(i,j)=pressure(i,j)+5000
           ENDIF
         ENDIF
       ENDDO
@@ -385,9 +387,11 @@ CONTAINS
     field_XZW(:,:,0) = field_XZ(:,:)*(1+0.1*ensemble_value(0))
     field_YZW(:,:,0) = field_YZ(:,:)*(1+0.1*ensemble_value(0))
     
-    ok_field_in=xios_is_valid_field("field_in") ;
+    ok_field_in=xios_is_valid_field("field_input") ;
+    ok_field_in=.FALSE.
     ok_field2D=xios_is_valid_field("field2D") ;
     ok_field3D=xios_is_valid_field("field3D") ;
+    ok_pressure_shifted=xios_is_valid_field("pressure_shifted") ;    
     ok_pressure=xios_is_valid_field("pressure") ;
     ok_field2D_sub=xios_is_valid_field("field2D_sub") ;
     ok_field3D_sub=xios_is_valid_field("field3D_sub") ;
@@ -631,11 +635,12 @@ CONTAINS
       !!! Mise a jour du pas de temps
       CALL xios_update_calendar(ts)
 
-      if (ok_field_in) CALL xios_recv_field("field_in", field_in)
+      if (ok_field_in) CALL xios_recv_field("field_input", field_in)
       if (ok_field_in) CALL xios_send_field("field_out", field_in)
 
       IF (ok_field2D) CALL xios_send_field("field2D",field2D)
       IF (ok_field3D) CALL xios_send_field("field3D",field3D)
+      IF (ok_pressure_shifted) CALL xios_send_field("pressure_shifted",pressure_shifted)
       IF (ok_pressure) CALL xios_send_field("pressure",pressure)
       IF (ok_field_X) CALL xios_send_field("field_X",field_X)
       IF (ok_field_Y) CALL xios_send_field("field_Y",field_Y)

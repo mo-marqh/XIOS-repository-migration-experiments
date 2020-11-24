@@ -49,17 +49,32 @@ TRY
 CATCH
 
 CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
-: CAxisAlgorithmTransformation(axisDestination, axisSource), coordinate_(), transPosition_()
+: CAxisAlgorithmTransformation(axisDestination, axisSource), coordinate_(), coordinateDST_(),transPosition_()
 TRY
 {
   interpAxis->checkValid(axisSource);
   order_ = interpAxis->order.getValue();
+  this->idAuxInputs_.clear();
   if (!interpAxis->coordinate.isEmpty())
   {
     coordinate_ = interpAxis->coordinate.getValue();
     this->idAuxInputs_.resize(1);
     this->idAuxInputs_[0] = coordinate_;
   }
+  else if (!interpAxis->coordinate_src.isEmpty())
+  {
+    coordinate_ = interpAxis->coordinate_src.getValue();
+    this->idAuxInputs_.resize(1);
+    this->idAuxInputs_[0] = coordinate_;
+  }
+  if (!interpAxis->coordinate_dst.isEmpty())
+  {
+    coordinateDST_ = interpAxis->coordinate_dst.getValue();
+    this->idAuxInputs_.resize(this->idAuxInputs_.size()+1);
+    this->idAuxInputs_[this->idAuxInputs_.size()-1] = coordinateDST_;
+  }
+  
+
 }
 CATCH
 
@@ -70,9 +85,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
 TRY
 {
   CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").resume() ;
-  CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int nbClient = client->clientSize;
+  
   CArray<bool,1>& axisMask = axisSrc_->mask;
   int srcSize  = axisSrc_->n_glo.getValue();
   std::vector<CArray<double,1> > vecAxisValue;
@@ -89,20 +102,22 @@ TRY
     retrieveAllAxisValue(axisValue, axisMask, recvBuff, indexVec);
     XIOSAlgorithms::sortWithIndex<double, CVectorStorage>(recvBuff, indexVec);
     for (int i = 0; i < srcSize; ++i) valueSrc[i] = recvBuff[indexVec[i]];
-    computeInterpolantPoint(valueSrc, indexVec, idx);
+    computeInterpolantPoint(valueSrc, indexVec, dataAuxInputs, idx);
   }
   CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").suspend() ;
 }
 CATCH
 
 /*!
-  Compute the interpolant points
+  Compute the interpolant points 
   Assume that we have all value of axis source, with these values, need to calculate weight (coeff) of Lagrange polynomial
   \param [in] axisValue all value of axis source
+  \param [in] dataAuxInputs data for setting values of axis destination
   \param [in] tranPos position of axis on a domain
 */
 void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue,
                                                         const std::vector<int>& indexVec,
+                                                        const std::vector<CArray<double,1>* >& dataAuxInputs,
                                                         int transPos)
 TRY
 {
@@ -114,6 +129,16 @@ TRY
   int ibegin = axisDest_->begin.getValue();
   CArray<double,1>& axisDestValue = axisDest_->value;
   int numValue = axisDestValue.numElements();
+  if(!coordinateDST_.empty())
+  {
+    int nDomPoint = (*dataAuxInputs[0]).numElements()/numValue ;
+    int dst_position_in_data = dataAuxInputs.size()-1;
+    for(int ii=0; ii<numValue; ii++)
+    {
+      axisDestValue(ii) = (*dataAuxInputs[dst_position_in_data])(ii*nDomPoint+transPos);
+    }
+  }
+  
   std::map<int, std::vector<std::pair<int,double> > > interpolatingIndexValues;
 
   for (int idx = 0; idx < numValue; ++idx)
@@ -170,6 +195,8 @@ TRY
   computeWeightedValueAndMapping(interpolatingIndexValues, transPos);
 }
 CATCH
+
+
 
 /*!
   Compute weight (coeff) of Lagrange's polynomial
@@ -232,6 +259,7 @@ TRY
   int srcSize  = axisSrc_->n_glo.getValue();
   int numValue = axisValue.numElements();
 
+
   if (srcSize == numValue)  // Only one client or axis not distributed
   {
     for (int idx = 0; idx < srcSize; ++idx)
@@ -247,7 +275,6 @@ TRY
         indexVec[idx] = -1;
       }
     }
-
   }
   else // Axis distributed
   {
@@ -303,7 +330,13 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
                                                 const std::vector<CArray<double,1>* >& dataAuxInputs)
 TRY
 {
-  if (coordinate_.empty())
+  bool has_src = !coordinate_.empty();
+  bool has_dst = !coordinateDST_.empty();
+  
+  int nb_inputs=dataAuxInputs.size();
+  
+  
+  if (!has_src)
   {
     vecAxisValue.resize(1);
     vecAxisValue[0].resize(axisSrc_->value.numElements());
@@ -311,7 +344,7 @@ TRY
     this->transformationMapping_.resize(1);
     this->transformationWeight_.resize(1);
   }
-  else
+  else 
   {
     CField* field = CField::get(coordinate_);
     CGrid* grid = field->grid;

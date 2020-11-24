@@ -40,6 +40,8 @@ namespace xios {
   void CInterpolateAxis::checkValid(CAxis* axisSrc)
   {
     if (this->order.isEmpty()) this->order.setValue(1);
+    if (this->coordinate.isEmpty() && !this->coordinate_src.isEmpty()) this->coordinate.setValue(this->coordinate_src.getValue());
+    if (this->coordinate_src.isEmpty() && !this->coordinate.isEmpty()) this->coordinate_src.setValue(this->coordinate.getValue());
     int order = this->order.getValue();
     if (order >= axisSrc->n_glo.getValue())
     {
@@ -66,14 +68,45 @@ namespace xios {
                << "Coordinate field whose id " << coordinate << "does not exist "
                << "Please define one");
     }
+    
+    if (!this->coordinate_dst.isEmpty())
+    {
+      StdString coordinate = this->coordinate_dst.getValue();
+      if (!CField::has(coordinate))
+        ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+               << "Coordinate field whose id " << coordinate << "does not exist "
+               << "Please define one");
+    }
+   
   }
 
   std::vector<StdString> CInterpolateAxis::checkAuxInputs_()
   {
     std::vector<StdString> auxInputs;
-    if (!this->coordinate.isEmpty())
+    if (!this->coordinate.isEmpty() && this->coordinate_src.isEmpty())
     {
       StdString coordinate = this->coordinate.getValue();
+      this->coordinate_src.setValue(coordinate);
+      if (!CField::has(coordinate))
+        ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+               << "Coordinate field whose id " << coordinate << "does not exist "
+               << "Please define one");
+      auxInputs.push_back(coordinate);
+    }
+    if (!this->coordinate_src.isEmpty() || !this->coordinate.isEmpty())
+    {
+      StdString coordinate = !this->coordinate.isEmpty()? this->coordinate.getValue():this->coordinate_src.getValue();
+      this->coordinate.setValue(coordinate);
+      if (!CField::has(coordinate))
+        ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+               << "Coordinate field whose id " << coordinate << "does not exist "
+               << "Please define one");
+      auxInputs.push_back(coordinate);
+    }
+    
+    if (!this->coordinate_dst.isEmpty())
+    {
+      StdString coordinate = this->coordinate_dst.getValue();
       if (!CField::has(coordinate))
         ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
                << "Coordinate field whose id " << coordinate << "does not exist "
