@@ -1123,7 +1123,13 @@ namespace xios{
      const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
      
      const bool buildWorkflowGraph = (!build_workflow_graph.isEmpty() && build_workflow_graph == true);
-
+     if(buildWorkflowGraph && this->operation.getValue()=="once") 
+     {
+       CDuration tmp_dur = 0;
+       tmp_dur.timestep = 1;
+       this->build_workflow_graph_start.setValue(tmp_dur) ;
+       this->build_workflow_graph_end.setValue(tmp_dur) ;
+     }
      
      const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
