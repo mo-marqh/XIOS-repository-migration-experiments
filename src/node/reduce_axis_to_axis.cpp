@@ -26,7 +26,7 @@ namespace xios {
 
   bool CReduceAxisToAxis::registerTrans()
   {
-    return registerTransformation(TRANS_REDUCE_AXIS_TO_AXIS, CReduceAxisToAxis::create);
+    return registerTransformation(TRANS_REDUCE_AXIS_TO_AXIS, {create, getTransformation});
   }
 
   bool CReduceAxisToAxis::_dummyRegistered = CReduceAxisToAxis::registerTrans();

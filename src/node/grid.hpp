@@ -19,6 +19,8 @@
 #include "grid_elements.hpp"
 #include "grid_scatterer_connector.hpp"
 #include "grid_gatherer_connector.hpp"
+#include "transformation_path.hpp"
+#include "filter.hpp"
 
 
 namespace xios {
@@ -209,6 +211,10 @@ namespace xios {
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed(CContextClient* client = 0);
 
+         ///////////////////////////////////////////
+         ////////    TRANSFORMATIONS           /////
+         ///////////////////////////////////////////
+      public:
          CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformGridSrc);
@@ -220,16 +226,26 @@ namespace xios {
          bool makeTransformGrid_done_ = false ;
          
          std::vector<std::string> getAuxInputTransformGrid(void) ; 
-
+         std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
+         bool hasTransform();
+         void addTransGridSource(CGrid* gridSrc);
          void completeGrid(CGrid* transformGridSrc = 0);
          bool isTransformed();
          void setTransformed();
          bool isGenerated();
          void setGenerated();
-         void addTransGridSource(CGrid* gridSrc);
-         std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
-         bool hasTransform();
-         size_t getGlobalWrittenSize(void) ;
+         void setTransformationAlgorithms();
+         pair<shared_ptr<CFilter>, shared_ptr<CFilter> > buildTransformationGraph(CGarbageCollector& gc, CGrid* gridSrc, double detectMissingValues,
+                                                                                  double defaultValue, CGrid*& newGrid) ;
+      private:
+         bool isTransformed_, isGenerated_;
+         CGridTransformation* transformations_;
+         bool hasTransform_;
+       
+        ///////////////////////////////////////////
+      public:
+
+        size_t getGlobalWrittenSize(void) ;
          
          bool isCompleted(void) ;
          void setCompleted(void) ;
@@ -264,7 +280,6 @@ namespace xios {
         CAxisGroup* getVirtualAxisGroup() const;
         CScalarGroup* getVirtualScalarGroup() const;
 
-        void setTransformationAlgorithms();
         int computeGridGlobalDimension(std::vector<int>& globalDim,
                                        const std::vector<CDomain*> domains,
                                        const std::vector<CAxis*> axis,
@@ -309,21 +324,20 @@ namespace xios {
         bool isCompressible_;
         std::set<std::string> relFilesCompressed;
 
-        bool isTransformed_, isGenerated_;
         
         std::vector<int> axisPositionInGrid_;
         void computeAxisPositionInGrid(void) ;
         bool computeAxisPositionInGrid_done_ = false ;
         std::vector<int>& getAxisPositionInGrid(void) { if (!computeAxisPositionInGrid_done_) computeAxisPositionInGrid() ; return axisPositionInGrid_ ;}
 
-        CGridTransformation* transformations_;
         bool hasDomainAxisBaseRef_;        
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
-        bool hasTransform_;
 
      //////////////////////////////////////////////////////////////////////////////////////
      //  this part is related to distribution, element definition, views and connectors  //
      //////////////////////////////////////////////////////////////////////////////////////
+      public:
+       CGrid* duplicateSentGrid(void) ;
       private:
        static void recvMask(CEventServer& event) ;
        void receiveMask(CEventServer& event) ;
@@ -335,7 +349,7 @@ namespace xios {
         CGridLocalElements* getGridLocalElements(void) { if (gridLocalElements_==nullptr) computeGridLocalElements() ; return gridLocalElements_ ;}
 
       private:
-        CGridLocalConnector* modelToWorkflowConnector_ ;
+        CGridLocalConnector* modelToWorkflowConnector_ = nullptr ;
       public:
         void computeModelToWorkflowConnector(void) ;
         CGridLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_;}

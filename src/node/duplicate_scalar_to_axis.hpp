@@ -40,6 +40,8 @@ namespace xios {
     public :
       typedef CObjectTemplate<CDuplicateScalarToAxis> SuperClass;
       typedef CDuplicateScalarToAxisAttributes SuperClassAttribute;
+      typedef CDuplicateScalarToAxis MyClass ;
+      typedef CTransformation<CAxis> SuperTransform ;
 
     public :
       /// Constructeurs ///
@@ -55,6 +57,10 @@ namespace xios {
       static StdString GetName(void);
       static StdString GetDefName(void);
       static ENodeType GetType(void);
+      const string& getId(void) { return this->SuperClass::getId();}
+      ETranformationType getTransformationType(void) { return TRANS_DUPLICATE_SCALAR_TO_AXIS ;}
+      static CTransformation<CAxis>* getTransformation(const StdString& id) { return SuperClass::get(id);}
+      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
     private:
       static bool registerTrans();
       static CTransformation<CAxis>* create(const StdString& id, xml::CXMLNode* node);

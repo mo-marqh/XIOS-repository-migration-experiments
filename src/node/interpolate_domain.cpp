@@ -26,7 +26,7 @@ namespace xios {
   bool CInterpolateDomain::_dummyRegistered = CInterpolateDomain::registerTrans();
   bool CInterpolateDomain::registerTrans()
   {
-    registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
+    registerTransformation(TRANS_INTERPOLATE_DOMAIN, {create, getTransformation});
   }
 
   //----------------------------------------------------------------

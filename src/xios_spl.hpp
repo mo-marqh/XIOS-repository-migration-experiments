@@ -7,11 +7,16 @@
 #include <algorithm>
 #include <unordered_map>
 #include <memory>
-
 // standard C
 #include <cstring>
 #include <cstdlib>
+
 #include <cmath>
+// bug in cmath header => macro collision marco with DOMAIN
+#ifdef DOMAIN
+#undef DOMAIN
+#endif
+
 #include <ctime>
 
 // Conteneurs.
@@ -23,6 +28,8 @@
 #include <deque>
 #include <queue>
 #include <valarray>
+#include <tuple>
+
 // Flux.
 #include <iostream>
 #include <fstream>
@@ -31,6 +38,7 @@
 /// boost headers ///
 #include <boost/cast.hpp>
 #include <boost/current_function.hpp>
+
 /// Map ///
 #define xios_map std::map
 
@@ -60,7 +68,6 @@ const size_t stringArrayLen=255 ;
 #include "configure.hpp"
 #include "log.hpp"
 using namespace std;
-using namespace boost ;
-
+//using namespace boost ;
 
 #endif //__XIOS_SPL__

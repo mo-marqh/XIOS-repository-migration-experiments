@@ -25,7 +25,7 @@ namespace xios {
 
   bool CReduceDomainToScalar::registerTrans()
   {
-    return registerTransformation(TRANS_REDUCE_DOMAIN_TO_SCALAR, CReduceDomainToScalar::create);
+    return registerTransformation(TRANS_REDUCE_DOMAIN_TO_SCALAR, {create, getTransformation});
   }
 
   bool CReduceDomainToScalar::_dummyRegistered = CReduceDomainToScalar::registerTrans();

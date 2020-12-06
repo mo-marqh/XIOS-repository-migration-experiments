@@ -23,9 +23,13 @@
 #include "grid_elements.hpp"
 #include "grid_local_view.hpp"
 #include "grid_mask_connector.hpp"
+#include "transformation_path.hpp"
+#include "grid_transformation_factory_impl.hpp"
+#include "transform_filter.hpp"
 
 
-namespace xios {
+namespace xios
+{
 
    /// ////////////////////// Dfinitions ////////////////////// ///
 
@@ -235,7 +239,9 @@ namespace xios {
      order_.push_back(2);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
-     return vDomainGroup_->createChild(id);
+     CDomain* domain = vDomainGroup_->createChild(id);
+     computeElements();
+     return domain ;
    }
    CATCH_DUMP_ATTR
 
@@ -245,7 +251,9 @@ namespace xios {
      order_.push_back(1);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
-     return vAxisGroup_->createChild(id);
+     CAxis* axis=vAxisGroup_->createChild(id);
+     computeElements(); 
+     return axis ;
    }
    CATCH_DUMP_ATTR
 
@@ -255,7 +263,9 @@ namespace xios {
      order_.push_back(0);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
-     return vScalarGroup_->createChild(id);
+     CScalar* scalar =  vScalarGroup_->createChild(id);
+     computeElements();
+     return scalar;
    }
    CATCH_DUMP_ATTR
 
@@ -517,6 +527,7 @@ namespace xios {
     const auto& scalars = getScalars() ;
     int idxDomain = 0, idxAxis=0 , idxScalar=0 ; 
  
+    elements_.clear() ;
     for(auto type : order_)
     {
       if      (type == 0) { elements_.push_back({scalars[idxScalar], TYPE_SCALAR, scalars[idxScalar], nullptr, nullptr } ) ; idxScalar++;}
@@ -571,6 +582,7 @@ namespace xios {
     setDomainList();
     setAxisList();
     setScalarList();
+    computeElements() ;
    }
    CATCH_DUMP_ATTR
 
@@ -959,8 +971,6 @@ namespace xios {
    CATCH_DUMP_ATTR
 
    
-//----------------------------------------------------------------
-
 
 
    CGrid* CGrid::cloneGrid(const StdString& idNewGrid, CGrid* gridSrc)
@@ -1870,11 +1880,6 @@ namespace xios {
   CATCH_DUMP_ATTR
 
 
-
-
-
-
-
   bool CGrid::hasTransform()
   TRY
   {
@@ -1891,6 +1896,264 @@ namespace xios {
     return hasTransform_;
   }
   CATCH_DUMP_ATTR
+
+
+
+//**********************************************************
+//**************   New transformation method  **************
+//**********************************************************
+
+  std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > 
+  CGrid::buildTransformationGraph(CGarbageCollector& gc, CGrid* gridSrc, double detectMissingValues, double defaultValue, CGrid*& newGrid)
+  TRY
+  {
+    std::shared_ptr<CFilter> inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc));
+    std::shared_ptr<CFilter> outputFilter = inputFilter ;
+    
+    newGrid = CGrid::create() ; // give it an id later ??
+    bool hadTransform=false ;
+    bool hasTransform=false ;
+    CGenericAlgorithmTransformation* algo ;
+    int dimBefore=1 ;
+    int dimAfter=1 ;
+
+    for(int i=0 ; i<elements_.size(); i++)
+    {
+      CTransformationPaths transformationPath ;
+      auto dstElement = elements_[i] ;
+
+      if (dstElement.type==TYPE_DOMAIN)      transformationPath = dstElement.domain->getTransformationPaths() ;
+      else if (dstElement.type==TYPE_AXIS)   transformationPath = dstElement.axis->getTransformationPaths() ;
+      else if (dstElement.type==TYPE_SCALAR) transformationPath = dstElement.scalar->getTransformationPaths() ;
+
+      SElement srcElement  ;
+      if (gridSrc==nullptr) srcElement = this->elements_[i] ;
+      else srcElement = gridSrc->elements_[i] ;
+
+      if (gridSrc==nullptr) transformationPath.mergePaths() ;
+      else
+      {  
+        if (srcElement.type==TYPE_DOMAIN)      transformationPath.mergePaths(srcElement.domain->getTransformationPaths()) ;
+        else if (srcElement.type==TYPE_AXIS)   transformationPath.mergePaths(srcElement.axis->getTransformationPaths()) ;
+        else if (srcElement.type==TYPE_SCALAR) transformationPath.mergePaths(srcElement.scalar->getTransformationPaths()) ;
+      }
+
+      hasTransform=transformationPath.hasTransform()  ;
+      
+
+      if (hasTransform && !hadTransform)
+      {
+        EElement dstElementType=transformationPath.getNextElementType() ;
+        string dstElementId=transformationPath.getNextElementId() ;
+        string srcElementId=transformationPath.getNextElementSrcId() ;
+        auto transType = transformationPath.getNextTransformationType() ;
+        auto transId = transformationPath.getNextTransformationId() ;
+
+        CGrid* tmpGridSrc=CGrid::create(); // source grid 
+        if (srcElement.type==TYPE_DOMAIN)      tmpGridSrc->addDomain(srcElement.domain->getId()) ;
+        else if (srcElement.type==TYPE_AXIS)   tmpGridSrc->addAxis(srcElement.axis->getId()) ;
+        else if (srcElement.type==TYPE_SCALAR) tmpGridSrc->addScalar(srcElement.scalar->getId()) ;
+        tmpGridSrc->checkElementsAttributes() ;
+        CGrid* tmpGridDst=CGrid::create(); // destination Grid
+        map<int,int> posInGrid={{0,0}} ;
+               
+        cout<<"--> New transform from "<<srcElementId<<" to "<<dstElementId<<endl ;
+        if (dstElementType==EElement::DOMAIN)
+        {
+          CDomain* dstDomain ;
+          if (CDomain::has(dstElementId)) dstDomain = CDomain::get(dstElementId) ;
+          else
+          {
+            dstDomain = CDomain::create() ;
+            dstDomain->createAlias(dstElementId) ;
+            if (srcElementId=="" && srcElement.type==TYPE_DOMAIN)  dstDomain->duplicateAttributes(srcElement.domain) ; // make a copy
+            else dstDomain->duplicateAttributes(CDomain::get(srcElementId)) ; // make a copy
+            CTransformation<CDomain>* transformation = CTransformation<CDomain>::createTransformation(transType,"") ;
+            auto srcTransform = CTransformation<CDomain>::getTransformation(transType, transId) ;
+            transformation->inheritFrom(srcTransform) ;
+            tmpGridDst->addDomain(dstDomain->getId()) ;
+
+            //reuse existing algorithm interface for, now
+            algo = CGridTransformationFactory<CDomain>::createTransformation(transType, tmpGridDst, tmpGridSrc,
+                                                                             transformation, 0, 
+                                                                             posInGrid,posInGrid,posInGrid,
+                                                                             posInGrid,posInGrid,posInGrid );
+            dstDomain->setTransformationAlgorithm(algo) ;
+            transformationPath.removeNextTransform() ;
+            dstDomain->setTransformationPaths(transformationPath) ;
+            newGrid->addDomain(dstDomain->getId()) ;
+          }
+          algo = dstDomain->getTransformationAlgorithm() ;
+        }
+        else if (dstElementType==EElement::AXIS)
+        {
+          CAxis* dstAxis ;
+          if (CAxis::has(dstElementId)) dstAxis = CAxis::get(dstElementId) ;
+          else
+          {
+            dstAxis = CAxis::create() ;
+            dstAxis->createAlias(dstElementId) ;
+            if (srcElementId=="" && srcElement.type==TYPE_AXIS)  dstAxis->duplicateAttributes(srcElement.axis) ; // make a copy
+            else dstAxis->duplicateAttributes(CAxis::get(srcElementId)) ; // make a copy
+            CTransformation<CAxis>* transformation = CTransformation<CAxis>::createTransformation(transType,"") ;
+            auto srcTransform = CTransformation<CAxis>::getTransformation(transType, transId) ;
+            transformation->inheritFrom(srcTransform) ;
+            tmpGridDst->addAxis(dstAxis->getId()) ;
+
+            //reuse existing algorithm interface for, now
+            algo = CGridTransformationFactory<CAxis>::createTransformation(transType, tmpGridDst, tmpGridSrc,
+                                                                           transformation, 0, 
+                                                                           posInGrid,posInGrid,posInGrid,
+                                                                           posInGrid,posInGrid,posInGrid );
+            dstAxis->setTransformationAlgorithm(algo) ;
+            transformationPath.removeNextTransform() ;
+            dstAxis->setTransformationPaths(transformationPath) ;
+            newGrid->addAxis(dstAxis->getId()) ;
+          }
+          algo = dstAxis->getTransformationAlgorithm() ;
+        }
+        else if (dstElementType==EElement::SCALAR)
+        {
+          CScalar* dstScalar ;
+          if (CScalar::has(dstElementId)) dstScalar = CScalar::get(dstElementId) ;
+          else
+          {
+            dstScalar = CScalar::create() ;
+            dstScalar->createAlias(dstElementId) ;
+            if (srcElementId=="" && srcElement.type==TYPE_SCALAR)  dstScalar->duplicateAttributes(srcElement.scalar) ; // make a copy
+            else dstScalar->duplicateAttributes(CScalar::get(srcElementId)) ; // make a copy
+            CTransformation<CScalar>* transformation = CTransformation<CScalar>::createTransformation(transType,"") ;
+            auto srcTransform = CTransformation<CScalar>::getTransformation(transType, transId) ;
+            transformation->inheritFrom(srcTransform) ;
+            tmpGridDst->addScalar(dstScalar->getId()) ;
+
+            //reuse existing algorithm interface for, now
+            algo = CGridTransformationFactory<CScalar>::createTransformation(transType, tmpGridDst, tmpGridSrc,
+                                                                             transformation, 0, 
+                                                                             posInGrid,posInGrid,posInGrid,
+                                                                             posInGrid,posInGrid,posInGrid );
+            dstScalar->setTransformationAlgorithm(algo) ;
+            transformationPath.removeNextTransform() ;
+            dstScalar->setTransformationPaths(transformationPath) ;
+            newGrid->addScalar(dstScalar->getId()) ;
+          }
+          algo = dstScalar->getTransformationAlgorithm() ;          
+        }
+        // here create a new spatial filter with algo
+        
+        hadTransform=true ;
+        hasTransform=false ; 
+      }
+      else
+      {
+        string srcElementId=transformationPath.getNextElementSrcId() ;
+        if (srcElement.type==TYPE_DOMAIN)      
+        {
+          CDomain* domain ;
+          if (!CDomain::has(srcElementId)) 
+          {
+            domain=srcElement.domain ;
+            domain->createAlias(srcElementId) ;
+          }
+          else domain = CDomain::get(srcElementId) ;
+          domain->checkAttributes() ;
+         
+          if (hadTransform) dimBefore*=domain->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
+          else dimAfter*=domain->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
+          newGrid->addDomain(srcElementId) ;
+        }
+        else if (srcElement.type==TYPE_AXIS)
+        {   
+          CAxis* axis ;
+          if (!CAxis::has(srcElementId)) 
+          {
+            axis=srcElement.axis ;
+            axis->createAlias(srcElementId) ;
+          }
+          else axis = CAxis::get(srcElementId) ;
+          axis->checkAttributes() ;
+         
+          if (hadTransform) dimBefore*=axis->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
+          else dimAfter*=axis->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
+          newGrid->addAxis(srcElementId) ;
+        }
+        else if (srcElement.type==TYPE_SCALAR)
+        {
+          CScalar* scalar ;
+          if (!CScalar::has(srcElementId)) 
+          {
+            scalar=srcElement.scalar ;
+            scalar->createAlias(srcElementId) ;
+          }
+          else scalar = CScalar::get(srcElementId) ;
+          scalar->checkAttributes() ;
+         
+          if (hadTransform) dimBefore*=scalar->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
+          else dimAfter*=scalar->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
+          newGrid->addScalar(srcElementId) ;
+        }
+      }
+    }  
+    
+    if (hadTransform)
+    {
+      shared_ptr<CTransformFilter> transformFilter = shared_ptr<CTransformFilter>(new CTransformFilter(gc, algo, dimBefore, dimAfter, detectMissingValues, defaultValue)) ;
+      outputFilter->connectOutput(transformFilter,0) ;
+      outputFilter = transformFilter ;
+
+      gridSrc=newGrid ;
+      pair<shared_ptr<CFilter>, shared_ptr<CFilter> > filters = gridSrc->buildTransformationGraph(gc, gridSrc, detectMissingValues, defaultValue, newGrid) ;
+      outputFilter->connectOutput(filters.first,0) ;
+      outputFilter=filters.second ;
+    }
+     
+    return {inputFilter,outputFilter} ;
+  }
+  CATCH_DUMP_ATTR
+
+
+//****************************************************************
+//****************************************************************
+
+//----------------------------------------------------------------
+
+  CGrid* CGrid::duplicateSentGrid(void)
+  {
+    CGrid* newGrid ;
+    string sentGridId="sent__"+getId() ;
+    if (has(sentGridId)) newGrid = get(sentGridId) ;
+    else
+    {
+      newGrid = CGrid::create(sentGridId) ;
+      for(auto element : elements_)
+      {
+        if (element.type==TYPE_DOMAIN)      
+        {
+          CDomain* domain = CDomain::create();
+          domain->duplicateAttributes(element.domain) ;
+          domain->name = element.domain->getId() ;
+          newGrid->addDomain(domain->getId()) ;
+        }
+        else if (element.type==TYPE_AXIS)      
+        {
+          CAxis* axis = CAxis::create();
+          axis->duplicateAttributes(element.axis) ;
+          axis->name = element.axis->getId() ;
+          newGrid->addAxis(axis->getId()) ;
+        }
+        else if (element.type==TYPE_SCALAR)      
+        {
+          CScalar* scalar = CScalar::create();
+          scalar->duplicateAttributes(element.scalar) ;
+          scalar->name = element.scalar->getId() ;
+          newGrid->addScalar(scalar->getId()) ;
+        }
+      }
+      newGrid->checkElementsAttributes() ;
+    }
+    return newGrid ;
+  }
+
 
   void CGrid::setContextClient(CContextClient* contextClient)
   TRY

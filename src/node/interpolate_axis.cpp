@@ -26,7 +26,7 @@ namespace xios {
 
   bool CInterpolateAxis::registerTrans()
   {
-    return registerTransformation(TRANS_INTERPOLATE_AXIS, CInterpolateAxis::create);
+    return registerTransformation(TRANS_INTERPOLATE_AXIS, {create, getTransformation});
   }
 
   bool CInterpolateAxis::_dummyRegistered = CInterpolateAxis::registerTrans();

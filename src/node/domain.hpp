@@ -15,6 +15,7 @@
 #include "attribute_enum.hpp"
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
+#include "transformation_path.hpp"
 #include "server_distribution_description.hpp"
 #include "mesh.hpp"
 #include "element.hpp"
@@ -22,9 +23,11 @@
 #include "scatterer_connector.hpp"
 #include "gatherer_connector.hpp"
 #include "distribution_type.hpp"
+#include "generic_algorithm_transformation.hpp"
 
 
-namespace xios {
+namespace xios
+{
 
    /// ////////////////////// Déclarations ////////////////////// ///
 
@@ -60,8 +63,7 @@ namespace xios {
 
          typedef CDomainAttributes RelAttributes;
          typedef CDomainGroup      RelGroup;
-         typedef CTransformation<CDomain>::TransformationMapTypes TransMapTypes;
-
+         
          /// Constructeurs ///
          CDomain(void);
          explicit CDomain(const StdString & id);
@@ -81,12 +83,43 @@ namespace xios {
          void checkAttributes(void);
          bool checkAttributes_done_ = false ;
 
-         bool hasTransformation();
-         void solveInheritanceTransformation();
-         TransMapTypes getAllTransformations();
+         
+      //////////////////////////
+      ///// transformations ////
+      //////////////////////////
+      public:
+        typedef CTransformation<CDomain>::TransformationMapTypes TransMapTypes;
+      private:
+        static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
+        static std::map<StdString, ETranformationType> transformationMapList_;
+        static bool dummyTransformationMapList_;
+        TransMapTypes transformationMap_;         
+
+      public:
+        CTransformation<CDomain>* addTransformation(ETranformationType transType, const StdString& id="");
+        CTransformation<CDomain>* addTransformation(ETranformationType transType, CTransformation<CDomain>* transformation) ;
+        void setTransformations(const TransMapTypes&);         
+        void duplicateTransformation(CDomain*);
+        TransMapTypes getAllTransformations();
+        bool hasTransformation();
+        void solveInheritanceTransformation_old(); // to remove later
+        void solveInheritanceTransformation();
+      private:
+        bool solveInheritanceTransformation_done_= false ;
+      private:
+        CGenericAlgorithmTransformation* transformationAlgorithm_ = nullptr ;
+      public:
+        void setTransformationAlgorithm(CGenericAlgorithmTransformation* transformationAlgorithm) { transformationAlgorithm_=transformationAlgorithm ;}
+        CGenericAlgorithmTransformation* getTransformationAlgorithm(void) { return transformationAlgorithm_ ;}   
+      private:
+        CTransformationPaths transformationPaths_ ;
+      public:
+        CTransformationPaths getTransformationPaths(void) {return transformationPaths_;} 
+        void setTransformationPaths(const CTransformationPaths& transformationPaths) { transformationPaths_=transformationPaths ;}
+
+      ////////////////////////////
+
          void redistribute(int nbLocalDomain);
-         void duplicateTransformation(CDomain*);
-         CTransformation<CDomain>* addTransformation(ETranformationType transType, const StdString& id="");
 
       public:
          const std::set<StdString> & getRelFiles(void) const;
@@ -194,9 +227,6 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
-
-         void setTransformations(const TransMapTypes&);         
-         void computeNGlobDomain();
          
        public:
          void sendDomainToFileServer(CContextClient* client) ;
@@ -238,15 +268,9 @@ namespace xios {
          std::map<int, std::vector<int> > connectedServerRank_;
 
          bool isRedistributed_;
-         TransMapTypes transformationMap_;         
          bool isUnstructed_;
 
        
-       private:
-         static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
-         static std::map<StdString, ETranformationType> transformationMapList_;
-         static bool _dummyTransformationMapList;
-
        //////////////////////////////////////////////////////////////////////////////////////
        //  this part is related to distribution, element definition, views and connectors  //
        //////////////////////////////////////////////////////////////////////////////////////

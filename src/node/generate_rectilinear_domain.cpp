@@ -26,7 +26,7 @@ namespace xios {
   bool CGenerateRectilinearDomain::_dummyRegistered = CGenerateRectilinearDomain::registerTrans();
   bool CGenerateRectilinearDomain::registerTrans()
   {
-    registerTransformation(TRANS_GENERATE_RECTILINEAR_DOMAIN, create);
+    registerTransformation(TRANS_GENERATE_RECTILINEAR_DOMAIN, {create, getTransformation});
   }
 
   //----------------------------------------------------------------

@@ -15,14 +15,17 @@
 #include "server_distribution_description.hpp"
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
+#include "transformation_path.hpp"
 #include "element.hpp"
 #include "local_connector.hpp"
 #include "scatterer_connector.hpp"
 #include "gatherer_connector.hpp"
 #include "distribution_type.hpp"
+#include "generic_algorithm_transformation.hpp"
 
 
-namespace xios {
+namespace xios
+{
    /// ////////////////////// Déclarations ////////////////////// ///
 
    class CAxisGroup;
@@ -56,7 +59,6 @@ namespace xios {
       public:
          typedef CAxisAttributes RelAttributes;
          typedef CAxisGroup      RelGroup;
-         typedef CTransformation<CAxis>::TransformationMapTypes TransMapTypes;
 
       public:
          /// Constructeurs ///
@@ -78,19 +80,19 @@ namespace xios {
          bool isWrittenCompressed(const StdString& filename) const;
          bool isDistributed(void) const;
         
-        public:
+      public:
         /*!
             \brief return if the axis can be written or not in a compressed way.
             ie if there are some masked or indexed point on the domain. Valid only on server side.
             \return true if domain can be writtedn in a compressed way
          */ 
          bool isCompressible(void) { if (!isCompressibleComputed_) computeIsCompressible() ; return isCompressible_ ;} 
-        private:
+      private:
          bool isCompressible_ ; /** specify if the domain can be written in a compressed way */ 
          bool isCompressibleComputed_=false ; /** Indicate if compressability has been computed*/
          void computeIsCompressible() ;
         
-        public:
+      public:
 
          /// Mutateur ///
          void addRelFile(const StdString & filename);
@@ -118,11 +120,40 @@ namespace xios {
 
          size_t getGlobalWrittenSize(void) ;
 
-         bool hasTransformation();
-         void solveInheritanceTransformation();
-         TransMapTypes getAllTransformations();         
-         void duplicateTransformation(CAxis*);
-         CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
+      //////////////////////////
+      ///// transformations ////
+      //////////////////////////
+      public:
+        typedef CTransformation<CAxis>::TransformationMapTypes TransMapTypes;
+      private:
+        static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
+        static std::map<StdString, ETranformationType> transformationMapList_;
+        static bool dummyTransformationMapList_;
+        TransMapTypes transformationMap_;         
+
+      public:
+        CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
+        CTransformation<CAxis>* addTransformation(ETranformationType transType, CTransformation<CAxis>* transformation) ;
+        void setTransformations(const TransMapTypes&);         
+        void duplicateTransformation(CAxis*);
+        TransMapTypes getAllTransformations();
+        bool hasTransformation();
+        void solveInheritanceTransformation_old(); // to remove later
+        void solveInheritanceTransformation();
+      private:
+        bool solveInheritanceTransformation_done_= false ;
+      private:
+        CGenericAlgorithmTransformation* transformationAlgorithm_ = nullptr ;
+      public:
+        void setTransformationAlgorithm(CGenericAlgorithmTransformation* transformationAlgorithm) { transformationAlgorithm=transformationAlgorithm ;}
+        CGenericAlgorithmTransformation* getTransformationAlgorithm(void) { return transformationAlgorithm_ ;}   
+      private:
+        CTransformationPaths transformationPaths_ ;
+      public:
+        CTransformationPaths getTransformationPaths(void) {return transformationPaths_;} 
+        void setTransformationPaths(const CTransformationPaths& transformationPaths) { transformationPaths_=transformationPaths ;}
+
+      ////////////////////////////
          bool isEqual(CAxis* axis);
 
       public: 
@@ -130,7 +161,7 @@ namespace xios {
         bool hasBounds;
         bool hasLabel;
 
-       private:
+      private:
          void checkData();
          void checkMask();
          void checkBounds();
@@ -144,8 +175,6 @@ namespace xios {
       public:
          void makeAliasForCoupling(const string& fieldId, int posInGrid) ;
 
-      private:
-         void setTransformations(const TransMapTypes&);
 
       private:
 
@@ -176,16 +205,8 @@ namespace xios {
       private:
          bool isChecked;
          std::set<StdString> relFiles, relFilesCompressed;
-         TransMapTypes transformationMap_;         
-
-         std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
+          std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
          std::map<int, std::vector<int> > connectedServerRank_;
-
-       private:
-         static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
-         static std::map<StdString, ETranformationType> transformationMapList_;
-         static bool dummyTransformationMapList_;
-
 
        //////////////////////////////////////////////////////////////////////////////////////
        //  this part is related to distribution, element definition, views and connectors  //

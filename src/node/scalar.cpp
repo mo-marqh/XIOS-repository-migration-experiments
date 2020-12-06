@@ -134,7 +134,7 @@ namespace xios
   /*!
    * Go through the hierarchy to find the scalar from which the transformations must be inherited
    */
-  void CScalar::solveInheritanceTransformation()
+  void CScalar::solveInheritanceTransformation_old()
   {
     if (hasTransformation() || !hasDirectScalarReference())
       return;
@@ -152,6 +152,44 @@ namespace xios
         refScalar[i]->setTransformations(scalar->getAllTransformations());
   }
  
+  void CScalar::solveInheritanceTransformation()
+  TRY
+  {
+    if (solveInheritanceTransformation_done_) return;
+    else solveInheritanceTransformation_done_=true ;
+
+    CScalar* scalar = this;
+    CScalar* Lastscalar ;
+    std::list<CScalar*> refScalars;
+    bool out=false ;
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("scalar_ref");
+    
+    refScalars.push_front(scalar) ;
+    while (scalar->hasDirectScalarReference() && !out)
+    {
+      CScalar* lastScalar=scalar ;
+      scalar = scalar->getDirectScalarReference();
+      scalar->solveRefInheritance() ;
+      if (!scalar->SuperClass::isEqual(lastScalar,excludedAttr)) out=true ;
+      refScalars.push_front(scalar) ;
+    }
+
+    CTransformationPaths::TPath path ;
+    auto& pathList = std::get<2>(path) ;
+    std::get<0>(path) = EElement::SCALAR ;
+    std::get<1>(path) = refScalars.front()->getId() ;
+    for (auto& scalar : refScalars)
+    {
+      CScalar::TransMapTypes transformations = scalar->getAllTransformations();
+      for(auto& transformation : transformations) pathList.push_back({transformation.second->getTransformationType(), 
+                                                                      transformation.second->getId()}) ;
+    }
+    transformationPaths_.addPath(path) ;
+
+  }
+  CATCH_DUMP_ATTR
+
   /* obsolete, to remove after reimplementing coupling */
   void CScalar::sendScalarToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid)
   {

@@ -27,7 +27,7 @@ namespace xios {
 
   bool CExtractAxisToScalar::registerTrans()
   {
-    return registerTransformation(TRANS_EXTRACT_AXIS_TO_SCALAR, CExtractAxisToScalar::create);
+    return registerTransformation(TRANS_EXTRACT_AXIS_TO_SCALAR, {create, getTransformation});
   }
 
   bool CExtractAxisToScalar::_dummyRegistered = CExtractAxisToScalar::registerTrans();

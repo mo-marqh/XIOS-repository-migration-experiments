@@ -86,8 +86,16 @@ namespace xios
     size_t sliceIndex=0 ;
     srcView_[nSrc-1]->getGlobalIndex(srcGlobalIndex, sliceIndex, srcSliceSize.data(), srcView_.data(), nSrc-1) ;
     
-    CArray<size_t,1> srcGlobalIndexArray(srcGlobalIndex.data(), shape(srcGlobalIndex.size()),neverDeleteData) ;
-    dataRanks.computeIndexInfoMapping(srcGlobalIndexArray) ;
+    if (srcGlobalIndex.size()>0)
+    {
+      CArray<size_t,1> srcGlobalIndexArray(srcGlobalIndex.data(), shape(srcGlobalIndex.size()),neverDeleteData) ;
+      dataRanks.computeIndexInfoMapping(srcGlobalIndexArray) ;
+    }
+    else
+    {
+      CArray<size_t,1> srcGlobalIndexArray ;
+      dataRanks.computeIndexInfoMapping(srcGlobalIndexArray) ;
+    }
     const auto& returnInfo = dataRanks.getInfoIndexMap() ;
 
     vector<map<int, set<size_t>>> elements(nSrc) ; // internal representation of elements composing the grid

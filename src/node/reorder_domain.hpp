@@ -40,6 +40,8 @@ namespace xios {
     public :
       typedef CObjectTemplate<CReorderDomain> SuperClass;
       typedef CReorderDomainAttributes SuperClassAttribute;
+      typedef CReorderDomain MyClass ;
+      typedef CTransformation<CDomain> SuperTransform ;
 
     public :
       /// Constructeurs ///
@@ -55,7 +57,11 @@ namespace xios {
       static StdString GetName(void);
       static StdString GetDefName(void);
       static ENodeType GetType(void);
-    private:
+      const string& getId(void) { return this->SuperClass::getId();}
+      ETranformationType getTransformationType(void) { return TRANS_REORDER_DOMAIN ;}
+      static CTransformation<CDomain>* getTransformation(const StdString& id) { return SuperClass::get(id);}
+      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
+     private:
       static bool registerTrans();
       static CTransformation<CDomain>* create(const StdString& id, xml::CXMLNode* node);
       static bool _dummyRegistered;

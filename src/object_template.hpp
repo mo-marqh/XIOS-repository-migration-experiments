@@ -51,7 +51,7 @@ namespace xios
 
          /// Traitements ///
          virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
-
+ 
          /// Traitement statique ///
          static void ClearAllAttributes(void);
          std::map<int, size_t> getMinimumBufferSizeForAttributes(CContextClient* client);

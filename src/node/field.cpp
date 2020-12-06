@@ -765,17 +765,34 @@ namespace xios
       gridPath.push_back(grid_) ;
 
       CGrid* gridSrc=getDirectFieldReference()->getGrid() ;
+      std::shared_ptr<COutputPin> lastFilter ;
+      if (filterExpr) lastFilter=filterExpr ;
+      else lastFilter = inputFilter ;
+      CGrid* newGrid ;    
+      
       for(auto grid : gridPath)
       {
         grid->solveElementsRefInheritance() ;
+       
+        // new
+        
+        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid->buildTransformationGraph(gc, gridSrc, detectMissingValues, defaultValue, newGrid) ;
+        lastFilter->connectOutput(filters.first, 0);
+        lastFilter = filters.second;
+        gridSrc = newGrid ;
+
+        // end new
+/*
         grid->completeGrid(gridSrc); // grid generation, to be checked
         grid->checkElementsAttributes() ;
         grid->prepareTransformGrid(gridSrc) ; // prepare the grid tranformation
         for(auto fieldId : grid->getAuxInputTransformGrid()) // try to build workflow graph for auxillary field tranformation
           if (!CField::get(fieldId)->buildWorkflowGraph(gc)) return false ;
         gridSrc=grid ;
+*/
       }
-      
+
+    /*  
       std::shared_ptr<COutputPin> lastFilter ;
       if (filterExpr) lastFilter=filterExpr ;
       else lastFilter = inputFilter ;
@@ -792,6 +809,9 @@ namespace xios
           gridSrc=grid ;
         }
       }
+    */
+      grid_=newGrid ;
+      grid_ref=grid_->getId() ; // for server 
       instantDataFilter = lastFilter ;
       
       // connect the input Filter to the reference
@@ -823,7 +843,11 @@ namespace xios
         setModelIn() ; // no reference, the field is potentially a source field from model
 
         grid_->solveElementsRefInheritance() ;
-        grid_->completeGrid(); // grid generation, to be checked
+        CGrid* newGrid ;
+        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, nullptr, detectMissingValues, defaultValue, newGrid) ;
+        grid_ = newGrid ;
+        grid_ref=grid_->getId() ; // for server 
+//        grid_->completeGrid(); // grid generation, to be checked => later
         grid_->checkElementsAttributes() ;
         instantDataFilter=inputFilter ;
       }
@@ -1602,7 +1626,9 @@ namespace xios
   {
     CContext::getCurrent()->sendContextToFileServer(client);
     getRelFile()->sendFileToFileServer(client);
-    grid_->sendGridToFileServer(client);
+    sentGrid_ = grid_-> duplicateSentGrid() ;
+    sentGrid_->sendGridToFileServer(client);
+    name = getFieldOutputName() ;
     this->sendAllAttributesToServer(client);
     this->sendAddAllVariables(client);
   }
@@ -1696,14 +1722,20 @@ namespace xios
   {
     if (grid_ref.isEmpty())
     {
-      grid_ref=grid_->getId() ;
+      grid_ref=sentGrid_->getId() ;
       SuperClass::sendAllAttributesToServer(client) ;
       domain_ref.reset() ;
       axis_ref.reset() ;
       scalar_ref.reset() ;
       grid_ref.reset();
     }
-    else SuperClass::sendAllAttributesToServer(client) ;
+    else 
+    {
+      string tmp = grid_ref;
+      grid_ref = sentGrid_->getId() ;
+      SuperClass::sendAllAttributesToServer(client) ;
+      grid_ref = tmp ;
+    }
   }
   CATCH_DUMP_ATTR
     

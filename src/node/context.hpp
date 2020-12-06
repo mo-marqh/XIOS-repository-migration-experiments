@@ -138,14 +138,11 @@ namespace xios {
          void initReadFiles(void);
          void prepareTimeseries(void);
          void solveOnlyRefOfEnabledFields(void);         
-         void buildFilterGraphOfEnabledFields();
          void postProcessFilterGraph();
          void startPrefetchingOfEnabledReadModeFiles();
          void doPreTimestepOperationsForEnabledReadModeFiles();
          void doPostTimestepOperationsForEnabledReadModeFiles();
          void findFieldsWithReadAccess(void);
-         void solveAllRefOfFieldsWithReadAccess();
-         void buildFilterGraphOfFieldsWithReadAccess();
          void triggerLateFields(void) ;
          void solveAllRefOfEnabledFieldsAndTransform(void);
  

@@ -1301,22 +1301,6 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CContext::buildFilterGraphOfEnabledFields()
-   TRY
-   {
-     int size = this->enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFiles[i]->buildFilterGraphOfEnabledFields(garbageCollector);
-     }
-
-     size = this->enabledCouplerOut.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledCouplerOut[i]->buildFilterGraphOfEnabledFields(garbageCollector);
-     }
-   }
-   CATCH_DUMP_ATTR
 
    void CContext::postProcessFilterGraph()
    TRY
@@ -1379,22 +1363,7 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-  void CContext::solveAllRefOfFieldsWithReadAccess()
-  TRY
-  {
-    for (size_t i = 0; i < fieldsWithReadAccess_.size(); ++i)
-      fieldsWithReadAccess_[i]->solveAllReferenceEnabledField(false);
-  }
-  CATCH_DUMP_ATTR
-
-  void CContext::buildFilterGraphOfFieldsWithReadAccess()
-  TRY
-  {
-    for (size_t i = 0; i < fieldsWithReadAccess_.size(); ++i)
-      fieldsWithReadAccess_[i]->buildFilterGraph(garbageCollector, true);
-  }
-  CATCH_DUMP_ATTR
-
+  
    void CContext::solveAllInheritance(bool apply)
    TRY
    {

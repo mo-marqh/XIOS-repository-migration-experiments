@@ -24,7 +24,7 @@ namespace xios
     CEventClient event(field_->getType(), CField::EVENT_ID_UPDATE_DATA);
     CMessage message ;
     message<<field_->getId() << data[0]->timestamp ;
-    field_->getGrid()->getClientToServerConnector(client_)->transfer(data[0]->data, client_, event, message) ;
+    field_->getSentGrid()->getClientToServerConnector(client_)->transfer(data[0]->data, client_, event, message) ;
     CTimer::get("Field : send data").suspend();
   }
 

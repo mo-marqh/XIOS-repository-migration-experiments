@@ -25,7 +25,7 @@ namespace xios {
 
   bool CInverseAxis::registerTrans()
   {
-    return registerTransformation(TRANS_INVERSE_AXIS, CInverseAxis::create);
+    return registerTransformation(TRANS_INVERSE_AXIS, {create, getTransformation});
   }
 
   bool CInverseAxis::_dummyRegistered = CInverseAxis::registerTrans();

@@ -28,7 +28,7 @@ namespace xios {
 
   bool CTemporalSplitting::registerTrans()
   {
-    return registerTransformation(TRANS_TEMPORAL_SPLITTING, CTemporalSplitting::create);
+    return registerTransformation(TRANS_TEMPORAL_SPLITTING, {create, getTransformation});
   }
 
   bool CTemporalSplitting::_dummyRegistered = CTemporalSplitting::registerTrans();

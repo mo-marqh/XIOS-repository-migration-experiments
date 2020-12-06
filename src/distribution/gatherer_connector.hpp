@@ -28,30 +28,43 @@ namespace xios
       void computeConnector(void) ;
       
       template<typename T>
-      void transfer(int sizeT, map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut)
+      void transfer(int repeat, int sizeT, map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut)
       {
         // for future, make a specific transfer function for sizeT=1 to avoid multiplication (increasing performance)
-        dataOut.resize(dstSize_*sizeT) ;  
-        T* output = dataOut.dataFirst() ;
+        size_t dstSlice = dstSize_*sizeT ;
+        dataOut.resize(repeat* dstSlice) ;  
+        
         for(auto& data : dataIn)
         {
+          T* output = dataOut.dataFirst() ;
           int rank=data.first ;
           auto input  = data.second.dataFirst() ;
           auto& connector=connector_[rank] ;
           auto& mask=mask_[rank] ;
           int size=mask.size() ;
-
-          for(int i=0, j=0 ;i<size;i++)
-          {
-            if (mask[i]) 
+          size_t srcSlice = size * sizeT ;
+          for(int l=0; l<repeat; l++)
+          {   
+            for(int i=0, j=0 ;i<size;i++)
             {
-              int cj = connector[j]*sizeT ;
-              int ci = i*sizeT ;
-              for (int k=0;k<sizeT;k++) output[cj+k] = input[ci+k] ;
-              j++ ;
+              if (mask[i]) 
+              {
+                int cj = connector[j]*sizeT ;
+                int ci = i*sizeT ;
+                for (int k=0;k<sizeT;k++) output[cj+k] = input[ci+k] ;
+                j++ ;
+              }
             }
+            input+=srcSlice ;
+            output+=dstSlice ;
           }
         }
+      }
+
+      template<typename T>
+      void transfer(int sizeT, map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut)
+      {
+        transfer(1, 1, dataIn, dataOut) ;
       }
     
       template<typename T>
@@ -100,15 +113,21 @@ namespace xios
       template<typename T>
       void transfer(map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut, T missingValue)
       {
-        transfer(1, dataIn, dataout, missingValue)
+        transfer(1, 1, dataIn, dataout, missingValue)
       }
       
       template<typename T>
       void transfer(int sizeT, map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut, T missingValue)
       {
-        dataOut.resize(dstSize_*sizeT) ;
+         transfer(1, sizeT, dataIn, dataOut, missingValue) ;
+      }
+
+      template<typename T>
+      void transfer(int repeat , int sizeT, map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut, T missingValue)
+      {
+        dataOut.resize(repeat*dstSize_*sizeT) ;
         dataOut=missingValue ;
-        transfer(sizeT, dataIn, dataOut) ;
+        transfer(1, sizeT, dataIn, dataOut) ;
       }
 
       template<typename T>
@@ -120,7 +139,7 @@ namespace xios
           auto& data = dataIn[subEvent.rank]; 
           (*subEvent.buffer) >> data ;
         }
-        transfer(sizeT, dataIn, dataOut) ;
+        transfer(1, sizeT, dataIn, dataOut) ;
       }
       
       template<typename T>
@@ -138,7 +157,7 @@ namespace xios
           auto& data = dataIn[subEvent.rank]; 
           (*subEvent.buffer) >> data ;
         }
-        transfer(sizeT, dataIn, dataOut, missingValue) ;
+        transfer(1, sizeT, dataIn, dataOut, missingValue) ;
       }
 
       template<typename T>
@@ -150,7 +169,7 @@ namespace xios
           auto& data = dataIn[subEvent.rank]; 
           (*subEvent.buffer) >> data ;
         }
-        transfer(1, dataIn, dataOut, missingValue) ;
+        transfer(1, 1, dataIn, dataOut, missingValue) ;
       }
 
     int getSrcSliceSize(int rank, CGathererConnector** connectors, int nConnectors) 

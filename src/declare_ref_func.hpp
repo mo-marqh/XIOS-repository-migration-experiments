@@ -50,8 +50,6 @@ void C##type::solveRefInheritance(bool apply)                          \
     refObjects.push_back(refer_ptr);                                   \
     SuperClassAttribute::setAttributes(refer_ptr, apply);              \
   }                                                                    \
-  if (this->hasAttribute("name") && this->name.isEmpty())              \
-    this->name.setValue(this->get##type##OutputName());                \
 }                                                                      \
                                                                        \
 void C##type::setAttributesReference(bool apply)                       \

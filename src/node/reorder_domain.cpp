@@ -26,7 +26,7 @@ namespace xios {
   bool CReorderDomain::_dummyRegistered = CReorderDomain::registerTrans();
   bool CReorderDomain::registerTrans()
   {
-    registerTransformation(TRANS_REORDER_DOMAIN, CReorderDomain::create);
+    registerTransformation(TRANS_REORDER_DOMAIN, {create, getTransformation});
   }
 
   //----------------------------------------------------------------

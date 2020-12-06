@@ -25,7 +25,7 @@ namespace xios {
 
   bool CZoomAxis::registerTrans()
   {
-    return registerTransformation(TRANS_ZOOM_AXIS, CZoomAxis::create);
+    return registerTransformation(TRANS_ZOOM_AXIS, {create, getTransformation});
   }
 
   bool CZoomAxis::_dummyRegistered = CZoomAxis::registerTrans();

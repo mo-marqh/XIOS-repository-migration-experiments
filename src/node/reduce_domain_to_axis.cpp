@@ -27,7 +27,7 @@ namespace xios {
 
   bool CReduceDomainToAxis::registerTrans()
   {
-    return registerTransformation(TRANS_REDUCE_DOMAIN_TO_AXIS, CReduceDomainToAxis::create);
+    return registerTransformation(TRANS_REDUCE_DOMAIN_TO_AXIS, {create, getTransformation});
   }
 
   bool CReduceDomainToAxis::_dummyRegistered = CReduceDomainToAxis::registerTrans();

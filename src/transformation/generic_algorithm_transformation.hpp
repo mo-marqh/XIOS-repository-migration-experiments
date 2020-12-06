@@ -13,8 +13,12 @@
 #include <set>
 #include "array_new.hpp"
 #include "client_client_dht_template.hpp"
+#include "local_view.hpp"
+#include "transform_connector.hpp"
+#include "weight_transform_connector.hpp"
 
-namespace xios {
+namespace xios
+{
   class CGrid;
   class CDomain;
   class CAxis;
@@ -168,6 +172,18 @@ protected:
 
   bool eliminateRedondantSrc_ ; // flag to indicate if the transformation must select only one global source point for all proc.
                                // In this case it will choose preferentially the current process 
+
+  
+// new methods for new algorithm
+
+  public : 
+  
+    void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;
+    void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
+    
+    CTransformConnector* transformConnector_ ;
+    CWeightTransformConnector* weightTransformConnector_ ;
+
 };
 
 }

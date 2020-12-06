@@ -40,6 +40,8 @@ namespace xios {
     public :
       typedef CObjectTemplate<CReduceDomainToAxis> SuperClass;
       typedef CReduceDomainToAxisAttributes SuperClassAttribute;
+      typedef CReduceDomainToAxis MyClass ;
+     typedef CTransformation<CAxis> SuperTransform ;
 
     public :
       /// Constructeurs ///
@@ -55,7 +57,11 @@ namespace xios {
       static StdString GetName(void);
       static StdString GetDefName(void);
       static ENodeType GetType(void);
-    private:
+      const string& getId(void) { return this->SuperClass::getId();}
+      ETranformationType getTransformationType(void) { return TRANS_REDUCE_DOMAIN_TO_AXIS ;}
+      static CTransformation<CAxis>* getTransformation(const StdString& id) { return SuperClass::get(id);}
+      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
+     private:
       static bool registerTrans();
       static CTransformation<CAxis>* create(const StdString& id, xml::CXMLNode* node);
       static bool _dummyRegistered;

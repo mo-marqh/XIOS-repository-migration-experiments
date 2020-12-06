@@ -1,5 +1,4 @@
 #include "domain.hpp"
-
 #include "attribute_template.hpp"
 #include "object_template.hpp"
 #include "group_template.hpp"
@@ -24,6 +23,7 @@
 #include "scatterer_connector.hpp"
 #include "grid_scatterer_connector.hpp"
 #include "grid_gatherer_connector.hpp"
+#include "transformation_path.hpp"
 
 
 
@@ -76,22 +76,6 @@ namespace xios {
    {
      CDomain* domain = CDomainGroup::get("domain_definition")->createChild();
      return domain;
-   }
-   CATCH
-
-   std::map<StdString, ETranformationType> CDomain::transformationMapList_ = std::map<StdString, ETranformationType>();
-   bool CDomain::_dummyTransformationMapList = CDomain::initializeTransformationMap(CDomain::transformationMapList_);
-
-   bool CDomain::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
-   TRY
-   {
-     m["zoom_domain"] = TRANS_ZOOM_DOMAIN;
-     m["interpolate_domain"] = TRANS_INTERPOLATE_DOMAIN;
-     m["generate_rectilinear_domain"] = TRANS_GENERATE_RECTILINEAR_DOMAIN;
-     m["compute_connectivity_domain"] = TRANS_COMPUTE_CONNECTIVITY_DOMAIN;
-     m["expand_domain"] = TRANS_EXPAND_DOMAIN;
-     m["reorder_domain"] = TRANS_REORDER_DOMAIN;
-     m["extract_domain"] = TRANS_EXTRACT_DOMAIN;
    }
    CATCH
 
@@ -2178,7 +2162,27 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
- 
+/////////////////////////////////////////////////////////////////////////
+///////////////             TRANSFORMATIONS                    //////////
+/////////////////////////////////////////////////////////////////////////
+
+  std::map<StdString, ETranformationType> CDomain::transformationMapList_ = std::map<StdString, ETranformationType>();
+  bool CDomain::dummyTransformationMapList_ = CDomain::initializeTransformationMap(CDomain::transformationMapList_);
+
+  bool CDomain::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
+  TRY
+  {
+    m["zoom_domain"] = TRANS_ZOOM_DOMAIN;
+    m["interpolate_domain"] = TRANS_INTERPOLATE_DOMAIN;
+    m["generate_rectilinear_domain"] = TRANS_GENERATE_RECTILINEAR_DOMAIN;
+    m["compute_connectivity_domain"] = TRANS_COMPUTE_CONNECTIVITY_DOMAIN;
+    m["expand_domain"] = TRANS_EXPAND_DOMAIN;
+    m["reorder_domain"] = TRANS_REORDER_DOMAIN;
+    m["extract_domain"] = TRANS_EXTRACT_DOMAIN;
+  }
+  CATCH
+
+
   CTransformation<CDomain>* CDomain::addTransformation(ETranformationType transType, const StdString& id)
   TRY
   {
@@ -2187,6 +2191,13 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
+  CTransformation<CDomain>* CDomain::addTransformation(ETranformationType transType, CTransformation<CDomain>* transformation)
+  TRY
+  {
+    transformationMap_.push_back(std::make_pair(transType, transformation));
+    return transformationMap_.back().second;
+  }
+  CATCH_DUMP_ATTR
   /*!
     Check whether a domain has transformation
     \return true if domain has transformation
@@ -2233,7 +2244,7 @@ namespace xios {
   /*!
    * Go through the hierarchy to find the domain from which the transformations must be inherited
    */
-  void CDomain::solveInheritanceTransformation()
+  void CDomain::solveInheritanceTransformation_old()
   TRY
   {
     if (hasTransformation() || !hasDirectDomainReference())
@@ -2252,6 +2263,48 @@ namespace xios {
         refDomains[i]->setTransformations(domain->getAllTransformations());
   }
   CATCH_DUMP_ATTR
+
+
+  void CDomain::solveInheritanceTransformation()
+  TRY
+  {
+    if (solveInheritanceTransformation_done_) return;
+    else solveInheritanceTransformation_done_=true ;
+
+    CDomain* domain = this;
+    CDomain* Lastdomain ;
+    std::list<CDomain*> refDomains;
+    bool out=false ;
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("domain_ref");
+    
+    refDomains.push_front(domain) ;
+    while (domain->hasDirectDomainReference() && !out)
+    {
+      CDomain* lastDomain=domain ;
+      domain = domain->getDirectDomainReference();
+      domain->solveRefInheritance() ;
+      if (!domain->SuperClass::isEqual(lastDomain,excludedAttr)) out=true ;
+      refDomains.push_front(domain) ;
+    }
+
+    CTransformationPaths::TPath path ;
+    auto& pathList = std::get<2>(path) ;
+    std::get<0>(path) = EElement::DOMAIN ;
+    std::get<1>(path) = refDomains.front()->getId() ;
+    for (auto& domain : refDomains)
+    {
+      CDomain::TransMapTypes transformations = domain->getAllTransformations();
+      for(auto& transformation : transformations) pathList.push_back({transformation.second->getTransformationType(), 
+                                                                      transformation.second->getId()}) ;
+    }
+    transformationPaths_.addPath(path) ;
+
+  }
+  CATCH_DUMP_ATTR
+  
+/////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////// 
 
   void CDomain::setContextClient(CContextClient* contextClient)
   TRY

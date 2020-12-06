@@ -226,8 +226,7 @@ namespace xios
         bool hasExpression(void) const;
 
         bool hasGridMask(void) const;
-        CGrid* getGrid(void) { return grid_; } 
-
+        
         void connectToFileServer(CGarbageCollector& gc) ;
         void connectToCouplerOut(CGarbageCollector& gc) ;
         void connectToCouplerIn(CGarbageCollector& gc) ;
@@ -267,6 +266,14 @@ namespace xios
          CVariableGroup* vVariableGroup;
 
          CGrid*  grid_=nullptr;
+         CGrid* getGrid(void) { return grid_; } 
+      
+      private:
+         CGrid* sentGrid_=nullptr ;
+      public:
+         CGrid* getSentGrid(void) { return sentGrid_; }    
+
+      public:
 //         CFile*  file;
          
          CFile* fileIn_ = nullptr ; //<! pointer to input related file

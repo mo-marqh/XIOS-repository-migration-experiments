@@ -27,7 +27,7 @@ namespace xios {
 
   bool CDuplicateScalarToAxis::registerTrans()
   {
-    return registerTransformation(TRANS_DUPLICATE_SCALAR_TO_AXIS, CDuplicateScalarToAxis::create);
+    return registerTransformation(TRANS_DUPLICATE_SCALAR_TO_AXIS, {create, getTransformation});
   }
 
   bool CDuplicateScalarToAxis::_dummyRegistered = CDuplicateScalarToAxis::registerTrans();

@@ -554,7 +554,7 @@ namespace xios {
   /*!
    * Go through the hierarchy to find the axis from which the transformations must be inherited
    */
-  void CAxis::solveInheritanceTransformation()
+  void CAxis::solveInheritanceTransformation_old()
   TRY
   {
     if (hasTransformation() || !hasDirectAxisReference())
@@ -571,6 +571,43 @@ namespace xios {
     if (axis->hasTransformation())
       for (size_t i = 0; i < refAxis.size(); ++i)
         refAxis[i]->setTransformations(axis->getAllTransformations());
+  }
+  CATCH_DUMP_ATTR
+
+  void CAxis::solveInheritanceTransformation()
+  TRY
+  {
+    if (solveInheritanceTransformation_done_) return;
+    else solveInheritanceTransformation_done_=true ;
+
+    CAxis* axis = this;
+    std::list<CAxis*> refAxis;
+    bool out=false ;
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("axis_ref");
+    
+    refAxis.push_front(axis) ;
+    while (axis->hasDirectAxisReference() && !out)
+    {
+      CAxis* lastAxis=axis ;
+      axis = axis->getDirectAxisReference();
+      axis->solveRefInheritance() ;
+      if (!axis->SuperClass::isEqual(lastAxis,excludedAttr)) out=true ;
+      refAxis.push_front(axis) ;
+    }
+
+    CTransformationPaths::TPath path ;
+    auto& pathList = std::get<2>(path) ;
+    std::get<0>(path) = EElement::AXIS ;
+    std::get<1>(path) = refAxis.front()->getId() ;
+    for (auto& axis : refAxis)
+    {
+      CAxis::TransMapTypes transformations = axis->getAllTransformations();
+      for(auto& transformation : transformations) pathList.push_back({transformation.second->getTransformationType(), 
+                                                                      transformation.second->getId()}) ;
+    }
+    transformationPaths_.addPath(path) ;
+
   }
   CATCH_DUMP_ATTR
 

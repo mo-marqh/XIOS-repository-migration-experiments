@@ -27,7 +27,7 @@ namespace xios {
 
   bool CExtractDomainToAxis::registerTrans()
   {
-    return registerTransformation(TRANS_EXTRACT_DOMAIN_TO_AXIS, CExtractDomainToAxis::create);
+    return registerTransformation(TRANS_EXTRACT_DOMAIN_TO_AXIS, {create, getTransformation});
   }
 
   bool CExtractDomainToAxis::_dummyRegistered = CExtractDomainToAxis::registerTrans();

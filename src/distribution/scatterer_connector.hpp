@@ -37,19 +37,26 @@ namespace xios
     template<typename T, int n>
     void transfer(const CArray<T,n>& dataIn, map<int, CArray<T,1>>& dataOut)
     {
-      transfer(1, dataIn, dataOut) ;
+      transfer(1,1, dataIn, dataOut) ;
     }
 
     template<typename T, int n>
     void transfer(const CArray<T,n>& dataIn, map<int, CArray<T,1>>& dataOut, T missingValue)
     {
-      transfer(1, dataIn, dataOut, missingValue) ;
+      transfer(1, 1, dataIn, dataOut, missingValue) ;
     }
 
     template<typename T, int n>
     void transfer(int sizeT, const CArray<T,n>& dataIn, map<int, CArray<T,1>>& dataOut)
     {
+      transfer(1, sizeT, dataIn, dataOut)
+    }
+    
+    template<typename T, int n>
+    void transfer(int repeat, int sizeT, const CArray<T,n>& dataIn, map<int, CArray<T,1>>& dataOut)
+    {
       // for future, make a specific transfer function for sizeT=1 to avoid multiplication (increasing performance)
+      size_t srcSlice = sizeT*srcSize_ ;
       for(auto& rankConnector : connector_)
       {
         int rank = rankConnector.first ;
@@ -57,22 +64,29 @@ namespace xios
         auto& mask = mask_[rank] ;
         int dstSize = mask.size() ;
         auto& data = dataOut[rank] ;
-        data.resize(dstSize * sizeT) ;
+        size_t dstSlice = dstSize*sizeT ;
+        data.resize(repeat*dstSlice) ;
         T* dstData = data.dataFirst() ;
         const T* srcData = dataIn.dataFirst() ;
-        for(int i=0, j=0; i<dstSize; i++)
-          if (mask[i]) 
-          {
-            for(int k=0;k<sizeT;k++) dstData[i*sizeT+k] = srcData[connector[j]*sizeT+k] ;
-            j++ ;
-          }
+        for(int l=0; l<repeat; l++)
+        {
+          for(int i=0, j=0; i<dstSize; i++)
+            if (mask[i]) 
+            {
+              for(int k=0;k<sizeT;k++) dstData[i*sizeT+k] = srcData[connector[j]*sizeT+k] ;
+              j++ ;
+            }
+          dstData+=dstSlice ;
+          srcData+=srcSlice ;
+        }
       }
     }
 
     template<typename T, int n>
-    void transfer(int sizeT, const CArray<T,n>& dataIn, map<int, CArray<T,1>>& dataOut, T missingValue)
+    void transfer(int repeat, int sizeT, const CArray<T,n>& dataIn, map<int, CArray<T,1>>& dataOut, T missingValue)
     {
       // for future, make a specific transfer function for sizeT=1 to avoid multiplication (increasing performance)
+      size_t srcSlice = sizeT*srcSize_ ;
       for(auto& rankConnector : connector_)
       {
         int rank = rankConnector.first ;
@@ -80,40 +94,46 @@ namespace xios
         auto& mask = mask_[rank] ;
         int dstSize = mask.size() ;
         auto& data = dataOut[rank] ;
-        data.resize(dstSize * sizeT) ;
+        size_t dstSlice = dstSize*sizeT ;
+        data.resize(repeat * dstSlice) ;
         T* dstData = data.dataFirst() ;
         const T* srcData = dataIn.dataFirst() ;
-        for(int i=0, j=0; i<dstSize; i++)
-          if (mask[i]) 
-          {
-            for(int k=0;k<sizeT;k++) dstData[i*sizeT+k] = srcData[connector[j]*sizeT+k] ;
-            j++ ;
-          }
-          else 
-          {
-            for(int k=0;k<sizeT;k++) dstData[i*sizeT+k] = missingValue ;
-            j++ ;
-          }
+        for(int l=0; l<repeat; l++)
+        {
+          for(int i=0, j=0; i<dstSize; i++)
+            if (mask[i]) 
+            {
+              for(int k=0;k<sizeT;k++) dstData[i*sizeT+k] = srcData[connector[j]*sizeT+k] ;
+              j++ ;
+            }
+            else 
+            {
+              for(int k=0;k<sizeT;k++) dstData[i*sizeT+k] = missingValue ;
+              j++ ;
+            }
+          dstData+=dstSlice ;
+          srcData+=srcSlice ;
+        }
       }
     }
     
     template<typename T,int n>
     void transfer(const CArray<T,n>& dataIn, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
     {
-      transfer(1, dataIn, client, event, messageHeader) ;
+      transfer( 1, dataIn, client, event, messageHeader) ;
     }
 
     template<typename T,int n>
     void transfer(const CArray<T,n>& dataIn, T missingValue, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
     {
-      transfer(1, dataIn, missingValue, client, event, messageHeader) ;
+      transfer( 1, dataIn, missingValue, client, event, messageHeader) ;
     }
 
     template<typename T, int n>
     void transfer(int sizeT, const CArray<T,n>& dataIn, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
     {
       map<int, CArray<T,1>> dataOut ;
-      transfer(sizeT, dataIn, dataOut) ;
+      transfer(1, sizeT, dataIn, dataOut) ;
       sendToServer(dataOut, client, event, messageHeader) ;
     }
 
@@ -121,7 +141,7 @@ namespace xios
     void transfer(int sizeT, const CArray<T,n>& dataIn, T missingValue, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
     {
       map<int, CArray<T,1>> dataOut ;
-      transfer(sizeT, dataIn, dataOut, missingValue) ;
+      transfer(1, sizeT, dataIn, dataOut, missingValue) ;
       sendToServer(dataOut, client, event, messageHeader) ;
     }
 
