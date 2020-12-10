@@ -46,7 +46,7 @@ TRY
 
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
   CGenericAlgorithmTransformation* algo = 0;
-  algo = CGridTransformationFactory<CScalar>::createTransformation(transType,
+  algo = CGridTransformationFactory<CScalar>::createTransformation(transType, false,
                                                                   gridDestination_,
                                                                   gridSource_,
                                                                   it->second,
@@ -77,7 +77,7 @@ TRY
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
 
   CGenericAlgorithmTransformation* algo = 0;
-  algo = CGridTransformationFactory<CAxis>::createTransformation(transType,
+  algo = CGridTransformationFactory<CAxis>::createTransformation(transType, false,
                                                                  gridDestination_,
                                                                  gridSource_,
                                                                  it->second,
@@ -108,7 +108,7 @@ TRY
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation  
 
   CGenericAlgorithmTransformation* algo = 0;
-  algo = CGridTransformationFactory<CDomain>::createTransformation(transType,
+  algo = CGridTransformationFactory<CDomain>::createTransformation(transType, false,
                                                                    gridDestination_,
                                                                    gridSource_,
                                                                    it->second,

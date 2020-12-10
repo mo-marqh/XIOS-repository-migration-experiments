@@ -32,7 +32,7 @@ public:
   CGridTransformationFactory() {}
   virtual ~CGridTransformationFactory() {}
 
-  static CGenericAlgorithmTransformation* createTransformation(ETranformationType transType,
+  static CGenericAlgorithmTransformation* createTransformation(ETranformationType transType, bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                CTransformation<T>* transformation,
                                                                int elementPositionInGrid,
@@ -44,7 +44,7 @@ public:
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 
 public:
-  typedef CGenericAlgorithmTransformation* (*CreateTransformationCallBack)(CGrid* gridDst, CGrid* gridSrc,
+  typedef CGenericAlgorithmTransformation* (*CreateTransformationCallBack)(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                            CTransformation<T>* transformation,
                                                                            int elementPositionInGrid,
                                                                            std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -67,7 +67,7 @@ template<typename T>
 bool CGridTransformationFactory<T>::initializeTransformation_ = false;
 
 template<typename T>
-CGenericAlgorithmTransformation* CGridTransformationFactory<T>::createTransformation(ETranformationType transType,
+CGenericAlgorithmTransformation* CGridTransformationFactory<T>::createTransformation(ETranformationType transType, bool isSource,
                                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                                CTransformation<T>* transformation,
                                                                                int elementPositionInGrid,
@@ -85,7 +85,7 @@ CGenericAlgorithmTransformation* CGridTransformationFactory<T>::createTransforma
            << "Transformation type " << transType
            << "doesn't exist. Please define.");
   }
-  return (it->second)(gridDst, gridSrc, transformation, elementPositionInGrid,
+  return (it->second)(isSource, gridDst, gridSrc, transformation, elementPositionInGrid,
                       elementPositionInGridSrc2ScalarPosition,
                       elementPositionInGridSrc2AxisPosition,
                       elementPositionInGridSrc2DomainPosition,
