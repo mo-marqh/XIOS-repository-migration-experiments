@@ -1974,7 +1974,7 @@ namespace xios
             tmpGridDst->addDomain(dstDomain->getId()) ;
 
             //reuse existing algorithm interface for, now
-            algo = CGridTransformationFactory<CDomain>::createTransformation(transType, tmpGridDst, tmpGridSrc,
+            algo = CGridTransformationFactory<CDomain>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
                                                                              transformation, 0, 
                                                                              posInGrid,posInGrid,posInGrid,
                                                                              posInGrid,posInGrid,posInGrid );
@@ -2001,7 +2001,7 @@ namespace xios
             tmpGridDst->addAxis(dstAxis->getId()) ;
 
             //reuse existing algorithm interface for, now
-            algo = CGridTransformationFactory<CAxis>::createTransformation(transType, tmpGridDst, tmpGridSrc,
+            algo = CGridTransformationFactory<CAxis>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
                                                                            transformation, 0, 
                                                                            posInGrid,posInGrid,posInGrid,
                                                                            posInGrid,posInGrid,posInGrid );
@@ -2028,7 +2028,7 @@ namespace xios
             tmpGridDst->addScalar(dstScalar->getId()) ;
 
             //reuse existing algorithm interface for, now
-            algo = CGridTransformationFactory<CScalar>::createTransformation(transType, tmpGridDst, tmpGridSrc,
+            algo = CGridTransformationFactory<CScalar>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
                                                                              transformation, 0, 
                                                                              posInGrid,posInGrid,posInGrid,
                                                                              posInGrid,posInGrid,posInGrid );
