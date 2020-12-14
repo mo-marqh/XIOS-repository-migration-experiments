@@ -34,7 +34,7 @@ TRY
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmExtractAxis(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
+  return (new CScalarAlgorithmExtractAxis(isSource, scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
 }
 CATCH
 
@@ -46,9 +46,8 @@ TRY
 }
 CATCH
 
-CScalarAlgorithmExtractAxis::CScalarAlgorithmExtractAxis(CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo)
- : CScalarAlgorithmTransformation(scalarDestination, axisSource),
-   reduction_(0)
+CScalarAlgorithmExtractAxis::CScalarAlgorithmExtractAxis(bool isSource, CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo)
+ : CScalarAlgorithmTransformation(isSource, scalarDestination, axisSource), reduction_(0)
 TRY
 {
   algo->checkValid(scalarDestination, axisSource);

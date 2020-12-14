@@ -21,7 +21,7 @@ class CExtractAxis;
 class CAxisAlgorithmExtract : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmExtract(CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis);
+  CAxisAlgorithmExtract(bool isSource, CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis);
 
   virtual ~CAxisAlgorithmExtract() {}
 

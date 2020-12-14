@@ -22,7 +22,7 @@ class CExpandDomain;
 class CDomainAlgorithmExpand : public CDomainAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmExpand(CDomain* domainDestination, CDomain* domainSource, CExpandDomain* expandDomain);
+  CDomainAlgorithmExpand(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExpandDomain* expandDomain);
 
   virtual ~CDomainAlgorithmExpand() {}
 

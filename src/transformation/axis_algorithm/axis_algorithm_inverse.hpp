@@ -24,7 +24,7 @@ class CInverseAxis;
 class CAxisAlgorithmInverse : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis);
+  CAxisAlgorithmInverse(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis);
 
   virtual ~CAxisAlgorithmInverse() {}
 

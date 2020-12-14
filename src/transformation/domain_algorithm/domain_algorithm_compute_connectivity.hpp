@@ -22,7 +22,7 @@ class CComputeConnectivityDomain;
 class CDomainAlgorithmComputeConnectivity : public CDomainAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmComputeConnectivity(CDomain* domainDestination, CDomain* domainSource, CComputeConnectivityDomain* compute_connectivityDomain);
+  CDomainAlgorithmComputeConnectivity(bool isSource, CDomain* domainDestination, CDomain* domainSource, CComputeConnectivityDomain* compute_connectivityDomain);
 
   virtual ~CDomainAlgorithmComputeConnectivity() {}
 

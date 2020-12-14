@@ -26,7 +26,7 @@ class CDuplicateScalarToAxis;
 class CAxisAlgorithmDuplicateScalar : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmDuplicateScalar(CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo);
+  CAxisAlgorithmDuplicateScalar(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo);
 
   virtual ~CAxisAlgorithmDuplicateScalar();
 

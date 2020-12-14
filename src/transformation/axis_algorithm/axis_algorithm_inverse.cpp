@@ -35,7 +35,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmInverse(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], inverseAxis));
+  return (new CAxisAlgorithmInverse(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], inverseAxis));
 }
 CATCH
 
@@ -47,8 +47,8 @@ TRY
 }
 CATCH
 
-CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis)
- : CAxisAlgorithmTransformation(axisDestination, axisSource)
+CAxisAlgorithmInverse::CAxisAlgorithmInverse(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis)
+ : CAxisAlgorithmTransformation(isSource, axisDestination, axisSource)
 TRY
 {
   if (axisDestination->n_glo.getValue() != axisSource->n_glo.getValue())

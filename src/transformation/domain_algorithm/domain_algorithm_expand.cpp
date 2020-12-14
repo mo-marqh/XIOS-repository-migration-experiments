@@ -34,7 +34,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmExpand(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], expandDomain));
+  return (new CDomainAlgorithmExpand(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], expandDomain));
 }
 CATCH
 
@@ -46,10 +46,10 @@ TRY
 }
 CATCH
 
-CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,
+CDomainAlgorithmExpand::CDomainAlgorithmExpand(bool isSource, CDomain* domainDestination,
                                                CDomain* domainSource,
                                                CExpandDomain* expandDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource),
+: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource),
   isXPeriodic_(false), isYPeriodic_(false)
 TRY
 {

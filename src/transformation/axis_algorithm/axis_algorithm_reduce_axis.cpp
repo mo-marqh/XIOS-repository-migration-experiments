@@ -32,7 +32,7 @@ TRY
   int axisDstIndex   = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmReduceAxis(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
+  return (new CAxisAlgorithmReduceAxis(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
 }
 CATCH
 
@@ -45,8 +45,8 @@ TRY
 CATCH
 
 
-CAxisAlgorithmReduceAxis::CAxisAlgorithmReduceAxis(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToAxis* algo)
- : CAxisAlgorithmTransformation(axisDestination, axisSource), reduction_(0)
+CAxisAlgorithmReduceAxis::CAxisAlgorithmReduceAxis(bool isSource, CAxis* axisDestination, CAxis* axisSource, CReduceAxisToAxis* algo)
+ : CAxisAlgorithmTransformation(isSource, axisDestination, axisSource), reduction_(0)
 TRY
 {
   eliminateRedondantSrc_= false ;

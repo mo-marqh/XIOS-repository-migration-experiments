@@ -17,7 +17,7 @@ class CExtractDomain;
 class CDomainAlgorithmExtract : public CDomainAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmExtract(CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain);
+  CDomainAlgorithmExtract(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain);
 
   virtual ~CDomainAlgorithmExtract() {}
 

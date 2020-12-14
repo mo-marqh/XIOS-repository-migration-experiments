@@ -26,7 +26,7 @@ class CReductionAlgorithm;
 class CScalarAlgorithmReduceDomain : public CScalarAlgorithmTransformation
 {
 public:
-  CScalarAlgorithmReduceDomain(CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo);
+  CScalarAlgorithmReduceDomain(bool isSource, CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo);
 
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,

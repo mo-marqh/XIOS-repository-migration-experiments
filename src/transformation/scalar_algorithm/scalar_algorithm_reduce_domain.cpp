@@ -34,7 +34,7 @@ TRY
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmReduceDomain(scalarListDestP[scalarDstIndex], domainListSrcP[domainSrcIndex], reduceDomain));
+  return (new CScalarAlgorithmReduceDomain(isSource, scalarListDestP[scalarDstIndex], domainListSrcP[domainSrcIndex], reduceDomain));
 }
 CATCH
 
@@ -46,8 +46,8 @@ TRY
 }
 CATCH
 
-CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo)
- : CScalarAlgorithmTransformation(scalarDestination, domainSource),
+CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(bool isSource, CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo)
+ : CScalarAlgorithmTransformation(isSource, scalarDestination, domainSource),
    reduction_(0)
 TRY
 {

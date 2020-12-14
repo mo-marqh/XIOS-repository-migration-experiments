@@ -32,7 +32,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmComputeConnectivity(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], compute_connectivityDomain));
+  return (new CDomainAlgorithmComputeConnectivity(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], compute_connectivityDomain));
 }
 CATCH
 
@@ -44,9 +44,9 @@ TRY
 }
 CATCH
 
-CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(CDomain* domainDestination, CDomain* domainSource,
+CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(bool isSource, CDomain* domainDestination, CDomain* domainSource,
                                                                          CComputeConnectivityDomain* compute_connectivityDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource)
+: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
 TRY
 {
   this->type_ = (ELEMENT_NO_MODIFICATION_WITHOUT_DATA);

@@ -776,7 +776,7 @@ namespace xios
        
         // new
         
-        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid->buildTransformationGraph(gc, gridSrc, detectMissingValues, defaultValue, newGrid) ;
+        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid->buildTransformationGraph(gc, false,  gridSrc, detectMissingValues, defaultValue, newGrid) ;
         lastFilter->connectOutput(filters.first, 0);
         lastFilter = filters.second;
         gridSrc = newGrid ;
@@ -826,10 +826,14 @@ namespace xios
          fileIn_->checkReadFile();
          grid_->solveElementsRefInheritance() ;
          if (fileIn_->isClientSide()) fileIn_->readFieldAttributesMetaData(this);
-         grid_->completeGrid(); // grid generation, to be checked
+         CGrid* newGrid ;
+         std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, true, nullptr, detectMissingValues, defaultValue, newGrid) ;
+         grid_ = newGrid ;
+         grid_ref=grid_->getId() ; // for server 
+         //grid_->completeGrid(); // grid generation, to be checked
          if (fileIn_->isClientSide()) fileIn_->readFieldAttributesValues(this);
          grid_->checkElementsAttributes() ;
-         grid_->solveDomainAxisBaseRef();
+//         grid_->solveDomainAxisBaseRef();
          // probably in future tag grid incomplete if coming from a reading
          instantDataFilter=inputFilter ;
       }  
@@ -844,7 +848,7 @@ namespace xios
 
         grid_->solveElementsRefInheritance() ;
         CGrid* newGrid ;
-        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, nullptr, detectMissingValues, defaultValue, newGrid) ;
+        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, true, nullptr, detectMissingValues, defaultValue, newGrid) ;
         grid_ = newGrid ;
         grid_ref=grid_->getId() ; // for server 
 //        grid_->completeGrid(); // grid generation, to be checked => later
@@ -1637,7 +1641,8 @@ namespace xios
   {
     CContext::getCurrent()->sendContextToFileServer(client);
     getRelFile()->sendFileToFileServer(client);
-    grid_->sendGridToFileServer(client);
+    sentGrid_ = grid_-> duplicateSentGrid() ;
+    sentGrid_->sendGridToFileServer(client);
     read_access=true ; // not the best solution, but on server side, the field must be a starting point of the workflow
                        // must be replace by a better solution when implementing filters for reading and send to client
                        // on server side

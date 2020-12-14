@@ -235,7 +235,7 @@ namespace xios {
          bool isGenerated();
          void setGenerated();
          void setTransformationAlgorithms();
-         pair<shared_ptr<CFilter>, shared_ptr<CFilter> > buildTransformationGraph(CGarbageCollector& gc, CGrid* gridSrc, double detectMissingValues,
+         pair<shared_ptr<CFilter>, shared_ptr<CFilter> > buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues,
                                                                                   double defaultValue, CGrid*& newGrid) ;
       private:
          bool isTransformed_, isGenerated_;

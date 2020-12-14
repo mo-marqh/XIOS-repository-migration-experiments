@@ -27,7 +27,7 @@ class CTemporalSplitting;
 class CAxisAlgorithmTemporalSplitting : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmTemporalSplitting(CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo);
+  CAxisAlgorithmTemporalSplitting(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo);
 
   virtual ~CAxisAlgorithmTemporalSplitting();
 

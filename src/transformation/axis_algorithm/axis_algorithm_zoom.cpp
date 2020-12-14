@@ -27,7 +27,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmZoom(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis));
+  return (new CAxisAlgorithmZoom(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis));
 }
 CATCH
 
@@ -39,8 +39,8 @@ TRY
 }
 CATCH
 
-CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)
-: CAxisAlgorithmTransformation(axisDestination, axisSource)
+CAxisAlgorithmZoom::CAxisAlgorithmZoom(bool isSource, CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)
+: CAxisAlgorithmTransformation(isSource, axisDestination, axisSource)
 TRY
 {
   zoomAxis->checkValid(axisSource);

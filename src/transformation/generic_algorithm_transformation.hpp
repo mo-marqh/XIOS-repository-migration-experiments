@@ -52,6 +52,7 @@ protected:
 
 public:
   CGenericAlgorithmTransformation();
+  CGenericAlgorithmTransformation(bool isSource);
 
   virtual ~CGenericAlgorithmTransformation() {}
 
@@ -172,7 +173,8 @@ protected:
 
   bool eliminateRedondantSrc_ ; // flag to indicate if the transformation must select only one global source point for all proc.
                                // In this case it will choose preferentially the current process 
-
+  bool isSource_ ; //flag to indicate that the algorithm is a source algorithm, that mean the grid is modified or generated but 
+                   // no fluxes are tranformed
   
 // new methods for new algorithm
 

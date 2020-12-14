@@ -26,7 +26,7 @@ class CReductionAlgorithm;
 class CScalarAlgorithmExtractAxis : public CScalarAlgorithmTransformation
 {
 public:
-  CScalarAlgorithmExtractAxis(CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo);
+  CScalarAlgorithmExtractAxis(bool isSource, CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo);
 
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,

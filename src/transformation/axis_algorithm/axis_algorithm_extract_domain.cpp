@@ -33,7 +33,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmExtractDomain(axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
+  return (new CAxisAlgorithmExtractDomain(isSource, axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
 }
 CATCH
 
@@ -46,8 +46,8 @@ TRY
 CATCH
 
 
-CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(CAxis* axisDestination, CDomain* domainSource, CExtractDomainToAxis* algo)
- : CAxisAlgorithmTransformation(axisDestination, domainSource), pos_(-1), reduction_(0)
+CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CExtractDomainToAxis* algo)
+ : CAxisAlgorithmTransformation(isSource, axisDestination, domainSource), pos_(-1), reduction_(0)
 TRY
 {
   algo->checkValid(axisDestination, domainSource);

@@ -29,7 +29,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int scalarSrcIndex = elementPositionInGridSrc2ScalarPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmDuplicateScalar(axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], duplicateScalar));
+  return (new CAxisAlgorithmDuplicateScalar(isSource, axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], duplicateScalar));
 }
 CATCH
 
@@ -42,8 +42,8 @@ TRY
 CATCH
 
 
-CAxisAlgorithmDuplicateScalar::CAxisAlgorithmDuplicateScalar(CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo)
- : CAxisAlgorithmTransformation(axisDestination, scalarSource)
+CAxisAlgorithmDuplicateScalar::CAxisAlgorithmDuplicateScalar(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo)
+ : CAxisAlgorithmTransformation(isSource, axisDestination, scalarSource)
 {
 
 }

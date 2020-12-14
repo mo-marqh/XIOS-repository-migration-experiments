@@ -1118,8 +1118,8 @@ namespace xios {
     {
       for(auto field : fileInField) 
       {
-        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
         field->sendFieldToInputFileServer() ;
+        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
         fileInFields_.push_back(field) ;
       }
     }

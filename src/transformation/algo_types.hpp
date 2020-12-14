@@ -25,6 +25,7 @@
 
 #include "domain_algorithm_zoom.hpp"
 #include "domain_algorithm_interpolate.hpp"
+#include "domain_algorithm_generate_rectilinear.hpp"
 #include "domain_algorithm_compute_connectivity.hpp"
 #include "domain_algorithm_expand.hpp"
 #include "axis_algorithm_duplicate_scalar.hpp"

@@ -14,8 +14,8 @@
 
 namespace xios {
 
-CDomainAlgorithmTransformation::CDomainAlgorithmTransformation(CDomain* domainDestination, CDomain* domainSource)
- : CGenericAlgorithmTransformation(), domainDest_(domainDestination), domainSrc_(domainSource)
+CDomainAlgorithmTransformation::CDomainAlgorithmTransformation(bool isSource, CDomain* domainDestination, CDomain* domainSource)
+ : CGenericAlgorithmTransformation(isSource), domainDest_(domainDestination), domainSrc_(domainSource)
 {
 }
 

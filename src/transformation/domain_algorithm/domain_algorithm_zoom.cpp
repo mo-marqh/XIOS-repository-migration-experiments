@@ -24,7 +24,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmZoom(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], zoomDomain));
+  return (new CDomainAlgorithmZoom(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], zoomDomain));
 }
 CATCH
 
@@ -36,8 +36,8 @@ TRY
 }
 CATCH
 
-CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource)
+CDomainAlgorithmZoom::CDomainAlgorithmZoom(bool isSource, CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain)
+: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
 TRY
 {
   zoomDomain->checkValid(domainSource);
@@ -274,7 +274,8 @@ TRY
   }
   domainDest_->computeLocalMask();
 
-  computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
+  domainDestination->checkAttributes() ;
+  this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
   
 }
 CATCH

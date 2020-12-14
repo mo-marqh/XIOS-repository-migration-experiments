@@ -19,10 +19,10 @@ class CDomain;
   \class CDomainAlgorithmTransformation
   Algorithms for domain.
 */
-class CDomainAlgorithmTransformation : public virtual CGenericAlgorithmTransformation
+class CDomainAlgorithmTransformation : public /*virtual*/ CGenericAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmTransformation(CDomain* domainDestination, CDomain* domainSource);
+  CDomainAlgorithmTransformation(bool isSource, CDomain* domainDestination, CDomain* domainSource);
 
   virtual ~CDomainAlgorithmTransformation();
 

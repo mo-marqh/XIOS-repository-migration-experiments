@@ -17,22 +17,22 @@
 
 namespace xios {
 
-CScalarAlgorithmTransformation::CScalarAlgorithmTransformation(CScalar* scalarDestination, CScalar* scalarSource)
- : CGenericAlgorithmTransformation(),
+CScalarAlgorithmTransformation::CScalarAlgorithmTransformation(bool isSource, CScalar* scalarDestination, CScalar* scalarSource)
+ : CGenericAlgorithmTransformation(isSource),
    scalarDest_(scalarDestination),
    scalarSrc_(scalarSource), axisSrc_(0), domainSrc_(0)
 {
 }
 
-CScalarAlgorithmTransformation::CScalarAlgorithmTransformation(CScalar* scalarDestination, CAxis* axisSource)
- : CGenericAlgorithmTransformation(),
+CScalarAlgorithmTransformation::CScalarAlgorithmTransformation(bool isSource, CScalar* scalarDestination, CAxis* axisSource)
+ : CGenericAlgorithmTransformation(isSource),
    scalarDest_(scalarDestination),
    scalarSrc_(0), axisSrc_(axisSource), domainSrc_(0)
 {
 }
 
-CScalarAlgorithmTransformation::CScalarAlgorithmTransformation(CScalar* scalarDestination, CDomain* domainSource)
- : CGenericAlgorithmTransformation(),
+CScalarAlgorithmTransformation::CScalarAlgorithmTransformation(bool isSource, CScalar* scalarDestination, CDomain* domainSource)
+ : CGenericAlgorithmTransformation(isSource),
    scalarDest_(scalarDestination),
    scalarSrc_(0), axisSrc_(0), domainSrc_(domainSource)
 {

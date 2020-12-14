@@ -24,7 +24,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmExtract(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
+  return (new CDomainAlgorithmExtract(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
 }
 CATCH
 
@@ -36,8 +36,8 @@ TRY
 }
 CATCH
 
-CDomainAlgorithmExtract::CDomainAlgorithmExtract(CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource)
+CDomainAlgorithmExtract::CDomainAlgorithmExtract(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain)
+: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
 TRY
 {
   extractDomain->checkValid(domainSource);
@@ -237,7 +237,7 @@ TRY
   }
   
   domainDestination->checkAttributes() ;
-  computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
+  this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
 

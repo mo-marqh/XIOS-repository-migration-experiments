@@ -29,7 +29,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int scalarSrcIndex = elementPositionInGridSrc2ScalarPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmTemporalSplitting(axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], temporalSplitting));
+  return (new CAxisAlgorithmTemporalSplitting(isSource, axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], temporalSplitting));
 }
 CATCH
 
@@ -41,8 +41,8 @@ TRY
 }
 CATCH
 
-CAxisAlgorithmTemporalSplitting::CAxisAlgorithmTemporalSplitting(CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo)
- : CAxisAlgorithmTransformation(axisDestination, scalarSource)
+CAxisAlgorithmTemporalSplitting::CAxisAlgorithmTemporalSplitting(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo)
+ : CAxisAlgorithmTransformation(isSource, axisDestination, scalarSource)
 {
 
 }

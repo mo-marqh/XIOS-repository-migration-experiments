@@ -21,7 +21,7 @@ class CZoomAxis;
 class CAxisAlgorithmZoom : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis);
+  CAxisAlgorithmZoom(bool isSource, CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis);
 
   virtual ~CAxisAlgorithmZoom() {}
 

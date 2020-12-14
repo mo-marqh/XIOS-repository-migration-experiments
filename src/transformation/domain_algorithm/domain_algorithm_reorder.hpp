@@ -19,7 +19,7 @@ class CReorderDomain;
 class CDomainAlgorithmReorder : public CDomainAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmReorder(CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain);
+  CDomainAlgorithmReorder(bool isSource, CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain);
 
   virtual ~CDomainAlgorithmReorder() {}
 

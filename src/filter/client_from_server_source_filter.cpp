@@ -17,7 +17,7 @@ namespace xios
   {
     CContext* context = CContext::getCurrent();
     field_ = field ;
-    grid_= field->getGrid();
+    grid_= field->getSentGrid();
     freqOp_ = field->getRelFile()->output_freq ;
     client_= field->getRelFile()->getContextClient() ;
     lastDateReceived_ = context->getCalendar()->getInitDate();

@@ -39,7 +39,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmInterpolate(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], interpolateDomain));
+  return (new CDomainAlgorithmInterpolate(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], interpolateDomain));
 }
 CATCH
 
@@ -51,8 +51,8 @@ TRY
 }
 CATCH
 
-CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false)
+CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(bool isSource, CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
+: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false)
 TRY
 {
   CContext* context = CContext::getCurrent();

@@ -30,7 +30,7 @@ TRY
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int scalarSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmReduceScalar(scalarListDestP[scalarDstIndex], scalarListSrcP[scalarSrcIndex], reduceScalar));
+  return (new CScalarAlgorithmReduceScalar(isSource, scalarListDestP[scalarDstIndex], scalarListSrcP[scalarSrcIndex], reduceScalar));
 }
 CATCH
 
@@ -42,9 +42,8 @@ TRY
 }
 CATCH
 
-CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo)
- : CScalarAlgorithmTransformation(scalarDestination, scalarSource),
-   reduction_(0)
+CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(bool isSource, CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo)
+ : CScalarAlgorithmTransformation(isSource, scalarDestination, scalarSource), reduction_(0)
 TRY
 {
   eliminateRedondantSrc_= false ;

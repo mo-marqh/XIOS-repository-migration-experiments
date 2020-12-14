@@ -26,7 +26,7 @@ class CInterpolateDomain;
 class CDomainAlgorithmInterpolate : public CDomainAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmInterpolate(CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain);
+  CDomainAlgorithmInterpolate(bool isSource, CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain);
 
   virtual ~CDomainAlgorithmInterpolate() {}
 

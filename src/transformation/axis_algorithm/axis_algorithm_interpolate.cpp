@@ -37,7 +37,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmInterpolate(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpolateAxis));
+  return (new CAxisAlgorithmInterpolate(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpolateAxis));
 }
 CATCH
 
@@ -49,8 +49,8 @@ TRY
 }
 CATCH
 
-CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
-: CAxisAlgorithmTransformation(axisDestination, axisSource), coordinate_(), transPosition_()
+CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
+: CAxisAlgorithmTransformation(isSource, axisDestination, axisSource), coordinate_(), transPosition_()
 TRY
 {
   interpAxis->checkValid(axisSource);

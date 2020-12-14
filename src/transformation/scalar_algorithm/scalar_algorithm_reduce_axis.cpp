@@ -35,7 +35,7 @@ TRY
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmReduceAxis(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
+  return (new CScalarAlgorithmReduceAxis(isSource, scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
 }
 CATCH
 
@@ -47,9 +47,8 @@ TRY
 }
 CATCH
 
-CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
- : CScalarAlgorithmTransformation(scalarDestination, axisSource),
-   reduction_(0)
+CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(bool isSource, CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
+ : CScalarAlgorithmTransformation(isSource, scalarDestination, axisSource),reduction_(0)
 TRY
 {
   if (algo->operation.isEmpty())

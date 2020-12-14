@@ -26,7 +26,7 @@ class CInterpolateAxis;
 class CAxisAlgorithmInterpolate : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmInterpolate(CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis);
+  CAxisAlgorithmInterpolate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis);
 
   virtual ~CAxisAlgorithmInterpolate() {}
 

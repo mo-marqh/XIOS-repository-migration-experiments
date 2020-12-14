@@ -27,7 +27,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmReorder(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], reorderDomain));
+  return (new CDomainAlgorithmReorder(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], reorderDomain));
 }
 CATCH
 
@@ -39,8 +39,8 @@ TRY
 }
 CATCH
 
-CDomainAlgorithmReorder::CDomainAlgorithmReorder(CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource)
+CDomainAlgorithmReorder::CDomainAlgorithmReorder(bool isSource, CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain)
+: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
 TRY
 {
   reorderDomain->checkValid(domainSource);

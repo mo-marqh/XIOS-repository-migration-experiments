@@ -21,12 +21,12 @@ class CDomain;
   \class CScalarAlgorithmTransformation
   Algorithms for scalar.
 */
-class CScalarAlgorithmTransformation : public virtual CGenericAlgorithmTransformation
+class CScalarAlgorithmTransformation : public /*virtual*/ CGenericAlgorithmTransformation
 {
 public:
-  CScalarAlgorithmTransformation(CScalar* scalarDestination, CScalar* scalarSource);
-  CScalarAlgorithmTransformation(CScalar* scalarDestination, CAxis* axisSource);
-  CScalarAlgorithmTransformation(CScalar* scalarDestination, CDomain* domainSource);
+  CScalarAlgorithmTransformation(bool isSource, CScalar* scalarDestination, CScalar* scalarSource);
+  CScalarAlgorithmTransformation(bool isSource, CScalar* scalarDestination, CAxis* axisSource);
+  CScalarAlgorithmTransformation(bool isSource, CScalar* scalarDestination, CDomain* domainSource);
 
   virtual ~CScalarAlgorithmTransformation();
 

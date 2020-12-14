@@ -25,7 +25,7 @@ class CReductionAlgorithm;
 class CAxisAlgorithmReduceAxis : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmReduceAxis(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToAxis* algo);
+  CAxisAlgorithmReduceAxis(bool isSource, CAxis* axisDestination, CAxis* axisSource, CReduceAxisToAxis* algo);
 
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,

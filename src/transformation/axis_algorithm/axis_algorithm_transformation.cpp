@@ -17,8 +17,8 @@
 
 namespace xios {
 
-CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource)
- : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(axisSource), domainSrc_(0),scalarSrc_(0)
+CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(bool isSource, CAxis* axisDestination, CAxis* axisSource)
+ : CGenericAlgorithmTransformation(isSource), axisDest_(axisDestination), axisSrc_(axisSource), domainSrc_(0),scalarSrc_(0)
 TRY
 {
   axisDestGlobalSize_ = axisDestination->n_glo.getValue();
@@ -30,8 +30,8 @@ TRY
 }
 CATCH
 
-CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CDomain* domainSource)
- : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(0), domainSrc_(domainSource),scalarSrc_(0)
+CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(bool isSource, CAxis* axisDestination, CDomain* domainSource)
+ : CGenericAlgorithmTransformation(isSource), axisDest_(axisDestination), axisSrc_(0), domainSrc_(domainSource),scalarSrc_(0)
 TRY
 {
   axisDestGlobalSize_ = axisDestination->n_glo.getValue();
@@ -43,8 +43,8 @@ TRY
 }
 CATCH
 
-CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CScalar* scalarSource)
- : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(0), domainSrc_(0), scalarSrc_(scalarSource)
+CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(bool isSource, CAxis* axisDestination, CScalar* scalarSource)
+ : CGenericAlgorithmTransformation(isSource), axisDest_(axisDestination), axisSrc_(0), domainSrc_(0), scalarSrc_(scalarSource)
 TRY
 {
   axisDestGlobalSize_ = axisDestination->n_glo.getValue();

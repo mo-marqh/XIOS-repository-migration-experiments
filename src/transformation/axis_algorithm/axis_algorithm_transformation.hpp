@@ -21,12 +21,12 @@ class CScalar;
   \class CAxisAlgorithmTransformation
   Algorithms for axis.
 */
-class CAxisAlgorithmTransformation : public virtual CGenericAlgorithmTransformation
+class CAxisAlgorithmTransformation : public /*virtual*/ CGenericAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource);
-  CAxisAlgorithmTransformation(CAxis* axisDestination, CDomain* domainSource);
-  CAxisAlgorithmTransformation(CAxis* axisDestination, CScalar* scalarSource);
+  CAxisAlgorithmTransformation(bool isSource, CAxis* axisDestination, CAxis* axisSource);
+  CAxisAlgorithmTransformation(bool isSource, CAxis* axisDestination, CDomain* domainSource);
+  CAxisAlgorithmTransformation(bool isSource, CAxis* axisDestination, CScalar* scalarSource);
 
   virtual ~CAxisAlgorithmTransformation();
 

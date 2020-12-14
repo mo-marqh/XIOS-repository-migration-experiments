@@ -17,7 +17,7 @@ class CZoomDomain;
 class CDomainAlgorithmZoom : public CDomainAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain);
+  CDomainAlgorithmZoom(bool isSource, CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain);
 
   virtual ~CDomainAlgorithmZoom() {}
 

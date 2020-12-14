@@ -27,7 +27,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmExtract(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
+  return (new CAxisAlgorithmExtract(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
 }
 CATCH
 
@@ -39,8 +39,8 @@ TRY
 }
 CATCH
 
-CAxisAlgorithmExtract::CAxisAlgorithmExtract(CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis)
-: CAxisAlgorithmTransformation(axisDestination, axisSource)
+CAxisAlgorithmExtract::CAxisAlgorithmExtract(bool isSource, CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis)
+: CAxisAlgorithmTransformation(isSource, axisDestination, axisSource)
 TRY
 {
   extractAxis->checkValid(axisSource);

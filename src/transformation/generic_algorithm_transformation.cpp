@@ -19,8 +19,8 @@
 namespace xios 
 {
 
-CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
- : transformationMapping_(), transformationWeight_(), transformationPosition_(),
+CGenericAlgorithmTransformation::CGenericAlgorithmTransformation(bool isSource)
+ : isSource_(isSource), transformationMapping_(), transformationWeight_(), transformationPosition_(),
    idAuxInputs_(), type_(ELEMENT_NO_MODIFICATION_WITH_DATA), indexElementSrc_(),
    computedProcSrcNonTransformedElement_(false), eliminateRedondantSrc_(true), isDistributedComputed_(false)
 {

@@ -79,7 +79,7 @@ TRY
       if (0 == transformationOrder)
       {
         genRectDomain = dynamic_cast<CGenerateRectilinearDomain*> (it->second);
-        algo = new CDomainAlgorithmGenerateRectilinear(domainListDestP[domainIndex], domainListSrcP[domainIndex],
+        algo = new CDomainAlgorithmGenerateRectilinear(true, domainListDestP[domainIndex], domainListSrcP[domainIndex],
                                                        gridDestination_, gridSource_, genRectDomain);
       }
       else

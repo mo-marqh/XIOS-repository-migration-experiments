@@ -175,9 +175,9 @@ namespace xios
         for(int i=0; i<axisDomainOrder.numElements();i++) grid->order_.push_back(axisDomainOrder(i)) ;
 
       }
-
+      
  //     grid->solveElementsRefInheritance(true);
-
+      grid->computeElements() ;
       return grid;
    }
    CATCH
@@ -1904,7 +1904,7 @@ namespace xios
 //**********************************************************
 
   std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > 
-  CGrid::buildTransformationGraph(CGarbageCollector& gc, CGrid* gridSrc, double detectMissingValues, double defaultValue, CGrid*& newGrid)
+  CGrid::buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues, double defaultValue, CGrid*& newGrid)
   TRY
   {
     std::shared_ptr<CFilter> inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc));
@@ -1981,8 +1981,8 @@ namespace xios
             dstDomain->setTransformationAlgorithm(algo) ;
             transformationPath.removeNextTransform() ;
             dstDomain->setTransformationPaths(transformationPath) ;
-            newGrid->addDomain(dstDomain->getId()) ;
           }
+          newGrid->addDomain(dstDomain->getId()) ;
           algo = dstDomain->getTransformationAlgorithm() ;
         }
         else if (dstElementType==EElement::AXIS)
@@ -2008,8 +2008,8 @@ namespace xios
             dstAxis->setTransformationAlgorithm(algo) ;
             transformationPath.removeNextTransform() ;
             dstAxis->setTransformationPaths(transformationPath) ;
-            newGrid->addAxis(dstAxis->getId()) ;
           }
+          newGrid->addAxis(dstAxis->getId()) ;
           algo = dstAxis->getTransformationAlgorithm() ;
         }
         else if (dstElementType==EElement::SCALAR)
@@ -2035,8 +2035,8 @@ namespace xios
             dstScalar->setTransformationAlgorithm(algo) ;
             transformationPath.removeNextTransform() ;
             dstScalar->setTransformationPaths(transformationPath) ;
-            newGrid->addScalar(dstScalar->getId()) ;
           }
+          newGrid->addScalar(dstScalar->getId()) ;
           algo = dstScalar->getTransformationAlgorithm() ;          
         }
         // here create a new spatial filter with algo
@@ -2097,12 +2097,15 @@ namespace xios
     
     if (hadTransform)
     {
-      shared_ptr<CTransformFilter> transformFilter = shared_ptr<CTransformFilter>(new CTransformFilter(gc, algo, dimBefore, dimAfter, detectMissingValues, defaultValue)) ;
-      outputFilter->connectOutput(transformFilter,0) ;
-      outputFilter = transformFilter ;
+      if (!isSource)
+      {
+        shared_ptr<CTransformFilter> transformFilter = shared_ptr<CTransformFilter>(new CTransformFilter(gc, algo, dimBefore, dimAfter, detectMissingValues, defaultValue)) ;
+        outputFilter->connectOutput(transformFilter,0) ;
+        outputFilter = transformFilter ;
+      }
 
       gridSrc=newGrid ;
-      pair<shared_ptr<CFilter>, shared_ptr<CFilter> > filters = gridSrc->buildTransformationGraph(gc, gridSrc, detectMissingValues, defaultValue, newGrid) ;
+      pair<shared_ptr<CFilter>, shared_ptr<CFilter> > filters = gridSrc->buildTransformationGraph(gc, isSource, gridSrc, detectMissingValues, defaultValue, newGrid) ;
       outputFilter->connectOutput(filters.first,0) ;
       outputFilter=filters.second ;
     }

@@ -26,7 +26,7 @@ class CReductionAlgorithm;
 class CAxisAlgorithmReduceDomain : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmReduceDomain(CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo);
+  CAxisAlgorithmReduceDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo);
 
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,

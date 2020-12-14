@@ -21,7 +21,7 @@ class CReductionAlgorithm;
 class CScalarAlgorithmReduceScalar : public CScalarAlgorithmTransformation
 {
 public:
-  CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo);
+  CScalarAlgorithmReduceScalar(bool isSource, CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo);
 
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,
