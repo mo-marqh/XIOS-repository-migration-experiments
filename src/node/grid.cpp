@@ -1910,9 +1910,24 @@ namespace xios
     std::shared_ptr<CFilter> inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc));
     std::shared_ptr<CFilter> outputFilter = inputFilter ;
     
-    newGrid = CGrid::create() ; // give it an id later ??
+    string newId ;
+    if (gridSrc!=nullptr) newId = gridSrc->getId() + " --> " + this->getId()  ;
+    else newId = " --> " + this->getId()  ;
+    bool isNewGrid ;
+    if (CGrid::has(newId))
+    {
+      newGrid = CGrid::get(newId);
+      isNewGrid = false ;
+    }
+    else  
+    {
+      newGrid = CGrid::create(newId) ; // give it an id later ??
+      isNewGrid = true ;
+    }
+
     bool hadTransform=false ;
     bool hasTransform=false ;
+    bool hasRemainTransform=false ;
     CGenericAlgorithmTransformation* algo ;
     int dimBefore=1 ;
     int dimAfter=1 ;
@@ -1940,6 +1955,7 @@ namespace xios
 
       hasTransform=transformationPath.hasTransform()  ;
       
+      if (hasTransform && hadTransform) hasRemainTransform=true ;
 
       if (hasTransform && !hadTransform)
       {
@@ -1982,7 +1998,7 @@ namespace xios
             transformationPath.removeNextTransform() ;
             dstDomain->setTransformationPaths(transformationPath) ;
           }
-          newGrid->addDomain(dstDomain->getId()) ;
+          if (isNewGrid) newGrid->addDomain(dstDomain->getId()) ;
           algo = dstDomain->getTransformationAlgorithm() ;
         }
         else if (dstElementType==EElement::AXIS)
@@ -2009,7 +2025,7 @@ namespace xios
             transformationPath.removeNextTransform() ;
             dstAxis->setTransformationPaths(transformationPath) ;
           }
-          newGrid->addAxis(dstAxis->getId()) ;
+           if (isNewGrid) newGrid->addAxis(dstAxis->getId()) ;
           algo = dstAxis->getTransformationAlgorithm() ;
         }
         else if (dstElementType==EElement::SCALAR)
@@ -2036,7 +2052,7 @@ namespace xios
             transformationPath.removeNextTransform() ;
             dstScalar->setTransformationPaths(transformationPath) ;
           }
-          newGrid->addScalar(dstScalar->getId()) ;
+           if (isNewGrid) newGrid->addScalar(dstScalar->getId()) ;
           algo = dstScalar->getTransformationAlgorithm() ;          
         }
         // here create a new spatial filter with algo
@@ -2060,7 +2076,7 @@ namespace xios
          
           if (hadTransform) dimBefore*=domain->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
           else dimAfter*=domain->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
-          newGrid->addDomain(srcElementId) ;
+          if (isNewGrid) newGrid->addDomain(srcElementId) ;
         }
         else if (srcElement.type==TYPE_AXIS)
         {   
@@ -2075,7 +2091,7 @@ namespace xios
          
           if (hadTransform) dimBefore*=axis->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
           else dimAfter*=axis->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
-          newGrid->addAxis(srcElementId) ;
+          if (isNewGrid) newGrid->addAxis(srcElementId) ;
         }
         else if (srcElement.type==TYPE_SCALAR)
         {
@@ -2090,7 +2106,7 @@ namespace xios
          
           if (hadTransform) dimBefore*=scalar->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
           else dimAfter*=scalar->getLocalView(CElementView::WORKFLOW)->getLocalSize() ;
-          newGrid->addScalar(srcElementId) ;
+          if (isNewGrid) newGrid->addScalar(srcElementId) ;
         }
       }
     }  
@@ -2104,10 +2120,13 @@ namespace xios
         outputFilter = transformFilter ;
       }
 
-      gridSrc=newGrid ;
-      pair<shared_ptr<CFilter>, shared_ptr<CFilter> > filters = gridSrc->buildTransformationGraph(gc, isSource, gridSrc, detectMissingValues, defaultValue, newGrid) ;
-      outputFilter->connectOutput(filters.first,0) ;
-      outputFilter=filters.second ;
+      if (hasRemainTransform)
+      {
+        gridSrc=newGrid ;
+        pair<shared_ptr<CFilter>, shared_ptr<CFilter> > filters = gridSrc->buildTransformationGraph(gc, isSource, gridSrc, detectMissingValues, defaultValue, newGrid) ;
+        outputFilter->connectOutput(filters.first,0) ;
+        outputFilter=filters.second ;
+      }
     }
      
     return {inputFilter,outputFilter} ;
