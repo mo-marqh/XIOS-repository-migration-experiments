@@ -6,7 +6,8 @@ namespace xios
   {
     donePath_ = transformationPaths.donePath_ ;
     //? if (donePath_.empty()) donePath_.push_back(transformationPaths.path_) ; // entry point
-    
+    if (get<1>(remainPath_)!="") return ;
+
     if (!donePath_.empty())
     {
       TPath& remotePath = donePath_.back() ;
@@ -22,7 +23,12 @@ namespace xios
           else it++ ;
         }
 
-        if (remoteIt==get<2>(remotePath).end()) get<2>(remainPath_).insert( get<2>(remainPath_).begin(), it , std::get<2>(path_).end() ) ;
+        if (remoteIt==get<2>(remotePath).end()) 
+        {
+          get<0>(remainPath_) = std::get<0>(path_) ;
+          get<1>(remainPath_) = std::get<1>(path_) ;
+          get<2>(remainPath_).insert( get<2>(remainPath_).begin(), it , std::get<2>(path_).end() ) ;
+        }
         else  remainPath_ = path_ ;
 
       }
@@ -32,11 +38,16 @@ namespace xios
     {
       remainPath_=path_ ;
     } 
+    get<1>(path_).clear() ;
+    get<2>(path_).clear() ;
   }
   
   void CTransformationPaths::mergePaths(void)
   {
     CTransformationPaths transformationPath ;
+   /* TPath newPath = path_ ;
+    get<2>(newPath).clear() ;
+    transformationPath.donePath_.push_back(newPath) ; */
     mergePaths(transformationPath) ;
   }
 
@@ -55,6 +66,10 @@ namespace xios
 
   string CTransformationPaths::getNextElementId(void)
   {
+    CTransformationPaths transformationPath = *this ;
+    transformationPath.removeNextTransform() ;
+    return transformationPath.getPathsId(transformationPath.donePath_) ;
+    /*
     string sep="/" ;
     string doneId=getPathsId(donePath_) ;
     if (doneId=="") sep="" ;
@@ -63,6 +78,7 @@ namespace xios
     string remainId=getPathId(next) ;
     if (remainId=="") sep="" ;
     return doneId+sep+remainId ;
+   */
   }
 
   string CTransformationPaths::getNextElementSrcId(void)
@@ -88,9 +104,15 @@ namespace xios
       get<0>(newPath)=get<0>(remainPath_) ;
       get<1>(newPath)=get<1>(remainPath_) ;
       if (!get<2>(remainPath_).empty()) get<2>(newPath).push_back(get<2>(remainPath_).front()) ;
-      donePath_.push_back(newPath);
-      get<1>(newPath)="" ;
+      if (donePath_.empty()) donePath_.push_back(newPath);
+      else
+      {
+        if (get<0>(donePath_.back())==get<0>(newPath) && get<1>(donePath_.back())==get<1>(newPath)) 
+          get<2>(donePath_.back()).push_back(get<2>(newPath).front()) ;
+        else donePath_.push_back(newPath);
+      }
       if (!get<2>(newPath).empty()) get<2>(remainPath_).pop_front() ;
+      if (get<2>(remainPath_).empty()) get<1>(remainPath_)="" ;
     }
     else
     {
