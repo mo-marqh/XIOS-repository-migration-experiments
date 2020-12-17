@@ -148,7 +148,7 @@ namespace xios
    template <typename U>
    const StdString& CObjectFactory::GetUIdBase(void)
    {
-      static const StdString base = "__" + U::GetName() + "_undef_id_";
+      static const StdString base = "__"+CObjectFactory::CurrContext + "::" + U::GetName() + "_undef_id_";
       return base;
    }
 
