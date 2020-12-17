@@ -9,7 +9,7 @@
 #ifndef __XIOS_DOMAIN_ALGORITHM_GENERATE_RECTILINEAR_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_GENERATE_RECTILINEAR_HPP__
 
-#include "domain_algorithm_transformation.hpp"
+#include "algorithm_transformation_no_data_modification.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -24,7 +24,7 @@ class CGenerateRectilinearDomain;
   A new rectilinear (or CURVILINEAR) domain will also be distributed automatically among the processes.
   The number of processes is deduced from the distribution of the grid source.
 */
-class CDomainAlgorithmGenerateRectilinear : public CDomainAlgorithmTransformation
+class CDomainAlgorithmGenerateRectilinear : public CAlgorithmTransformationNoDataModification
 {
 public:
   CDomainAlgorithmGenerateRectilinear(bool isSource, CDomain* domainDestination, CDomain* domainSource,
@@ -52,6 +52,7 @@ private:
                                                 std::map<int, int>& elementPositionInGridDst2DomainPosition);
 private:
   int nbDomainDistributedPart_; //! Number of local domain.
+  CDomain* domainDest_ ;
 
   static bool dummyRegistered_;
 };

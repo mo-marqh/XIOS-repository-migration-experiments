@@ -46,7 +46,7 @@ CATCH
 
 CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(bool isSource, CDomain* domainDestination, CDomain* domainSource,
                                                                          CComputeConnectivityDomain* compute_connectivityDomain)
-: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
+: CAlgorithmTransformationNoDataModification(isSource)
 TRY
 {
   this->type_ = (ELEMENT_NO_MODIFICATION_WITHOUT_DATA);
@@ -101,12 +101,5 @@ TRY
     if (nbConnectivityMax < nbConnectivity(idx)) nbConnectivityMax = nbConnectivity(idx);
 }
 CATCH
-
-/*!
-  Compute the index mapping between domain on grid source and one on grid destination
-*/
-void CDomainAlgorithmComputeConnectivity::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-{
-}
 
 }

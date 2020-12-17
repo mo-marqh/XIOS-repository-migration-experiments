@@ -9,7 +9,7 @@
 #ifndef __XIOS_DOMAIN_ALGORITHM_INTERPOLATE_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_INTERPOLATE_HPP__
 
-#include "domain_algorithm_transformation.hpp"
+#include "algorithm_transformation_weight.hpp"
 #include "transformation.hpp"
 #include "nc4_data_output.hpp"
 
@@ -23,7 +23,7 @@ class CInterpolateDomain;
   \class CDomainAlgorithmInterpolate
   Reading interpolation from file then apply on a domain
 */
-class CDomainAlgorithmInterpolate : public CDomainAlgorithmTransformation
+class CDomainAlgorithmInterpolate : public CAlgorithmTransformationWeight
 {
 public:
   CDomainAlgorithmInterpolate(bool isSource, CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain);
@@ -38,8 +38,6 @@ public:
   virtual void updateData(CArray<double,1>& dataOut);
 
   static bool registerTrans();
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   void readInterpolationInfo(std::string& filename, std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
@@ -97,6 +95,10 @@ private:
                                                 std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                 std::map<int, int>& elementPositionInGridDst2DomainPosition);
   static bool dummyRegistered_;
+
+  CDomain* domainSrc_ ;
+  CDomain* domainDest_ ;
+
 };
 
 }

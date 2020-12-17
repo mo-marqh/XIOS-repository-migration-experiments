@@ -4,43 +4,40 @@
 #ifndef __XIOS_DOMAIN_ALGORITHM_REORDER_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_REORDER_HPP__
 
-#include "domain_algorithm_transformation.hpp"
+#include "algorithm_transformation_no_data_modification.hpp"
 #include "transformation.hpp"
 
-namespace xios {
-
-class CDomain;
-class CReorderDomain;
-
-/*!
-  \class CDomainAlgorithmReorder
-  Reordering data on domain
-*/
-class CDomainAlgorithmReorder : public CDomainAlgorithmTransformation
+namespace xios 
 {
-public:
-  CDomainAlgorithmReorder(bool isSource, CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain);
 
-  virtual ~CDomainAlgorithmReorder() {}
+  class CDomain;
+  class CReorderDomain;
 
-  static bool registerTrans();
+  /*!
+    \class CDomainAlgorithmReorder
+    Reordering data on domain
+  */
+  class CDomainAlgorithmReorder : public CAlgorithmTransformationNoDataModification  
+  {
+    public:
+      CDomainAlgorithmReorder(bool isSource, CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain);
 
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
+      virtual ~CDomainAlgorithmReorder() {}
 
+      static bool registerTrans();
 
-private:
+    private:
 
-  static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
-                                                CTransformation<CDomain>* transformation,
-                                                int elementPositionInGrid,
-                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
-                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
-                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
-                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
-                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
-                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
-  static bool dummyRegistered_;
+      static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+                                                     CTransformation<CDomain>* transformation,
+                                                     int elementPositionInGrid,
+                                                     std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                     std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                     std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                     std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                     std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                     std::map<int, int>& elementPositionInGridDst2DomainPosition);
+      static bool dummyRegistered_;
 };
 
 }

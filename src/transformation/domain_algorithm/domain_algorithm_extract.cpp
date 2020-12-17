@@ -37,7 +37,7 @@ TRY
 CATCH
 
 CDomainAlgorithmExtract::CDomainAlgorithmExtract(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain)
-: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
+: CAlgorithmTransformationTransfer(isSource), domainSrc_(domainSource), domainDest_(domainDestination)
 TRY
 {
   extractDomain->checkValid(domainSource);
@@ -150,12 +150,7 @@ TRY
     }
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
-
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
+  
   for (int iDest = 0; iDest < niDest; iDest++)
   {
     iSrc = iDest + destIBegin;
@@ -218,8 +213,7 @@ TRY
         }
       }
 
-      transMap[indGloDest].push_back(indGloSrc);
-      transWeight[indGloDest].push_back(1.0);
+      transformationMapping_[indGloDest]=indGloSrc;
 
     }
     if (domainSrc_->hasLonLat)
@@ -240,13 +234,6 @@ TRY
   this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
-
-/*!
-  Compute the index mapping between domain on grid source and one on grid destination
-*/
-void CDomainAlgorithmExtract::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-{
-}
 
 
 }

@@ -5,7 +5,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_EXTRACT_HPP__
 #define __XIOS_AXIS_ALGORITHM_EXTRACT_HPP__
 
-#include "axis_algorithm_transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -18,7 +18,7 @@ class CExtractAxis;
   A extracted region can be considered as region that isn't masked.
   Only this extracted region is extracted to write on Netcdf.
 */
-class CAxisAlgorithmExtract : public CAxisAlgorithmTransformation
+class CAxisAlgorithmExtract : public CAlgorithmTransformationTransfer
 {
 public:
   CAxisAlgorithmExtract(bool isSource, CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis);
@@ -26,8 +26,6 @@ public:
   virtual ~CAxisAlgorithmExtract() {}
 
   static bool registerTrans();
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
 
@@ -44,7 +42,8 @@ private:
   std::vector<int> extractIndex_;
 
 private:
-
+  CAxis* axisSrc_;
+  CAxis* axisDest_;
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,

@@ -40,7 +40,7 @@ TRY
 CATCH
 
 CAxisAlgorithmExtract::CAxisAlgorithmExtract(bool isSource, CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis)
-: CAxisAlgorithmTransformation(isSource, axisDestination, axisSource)
+: CAlgorithmTransformationTransfer(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
   extractAxis->checkValid(axisSource);
@@ -82,10 +82,7 @@ TRY
   if (axisSrc_->hasLabel) axisDest_->label.resize(nDest);
   if (axisSrc_->hasBounds) axisDest_->bounds.resize(2,nDest);
 
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+  auto& transMap = this->transformationMapping_;
 
   for (int iDest = 0; iDest < nDest; iDest++)
   {
@@ -105,18 +102,17 @@ TRY
     }
     indGloDest = axisDest_->index(iDest);
     indGloSrc = axisSrc_->index(iSrc);
-    transMap[indGloDest].push_back(indGloSrc);
-    transWeight[indGloDest].push_back(1.0);
+    
+    transMap[indGloDest]=indGloSrc;
 
   }
+
+  axisDestination->checkAttributes() ;
+
+  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
 
-/*!
-  Compute the index mapping between domain on grid source and one on grid destination
-*/
-void CAxisAlgorithmExtract::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-{
-}
+
 
 }

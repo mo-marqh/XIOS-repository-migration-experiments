@@ -2,8 +2,8 @@
 #ifndef __XIOS_DOMAIN_ALGORITHM_EXTRACT_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_EXTRACT_HPP__
 
-#include "domain_algorithm_transformation.hpp"
 #include "transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 
 namespace xios {
 
@@ -14,7 +14,7 @@ class CExtractDomain;
   \class CDomainAlgorithmExtract
   Implementing extract (alternative zoom) on domain
 */
-class CDomainAlgorithmExtract : public CDomainAlgorithmTransformation
+class CDomainAlgorithmExtract : public CAlgorithmTransformationTransfer
 {
 public:
   CDomainAlgorithmExtract(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain);
@@ -22,12 +22,6 @@ public:
   virtual ~CDomainAlgorithmExtract() {}
 
   static bool registerTrans();
-protected:
-  void updateDomainAttributes();
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
-
-private:
-  void updateExtract();
 
 private:
   //! Global extract begin on domain
@@ -41,6 +35,9 @@ private:
   //! Global extract size on domain
   int extractNi_;
   int extractNj_;
+  
+  CDomain* domainSrc_ ;
+  CDomain* domainDest_ ;
 
 private:
 

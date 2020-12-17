@@ -9,7 +9,7 @@
 #ifndef __XIOS_DOMAIN_ALGORITHM_EXPAND_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_EXPAND_HPP__
 
-#include "domain_algorithm_transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -19,7 +19,7 @@ class CExpandDomain;
 /*!
   \class CDomainAlgorithmExpand
 */
-class CDomainAlgorithmExpand : public CDomainAlgorithmTransformation
+class CDomainAlgorithmExpand : public CAlgorithmTransformationTransfer
 {
 public:
   CDomainAlgorithmExpand(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExpandDomain* expandDomain);
@@ -42,9 +42,6 @@ protected:
   void updateUnstructuredDomainAttributes(CDomain* domainDestination,
                                           CDomain* domainSource,
                                           CArray<int,2>& neighborsDomainSrc);
-
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,

@@ -51,7 +51,7 @@ protected:
   typedef std::unordered_map<int, std::vector<int> > TransformationPositionMap;
 
 public:
-  CGenericAlgorithmTransformation();
+  //CGenericAlgorithmTransformation();
   CGenericAlgorithmTransformation(bool isSource);
 
   virtual ~CGenericAlgorithmTransformation() {}
@@ -99,7 +99,7 @@ public:
                                     vector<int>& localSrc, vector<int>& localDst, vector<double>& weight) ;
 
 protected:
-  virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;
+  virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) {};
 
   /*!
   Compute proc which contains global index of an element
@@ -109,7 +109,7 @@ protected:
   */
   virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalElementIndex,
                                           int elementType,
-                                          CClientClientDHTInt::Index2VectorInfoTypeMap& globalElementIndexOnProc) = 0;
+                                          CClientClientDHTInt::Index2VectorInfoTypeMap& globalElementIndexOnProc){};
 
 protected:
   void computeGlobalGridIndexMapping(int elementPositionInGrid,
@@ -180,8 +180,8 @@ protected:
 
   public : 
   
-    void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;
-    void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
+    virtual void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;
+    virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
     
     CTransformConnector* transformConnector_ ;
     CWeightTransformConnector* weightTransformConnector_ ;

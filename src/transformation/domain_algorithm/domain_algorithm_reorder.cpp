@@ -40,7 +40,7 @@ TRY
 CATCH
 
 CDomainAlgorithmReorder::CDomainAlgorithmReorder(bool isSource, CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain)
-: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
+: CAlgorithmTransformationNoDataModification(isSource)
 TRY
 {
   reorderDomain->checkValid(domainSource);
@@ -116,20 +116,6 @@ TRY
   }
 }
 CATCH
-
-/*!
-  Compute the index mapping between domain on grid source and one on grid destination
-*/
-void CDomainAlgorithmReorder::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-{
-/*
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-*/
-}
 
 
 }

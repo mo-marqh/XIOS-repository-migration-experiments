@@ -49,8 +49,7 @@ CATCH
 CDomainAlgorithmExpand::CDomainAlgorithmExpand(bool isSource, CDomain* domainDestination,
                                                CDomain* domainSource,
                                                CExpandDomain* expandDomain)
-: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource),
-  isXPeriodic_(false), isYPeriodic_(false)
+: CAlgorithmTransformationTransfer(isSource), isXPeriodic_(false), isYPeriodic_(false)
 TRY
 {
   if (domainDestination == domainSource)
@@ -60,8 +59,6 @@ TRY
            << "Domain source " <<domainSource->getId() << std::endl
            << "Domain destination " <<domainDestination->getId() << std::endl);
   }
-
-  this->type_ = (ELEMENT_MODIFICATION_WITH_DATA);
   // Make sure domain source have all valid attributes
   // domainSource->checkAllAttributes();
   expandDomain->checkValid(domainDestination);
@@ -81,6 +78,9 @@ TRY
     default:
       break;
   }
+
+  domainDestination->checkAttributes() ;
+  this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
 
@@ -290,13 +290,8 @@ TRY
 
   // 1. Fill in array relating to global index (i_index, j_index, transmap, etc, ...)
   // Global index mapping between destination and source
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  transMap.rehash(std::ceil(newNbLocalDst/transMap.max_load_factor()));
-  transWeight.rehash(std::ceil(newNbLocalDst/transWeight.max_load_factor()));
+  
+  transformationMapping_.rehash(std::ceil(newNbLocalDst/transformationMapping_.max_load_factor()));
   
   // Index mapping for local domain
   // Mapping global index of expanded domain into original one 
@@ -310,8 +305,7 @@ TRY
     globIndexSrc = (((jindexDst-1)+njGloSrc) % njGloSrc) * niGloSrc + (((iindexDst-1)+niGloSrc) % niGloSrc) ;
     globalIndexSrcOnDstDomain(idx) = globIndexSrc;
 
-    transMap[globIndexDst].push_back(globIndexSrc);
-    transWeight[globIndexDst].push_back(1.0); 
+    transformationMapping_[globIndexDst] = globIndexSrc;
   }
 
   // 2. Exchange local info among domains (lon,lat,bounds,mask,etc,...)
@@ -568,19 +562,13 @@ TRY
 
   // 1. Fill in array relating to global index (i_index, j_index, transmap, etc, ...)
   // Global index mapping between destination and source
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  transMap.rehash(std::ceil(newNbLocalDst/transMap.max_load_factor()));
-  transWeight.rehash(std::ceil(newNbLocalDst/transWeight.max_load_factor()));
+  
+  transformationMapping_.rehash(std::ceil(newNbLocalDst/transformationMapping_.max_load_factor()));
   // First, index mapping for local domain
   for (int idx = 0; idx < oldNbLocal; ++idx)
   {
     index = i_index_dst(idx);
-    transMap[index].push_back(index);
-    transWeight[index].push_back(1.0);
+    transformationMapping_[index] = index ;
   }
   // Then, index mapping for extended part
   for (int idx = 0; idx < nbNeighbor; ++idx)
@@ -589,8 +577,7 @@ TRY
     globalIndex = neighborsDomainSrc(0,idx);
     i_index_dst(index) = globalIndex;
     j_index_dst(index) = 0;
-    transMap[globalIndex].push_back(globalIndex);
-    transWeight[globalIndex].push_back(1.0);
+    transformationMapping_[globalIndex]=globalIndex;
   }
 
   // 2. Exchange local info among domains (lon,lat,bounds,mask,etc,...)
@@ -703,12 +690,5 @@ TRY
 }
 CATCH
 
-/*!
-  Compute the index mapping between domain on grid source and one on grid destination
-*/
-void CDomainAlgorithmExpand::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-{
-
-}
 
 }

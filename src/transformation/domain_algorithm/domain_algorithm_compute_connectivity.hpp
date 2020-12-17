@@ -9,7 +9,7 @@
 #ifndef __XIOS_DOMAIN_ALGORITHM_COMPUTE_CONNECTIVITY_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_COMPUTE_CONNECTIVITY_HPP__
 
-#include "domain_algorithm_transformation.hpp"
+#include "algorithm_transformation_no_data_modification.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -19,7 +19,7 @@ class CComputeConnectivityDomain;
 /*!
   \class CDomainAlgorithmComputeConnectivity
 */
-class CDomainAlgorithmComputeConnectivity : public CDomainAlgorithmTransformation
+class CDomainAlgorithmComputeConnectivity : public CAlgorithmTransformationNoDataModification
 {
 public:
   CDomainAlgorithmComputeConnectivity(bool isSource, CDomain* domainDestination, CDomain* domainSource, CComputeConnectivityDomain* compute_connectivityDomain);
@@ -27,8 +27,6 @@ public:
   virtual ~CDomainAlgorithmComputeConnectivity() {}
 
   static bool registerTrans();
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 protected:
   void computeLocalConnectivity(int type,

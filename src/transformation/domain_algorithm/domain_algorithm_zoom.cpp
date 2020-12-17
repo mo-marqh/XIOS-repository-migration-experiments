@@ -37,7 +37,7 @@ TRY
 CATCH
 
 CDomainAlgorithmZoom::CDomainAlgorithmZoom(bool isSource, CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain)
-: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource)
+: CAlgorithmTransformationTransfer(isSource), domainSrc_(domainSource), domainDest_(domainDestination)
 TRY
 {
   zoomDomain->checkValid(domainSource);
@@ -174,10 +174,6 @@ TRY
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
 
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
   for (int iDest = 0; iDest < niDest; iDest++)
   {
@@ -251,8 +247,8 @@ TRY
 
       }
 
-      transMap[indGloDest].push_back(indGloSrc);
-      transWeight[indGloDest].push_back(1.0);
+      transformationMapping_[indGloDest]=indGloSrc;
+
     }
 
     if (domainSrc_->hasLonLat && !domainSrc_->latvalue_1d.isEmpty())
@@ -275,17 +271,10 @@ TRY
   domainDest_->computeLocalMask();
 
   domainDestination->checkAttributes() ;
+
   this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
   
 }
 CATCH
-
-/*!
-  Compute the index mapping between domain on grid source and one on grid destination
-*/
-void CDomainAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-{
-}
-
 
 }

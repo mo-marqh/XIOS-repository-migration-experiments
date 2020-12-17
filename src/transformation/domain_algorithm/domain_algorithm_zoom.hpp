@@ -2,7 +2,7 @@
 #ifndef __XIOS_DOMAIN_ALGORITHM_ZOOM_HPP__
 #define __XIOS_DOMAIN_ALGORITHM_ZOOM_HPP__
 
-#include "domain_algorithm_transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -14,7 +14,7 @@ class CZoomDomain;
   \class CDomainAlgorithmZoom
   Implementing zoom (alternative zoom) on domain
 */
-class CDomainAlgorithmZoom : public CDomainAlgorithmTransformation
+class CDomainAlgorithmZoom : public CAlgorithmTransformationTransfer
 {
 public:
   CDomainAlgorithmZoom(bool isSource, CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain);
@@ -24,8 +24,7 @@ public:
   static bool registerTrans();
 protected:
   void updateDomainAttributes();
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
-
+ 
 private:
   void updateZoom();
 
@@ -41,6 +40,8 @@ private:
   //! Global zoom size on domain
   int zoomNi_;
   int zoomNj_;
+  CDomain* domainSrc_ ;
+  CDomain* domainDest_ ;
 
 private:
 

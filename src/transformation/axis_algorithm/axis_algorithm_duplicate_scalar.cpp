@@ -43,9 +43,20 @@ CATCH
 
 
 CAxisAlgorithmDuplicateScalar::CAxisAlgorithmDuplicateScalar(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo)
- : CAxisAlgorithmTransformation(isSource, axisDestination, scalarSource)
+ : CAlgorithmTransformationTransfer(isSource)
 {
+  
+  CArray<int,1>& axisDstIndex = axisDest_->index;
 
+  int nbAxisIdx = axisDstIndex.numElements();
+  for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+  {
+    int globalAxisIdx = axisDstIndex(idxAxis);
+    this->transformationMapping_[globalAxisIdx] = 0 ;
+  }
+
+  axisDestination->checkAttributes() ;
+  this->computeAlgorithm(scalarSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 
 
@@ -53,26 +64,4 @@ CAxisAlgorithmDuplicateScalar::~CAxisAlgorithmDuplicateScalar()
 {
 }
 
-void CAxisAlgorithmDuplicateScalar::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  CArray<int,1>& axisDstIndex = axisDest_->index;
-
-  int nbAxisIdx = axisDstIndex.numElements();
-  for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
-  {
-    int globalAxisIdx = axisDstIndex(idxAxis);
-    transMap[globalAxisIdx].resize(1);
-    transWeight[globalAxisIdx].resize(1);
-    transMap[globalAxisIdx][0] = 0 ;
-    transWeight[globalAxisIdx][0] = 1.0 ;
-  }
-}
-CATCH
 }

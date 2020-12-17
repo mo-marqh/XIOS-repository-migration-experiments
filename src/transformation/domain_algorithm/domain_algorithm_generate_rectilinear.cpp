@@ -53,10 +53,9 @@ CATCH
 CDomainAlgorithmGenerateRectilinear::CDomainAlgorithmGenerateRectilinear(bool isSource, CDomain* domainDestination, CDomain* domainSource,
                                                                          CGrid* gridDest, CGrid* gridSource,
                                                                          CGenerateRectilinearDomain* genRectDomain)
-: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource), nbDomainDistributedPart_(0)
+: CAlgorithmTransformationNoDataModification(isSource), nbDomainDistributedPart_(0), domainDest_(domainDestination)
 TRY
 {
-  type_ = ELEMENT_GENERATION;
   genRectDomain->checkValid(domainDestination);
   if (0 != gridSource) computeDistributionGridSource(gridSource);
   else

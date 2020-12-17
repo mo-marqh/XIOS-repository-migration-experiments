@@ -52,7 +52,7 @@ TRY
 CATCH
 
 CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(bool isSource, CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
-: CDomainAlgorithmTransformation(isSource, domainDestination, domainSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false)
+: CAlgorithmTransformationWeight(isSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false), domainSrc_(domainSource), domainDest_(domainDestination)
 TRY
 {
   CContext* context = CContext::getCurrent();
@@ -96,6 +96,12 @@ TRY
   } 
 
   writeToFile_ = interpDomain_->write_weight;  
+  domainDestination->checkAttributes() ;
+  
+  if (readFromFile_)  readRemapInfo();
+  else computeRemap(); 
+
+    this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
     
 }
 CATCH
@@ -503,20 +509,6 @@ TRY
 }
 CATCH
 
-/*!
-  Compute the index mapping between domain on grid source and one on grid destination
-*/
-void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  if (readFromFile_)  
-    readRemapInfo();
-  else
-  {
-    computeRemap(); 
-  }
-}
-CATCH
 
 void CDomainAlgorithmInterpolate::writeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 TRY
@@ -541,11 +533,8 @@ TRY
   CContext* context = CContext::getCurrent();
   int clientRank = context->intraCommRank_;
 
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+  TransformationIndexMap& transMap = this->transformationMapping_;
+  TransformationWeightMap& transWeight = this->transformationWeight_;
 
   std::map<int,std::vector<std::pair<int,double> > >::const_iterator itb = interpMapValue.begin(), it,
                                                                      ite = interpMapValue.end();
@@ -572,11 +561,8 @@ TRY
   int clientRank = context->intraCommRank_;
   int nbClient = context-> intraCommSize_;
 
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+  TransformationIndexMap& transMap = this->transformationMapping_;
+  TransformationWeightMap& transWeight = this->transformationWeight_;
 
   std::unordered_map<size_t,int> globalIndexOfDomainDest;
   int ni = domainDest_->ni.getValue();

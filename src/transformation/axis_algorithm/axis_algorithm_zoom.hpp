@@ -5,7 +5,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
 #define __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
 
-#include "axis_algorithm_transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -18,7 +18,7 @@ class CZoomAxis;
   A zoomed region can be considered as region that isn't masked.
   Only this zoomed region is zoomed to write on Netcdf.
 */
-class CAxisAlgorithmZoom : public CAxisAlgorithmTransformation
+class CAxisAlgorithmZoom : public CAlgorithmTransformationTransfer
 {
 public:
   CAxisAlgorithmZoom(bool isSource, CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis);
@@ -26,8 +26,6 @@ public:
   virtual ~CAxisAlgorithmZoom() {}
 
   static bool registerTrans();
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
 
@@ -44,6 +42,9 @@ private:
   std::vector<int> zoomIndex_;
 
 private:
+  
+  CAxis* axisSrc_;
+  CAxis* axisDest_;
 
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,

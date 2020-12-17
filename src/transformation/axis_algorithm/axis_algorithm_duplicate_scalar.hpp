@@ -9,7 +9,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_DUPLICATE_SCALAR_HPP__
 #define __XIOS_AXIS_ALGORITHM_DUPLICATE_SCALAR_HPP__
 
-#include "axis_algorithm_transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -23,7 +23,7 @@ class CDuplicateScalarToAxis;
   \class CAxisAlgorithmDuplicateScalar
   Duplicate scalar into axis destination
 */
-class CAxisAlgorithmDuplicateScalar : public CAxisAlgorithmTransformation
+class CAxisAlgorithmDuplicateScalar : public CAlgorithmTransformationTransfer
 {
 public:
   CAxisAlgorithmDuplicateScalar(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo);
@@ -32,10 +32,12 @@ public:
 
   static bool registerTrans();
 
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
+
+  CAxis* axisSrc_;
+  CAxis* axisDest_;
+
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,
