@@ -1955,8 +1955,6 @@ namespace xios
 
       hasTransform=transformationPath.hasTransform()  ;
       
-      if (hasTransform && hadTransform) hasRemainTransform=true ;
-
       if (hasTransform && !hadTransform)
       {
         EElement dstElementType=transformationPath.getNextElementType() ;
@@ -1983,7 +1981,7 @@ namespace xios
             dstDomain = CDomain::create() ;
             dstDomain->createAlias(dstElementId) ;
             if (srcElementId=="" && srcElement.type==TYPE_DOMAIN)  dstDomain->duplicateAttributes(srcElement.domain) ; // make a copy
-            else dstDomain->duplicateAttributes(CDomain::get(srcElementId)) ; // make a copy
+            else dstDomain->duplicateAttributes(dstElement.domain) ; // make a copy
             CTransformation<CDomain>* transformation = CTransformation<CDomain>::createTransformation(transType,"") ;
             auto srcTransform = CTransformation<CDomain>::getTransformation(transType, transId) ;
             transformation->inheritFrom(srcTransform) ;
@@ -2010,7 +2008,7 @@ namespace xios
             dstAxis = CAxis::create() ;
             dstAxis->createAlias(dstElementId) ;
             if (srcElementId=="" && srcElement.type==TYPE_AXIS)  dstAxis->duplicateAttributes(srcElement.axis) ; // make a copy
-            else dstAxis->duplicateAttributes(CAxis::get(srcElementId)) ; // make a copy
+            else dstAxis->duplicateAttributes(dstElement.axis) ; // make a copy
             CTransformation<CAxis>* transformation = CTransformation<CAxis>::createTransformation(transType,"") ;
             auto srcTransform = CTransformation<CAxis>::getTransformation(transType, transId) ;
             transformation->inheritFrom(srcTransform) ;
@@ -2037,7 +2035,7 @@ namespace xios
             dstScalar = CScalar::create() ;
             dstScalar->createAlias(dstElementId) ;
             if (srcElementId=="" && srcElement.type==TYPE_SCALAR)  dstScalar->duplicateAttributes(srcElement.scalar) ; // make a copy
-            else dstScalar->duplicateAttributes(CScalar::get(srcElementId)) ; // make a copy
+            else dstScalar->duplicateAttributes(dstElement.scalar) ; // make a copy
             CTransformation<CScalar>* transformation = CTransformation<CScalar>::createTransformation(transType,"") ;
             auto srcTransform = CTransformation<CScalar>::getTransformation(transType, transId) ;
             transformation->inheritFrom(srcTransform) ;
@@ -2063,9 +2061,11 @@ namespace xios
       else
       {
         string srcElementId=transformationPath.getNextElementSrcId() ;
+
         if (srcElement.type==TYPE_DOMAIN)      
         {
           CDomain* domain ;
+          if (srcElementId=="") srcElementId=srcElement.domain->getId() ; 
           if (!CDomain::has(srcElementId)) 
           {
             domain=srcElement.domain ;
@@ -2081,6 +2081,7 @@ namespace xios
         else if (srcElement.type==TYPE_AXIS)
         {   
           CAxis* axis ;
+          if (srcElementId=="") srcElementId=srcElement.axis->getId() ; 
           if (!CAxis::has(srcElementId)) 
           {
             axis=srcElement.axis ;
@@ -2096,6 +2097,7 @@ namespace xios
         else if (srcElement.type==TYPE_SCALAR)
         {
           CScalar* scalar ;
+          if (srcElementId=="") srcElementId=srcElement.scalar->getId() ; 
           if (!CScalar::has(srcElementId)) 
           {
             scalar=srcElement.scalar ;
@@ -2109,8 +2111,11 @@ namespace xios
           if (isNewGrid) newGrid->addScalar(srcElementId) ;
         }
       }
+      
+      if (transformationPath.hasTransform() && hadTransform) hasRemainTransform=true ;
     }  
     
+
     if (hadTransform)
     {
       if (!isSource)
