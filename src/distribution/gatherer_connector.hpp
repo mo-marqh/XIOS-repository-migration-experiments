@@ -64,7 +64,7 @@ namespace xios
       template<typename T>
       void transfer(int sizeT, map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut)
       {
-        transfer(1, 1, dataIn, dataOut) ;
+        transfer(1, sizeT, dataIn, dataOut) ;
       }
     
       template<typename T>
@@ -127,7 +127,7 @@ namespace xios
       {
         dataOut.resize(repeat*dstSize_*sizeT) ;
         dataOut=missingValue ;
-        transfer(1, sizeT, dataIn, dataOut) ;
+        transfer(repeat, sizeT, dataIn, dataOut) ;
       }
 
       template<typename T>
