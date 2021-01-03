@@ -18,6 +18,7 @@ namespace xios
     public:
       CGridLocalView(CGridLocalElements* parent, CElementView::type type) ;
       std::vector<CLocalView*>& getViews(void) {return views_ ;}
+      CLocalView* getView(int i) {return views_[i] ;}
       int getSize() { return size_ ;}
   } ;
 }

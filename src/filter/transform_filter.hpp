@@ -2,7 +2,7 @@
 #define __XIOS_TRANSFORM_FILTER_HPP__
 
 #include "filter.hpp"
-#include "generic_algorithm_transformation.hpp"
+#include "grid_algorithm.hpp"
 
 namespace xios
 {
@@ -14,8 +14,7 @@ namespace xios
   {
     public:
 
-      CTransformFilter(CGarbageCollector& gc, CGenericAlgorithmTransformation* algo, int dimBefore, int dimAfter, 
-                              bool detectMissingValues, double defaultValue) ;
+      CTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
 
     protected:
       /*!
@@ -26,9 +25,7 @@ namespace xios
 
     private :
      
-     CGenericAlgorithmTransformation* algorithm_ ;
-     int dimBefore_ ;
-     int dimAfter_ ;
+     CGridAlgorithm* algorithm_ ;
      bool detectMissingValues_ ;
      bool defaultValue_ ;
 

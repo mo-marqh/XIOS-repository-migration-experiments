@@ -9,7 +9,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_REDUCE_DOMAIN_HPP__
 #define __XIOS_AXIS_ALGORITHM_REDUCE_DOMAIN_HPP__
 
-#include "axis_algorithm_transformation.hpp"
+#include "algorithm_transformation_reduce.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -23,18 +23,10 @@ class CReductionAlgorithm;
   \class CAxisAlgorithmReduceDomain
   Reduce a domain to an axis
 */
-class CAxisAlgorithmReduceDomain : public CAxisAlgorithmTransformation
+class CAxisAlgorithmReduceDomain : public CAlgorithmTransformationReduce
 {
 public:
   CAxisAlgorithmReduceDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo);
-
-  virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
-                     const double* dataInput,
-                     CArray<double,1>& dataOut,
-                     std::vector<bool>& flagInitial,                     
-                     bool ignoreMissingValue, bool firstPass);
-
-  virtual void updateData(CArray<double,1>& dataOut);
   
   virtual ~CAxisAlgorithmReduceDomain();
 
@@ -49,11 +41,8 @@ protected:
   ReduceDirection dir_;
   bool local ;
   
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs); 
-  
-protected:
-  CReductionAlgorithm* reduction_;
+  CDomain* domainSrc_ ;
+  CAxis* axisDest_ ;
 
 private:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,

@@ -48,7 +48,7 @@ TRY
 CATCH
 
 CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(bool isSource, CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
- : CScalarAlgorithmTransformation(isSource, scalarDestination, axisSource),reduction_(0)
+ : CAlgorithmTransformationReduce(isSource)
 TRY
 {
   if (algo->operation.isEmpty())
@@ -60,16 +60,16 @@ TRY
   switch (algo->operation)
   {
     case CReduceAxisToScalar::operation_attr::sum:
-      op = "sum";
+      operator_ = EReduction::sum;
       break;
     case CReduceAxisToScalar::operation_attr::min:
-      op = "min";
+      operator_ = EReduction::min;
       break;
     case CReduceAxisToScalar::operation_attr::max:
-      op = "max";
+      operator_ = EReduction::max;
       break;
     case CReduceAxisToScalar::operation_attr::average:
-      op = "average";
+      operator_ = EReduction::average;
       break;
     default:
         ERROR("CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
@@ -77,56 +77,21 @@ TRY
          << "Domain source " <<axisSource->getId() << std::endl
          << "Scalar destination " << scalarDestination->getId());
 
-  }
+  } 
   
-  if (CReductionAlgorithm::ReductionOperations.end() == CReductionAlgorithm::ReductionOperations.find(op))
-    ERROR("CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
-       << "Operation '" << op << "' not found. Please make sure to use a supported one"
-       << "Axis source " <<axisSource->getId() << std::endl
-       << "Scalar destination " << scalarDestination->getId());
+  int globalIndexSize = axisSource-> n_glo;
+  for (int idx = 0; idx < globalIndexSize; ++idx)  transformationMapping_[0].push_back(idx);
 
-  reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
+  scalarDestination->checkAttributes() ;
+  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ;
+  
 }
 CATCH
 
-void CScalarAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >& localIndex, const double* dataInput, CArray<double,1>& dataOut,
-                                         std::vector<bool>& flagInitial, bool ignoreMissingValue, bool firstPass)
-TRY
-{
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
-}
-CATCH
-
-void CScalarAlgorithmReduceAxis::updateData(CArray<double,1>& dataOut)
-TRY
-{
-  reduction_->updateData(dataOut);
-}
-CATCH
 
 CScalarAlgorithmReduceAxis::~CScalarAlgorithmReduceAxis()
 TRY
 {
-  if (0 != reduction_) delete reduction_;
-}
-CATCH
-
-void CScalarAlgorithmReduceAxis::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  int globalIndexSize = axisSrc_-> n_glo;
-
-  for (int idx = 0; idx < globalIndexSize; ++idx)
-  {
-    transMap[0].push_back(idx);
-    transWeight[0].push_back(1.0);
-  }
 }
 CATCH
 

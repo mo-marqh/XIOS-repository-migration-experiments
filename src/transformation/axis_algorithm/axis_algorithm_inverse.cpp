@@ -48,7 +48,7 @@ TRY
 CATCH
 
 CAxisAlgorithmInverse::CAxisAlgorithmInverse(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis)
- : CAxisAlgorithmTransformation(isSource, axisDestination, axisSource)
+ : CAlgorithmTransformationTransfer(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
   if (axisDestination->n_glo.getValue() != axisSource->n_glo.getValue())
@@ -58,23 +58,13 @@ TRY
            << "Size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
            << "Size of axis destination " <<axisDestination->getId() << " is " << axisDestination->n_glo.getValue());
   }
-}
-CATCH
 
-void CAxisAlgorithmInverse::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
+  auto& transMap = this->transformationMapping_;
 
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  int globalIndexSize = axisDestGlobalIndex_.size();
+  int globalIndexSize = axisDestination->index.size();
   for (int idx = 0; idx < globalIndexSize; ++idx)
   {
-    transMap[axisDestGlobalIndex_[idx]].push_back(axisDestGlobalSize_-axisDestGlobalIndex_[idx]-1);
-    transWeight[axisDestGlobalIndex_[idx]].push_back(1.0);
+    transMap[axisDestination->index(idx)] = globalIndexSize-axisDestination->index(idx)-1;
   }
 
   int niSrc   = axisSrc_->n.getValue();
@@ -87,8 +77,13 @@ TRY
       axisDest_->value(idx) = axisSrc_->value(sizeSrc-idx-1);
     }
   }
+
+  axisDestination->checkAttributes() ;
+  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
+
 }
 CATCH
+
 
 /*!
   Update value on axis after inversing
@@ -117,13 +112,12 @@ TRY
 
   typedef std::unordered_map<size_t, std::vector<double> > GlobalIndexMapFromSrcToDest;
   GlobalIndexMapFromSrcToDest globalIndexMapFromSrcToDest;
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationIndexMap::const_iterator itb = transMap.begin(), ite = transMap.end(), it;
+  auto& transMap = this->transformationMapping_;
   CArray<size_t,1> globalSrcIndex(transMap.size());
   int localIndex = 0;
-  for (it = itb; it != ite; ++it)
+  for (auto it = transMap.begin(); it != transMap.end(); ++it)
   {
-    size_t srcIndex = it->second[0];
+    size_t srcIndex = it->second;
     globalIndexMapFromSrcToDest[srcIndex].resize(1);
     globalIndexMapFromSrcToDest[srcIndex][0] = it->first;
     globalSrcIndex(localIndex) = srcIndex;

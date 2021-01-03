@@ -849,6 +849,7 @@ namespace xios
         grid_->solveElementsRefInheritance() ;
         CGrid* newGrid ;
         std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, true, nullptr, detectMissingValues, defaultValue, newGrid) ;
+        newGrid->duplicateAttributes(grid_) ; // for grid attributes (mask)
         grid_ = newGrid ;
         grid_ref=grid_->getId() ; // for server 
 //        grid_->completeGrid(); // grid generation, to be checked => later

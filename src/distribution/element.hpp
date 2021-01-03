@@ -31,7 +31,8 @@ namespace xios
     void sendToServer(CContextClient* client, CEventClient& event, const CMessage& messageHeader) ;
     void recvFromClient(CEventServer& event) ;
     size_t getGlobalSize(void) { return globalSize_;}
-
+    std::map<int, CArray<size_t,1>>& getGlobalIndex(void) { return globalIndex_;}
+    
     CDistributedView* getView(CElementView::type type) 
     { 
       if (views_[(size_t)type]==nullptr) { ERROR("CDistributedElement::getView(CElementView::type type)",<<"View is not initialized");} 

@@ -46,7 +46,7 @@ CAxisAlgorithmDuplicateScalar::CAxisAlgorithmDuplicateScalar(bool isSource, CAxi
  : CAlgorithmTransformationTransfer(isSource)
 {
   
-  CArray<int,1>& axisDstIndex = axisDest_->index;
+  CArray<int,1>& axisDstIndex = axisDestination->index;
 
   int nbAxisIdx = axisDstIndex.numElements();
   for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)

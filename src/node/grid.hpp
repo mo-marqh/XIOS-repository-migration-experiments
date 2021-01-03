@@ -21,6 +21,7 @@
 #include "grid_gatherer_connector.hpp"
 #include "transformation_path.hpp"
 #include "filter.hpp"
+#include "grid_algorithm.hpp"
 
 
 namespace xios {
@@ -237,6 +238,11 @@ namespace xios {
          void setTransformationAlgorithms();
          pair<shared_ptr<CFilter>, shared_ptr<CFilter> > buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues,
                                                                                   double defaultValue, CGrid*& newGrid) ;
+      private:
+        CGridAlgorithm* gridAlgorithm_ = nullptr ;
+      public:
+        void setGridAlgorithm(CGridAlgorithm* gridAlgorithm) {gridAlgorithm_ = gridAlgorithm;}
+        CGridAlgorithm* getGridAlgorithm(void) { return gridAlgorithm_ ;}
       private:
          bool isTransformed_, isGenerated_;
          CGridTransformation* transformations_;

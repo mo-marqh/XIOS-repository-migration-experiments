@@ -9,7 +9,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_EXTRACT_DOMAIN_HPP__
 #define __XIOS_AXIS_ALGORITHM_EXTRACT_DOMAIN_HPP__
 
-#include "axis_algorithm_transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -24,18 +24,12 @@ class CReductionAlgorithm;
   \class CAxisAlgorithmExtractDomain
   Extract a domain to an axis
 */
-class CAxisAlgorithmExtractDomain : public CAxisAlgorithmTransformation
+class CAxisAlgorithmExtractDomain : public CAlgorithmTransformationTransfer
 {
 public:
   CAxisAlgorithmExtractDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CExtractDomainToAxis* algo);
 
-  virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
-                     const double* dataInput,
-                     CArray<double,1>& dataOut,
-                     std::vector<bool>& flagInitial,                     
-                     bool ignoreMissingValue, bool firstPass);
-
-  virtual ~CAxisAlgorithmExtractDomain();
+   virtual ~CAxisAlgorithmExtractDomain();
 
   static bool registerTrans();
 protected:
@@ -47,13 +41,10 @@ protected:
 
   ExtractDirection dir_;
   int pos_; //! Position to extract
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
-
-protected:
-  CReductionAlgorithm* reduction_;
-
+  
 private:
+  CDomain* domainSrc_;
+  CAxis* axisDest_ ;
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,

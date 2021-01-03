@@ -9,7 +9,7 @@
 #ifndef __XIOS_SCALAR_ALGORITHM_REDUCE_DOMAIN_HPP__
 #define __XIOS_SCALAR_ALGORITHM_REDUCE_DOMAIN_HPP__
 
-#include "scalar_algorithm_transformation.hpp"
+#include "algorithm_transformation_reduce.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -23,28 +23,17 @@ class CReductionAlgorithm;
   \class CScalarAlgorithmReduceDomain
   Reducing an DOMAIN to a scalar
 */
-class CScalarAlgorithmReduceDomain : public CScalarAlgorithmTransformation
+class CScalarAlgorithmReduceDomain : public CAlgorithmTransformationReduce
 {
 public:
   CScalarAlgorithmReduceDomain(bool isSource, CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo);
 
-  virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
-                     const double* dataInput,
-                     CArray<double,1>& dataOut,
-                     std::vector<bool>& flagInitial,                     
-                     bool ignoreMissingValue, bool firstPass);
-
-  virtual void updateData(CArray<double,1>& dataOut);
-  
   virtual ~CScalarAlgorithmReduceDomain();
 
   static bool registerTrans();
-protected:
-  bool local ;
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 protected:
-  CReductionAlgorithm* reduction_;
+  CDomain* domainSrc_ ;
 
 private:
 

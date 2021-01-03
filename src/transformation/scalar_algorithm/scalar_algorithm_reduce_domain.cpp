@@ -13,8 +13,6 @@
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
 
-#include "reduction.hpp"
-
 namespace xios {
 CGenericAlgorithmTransformation* CScalarAlgorithmReduceDomain::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CScalar>* transformation,
@@ -47,8 +45,7 @@ TRY
 CATCH
 
 CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(bool isSource, CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo)
- : CScalarAlgorithmTransformation(isSource, scalarDestination, domainSource),
-   reduction_(0)
+ : CAlgorithmTransformationReduce(isSource), domainSrc_(domainSource)
 TRY
 {
   algo->checkValid(scalarDestination, domainSource);
@@ -57,16 +54,16 @@ TRY
   switch (algo->operation)
   {
     case CReduceDomainToScalar::operation_attr::sum:
-      op = "sum";
+      operator_ = EReduction::sum;
       break;
     case CReduceDomainToScalar::operation_attr::min:
-      op = "min";
+      operator_ = EReduction::min;
       break;
     case CReduceDomainToScalar::operation_attr::max:
-      op = "max";
+      operator_ = EReduction::max;
       break;
     case CReduceDomainToScalar::operation_attr::average:
-      op = "average";
+      operator_ = EReduction::average;
       break;
     default:
         ERROR("CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CDomain* domainDestination, CDomain* domainSource, CReduceDomainToScalar* algo)",
@@ -75,55 +72,14 @@ TRY
          << "Scalar destination " << scalarDestination->getId());
 
   }
-  
-  if (CReductionAlgorithm::ReductionOperations.end() == CReductionAlgorithm::ReductionOperations.find(op))
-    ERROR("CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CDomain* domainDestination, CDomain* domainSource, CReduceDomainToScalar* algo)",
-       << "Operation '" << op << "' not found. Please make sure to use a supported one"
-       << "Domain source " <<domainSource->getId() << std::endl
-       << "Scalar destination " << scalarDestination->getId());
 
-  reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
-  local = algo->local ;
-}
-CATCH
-
-void CScalarAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
-                                         const double* dataInput,
-                                         CArray<double,1>& dataOut,
-                                         std::vector<bool>& flagInitial,                     
-                                         bool ignoreMissingValue, bool firstPass)
-TRY
-{
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
-}
-CATCH
-
-void CScalarAlgorithmReduceDomain::updateData(CArray<double,1>& dataOut)
-TRY
-{
-  reduction_->updateData(dataOut);
-}
-CATCH
-
-CScalarAlgorithmReduceDomain::~CScalarAlgorithmReduceDomain()
-TRY
-{
-  if (0 != reduction_) delete reduction_;
-}
-CATCH
-
-void CScalarAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+  TransformationIndexMap& transMap = this->transformationMapping_;
 
   int ni_glo = domainSrc_->ni_glo ;
   int nj_glo = domainSrc_->nj_glo ;
   int nbDomainIdx ;
+  
+  bool  local = algo->local ;
   
   if (local)
   {
@@ -137,19 +93,27 @@ TRY
         if (localMask(idxDomain))
         { 
           transMap[0].push_back(j_index(idxDomain)* ni_glo + i_index(idxDomain));
-          transWeight[0].push_back(1.0) ;
         }
       }
   }
   else
   {  
     nbDomainIdx = ni_glo * nj_glo;
-    transMap[0].resize(nbDomainIdx);
-    transWeight[0].resize(nbDomainIdx, 1.0);
-    for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain) transMap[0][idxDomain] = idxDomain;    
+    for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain) transMap[0].push_back(idxDomain);    
   }
   
+  scalarDestination->checkAttributes() ;
+  this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
+
+
+
+CScalarAlgorithmReduceDomain::~CScalarAlgorithmReduceDomain()
+TRY
+{
+}
+CATCH
+
 
 }

@@ -11,6 +11,12 @@ namespace xios
                        : srcView_(srcView), dstView_(dstView), localComm_(localComm), remoteSize_(remoteSize) 
   {}
 
+  CGridRemoteConnector::CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CLocalView*>& dstView, MPI_Comm localComm, int remoteSize) 
+                       : srcView_(srcView), localComm_(localComm), remoteSize_(remoteSize) 
+  {
+    for(auto& it : dstView) dstView_.push_back((CDistributedView*) it) ; 
+  }
+
   void CGridRemoteConnector::computeConnector(void)
   {
     computeGenericMethod() ;

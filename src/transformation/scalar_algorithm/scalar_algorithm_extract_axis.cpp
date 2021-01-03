@@ -47,46 +47,18 @@ TRY
 CATCH
 
 CScalarAlgorithmExtractAxis::CScalarAlgorithmExtractAxis(bool isSource, CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo)
- : CScalarAlgorithmTransformation(isSource, scalarDestination, axisSource), reduction_(0)
+ : CAlgorithmTransformationTransfer(isSource)
 TRY
 {
   algo->checkValid(scalarDestination, axisSource);
-  StdString op = "extract";
   pos_ = algo->position;
-  reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
+  this->transformationMapping_[0]=pos_ ;
+
+  scalarDestination->checkAttributes() ;
+  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
 
-void CScalarAlgorithmExtractAxis::apply(const std::vector<std::pair<int,double> >& localIndex,
-                                         const double* dataInput,
-                                         CArray<double,1>& dataOut,
-                                         std::vector<bool>& flagInitial,                     
-                                         bool ignoreMissingValue, bool firstPass)
-TRY
-{
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
-}
-CATCH
 
-CScalarAlgorithmExtractAxis::~CScalarAlgorithmExtractAxis()
-TRY
-{
-  if (0 != reduction_) delete reduction_;
-}
-CATCH
-
-void CScalarAlgorithmExtractAxis::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  transMap[0].push_back(pos_);
-  transWeight[0].push_back(1.0);
-}
-CATCH
 
 }

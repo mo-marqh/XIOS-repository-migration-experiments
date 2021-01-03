@@ -46,7 +46,7 @@ namespace xios
         for(int i=0; i<dstSize_; i++, out+=sizeT)
           if (mask_[i])
           {
-            for(int l=0; l<sizeT; l++) out[l] += in[connector_[k]*sizeT+l] ;
+            for(int l=0; l<sizeT; l++) out[l] = in[connector_[k]*sizeT+l] ;
             k++ ;
           }
       }

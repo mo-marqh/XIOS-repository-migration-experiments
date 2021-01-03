@@ -35,9 +35,6 @@ public:
 
 private:
 
-  CAxis* axisSrc_;
-  CAxis* axisDest_;
-
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,

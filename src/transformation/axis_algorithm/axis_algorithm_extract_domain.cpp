@@ -47,7 +47,7 @@ CATCH
 
 
 CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CExtractDomainToAxis* algo)
- : CAxisAlgorithmTransformation(isSource, axisDestination, domainSource), pos_(-1), reduction_(0)
+ : CAlgorithmTransformationTransfer(isSource), pos_(-1), axisDest_(axisDestination), domainSrc_(domainSource)
 TRY
 {
   algo->checkValid(axisDestination, domainSource);
@@ -66,36 +66,8 @@ TRY
   }
 
   pos_ = algo->position;
-  reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
-}
-CATCH
 
-void CAxisAlgorithmExtractDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
-                                        const double* dataInput,
-                                        CArray<double,1>& dataOut,
-                                        std::vector<bool>& flagInitial,                     
-                                        bool ignoreMissingValue, bool firstPass)
-TRY
-{
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
-}
-CATCH
-
-CAxisAlgorithmExtractDomain::~CAxisAlgorithmExtractDomain()
-TRY
-{
-  if (0 != reduction_) delete reduction_;
-}
-CATCH
-
-void CAxisAlgorithmExtractDomain::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+  auto& transMap = this->transformationMapping_;
 
   CArray<int,1>& axisDstIndex = axisDest_->index;
   int ni_glo = domainSrc_->ni_glo, nj_glo = domainSrc_->nj_glo;
@@ -105,11 +77,7 @@ TRY
     for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
     {
       int globalAxisIdx = axisDstIndex(idxAxis);
-      transMap[globalAxisIdx].resize(1);
-      transWeight[globalAxisIdx].resize(1);
-      transMap[globalAxisIdx][0] = globalAxisIdx * ni_glo + pos_;
-      transWeight[globalAxisIdx][0] = 1.0;
-
+      transMap[globalAxisIdx] = globalAxisIdx * ni_glo + pos_;
     }
   }
   else if (iDir == dir_)
@@ -118,14 +86,22 @@ TRY
     for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
     {
       int globalAxisIdx = axisDstIndex(idxAxis);
-      transMap[globalAxisIdx].resize(1);
-      transWeight[globalAxisIdx].resize(1);
-      transMap[globalAxisIdx][0] = globalAxisIdx + ni_glo * pos_;
-      transWeight[globalAxisIdx][0] = 1.0;
+      transMap[globalAxisIdx] = globalAxisIdx + ni_glo * pos_;
     }
   }
   else
   {}
+
+  axisDestination->checkAttributes() ;
+  this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
+
+
+CAxisAlgorithmExtractDomain::~CAxisAlgorithmExtractDomain()
+TRY
+{
+}
+CATCH
+
 }

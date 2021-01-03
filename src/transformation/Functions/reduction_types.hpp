@@ -9,9 +9,10 @@
 #ifndef __XIOS_REDUCTION_TYPES_HPP__
 #define __XIOS_REDUCTION_TYPES_HPP__
 
-namespace xios {
+namespace xios
+{
 
-  typedef enum reduction_alogirthm_type
+  typedef enum reduction_algurithm_type
   {
     TRANS_REDUCE_SUM = 0,
     TRANS_REDUCE_MIN = 1,
@@ -20,5 +21,9 @@ namespace xios {
     TRANS_REDUCE_AVERAGE = 4
   } EReductionType;
 
+  enum class EReduction
+  {
+    sum, min, max, extract, average
+  } ;
 }
 #endif // __XIOS_REDUCTION_TYPES_HPP__

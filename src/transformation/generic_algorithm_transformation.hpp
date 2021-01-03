@@ -23,6 +23,7 @@ namespace xios
   class CDomain;
   class CAxis;
   class CScalar;
+  class CGridAlgorithm ;
 
   /*!
   \class CGenericAlgorithmTransformation
@@ -182,7 +183,15 @@ protected:
   
     virtual void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-    
+    virtual CGridAlgorithm* createGridAlgorithm(CGrid* gridSrc, CGrid* newGrid, int pos) ;
+    virtual void computeRecvElement(CLocalView* srcView, CLocalView* dstView) ;
+  protected :
+
+    CLocalElement* recvElement_=nullptr ;
+  public:
+    CLocalElement* getRecvElement(void) { return recvElement_ ;}
+  
+  protected:
     CTransformConnector* transformConnector_ ;
     CWeightTransformConnector* weightTransformConnector_ ;
 

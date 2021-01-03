@@ -47,24 +47,23 @@ CATCH
 
 
 CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo)
- : CAxisAlgorithmTransformation(isSource, axisDestination, domainSource), reduction_(0)
+ : CAlgorithmTransformationReduce(isSource), domainSrc_(domainSource), axisDest_(axisDestination)
 TRY
 {
   algo->checkValid(axisDestination, domainSource);
-  StdString op;
   switch (algo->operation)
   {
     case CReduceDomainToAxis::operation_attr::sum:
-      op = "sum";
+       operator_ = EReduction::sum;
       break;
     case CReduceDomainToAxis::operation_attr::min:
-      op = "min";
+       operator_ = EReduction::min;
       break;
     case CReduceDomainToAxis::operation_attr::max:
-      op = "max";
+       operator_ = EReduction::max;
       break;
     case CReduceDomainToAxis::operation_attr::average:
-      op = "average";
+       operator_ = EReduction::average;
       break;
     default:
         ERROR("CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo)",
@@ -75,44 +74,9 @@ TRY
   }
 
   dir_ = (CReduceDomainToAxis::direction_attr::iDir == algo->direction)  ? iDir : jDir;
-  reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
-  local = algo->local ;
-}
-CATCH
+  bool local = algo->local ;
 
-void CAxisAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
-                                       const double* dataInput,
-                                       CArray<double,1>& dataOut,
-                                       std::vector<bool>& flagInitial,                     
-                                       bool ignoreMissingValue, bool firstPass)
-TRY
-{
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
-}
-CATCH
-
-void CAxisAlgorithmReduceDomain::updateData(CArray<double,1>& dataOut)
-TRY
-{
-  reduction_->updateData(dataOut);
-}
-CATCH
-
-CAxisAlgorithmReduceDomain::~CAxisAlgorithmReduceDomain()
-TRY
-{
-  if (0 != reduction_) delete reduction_;
-}
-CATCH
-
-void CAxisAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+  TransformationIndexMap& transMap = transformationMapping_;
 
   CArray<int,1>& axisDstIndex = axisDest_->index;
   int ni_glo = domainSrc_->ni_glo, nj_glo = domainSrc_->nj_glo;
@@ -130,7 +94,6 @@ TRY
         if (localMask(idxDomain))
         { 
           transMap[j_index(idxDomain)].push_back(j_index(idxDomain)* ni_glo + i_index(idxDomain));
-          transWeight[j_index(idxDomain)].push_back(1.0) ;
         }
       }
     }
@@ -141,11 +104,9 @@ TRY
       {
         int globalAxisIdx = axisDstIndex(idxAxis);
         transMap[globalAxisIdx].resize(ni_glo);
-        transWeight[globalAxisIdx].resize(ni_glo);
         for (int idx = 0; idx < ni_glo; ++idx)
         {
           transMap[globalAxisIdx][idx] = globalAxisIdx * ni_glo + idx;
-          transWeight[globalAxisIdx][idx] = 1.0;
         }
       }
     }
@@ -165,7 +126,6 @@ TRY
         if (localMask(idxDomain))
         { 
           transMap[i_index(idxDomain)].push_back(j_index(idxDomain)* ni_glo + i_index(idxDomain));
-          transWeight[i_index(idxDomain)].push_back(1.0) ;
         }
       }
     }
@@ -175,18 +135,28 @@ TRY
       {
         int globalAxisIdx = axisDstIndex(idxAxis);
         transMap[globalAxisIdx].resize(nj_glo);
-        transWeight[globalAxisIdx].resize(nj_glo);
         for (int idx = 0; idx < nj_glo; ++idx)
         {
           transMap[globalAxisIdx][idx] = globalAxisIdx + ni_glo*idx;
-          transWeight[globalAxisIdx][idx] = 1.0;
         }
       }
     }
   }
   else
   {}
+
+  axisDestination->checkAttributes() ;
+  this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
+
 }
 CATCH
+
+
+CAxisAlgorithmReduceDomain::~CAxisAlgorithmReduceDomain()
+TRY
+{
+}
+CATCH
+
 
 }

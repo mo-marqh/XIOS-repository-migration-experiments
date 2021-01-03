@@ -9,7 +9,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
 #define __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
 
-#include "axis_algorithm_transformation.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -21,7 +21,7 @@ class CInverseAxis;
   \class CAxisAlgorithmInverse
   Inversing an axis
 */
-class CAxisAlgorithmInverse : public CAxisAlgorithmTransformation
+class CAxisAlgorithmInverse : public CAlgorithmTransformationTransfer
 {
 public:
   CAxisAlgorithmInverse(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis);
@@ -30,10 +30,10 @@ public:
 
   static bool registerTrans();
 
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
+  CAxis* axisSrc_;
+  CAxis* axisDest_;
   void updateAxisValue();
 
 private:

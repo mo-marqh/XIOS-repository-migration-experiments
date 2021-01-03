@@ -18,6 +18,7 @@ namespace xios
     public:
 
       CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, MPI_Comm localComm, int remoteSize) ;
+      CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CLocalView*>& dstView, MPI_Comm localComm, int remoteSize) ;
       void computeConnector(void) ;
       void computeGenericMethod(void) ;
       std::map<int, CArray<size_t,1>>& getDistributedGlobalIndex(int pos) { return elements_[pos] ;} 
