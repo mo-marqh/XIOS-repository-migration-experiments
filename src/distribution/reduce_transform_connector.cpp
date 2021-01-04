@@ -14,12 +14,13 @@ namespace xios
         transfer_=&CReduceTransformConnector::transferSum ;
         break ;
       case EReduction::min :
+        transfer_=&CReduceTransformConnector::transferMin ;
         break ;
       case EReduction::max :
+        transfer_=&CReduceTransformConnector::transferMax ;
         break ;
-      case EReduction::extract :
-        break ;
-      case EReduction::average :
+     case EReduction::average :
+        transfer_=&CReduceTransformConnector::transferAverage ;
         break ;
       default :
        ERROR("CReduceTransformConnector::CReduceTransformConnector",
