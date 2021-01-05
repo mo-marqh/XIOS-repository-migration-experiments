@@ -10,13 +10,13 @@ namespace xios
   void CAlgorithmTransformationTransfer::computeAlgorithm(CLocalView* srcView, CLocalView* dstView)
   {
    this->computeRecvElement(srcView, dstView) ;
-   transferTransformConnector_ = new  CTransferTransformConnector( recvElement.getView(CElementView::FULL), dstView, transformationMapping_) ; 
+   transferTransformConnector_ = new  CTransferTransformConnector( recvElement_.getView(CElementView::FULL), dstView, transformationMapping_) ; 
   }
  
 
   void CAlgorithmTransformationTransfer::apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
   {
-    transferTransformConnector_ -> transfer(dimBefore, dimAfter, dataOutIn, dataOut) ; 
+    transferTransformConnector_ -> transfer(dimBefore, dimAfter, dataIn, dataOut) ; 
   }
   
   void CAlgorithmTransformationTransfer::computeRecvElement(CLocalView* srcView, CLocalView* dstView)
