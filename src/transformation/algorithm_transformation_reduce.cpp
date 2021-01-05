@@ -14,8 +14,6 @@ namespace xios
 
   void CAlgorithmTransformationReduce::apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
   {
-   // CArray<double,1> dataOutTmp ;
-   // transformConnector_->transfer(dimBefore, dimAfter, dataIn, dataOutTmp) ;
     reduceTransformConnector_ -> transfer(dimBefore, dimAfter, dataIn, dataOut) ;
   }
   

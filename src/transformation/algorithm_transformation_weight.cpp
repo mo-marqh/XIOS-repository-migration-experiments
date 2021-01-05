@@ -6,7 +6,7 @@ namespace xios
 
 
   void CAlgorithmTransformationWeight::computeAlgorithm(CLocalView* srcView, CLocalView* dstView)
- {
+  {
     this->computeRecvElement(srcView, dstView) ;
     weightTransformConnector_ = new  CWeightTransformConnector( recvElement_->getView(CElementView::FULL), dstView, transformationMapping_, transformationWeight_) ; 
   }
@@ -14,9 +14,7 @@ namespace xios
 
   void CAlgorithmTransformationWeight::apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
   {
-    CArray<double,1> dataOutTmp ;
-    transformConnector_->transfer(dimBefore, dimAfter, dataIn, dataOutTmp) ;
-    weightTransformConnector_ -> transfer(dimBefore, dimAfter, dataOutTmp, dataOut) ;
+    weightTransformConnector_ -> transfer(dimBefore, dimAfter, dataIn, dataOut) ;
   }
 
   void CAlgorithmTransformationWeight::computeRecvElement(CLocalView* srcView, CLocalView* dstView)

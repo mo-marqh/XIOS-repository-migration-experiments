@@ -25,7 +25,6 @@ namespace xios
       TransformationIndexMap transformationMapping_;
       //! Weight corresponding of source to destination
       TransformationWeightMap transformationWeight_;
-      CTransformConnector* transformConnector_ ;
       CWeightTransformConnector* weightTransformConnector_ ;
       
   };

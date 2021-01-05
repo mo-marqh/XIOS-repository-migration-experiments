@@ -7,28 +7,16 @@
 namespace xios
 {
  
- void CAlgorithmTransformationTransfer::computeAlgorithm(CLocalView* srcView, CLocalView* dstView)
- {
-   set<size_t> srcIndex ;
-   for(auto& it : transformationMapping_) srcIndex.insert(it.second) ;
-
-    CArray<size_t,1> srcArrayIndex(srcIndex.size()) ;
-    int i=0 ;
-    for(size_t index : srcIndex) { srcArrayIndex(i) = index ; i++ ;}
-    CLocalElement recvElement(CContext::getCurrent()->getIntraCommRank(), srcView->getGlobalSize(), srcArrayIndex) ;
-    recvElement.addFullView() ;
-
-    transformConnector_ = new CTransformConnector(srcView, recvElement.getView(CElementView::FULL), CContext::getCurrent()->getIntraComm())  ;
-    transformConnector_->computeConnector() ;
-    transferTransformConnector_ = new  CTransferTransformConnector( recvElement.getView(CElementView::FULL), dstView, transformationMapping_) ; 
+  void CAlgorithmTransformationTransfer::computeAlgorithm(CLocalView* srcView, CLocalView* dstView)
+  {
+   this->computeRecvElement(srcView, dstView) ;
+   transferTransformConnector_ = new  CTransferTransformConnector( recvElement.getView(CElementView::FULL), dstView, transformationMapping_) ; 
   }
  
 
   void CAlgorithmTransformationTransfer::apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
   {
-    CArray<double,1> dataOutTmp ;
-    transformConnector_->transfer(dimBefore, dimAfter, dataIn, dataOutTmp) ;  
-    transferTransformConnector_ -> transfer(dimBefore, dimAfter, dataOutTmp, dataOut) ; 
+    transferTransformConnector_ -> transfer(dimBefore, dimAfter, dataOutIn, dataOut) ; 
   }
   
   void CAlgorithmTransformationTransfer::computeRecvElement(CLocalView* srcView, CLocalView* dstView)

@@ -2,6 +2,7 @@
 #include "grid_elements.hpp"
 #include "grid_local_view.hpp"
 #include "grid.hpp"
+#include "algo_types.hpp"
 #include "context.hpp"
 
 namespace xios
@@ -10,6 +11,31 @@ namespace xios
   CGridAlgorithm::CGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos,  CGenericAlgorithmTransformation* algo)
   : gridSrc_(gridSrc), gridDst_(gridDst), pos_(pos), algorithm_(algo)
   {
+    //! Scalar
+    CScalarAlgorithmReduceAxis::registerTrans();
+    CScalarAlgorithmExtractAxis::registerTrans();
+    CScalarAlgorithmReduceDomain::registerTrans();
+    CScalarAlgorithmReduceScalar::registerTrans();
+
+    //! Axis
+    CAxisAlgorithmZoom::registerTrans();
+    CAxisAlgorithmExtractDomain::registerTrans();
+    CAxisAlgorithmInterpolate::registerTrans();
+    CAxisAlgorithmExtract::registerTrans();
+    CAxisAlgorithmInverse::registerTrans();
+    CAxisAlgorithmReduceDomain::registerTrans();
+    CAxisAlgorithmReduceAxis::registerTrans();
+    CAxisAlgorithmTemporalSplitting::registerTrans();
+    CAxisAlgorithmDuplicateScalar::registerTrans();
+
+    //! Domain
+    CDomainAlgorithmComputeConnectivity::registerTrans();
+    CDomainAlgorithmInterpolate::registerTrans();
+    CDomainAlgorithmZoom::registerTrans();
+    CDomainAlgorithmExpand::registerTrans();
+    CDomainAlgorithmReorder::registerTrans();
+    CDomainAlgorithmExtract::registerTrans();
+
     this->computeAlgorithm() ;
   }
 

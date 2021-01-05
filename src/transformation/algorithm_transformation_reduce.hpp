@@ -25,7 +25,6 @@ namespace xios
       //! Map between global index of destination element and source element
       EReduction operator_ ;
       TransformationIndexMap transformationMapping_;
-      CTransformConnector* transformConnector_ ;
       CReduceTransformConnector* reduceTransformConnector_ ;
       bool detectMissingValue_=true ;
       bool eliminateRedondantSrc_ = true ; 

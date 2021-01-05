@@ -22,8 +22,6 @@ namespace xios
 
       //! Map between global index of destination element and source element
       unordered_map<int,int> transformationMapping_;
-    
-      CTransformConnector* transformConnector_ ;
       CTransferTransformConnector* transferTransformConnector_ ;
   };
 
