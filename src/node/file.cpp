@@ -733,7 +733,10 @@ namespace xios {
         this->data_in->readFieldAttributesMetaData(enabledFields[idx]);
 
         // Now complete domain and axis associated with this field
-        enabledFields[idx]->solveGenerateGrid();
+       
+       //ym => this a problem in wich order are done the grid generation. Probably metadata are read in file and after the grid is ditributed by the filter
+       // => must be checked in detail. But solveGenerated grid is not existing any more with new transformation framework
+       // enabledFields[idx]->solveGenerateGrid();
 
         // Read necessary value from file
         this->data_in->readFieldAttributesValues(enabledFields[idx]);
@@ -817,25 +820,6 @@ namespace xios {
    CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
-
-   /*!
-   \brief Resolve all reference of active fields.
-      In order to know exactly which data each active field has, a search for all its
-   reference to find its parents or/and its base reference object must be done. Moreover
-   during this search, there are some information that can only be sent to server AFTER
-   all information of active fields are created on server side, e.g: checking mask or index
-   \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
-   */
-   void CFile::solveOnlyRefOfEnabledFields(void)
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->solveOnlyReferenceEnabledField();
-     }
-   }
-   CATCH_DUMP_ATTR
 
    void CFile::checkGridOfEnabledFields()
    TRY
@@ -926,51 +910,6 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CFile::generateNewTransformationGridDest()
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->generateNewTransformationGridDest();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
-   \brief Resolve all reference of active fields.
-      In order to know exactly which data each active field has, a search for all its
-   reference to find its parents or/and its base reference object must be done. Moreover
-   during this search, there are some information that can only be sent to server AFTER
-   all information of active fields are created on server side, e.g: checking mask or index
-   \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
-   */
-   void CFile::solveAllRefOfEnabledFieldsAndTransform(void)
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {       
-      this->enabledFields[i]->solveAllEnabledFieldsAndTransform();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
-    * Constructs the filter graph for each active field.
-    *
-    * \param gc the garbage collector to use when building the filter graph
-    */
-   void CFile::buildFilterGraphOfEnabledFields(CGarbageCollector& gc)
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->buildFilterGraph(gc, true);
-     }
-   }
-   CATCH_DUMP_ATTR
 
    /*!
     * Post-process the filter graph for each active field.

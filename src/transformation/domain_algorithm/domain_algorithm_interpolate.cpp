@@ -47,6 +47,7 @@ bool CDomainAlgorithmInterpolate::dummyRegistered_ = CDomainAlgorithmInterpolate
 bool CDomainAlgorithmInterpolate::registerTrans()
 TRY
 {
+  cout<<"REGISTRED"<<endl ;
   return CGridTransformationFactory<CDomain>::registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
 }
 CATCH
@@ -115,7 +116,7 @@ TRY
   using namespace sphereRemap;
 
   CContext* context = CContext::getCurrent();
-  int clientRank = context->intraCommRank_;
+  int clientRank = context->intraCommRank_; 
   int i, j, k, idx;
   std::vector<double> srcPole(3,0), dstPole(3,0);
   int orderInterp = interpDomain_->order.getValue();

@@ -49,7 +49,7 @@ namespace xios
       for (size_t idx = 0; idx < auxInputs.size(); ++idx)
       {
         CField* fieldAuxInput = CField::get(auxInputs[idx]);
-        fieldAuxInput->buildFilterGraph(gc, false);
+       //ym fieldAuxInput->buildFilterGraph(gc, false);
         fieldAuxInput->getInstantDataFilter()->connectOutput(firstFilter,idx+1);
       }
 

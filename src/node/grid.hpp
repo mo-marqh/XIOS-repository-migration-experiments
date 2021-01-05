@@ -148,8 +148,6 @@ namespace xios {
          static CGrid* cloneGrid(const StdString& idNewGrid, CGrid* gridSrc);
 
       public:            
-         void computeIndex(void);
-         void computeIndexScalarGrid();
          void solveDomainAxisRef(bool areAttributesChecked);
          void checkElementsAttributes(void) ;
 
@@ -218,23 +216,7 @@ namespace xios {
       public:
          CGridTransformation* getTransformations();
 
-         void transformGrid(CGrid* transformGridSrc);
-         
-         void prepareTransformGrid(CGrid* transformGridSrc);
-         bool prepareTransformGrid_done_ = false ;
-
-         void makeTransformGrid(void); 
-         bool makeTransformGrid_done_ = false ;
-         
          std::vector<std::string> getAuxInputTransformGrid(void) ; 
-         std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
-         bool hasTransform();
-         void addTransGridSource(CGrid* gridSrc);
-         void completeGrid(CGrid* transformGridSrc = 0);
-         bool isTransformed();
-         void setTransformed();
-         bool isGenerated();
-         void setGenerated();
          void setTransformationAlgorithms();
          pair<shared_ptr<CFilter>, shared_ptr<CFilter> > buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues,
                                                                                   double defaultValue, CGrid*& newGrid) ;
@@ -244,7 +226,7 @@ namespace xios {
         void setGridAlgorithm(CGridAlgorithm* gridAlgorithm) {gridAlgorithm_ = gridAlgorithm;}
         CGridAlgorithm* getGridAlgorithm(void) { return gridAlgorithm_ ;}
       private:
-         bool isTransformed_, isGenerated_;
+         bool isTransformed_;
          CGridTransformation* transformations_;
          bool hasTransform_;
        

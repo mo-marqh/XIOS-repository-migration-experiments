@@ -128,17 +128,10 @@ namespace xios
          void solveGridReference(void);
          void solveServerOperation(void);
          void solveCheckMaskIndex(bool doSendingIndex);
-         void solveAllReferenceEnabledField(bool doSending2Server);
-         void solveOnlyReferenceEnabledField(void);
-         void generateNewTransformationGridDest();
          void updateRef(CGrid* grid);
-         void buildGridTransformationGraph();
          void solveGridDomainAxisRef(bool checkAtt);
-         void solveTransformedGrid();
-         void solveGenerateGrid();
          void solveGridDomainAxisBaseRef();
 
-         void solveAllEnabledFieldsAndTransform();
          void checkGridOfEnabledFields();
          void sendGridOfEnabledFields();
          void sendGridComponentOfEnabledFields();
@@ -157,15 +150,12 @@ namespace xios
          /// Vérifications ///
          void checkTimeAttributes(CDuration* freqOp=NULL);
 
-         void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
-
          bool buildWorkflowGraph(CGarbageCollector& gc) ;
          bool buildWorkflowGraphDone_ = false ;
 
          size_t getGlobalWrittenSize(void) ;
          
          
-         std::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
          std::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
          std::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
          std::shared_ptr<COutputPin> getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);

@@ -90,10 +90,6 @@ namespace xios
         virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
         void solveFieldRefInheritance(bool apply);
         void createInterCommunicator(void) ;
-        void solveOnlyRefOfEnabledFields(void);
-        void generateNewTransformationGridDest(void);
-        void solveAllRefOfEnabledFieldsAndTransform() ;
-        void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
         void checkGridOfEnabledFields(void) ;
         void assignContext(void) ;
       private:

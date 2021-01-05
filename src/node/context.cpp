@@ -1245,62 +1245,6 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-    /*!
-      Go up the hierachical tree via field_ref and do check of attributes of fields
-      This can be done in a client then all computed information will be sent from this client to others
-      \param [in] sendToServer Flag to indicate whether calculated information will be sent
-   */
-   void CContext::solveOnlyRefOfEnabledFields(void)
-   TRY
-   {
-     int size = this->enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFiles[i]->solveOnlyRefOfEnabledFields();
-     }
-
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFiles[i]->generateNewTransformationGridDest();
-     }
-
-     size = this->enabledCouplerOut.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledCouplerOut[i]->solveOnlyRefOfEnabledFields();
-     }
-
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledCouplerOut[i]->generateNewTransformationGridDest();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-    /*!
-      Go up the hierachical tree via field_ref and do check of attributes of fields.
-      The transformation can be done in this step.
-      All computed information will be sent from this client to others.
-      \param [in] sendToServer Flag to indicate whether calculated information will be sent
-   */
-   void CContext::solveAllRefOfEnabledFieldsAndTransform(void)
-   TRY
-   {
-     int size = this->enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFiles[i]->solveAllRefOfEnabledFieldsAndTransform();
-     }
-
-     size = this->enabledCouplerOut.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledCouplerOut[i]->solveAllRefOfEnabledFieldsAndTransform();
-     }
-
-   }
-   CATCH_DUMP_ATTR
-
 
    void CContext::postProcessFilterGraph()
    TRY

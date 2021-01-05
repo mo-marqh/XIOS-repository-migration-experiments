@@ -1,5 +1,5 @@
 /*!
-   \file grid_generate.hpp
+   \file algo_type.hpp
    \author Ha NGUYEN
    \since 28 Aug 2015
    \date 28 Aug 2015

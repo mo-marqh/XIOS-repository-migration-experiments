@@ -94,10 +94,13 @@ private:
                                                 std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                 std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                 std::map<int, int>& elementPositionInGridDst2DomainPosition);
-  static bool dummyRegistered_;
-
+  
   CDomain* domainSrc_ ;
   CDomain* domainDest_ ;
+
+public:
+  static bool dummyRegistered_;
+
 
 };
 

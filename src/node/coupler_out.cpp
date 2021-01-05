@@ -160,55 +160,6 @@ namespace xios
    }
    CATCH_DUMP_ATTR
 
-  
-   void CCouplerOut::solveOnlyRefOfEnabledFields(void)
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->solveOnlyReferenceEnabledField();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   void CCouplerOut::generateNewTransformationGridDest(void)
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->generateNewTransformationGridDest();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   void CCouplerOut::solveAllRefOfEnabledFieldsAndTransform(void)
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {       
-      this->enabledFields[i]->solveAllEnabledFieldsAndTransform();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
-    * Constructs the filter graph for each active field.
-    *
-    * \param gc the garbage collector to use when building the filter graph
-    */
-   void CCouplerOut::buildFilterGraphOfEnabledFields(CGarbageCollector& gc)
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->buildFilterGraph(gc, true);
-     }
-   }
-   CATCH_DUMP_ATTR
 
    void CCouplerOut::checkGridOfEnabledFields(void)
    TRY

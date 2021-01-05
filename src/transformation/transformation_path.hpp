@@ -14,7 +14,6 @@ namespace xios
     
     private:
       TPath path_ ;
-      std::list<TPath> fullPath_ ; 
       std::list<TPath> donePath_ ; 
       TPath remainPath_ ; 
       string getPathId(const TPath& path) ;

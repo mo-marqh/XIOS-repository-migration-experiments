@@ -137,15 +137,13 @@ namespace xios {
          void createFileHeader(void);
          void initReadFiles(void);
          void prepareTimeseries(void);
-         void solveOnlyRefOfEnabledFields(void);         
          void postProcessFilterGraph();
          void startPrefetchingOfEnabledReadModeFiles();
          void doPreTimestepOperationsForEnabledReadModeFiles();
          void doPostTimestepOperationsForEnabledReadModeFiles();
          void findFieldsWithReadAccess(void);
          void triggerLateFields(void) ;
-         void solveAllRefOfEnabledFieldsAndTransform(void);
- 
+          
          std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
          void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false); // old interface to be removed

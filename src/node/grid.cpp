@@ -16,7 +16,6 @@
 #include "client_server_mapping_distributed.hpp"
 #include "distribution_client.hpp"
 #include "grid_transformation.hpp"
-#include "grid_generate.hpp"
 #include "server.hpp"
 #include "distribution_type.hpp"
 #include "grid_remote_connector.hpp"
@@ -45,7 +44,7 @@ namespace xios
 	    , isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), isGenerated_(false), order_()
+      , gridSrc_(), hasTransform_(false), order_()
       , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
@@ -64,7 +63,7 @@ namespace xios
 	    , isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), isGenerated_(false), order_()
+      , gridSrc_(), hasTransform_(false), order_()
       , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
@@ -837,12 +836,7 @@ namespace xios
      
      if (this->isChecked) return;
      this->checkElementsAttributes();
-
-     if (!(this->hasTransform() && !this->isTransformed()))
-      this->isChecked = true;
-
-     if (!(this->hasTransform() && (!this->isGenerated())))
-      this->isChecked = true;
+     this->isChecked = true;
    }
    CATCH_DUMP_ATTR
 
@@ -937,45 +931,6 @@ namespace xios
   }
 
   
-   /*!
-     Compute the global index of grid to send to server as well as the connected server of the current client.
-     First of all, from the local data on each element of grid, we can calculate their local index which also allows us to know
-     their global index. We can have a map of global index of grid and local index that each client holds
-     Then, each client holds a piece of information about the distribution of servers, which permits to compute the connected server(s)
-     of the current client.
-   */
-   // ym obsolete : to be removed....
-   void CGrid::computeIndex(void)
-   TRY
-   {
-    // old interface
-     CContext* context = CContext::getCurrent();
-     if (isScalarGrid())
-     {
-       //computeClientIndexScalarGrid();
-       if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
-       {
-         // ym computeConnectedClientsScalarGrid();
-       }
-     }
-     else
-     {
-       //computeClientIndex();
-       if (context->getServiceType()==CServicesManager::CLIENT || context->getServiceType()==CServicesManager::GATHERER)
-       {
-         //computeConnectedClients();
-       }
-     }
-//ym     if (CServer::serverLevel==2)
-     if (context->getServiceType()==CServicesManager::OUT_SERVER)
-     {
-       if (clientDistribution_!=0) clientDistribution_->partialClear() ;
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   
-
 
    CGrid* CGrid::cloneGrid(const StdString& idNewGrid, CGrid* gridSrc)
    TRY
@@ -1729,175 +1684,12 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  bool CGrid::isTransformed()
-  TRY
-  {
-    return isTransformed_;
-  }
-  CATCH_DUMP_ATTR
-
-  void CGrid::setTransformed()
-  TRY
-  {
-    isTransformed_ = true;
-  }
-  CATCH_DUMP_ATTR
-
-  CGridTransformation* CGrid::getTransformations()
-  TRY
-  {
-    return transformations_;
-  }
-  CATCH_DUMP_ATTR
-
-  void CGrid::addTransGridSource(CGrid* gridSrc)
-  TRY
-  {
-    if (gridSrc_.end() == gridSrc_.find(gridSrc))
-      gridSrc_.insert(make_pair(gridSrc,make_pair(false,"")));
-  }
-  CATCH_DUMP_ATTR
-
-  std::map<CGrid*,std::pair<bool,StdString> >& CGrid::getTransGridSource()
-  TRY
-  {
-    return gridSrc_;
-  }
-  CATCH_DUMP_ATTR
-
-  /*!
-     Complete all the necessary (and lacking) attributes of a grid
-     This function is similar to gridTransformation but works only (till now) on generate_rectilinear_domain transformation
-  */
-  void CGrid::completeGrid(CGrid* transformGridSrc)
-  TRY
-  {
-    if (nullptr != transformGridSrc)
-    {
-      if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
-      {
-        ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
-             << "Two grids have different number of elements. " << std::endl
-             << "Number of element of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
-             << "Number of element of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
-      }
-    }
-
-    if (isGenerated()) return;
-    setGenerated();
-
-    CGridGenerate gridGenerate(this, transformGridSrc);
-    gridGenerate.completeGrid();
-  }
-  CATCH_DUMP_ATTR
-
-  bool CGrid::isGenerated()
-  TRY
-  {
-    return isGenerated_;
-  }
-  CATCH
-
-  void CGrid::setGenerated()
-  TRY
-  {
-    isGenerated_ = true;
-  }
-  CATCH_DUMP_ATTR
-
-  void CGrid::transformGrid(CGrid* transformGridSrc)
-  TRY
-  {
-    if (!transformGridSrc)
-      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-            << "Impossible to transform grid '" << getId() << "', the source grid is null.");
-
-    if (isTransformed()) return;
-    setTransformed();
-    if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
-    {
-      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-           << "Two grids have different number of elements. " << std::endl
-           << "Number of element of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
-           << "Number of element of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
-    }
-    else
-    {
-    }
-
-    transformations_ = new CGridTransformation(this, transformGridSrc);
-    transformations_->computeAll();
-    if (0 < transformations_->getNbAlgo()) hasTransform_ = true;
-
- }
-  CATCH_DUMP_ATTR
-
-
-
-
-  void CGrid::prepareTransformGrid(CGrid* transformGridSrc)
-  TRY
-  {
-    if (prepareTransformGrid_done_) return ;
-
-    if (!transformGridSrc)
-      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-            << "Impossible to transform grid '" << getId() << "', the source grid is null.");
-
-    if (isTransformed()) return;
-    setTransformed();
-    if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
-    {
-      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-           << "Two grids have different number of elements. " << std::endl
-           << "Number of element of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
-           << "Number of element of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
-    }
-    else
-    {
-    }
-
-    transformations_ = new CGridTransformation(this, transformGridSrc);
-    if (0 < transformations_->getNbAlgo()) hasTransform_ = true;
-
-    prepareTransformGrid_done_ = true; 
-  }
-  CATCH_DUMP_ATTR
-
-
-  void CGrid::makeTransformGrid(void)
-  TRY
-  {
-    if (makeTransformGrid_done_) return ;
-    transformations_->computeAll();
-
-    makeTransformGrid_done_ = true ; 
-  }
-  CATCH_DUMP_ATTR
-
+  
 
   vector<std::string> CGrid::getAuxInputTransformGrid(void)
   TRY
   {
     if (transformations_ != nullptr) return transformations_->getAuxInputs() ;
-  }
-  CATCH_DUMP_ATTR
-
-
-  bool CGrid::hasTransform()
-  TRY
-  {
-    if (hasTransform_) return hasTransform_;
-
-    std::vector<CDomain*> domList = getDomains();
-    std::vector<CAxis*> axisList = getAxis();
-    std::vector<CScalar*> scalarList = getScalars();
-
-    for (int idx = 0; idx < domList.size(); ++idx) hasTransform_ |= domList[idx]->hasTransformation();
-    for (int idx = 0; idx < axisList.size(); ++idx) hasTransform_ |= axisList[idx]->hasTransformation();
-    for (int idx = 0; idx < scalarList.size(); ++idx) hasTransform_ |= scalarList[idx]->hasTransformation();
-
-    return hasTransform_;
   }
   CATCH_DUMP_ATTR
 

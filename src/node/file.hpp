@@ -108,16 +108,12 @@ namespace xios {
          // Some processing on file
          void solveFieldRefInheritance(bool apply);
          void processEnabledFile(void);
-         void solveOnlyRefOfEnabledFields(void);
-         void generateNewTransformationGridDest();
          
-         void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
          void postProcessFilterGraph();
          void prefetchEnabledReadModeFields();
          void doPreTimestepOperationsForEnabledReadModeFields();
          void doPostTimestepOperationsForEnabledReadModeFields();
 
-         void solveAllRefOfEnabledFieldsAndTransform(void);
          void checkGridOfEnabledFields();
          void sendGridOfEnabledFields();
          void sendGridComponentOfEnabledFields();
