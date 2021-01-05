@@ -24,6 +24,7 @@ namespace xios
       void mergePaths(const CTransformationPaths& transformationPath) ;
       void mergePaths(void) ;
       bool hasTransform(void) { return !std::get<2>(remainPath_).empty();}
+      bool hasPath(void) { return !std::get<1>(path_).empty() ;}
       CTransformationPaths getDonePath(void) ;
 
       EElement getNextElementType(void);

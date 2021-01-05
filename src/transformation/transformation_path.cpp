@@ -5,7 +5,8 @@ namespace xios
   void CTransformationPaths::mergePaths(const CTransformationPaths& transformationPaths)
   {
     donePath_ = transformationPaths.donePath_ ;
-    //? if (donePath_.empty()) donePath_.push_back(transformationPaths.path_) ; // entry point
+    if (donePath_.empty()) donePath_.push_back(transformationPaths.path_) ; // entry point
+    
     if (get<1>(remainPath_)!="") return ;
 
     if (!donePath_.empty())
