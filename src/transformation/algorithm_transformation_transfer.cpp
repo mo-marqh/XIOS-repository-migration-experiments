@@ -10,7 +10,7 @@ namespace xios
   void CAlgorithmTransformationTransfer::computeAlgorithm(CLocalView* srcView, CLocalView* dstView)
   {
    this->computeRecvElement(srcView, dstView) ;
-   transferTransformConnector_ = new  CTransferTransformConnector( recvElement_.getView(CElementView::FULL), dstView, transformationMapping_) ; 
+   transferTransformConnector_ = new  CTransferTransformConnector( recvElement_->getView(CElementView::FULL), dstView, transformationMapping_) ; 
   }
  
 
