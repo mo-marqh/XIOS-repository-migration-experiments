@@ -96,6 +96,9 @@ TRY
   jbeginDest = destJBegin + domainSrc_->jbegin - extractJBegin_;
   if (niDest==0) ibeginDest=0 ;
   if (njDest==0) jbeginDest=0 ;
+  
+  domainDest_->type = domainSrc_ -> type ;
+  domainDest_->data_dim = domainSrc_->data_dim ;
   domainDest_->ni_glo.setValue(extractNi_);
   domainDest_->nj_glo.setValue(extractNj_);
   domainDest_->ni.setValue(niDest);
@@ -112,7 +115,7 @@ TRY
   domainDest_->data_i_index.resize(niDest*njDest); // local position
   domainDest_->data_j_index.resize(niDest*njDest); // local position
 
-  domainDest_->domainMask.resize(niDest*njDest);
+  //domainDest_->domainMask.resize(niDest*njDest);
 
   if (!domainSrc_->mask_2d.isEmpty()) domainDest_->mask_2d.resize(niDest,njDest);
   if (!domainSrc_->mask_1d.isEmpty()) domainDest_->mask_1d.resize(niDest*njDest);
@@ -168,7 +171,7 @@ TRY
       domainDest_->j_index(indLocDest) = jDest + jbeginDest;                                             // i_index contains global positions
       domainDest_->data_i_index(indLocDest) = (domainSrc_->data_dim == 1) ? indLocDest : iDest;          // data_i_index contains local positions
       domainDest_->data_j_index(indLocDest) = (domainSrc_->data_dim == 1) ? 0 :jDest;                    // data_i_index contains local positions
-      domainDest_->domainMask(indLocDest) = domainSrc_->domainMask(indLocSrc);
+      //domainDest_->domainMask(indLocDest) = domainSrc_->domainMask(indLocSrc);
 
       if (!domainSrc_->mask_2d.isEmpty())
         domainDest_->mask_2d(iDest,jDest) = domainSrc_->mask_2d(iSrc,jSrc);

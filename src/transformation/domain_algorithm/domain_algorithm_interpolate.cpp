@@ -47,7 +47,6 @@ bool CDomainAlgorithmInterpolate::dummyRegistered_ = CDomainAlgorithmInterpolate
 bool CDomainAlgorithmInterpolate::registerTrans()
 TRY
 {
-  cout<<"REGISTRED"<<endl ;
   return CGridTransformationFactory<CDomain>::registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
 }
 CATCH
