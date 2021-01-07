@@ -33,6 +33,7 @@
       ret=CDomainAlgorithmExpand::registerTrans();
       ret=CDomainAlgorithmReorder::registerTrans();
       ret=CDomainAlgorithmExtract::registerTrans();
+      ret=CDomainAlgorithmGenerateRectilinear::registerTrans() ;
       first=false ;
     }
   }
