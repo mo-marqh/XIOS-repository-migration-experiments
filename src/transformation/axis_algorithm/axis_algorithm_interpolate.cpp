@@ -50,24 +50,29 @@ TRY
 CATCH
 
 CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
-: CAxisAlgorithmTransformation(isSource, axisDestination, axisSource), coordinate_(), transPosition_()
+: CAlgorithmTransformationWeight(isSource), coordinate_(), transPosition_(), axisSrc_(axisSource), axisDest_(axisDestination)
 TRY
 {
   interpAxis->checkValid(axisSource);
+  axisDestination->checkAttributes() ;
+
   order_ = interpAxis->order.getValue();
   if (!interpAxis->coordinate.isEmpty())
   {
     coordinate_ = interpAxis->coordinate.getValue();
-    this->idAuxInputs_.resize(1);
-    this->idAuxInputs_[0] = coordinate_;
+//    this->idAuxInputs_.resize(1);
+//    this->idAuxInputs_[0] = coordinate_;
   }
+  std::vector<CArray<double,1>* > dataAuxInputs ;
+  computeRemap(dataAuxInputs) ;
+  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
 
 /*!
   Compute the index mapping between axis on grid source and one on grid destination
 */
-void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+void CAxisAlgorithmInterpolate::computeRemap(const std::vector<CArray<double,1>* >& dataAuxInputs)
 TRY
 {
   CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").resume() ;
@@ -178,8 +183,8 @@ CATCH
 void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos)
 TRY
 {
-  TransformationIndexMap& transMap = this->transformationMapping_[transPos];
-  TransformationWeightMap& transWeight = this->transformationWeight_[transPos];
+  TransformationIndexMap& transMap = this->transformationMapping_;
+  TransformationWeightMap& transWeight = this->transformationWeight_;
   std::map<int, std::vector<std::pair<int,double> > >::const_iterator itb = interpolatingIndexValues.begin(), it,
                                                                       ite = interpolatingIndexValues.end();
   int ibegin = axisDest_->begin.getValue();
@@ -204,15 +209,18 @@ TRY
       }
       transMap[globalIndexDest][idx] = index;
       transWeight[globalIndexDest][idx] = weight;
+/*
       if (!transPosition_.empty())
       {
         (this->transformationPosition_[transPos])[globalIndexDest] = transPosition_[transPos];
       }
+*/
     }
   }
+/*
   if (!transPosition_.empty() && this->transformationPosition_[transPos].empty())
     (this->transformationPosition_[transPos])[0] = transPosition_[transPos];
-
+*/
 }
 CATCH
 
@@ -307,11 +315,12 @@ TRY
     vecAxisValue.resize(1);
     vecAxisValue[0].resize(axisSrc_->value.numElements());
     vecAxisValue[0] = axisSrc_->value;
-    this->transformationMapping_.resize(1);
-    this->transformationWeight_.resize(1);
+//    this->transformationMapping_.resize(1);
+//    this->transformationWeight_.resize(1);
   }
   else
   {
+/*
     CField* field = CField::get(coordinate_);
     CGrid* grid = field->getGrid();
 
@@ -387,6 +396,7 @@ TRY
         ++indexMask;
       }
     }
+  */
   }
 }
 CATCH

@@ -9,7 +9,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_INTERPOLATE_HPP__
 #define __XIOS_AXIS_ALGORITHM_INTERPOLATE_HPP__
 
-#include "axis_algorithm_transformation.hpp"
+#include "algorithm_transformation_weight.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -23,7 +23,7 @@ class CInterpolateAxis;
   Implementing interpolation on axis
   The values on axis source are assumed monotonic
 */
-class CAxisAlgorithmInterpolate : public CAxisAlgorithmTransformation
+class CAxisAlgorithmInterpolate : public CAlgorithmTransformationWeight
 {
 public:
   CAxisAlgorithmInterpolate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis);
@@ -31,10 +31,9 @@ public:
   virtual ~CAxisAlgorithmInterpolate() {}
 
   static bool registerTrans();
-protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
+  void computeRemap(const std::vector<CArray<double,1>* >& dataAuxInputs) ;
   void retrieveAllAxisValue(const CArray<double,1>& axisValue, const CArray<bool,1>& axisMask,
                             std::vector<double>& recvBuff, std::vector<int>& indexVec);
   void computeInterpolantPoint(const std::vector<double>& recvBuff, const std::vector<int>&, int transPos = 0);
@@ -47,8 +46,10 @@ private:
   int order_;
   StdString coordinate_;
   std::vector<std::vector<int> > transPosition_;
-
+  CAxis* axisSrc_=nullptr ;
+  CAxis* axisDest_=nullptr;
 private:
+
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,
