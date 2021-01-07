@@ -1,5 +1,5 @@
-#ifndef __XIOS_GRID_ALGORITHM_TRANSFORMATION_HPP__
-#define __XIOS_GRID_ALGORITHM_TRANSFORMATION_HPP__
+#ifndef __XIOS_GRID_ALGORITHM_HPP__
+#define __XIOS_GRID_ALGORITHM_HPP__
 
 #include "grid_transform_connector.hpp"
 #include <map>
@@ -15,23 +15,19 @@ namespace xios
   \class CGenericAlgorithmTransformation
   This class defines the interface for all other inherited algorithms class
   */
+class CTransformFilter ;
+class CGarbageCollector ;
+
 class CGridAlgorithm
 {
   public:
-    CGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos,  CGenericAlgorithmTransformation* algo) ;
-    virtual void computeAlgorithm(void) ;
-    
-    void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut) ;
-
-  private:
-    CGenericAlgorithmTransformation* algorithm_=nullptr ;
-    CGridTransformConnector* gridTransformConnector_=nullptr ;
-    CGrid* gridSrc_ = nullptr ;
-    CGrid* gridDst_ = nullptr ;
-    int pos_ ;
-    int dimBefore_=1 ;
-    int dimAfter_=1 ;
-
+    CGridAlgorithm(CGenericAlgorithmTransformation* algorithm) : algorithm_(algorithm)  {} ;
+    virtual ~CGridAlgorithm() {} ;
+    virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)=0 ;
+    virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, bool detectMissingValues, double defaultValue) ;
+   
+    protected:
+      CGenericAlgorithmTransformation* algorithm_=nullptr ;
 };
 
 }

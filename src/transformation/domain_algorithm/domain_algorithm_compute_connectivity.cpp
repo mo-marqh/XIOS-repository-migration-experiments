@@ -37,6 +37,7 @@ TRY
 CATCH
 
 bool CDomainAlgorithmComputeConnectivity::dummyRegistered_ = CDomainAlgorithmComputeConnectivity::registerTrans();
+
 bool CDomainAlgorithmComputeConnectivity::registerTrans()
 TRY
 {

@@ -15,7 +15,7 @@ namespace xios
       CAlgorithmTransformationTransfer(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
       virtual ~CAlgorithmTransformationTransfer() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-      void computeRecvElement(CLocalView* srcView, CLocalView* dstView) ;
+      virtual void computeRecvElement(CLocalView* srcView, CLocalView* dstView) ;
    
     protected:
       virtual void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;

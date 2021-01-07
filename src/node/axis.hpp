@@ -145,7 +145,7 @@ namespace xios
       private:
         CGenericAlgorithmTransformation* transformationAlgorithm_ = nullptr ;
       public:
-        void setTransformationAlgorithm(CGenericAlgorithmTransformation* transformationAlgorithm) { transformationAlgorithm=transformationAlgorithm ;}
+        void setTransformationAlgorithm(CGenericAlgorithmTransformation* transformationAlgorithm) { transformationAlgorithm_=transformationAlgorithm ;}
         CGenericAlgorithmTransformation* getTransformationAlgorithm(void) { return transformationAlgorithm_ ;}   
       private:
         CTransformationPaths transformationPaths_ ;

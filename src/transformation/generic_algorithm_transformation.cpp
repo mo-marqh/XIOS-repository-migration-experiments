@@ -15,6 +15,8 @@
 #include "mpi.hpp"
 #include "transform_connector.hpp"
 #include "weight_transform_connector.hpp"
+#include "grid_algorithm_generic.hpp"
+#include "transform_filter.hpp"
 
 namespace xios 
 {
@@ -1144,40 +1146,19 @@ CATCH
 
 CGridAlgorithm* CGenericAlgorithmTransformation::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
 {
-  return new CGridAlgorithm(gridSrc, gridDst, pos, this) ;
+  return new CGridAlgorithmGeneric(gridSrc, gridDst, pos, this) ;
 }
 
 
-void CGenericAlgorithmTransformation::computeAlgorithm(CLocalView* srcView, CLocalView* dstView)
-{
- 
-  this->computeRecvElement(srcView, dstView) ;
-/*
-  transformConnector_ = new CTransformConnector(srcView, recvElement.getView(CElementView::FULL), CContext::getCurrent()->getIntraComm())  ;
-  transformConnector_->computeConnector() ; 
-*/
-  weightTransformConnector_ = new  CWeightTransformConnector(recvElement_->getView(CElementView::FULL), dstView, transformationMapping_[0], transformationWeight_[0]) ; 
-}
- 
-void CGenericAlgorithmTransformation::computeRecvElement(CLocalView* srcView, CLocalView* dstView)
-{
-  auto& srcMap = transformationMapping_[0] ;
-  set<size_t> srcIndex ;
-  for(auto& it : srcMap)
-    for(size_t index : it.second) srcIndex.insert(index) ;
 
-  CArray<size_t,1> srcArrayIndex(srcIndex.size()) ;
-  int i=0 ;
-  for(size_t index : srcIndex) { srcArrayIndex(i) = index ; i++ ;}
-  recvElement_ = new CLocalElement(CContext::getCurrent()->getIntraCommRank(), srcView->getGlobalSize(), srcArrayIndex) ;
-  recvElement_->addFullView() ;
+CTransformFilter* CGenericAlgorithmTransformation::createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue)
+{
+  return new CTransformFilter(gc, algo, detectMissingValues, defaultValue) ;
 }
 
 void CGenericAlgorithmTransformation::apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
 {
-  //CArray<double,1> dataOutTmp ;
-  //transformConnector_->transfer(dimBefore, dimAfter, dataIn, dataOutTmp) ;
-  weightTransformConnector_ -> transfer(dimBefore, dimAfter, dataIn, dataOut) ;
+  // tranform into pure virtual funtion later
+  abort() ;
 }
-
 }

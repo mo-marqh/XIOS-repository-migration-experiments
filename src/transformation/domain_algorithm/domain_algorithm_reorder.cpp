@@ -44,6 +44,8 @@ CDomainAlgorithmReorder::CDomainAlgorithmReorder(bool isSource, CDomain* domainD
 TRY
 {
   reorderDomain->checkValid(domainSource);
+  domainDestination->checkAttributes() ; // for now but maybe use domainSource as template for domain destination
+
   if (domainDestination->type !=  CDomain::type_attr::rectilinear)
   {
       ERROR("CDomainAlgorithmReorder::CDomainAlgorithmReorder(CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain)",
@@ -114,6 +116,8 @@ TRY
       }
     }
   }
+
+  domainDestination->checkAttributes() ;
 }
 CATCH
 

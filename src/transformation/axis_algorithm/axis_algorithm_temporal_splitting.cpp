@@ -9,6 +9,7 @@
 #include "scalar.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
+#include "temporal_transform_filter.hpp"
 
 namespace xios {
 CGenericAlgorithmTransformation* CAxisAlgorithmTemporalSplitting::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
@@ -42,40 +43,19 @@ TRY
 CATCH
 
 CAxisAlgorithmTemporalSplitting::CAxisAlgorithmTemporalSplitting(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo)
- : CAxisAlgorithmTransformation(isSource, axisDestination, scalarSource)
+ : CAlgorithmTransformationNoDataModification(isSource)
 {
-
+  nrecords_ = axisDestination->n_glo ; // also axis must not be distributed, make more test later
 }
 
+CTransformFilter* CAxisAlgorithmTemporalSplitting::createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue)
+{
+  return new CTemporalTransformFilter(gc, algo, nrecords_, detectMissingValues, defaultValue) ;
+}
 
 CAxisAlgorithmTemporalSplitting::~CAxisAlgorithmTemporalSplitting()
 {
 }
 
-void CAxisAlgorithmTemporalSplitting::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  CArray<int,1>& axisDstIndex = axisDest_->index;
-
-  int nbAxisIdx = axisDstIndex.numElements();
-  for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
-  {
-    int globalAxisIdx = axisDstIndex(idxAxis);
-    if (idxAxis==0)
-    {
-      transMap[globalAxisIdx].resize(1);
-      transWeight[globalAxisIdx].resize(1);
-      transMap[globalAxisIdx][0] = 0 ;
-      transWeight[globalAxisIdx][0] = 1.0 ;
-    }
-  }
-}
-CATCH
 
 }

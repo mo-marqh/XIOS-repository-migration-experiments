@@ -33,8 +33,10 @@
 #include "domain_algorithm_reorder.hpp"
 #include "domain_algorithm_extract.hpp"
 
-
-
+namespace xios
+{
+  void registerAlgorithmTransformation(void) ;
+}
 
 
 #endif // __XIOS_ALGORITHM_TRANSFORMATION_TYPES_HPP__

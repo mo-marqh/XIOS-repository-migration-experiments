@@ -1,4 +1,6 @@
 #include "algorithm_transformation_no_data_modification.hpp"
+#include "grid_algorithm_no_data_modification.hpp"
+#include "grid.hpp"
 
 namespace xios
 {
@@ -7,4 +9,8 @@ namespace xios
     dataOut.reference(dataIn) ;
   }
   
+  CGridAlgorithm* CAlgorithmTransformationNoDataModification::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
+  {
+    return new CGridAlgorithmNoDataModification(this) ;
+  }
 }

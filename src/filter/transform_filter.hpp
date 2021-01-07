@@ -21,13 +21,11 @@ namespace xios
         Overriding this function to process transformations with auxillary inputs
       */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data) ;
-      void apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest);
-
-    private :
+//      void apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest);
      
-     CGridAlgorithm* algorithm_ ;
-     bool detectMissingValues_ ;
-     bool defaultValue_ ;
+      CGridAlgorithm* algorithm_ ;
+      bool detectMissingValues_ ;
+      bool defaultValue_ ;
 
   }; // class CTransformFilter
 

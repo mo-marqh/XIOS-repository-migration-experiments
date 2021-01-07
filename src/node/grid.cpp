@@ -26,6 +26,9 @@
 #include "grid_transformation_factory_impl.hpp"
 #include "transform_filter.hpp"
 #include "grid_algorithm.hpp"
+#include "grid_algorithm_generic.hpp"
+#include "generic_algorithm_transformation.hpp"
+#include "algo_types.hpp"
 
 
 namespace xios
@@ -1703,9 +1706,14 @@ namespace xios
   CGrid::buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues, double defaultValue, CGrid*& newGrid)
   TRY
   {
+    registerAlgorithmTransformation() ; // needed to enable self-registration of the transformations
+                                        // big mystery why it doesn't work witout that...
+                                        // problem with the linker ?? 
+    
     std::shared_ptr<CFilter> inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc));
     std::shared_ptr<CFilter> outputFilter = inputFilter ;
-    
+
+
     string newId ;
     if (gridSrc!=nullptr) newId = gridSrc->getId() + " --> " + this->getId()  ;
     else newId = " --> " + this->getId()  ;
@@ -1918,7 +1926,7 @@ namespace xios
         }
         else gridAlgorithm = newGrid->getGridAlgorithm() ;
 
-        shared_ptr<CTransformFilter> transformFilter = shared_ptr<CTransformFilter>(new CTransformFilter(gc, gridAlgorithm, detectMissingValues, defaultValue)) ;
+        shared_ptr<CTransformFilter> transformFilter = shared_ptr<CTransformFilter>(gridAlgorithm->createTransformFilter(gc, detectMissingValues, defaultValue)) ;
         outputFilter->connectOutput(transformFilter,0) ;
         outputFilter = transformFilter ;
       }
