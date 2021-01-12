@@ -50,7 +50,7 @@ CAxisAlgorithmTemporalSplitting::CAxisAlgorithmTemporalSplitting(bool isSource, 
 
 CTransformFilter* CAxisAlgorithmTemporalSplitting::createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue)
 {
-  return new CTemporalTransformFilter(gc, algo, nrecords_, detectMissingValues, defaultValue) ;
+  return new CTemporalTransformFilter(gc, 1, algo, nrecords_, detectMissingValues, defaultValue) ;
 }
 
 CAxisAlgorithmTemporalSplitting::~CAxisAlgorithmTemporalSplitting()

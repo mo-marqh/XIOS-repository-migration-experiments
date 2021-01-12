@@ -27,7 +27,8 @@ class CGridAlgorithmGeneric : public CGridAlgorithm
 
     void computeAlgorithm(void) ;
     virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut) ;
- 
+    virtual void apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) ;
+    
   protected:
     CGridTransformConnector* gridTransformConnector_=nullptr ;
     CGrid* gridSrc_ = nullptr ;

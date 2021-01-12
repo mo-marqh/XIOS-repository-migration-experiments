@@ -19,6 +19,7 @@
       ret=CAxisAlgorithmZoom::registerTrans();
       ret=CAxisAlgorithmExtractDomain::registerTrans();
       ret=CAxisAlgorithmInterpolate::registerTrans();
+      ret=CAxisAlgorithmInterpolateCoordinate::registerTrans();
       ret=CAxisAlgorithmExtract::registerTrans();
       ret=CAxisAlgorithmInverse::registerTrans();
       ret=CAxisAlgorithmReduceDomain::registerTrans();

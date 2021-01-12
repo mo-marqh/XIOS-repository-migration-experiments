@@ -1,4 +1,5 @@
 #include "reduce_domain_to_axis.hpp"
+#include "axis_algorithm_reduce_domain.hpp"
 #include "type.hpp"
 #include "axis.hpp"
 #include "domain.hpp"
@@ -86,4 +87,18 @@ namespace xios {
     }
   }
 
+  CGenericAlgorithmTransformation* CReduceDomainToAxis::createAlgorithm(bool isSource,
+                                                        CGrid* gridDst, CGrid* gridSrc,
+                                                        int elementPositionInGrid,
+                                                        std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2DomainPosition)
+  {
+    return CAxisAlgorithmReduceDomain::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid,
+                       elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
+                       elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition) ;
+  }
 }

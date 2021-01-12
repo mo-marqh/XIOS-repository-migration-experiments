@@ -5,7 +5,7 @@
 #ifndef __XIOS_SCALAR_ALGORITHM_REDUCE_SCALAR_HPP__
 #define __XIOS_SCALAR_ALGORITHM_REDUCE_SCALAR_HPP__
 
-#include "scalar_algorithm_transformation.hpp"
+#include "algorithm_transformation_reduce.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -18,30 +18,18 @@ class CReductionAlgorithm;
   \class CScalarAlgorithmReduceScalar
   Reducing an scalar to a scalar
 */
-class CScalarAlgorithmReduceScalar : public CScalarAlgorithmTransformation
+class CScalarAlgorithmReduceScalar : public CAlgorithmTransformationReduce
 {
 public:
   CScalarAlgorithmReduceScalar(bool isSource, CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo);
 
-  virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
-                     const double* dataInput,
-                     CArray<double,1>& dataOut,
-                     std::vector<bool>& flagInitial,
-                     bool ignoreMissingValue, bool firstPass);
-
-  virtual void updateData(CArray<double,1>& dataOut);
-  
   virtual ~CScalarAlgorithmReduceScalar();
 
   static bool registerTrans();
 protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
+  
 
-protected:
-  CReductionAlgorithm* reduction_;
-
-private:
-
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CScalar>* transformation,
                                                 int elementPositionInGrid,

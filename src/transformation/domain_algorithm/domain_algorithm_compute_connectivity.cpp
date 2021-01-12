@@ -50,7 +50,6 @@ CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(bool is
 : CAlgorithmTransformationNoDataModification(isSource)
 TRY
 {
-  this->type_ = (ELEMENT_NO_MODIFICATION_WITHOUT_DATA);
   compute_connectivityDomain->checkValid(domainDestination);
   int& nbNeighborMax = compute_connectivityDomain->n_neighbor_max;
   CArray<int,1>& nbNeighbor = compute_connectivityDomain->n_neighbor;

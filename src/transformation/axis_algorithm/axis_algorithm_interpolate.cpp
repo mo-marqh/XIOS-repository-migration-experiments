@@ -45,7 +45,8 @@ bool CAxisAlgorithmInterpolate::dummyRegistered_ = CAxisAlgorithmInterpolate::re
 bool CAxisAlgorithmInterpolate::registerTrans()
 TRY
 {
-  return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INTERPOLATE_AXIS, create);
+  /// descativate for now
+  // return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INTERPOLATE_AXIS, create);
 }
 CATCH
 

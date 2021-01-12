@@ -14,7 +14,7 @@ namespace xios
   {
     public:
 
-      CTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
+      CTransformFilter(CGarbageCollector& gc, int slots, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
 
     protected:
       /*!

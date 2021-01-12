@@ -18,7 +18,8 @@ namespace xios {
   class CReduceAxisToAxisAttributes;
   class CReduceAxisToAxis;
   class CAxis;
-
+  class CGenericAlgorithmTransformation ;
+  class CGrid;
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
@@ -60,7 +61,16 @@ namespace xios {
       ETranformationType getTransformationType(void) { return TRANS_REDUCE_AXIS_TO_AXIS ;}
       static CTransformation<CAxis>* getTransformation(const StdString& id) { return SuperClass::get(id);}
       virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
-    private:
+      virtual CGenericAlgorithmTransformation* createAlgorithm(bool isSource,
+                                                               CGrid* gridDst, CGrid* gridSrc,
+                                                               int elementPositionInGrid,
+                                                               std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2DomainPosition)  ;
+   private:
       static bool registerTrans();
       static CTransformation<CAxis>* create(const StdString& id, xml::CXMLNode* node);
       static bool _dummyRegistered;

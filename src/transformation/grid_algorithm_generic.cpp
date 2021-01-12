@@ -57,6 +57,16 @@ namespace xios
     algorithm_->apply(dimBefore_, dimAfter_, dataOutTmp, dataOut) ;
   }
 
-  
+  void CGridAlgorithmGeneric::apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut)
+  {
+    CArray<double,1> dataOutTmp ;
+    vector<CArray<double,1>> auxDataOutTmp(auxData.size()) ;
+
+    gridTransformConnector_->transfer(dataIn, dataOutTmp) ;
+    for (int i=0; i<auxData.size();i++)  gridTransformConnector_->transfer(auxData[i], auxDataOutTmp[i]) ;
+
+    algorithm_->apply(dimBefore_, dimAfter_, dataOutTmp, auxDataOutTmp, dataOut) ;
+  }
+ 
 
 }

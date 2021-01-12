@@ -39,8 +39,8 @@ private:
   CDomain* domainSrc_ ;
   CDomain* domainDest_ ;
 
-private:
 
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CDomain>* transformation,
                                                 int elementPositionInGrid,

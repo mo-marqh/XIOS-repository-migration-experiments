@@ -44,7 +44,7 @@ protected:
   CDomain* domainSrc_ ;
   CAxis* axisDest_ ;
 
-private:
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,

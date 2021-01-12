@@ -13,7 +13,7 @@ namespace xios
   {
     public:
 
-      CTemporalTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, int nrecords, bool detectMissingValues, double defaultValue) ;
+      CTemporalTransformFilter(CGarbageCollector& gc, int slots, CGridAlgorithm* algo, int nrecords, bool detectMissingValues, double defaultValue) ;
 
     protected:
       /*!

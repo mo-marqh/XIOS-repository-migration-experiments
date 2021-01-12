@@ -1,4 +1,6 @@
 #include "extract_axis_to_scalar.hpp"
+#include "scalar_algorithm_extract_axis.hpp"
+
 #include "type.hpp"
 #include "axis.hpp"
 #include "scalar.hpp"
@@ -56,4 +58,18 @@ namespace xios {
           << "CScalar destination " << scalarDst->getId() << std::endl);
   }
 
+  CGenericAlgorithmTransformation* CExtractAxisToScalar::createAlgorithm(bool isSource,
+                                                        CGrid* gridDst, CGrid* gridSrc,
+                                                        int elementPositionInGrid,
+                                                        std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2DomainPosition)
+  {
+    return CScalarAlgorithmExtractAxis::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid,
+                       elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
+                       elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition) ;
+  }
 }

@@ -3,8 +3,8 @@
 namespace xios
 {
 
-  CTemporalTransformFilter::CTemporalTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, int nrecords, bool detectMissingValues, double defaultValue)
-  : CTransformFilter(gc, algo, detectMissingValues, defaultValue), nrecords_(nrecords)
+  CTemporalTransformFilter::CTemporalTransformFilter(CGarbageCollector& gc, int slots, CGridAlgorithm* algo, int nrecords, bool detectMissingValues, double defaultValue)
+  : CTransformFilter(gc, slots, algo, detectMissingValues, defaultValue), nrecords_(nrecords)
   {
 
   }

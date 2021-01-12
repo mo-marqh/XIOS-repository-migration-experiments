@@ -19,7 +19,8 @@ namespace xios {
   class CZoomDomainAttributes;
   class CZoomDomain;
   class CDomain;
-
+  class CGenericAlgorithmTransformation ;
+  class CGrid;
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
@@ -61,6 +62,15 @@ namespace xios {
       ETranformationType getTransformationType(void) { return TRANS_ZOOM_DOMAIN ;}
       virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
       static CTransformation<CDomain>* getTransformation(const StdString& id) { return SuperClass::get(id);}
+      virtual CGenericAlgorithmTransformation* createAlgorithm(bool isSource,
+                                                               CGrid* gridDst, CGrid* gridSrc,
+                                                               int elementPositionInGrid,
+                                                               std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2DomainPosition)  ;
     private:
       static bool registerTrans();
       static CTransformation<CDomain>* create(const StdString& id, xml::CXMLNode* node);

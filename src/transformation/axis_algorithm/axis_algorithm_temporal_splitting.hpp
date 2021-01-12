@@ -29,8 +29,7 @@ namespace xios
       virtual ~CAxisAlgorithmTemporalSplitting();
       static bool registerTrans();
       virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
-    
-    private:
+
       static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                      CTransformation<CAxis>* transformation,
                                                      int elementPositionInGrid,
@@ -40,6 +39,7 @@ namespace xios
                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition);
+    private:
     int nrecords_;
     static bool dummyRegistered_;
   };

@@ -94,7 +94,7 @@ public:
                                                 std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                 std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                 std::map<int, int>& elementPositionInGridDst2DomainPosition);
-  
+private:  
   CDomain* domainSrc_ ;
   CDomain* domainDest_ ;
 

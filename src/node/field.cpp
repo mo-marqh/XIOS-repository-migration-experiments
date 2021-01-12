@@ -382,15 +382,7 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  //----------------------------------------------------------------
-
-  std::shared_ptr<COutputPin> CField::getInstantDataFilter()
-  TRY
-  {
-    return instantDataFilter;
-  }
-  CATCH_DUMP_ATTR
-
+  
   //----------------------------------------------------------------
 
   void CField::updateRef(CGrid* grid)

@@ -109,6 +109,43 @@ namespace xios
 
       }
 
+      // hook for transfering mask in grid connector, maybe find an other way to doing that...
+      void transfer_or(int rank,  CGathererConnector** connectors, int nConnectors, const bool* input, bool* output)
+      {
+        auto& connector = connector_[rank] ; // probably costly, find a better way to avoid the map
+        auto& mask = mask_[rank] ; 
+        int srcSize = mask.size() ;
+      
+        if (nConnectors==0)
+        {
+          for(int i=0, j=0; i<srcSize; i++)
+            if (mask[i]) 
+            {
+              *(output+connector[j]) |= *(input + i) ;
+              j++ ;
+            }
+
+        }
+        else
+       {
+          int srcSliceSize = (*(connectors-1))->getSrcSliceSize(rank, connectors-1, nConnectors-1) ;
+          int dstSliceSize = (*(connectors-1))->getDstSliceSize(connectors-1, nConnectors-1) ;
+
+          const bool* in = input ; 
+          for(int i=0,j=0;i<srcSize;i++) 
+          {
+            if (mask[i]) 
+            {
+              (*(connectors-1))->transfer_or(rank, connectors-1, nConnectors-1, in, output+connector[j]*dstSliceSize) ; // the multiplication must be avoid in further optimization
+              j++ ;
+            }
+            in += srcSliceSize ;
+          }
+        }
+
+      }
+
+
 
       template<typename T>
       void transfer(map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut, T missingValue)

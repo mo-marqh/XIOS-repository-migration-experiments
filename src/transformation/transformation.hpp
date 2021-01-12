@@ -12,6 +12,9 @@ namespace xios {
     \class CTransformation
     This class describes inverse_axis in xml file.
   */
+  class CGenericAlgorithmTransformation;
+   class CGrid;
+
   template<typename T>
   class CTransformation
   {
@@ -35,6 +38,16 @@ namespace xios {
       virtual const string& getId_(void) { ERROR("string Transformation<T>::getId())",<< "unimplemented virtual function for child"); } ;
       virtual const string& getName(void) { ERROR("string Transformation<T>::getId())",<< "unimplemented virtual function for child"); } ;
       virtual const string& getDefName(void) { ERROR("string Transformation<T>::getId())",<< "unimplemented virtual function for child"); } ;
+      virtual CGenericAlgorithmTransformation* createAlgorithm(bool isSource,
+                                                               CGrid* gridDst, CGrid* gridSrc,
+                                                               int elementPositionInGrid,
+                                                               std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2DomainPosition) =0 ;
+
       /// Destructeur ///
     public:
       virtual ~CTransformation(void) {}

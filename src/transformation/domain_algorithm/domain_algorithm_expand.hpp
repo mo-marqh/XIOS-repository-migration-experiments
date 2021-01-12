@@ -43,7 +43,7 @@ protected:
                                           CDomain* domainSource,
                                           CArray<int,2>& neighborsDomainSrc);
 
-private:
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CDomain>* transformation,
                                                 int elementPositionInGrid,

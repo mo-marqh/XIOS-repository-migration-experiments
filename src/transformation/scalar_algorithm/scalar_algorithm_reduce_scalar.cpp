@@ -43,7 +43,7 @@ TRY
 CATCH
 
 CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(bool isSource, CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo)
- : CScalarAlgorithmTransformation(isSource, scalarDestination, scalarSource), reduction_(0)
+ : CAlgorithmTransformationReduce(isSource)
 TRY
 {
   eliminateRedondantSrc_= false ;
@@ -56,16 +56,16 @@ TRY
   switch (algo->operation)
   {
     case CReduceScalarToScalar::operation_attr::sum:
-      op = "sum";
+      operator_ = EReduction::sum;
       break;
     case CReduceScalarToScalar::operation_attr::min:
-      op = "min";
+      operator_ = EReduction::min;
       break;
     case CReduceScalarToScalar::operation_attr::max:
-      op = "max";
+      operator_ = EReduction::max;
       break;
     case CReduceScalarToScalar::operation_attr::average:
-      op = "average";
+      operator_ = EReduction::average;
       break;
     default:
         ERROR("CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo)",
@@ -74,52 +74,18 @@ TRY
          << "Scalar destination " << scalarDestination->getId());
 
   }
-  
-  if (CReductionAlgorithm::ReductionOperations.end() == CReductionAlgorithm::ReductionOperations.find(op))
-    ERROR("CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo)",
-       << "Operation '" << op << "' not found. Please make sure to use a supported one"
-       << "Scalar source " <<scalarSource->getId() << std::endl
-       << "Scalar destination " << scalarDestination->getId());
+  transformationMapping_[0].push_back(0) ;
 
-  reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
-}
-CATCH
-
-void CScalarAlgorithmReduceScalar::apply(const std::vector<std::pair<int,double> >& localIndex, const double* dataInput, CArray<double,1>& dataOut,
-                                         std::vector<bool>& flagInitial, bool ignoreMissingValue, bool firstPass)
-TRY
-{
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
-}
-CATCH
-
-void CScalarAlgorithmReduceScalar::updateData(CArray<double,1>& dataOut)
-TRY
-{
-  reduction_->updateData(dataOut);
+  scalarDestination->checkAttributes() ;
+  this->computeAlgorithm(scalarSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ; 
 }
 CATCH
 
 CScalarAlgorithmReduceScalar::~CScalarAlgorithmReduceScalar()
 TRY
 {
-  if (0 != reduction_) delete reduction_;
 }
 CATCH
 
-void CScalarAlgorithmReduceScalar::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-TRY
-{
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  transMap[0].push_back(0);
-  transWeight[0].push_back(1.0);
-
-}
-CATCH
 
 }

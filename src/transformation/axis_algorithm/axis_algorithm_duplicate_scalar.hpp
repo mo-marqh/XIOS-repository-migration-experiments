@@ -32,9 +32,6 @@ public:
 
   static bool registerTrans();
 
-
-private:
-
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,

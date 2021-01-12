@@ -1,4 +1,5 @@
 #include "reduce_scalar_to_scalar.hpp"
+#include "scalar_algorithm_reduce_scalar.hpp"
 #include "type.hpp"
 
 namespace xios {
@@ -40,4 +41,18 @@ namespace xios {
   {
   }
 
+  CGenericAlgorithmTransformation* CReduceScalarToScalar::createAlgorithm(bool isSource,
+                                                        CGrid* gridDst, CGrid* gridSrc,
+                                                        int elementPositionInGrid,
+                                                        std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2DomainPosition)
+  {
+    return CScalarAlgorithmReduceScalar::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid,
+                       elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
+                       elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition);
+  }
 }

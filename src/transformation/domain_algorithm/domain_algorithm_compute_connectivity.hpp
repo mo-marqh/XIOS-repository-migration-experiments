@@ -35,7 +35,7 @@ protected:
                                 CArray<int,1>& nbConnectivity,
                                 CArray<int,2>& localConnectivity);
 
-private:
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CDomain>* transformation,
                                                 int elementPositionInGrid,
@@ -49,4 +49,5 @@ private:
 };
 
 }
+
 #endif // __XIOS_DOMAIN_ALGORITHM_COMPUTE_CONNECTIVITY_HPP__

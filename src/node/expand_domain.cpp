@@ -1,4 +1,5 @@
 #include "expand_domain.hpp"
+#include "domain_algorithm_expand.hpp"
 #include "type.hpp"
 
 namespace xios {
@@ -46,5 +47,19 @@ namespace xios {
 
     if (this->type.isEmpty()) this->type.setValue(CExpandDomain::type_attr::edge);
   }
-
+  
+  CGenericAlgorithmTransformation* CExpandDomain::createAlgorithm(bool isSource,
+                                                        CGrid* gridDst, CGrid* gridSrc,
+                                                        int elementPositionInGrid,
+                                                        std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2DomainPosition)
+  {
+    return CDomainAlgorithmExpand::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid,
+                       elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
+                       elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition) ;
+  }
 }

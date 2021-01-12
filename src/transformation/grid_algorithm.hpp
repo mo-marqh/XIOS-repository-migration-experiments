@@ -23,7 +23,8 @@ class CGridAlgorithm
   public:
     CGridAlgorithm(CGenericAlgorithmTransformation* algorithm) : algorithm_(algorithm)  {} ;
     virtual ~CGridAlgorithm() {} ;
-    virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)=0 ;
+    virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut) { abort(); } //=0
+    virtual void apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) { abort(); } //=0
     virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, bool detectMissingValues, double defaultValue) ;
    
     protected:

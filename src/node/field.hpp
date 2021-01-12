@@ -106,8 +106,6 @@ namespace xios
       public:
          template <int N> void getData(CArray<double, N>& _data) const;
 
-         std::shared_ptr<COutputPin> getInstantDataFilter();
-
          std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
          // Grid data buffer size for each connection of contextclient
          std::map<int, StdSize> getGridDataBufferSize(CContextClient* client, bool bufferForWriting = false);
@@ -351,7 +349,11 @@ namespace xios
          
          //! The output pin of the filter providing the instant data for the field
          std::shared_ptr<COutputPin> instantDataFilter;
-         
+      public:
+          std::shared_ptr<COutputPin> getInstantDataFilter(void) { return instantDataFilter;}
+
+      private:
+
          //! The output pin of the filters providing the result of the field's temporal operation
          std::map<CDuration, std::shared_ptr<COutputPin>, DurationFakeLessComparator> temporalDataFilters;
          

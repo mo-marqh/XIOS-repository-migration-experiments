@@ -36,8 +36,8 @@ private:
   CAxis* axisDest_;
   void updateAxisValue();
 
-private:
-  static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+public:
+ static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,
                                                 std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

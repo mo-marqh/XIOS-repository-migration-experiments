@@ -19,7 +19,8 @@ namespace xios {
   class CReduceDomainToScalar;
   class CDomain;
   class CScalar;
-
+  class CGenericAlgorithmTransformation ;
+  class CGrid;
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
@@ -61,6 +62,15 @@ namespace xios {
       ETranformationType getTransformationType(void) { return TRANS_REDUCE_DOMAIN_TO_SCALAR ;}
       static CTransformation<CScalar>* getTransformation(const StdString& id) { return SuperClass::get(id);}
       virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
+      virtual CGenericAlgorithmTransformation* createAlgorithm(bool isSource,
+                                                               CGrid* gridDst, CGrid* gridSrc,
+                                                               int elementPositionInGrid,
+                                                               std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2DomainPosition)  ;
     private:
       static bool registerTrans();
       static CTransformation<CScalar>* create(const StdString& id, xml::CXMLNode* node);

@@ -41,6 +41,8 @@ private:
   void computeDistributionGridSource(CGrid* gridSrc);
   void computeDistributionGridDestination(CGrid* gridDest);
   void fillInAttributesDomainDestination();
+
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CDomain>* transformation,
                                                 int elementPositionInGrid,

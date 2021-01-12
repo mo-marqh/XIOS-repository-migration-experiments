@@ -60,8 +60,7 @@ TRY
            << "Domain source " <<domainSource->getId() << std::endl
            << "Domain destination " <<domainDestination->getId() << std::endl);
   }
-  this->type_ = (ELEMENT_MODIFICATION_WITHOUT_DATA);
-
+  
   if (!reorderDomain->invert_lat.isEmpty())
   {
     CArray<int,1>& j_index=domainDestination->j_index ;

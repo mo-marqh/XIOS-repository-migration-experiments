@@ -1,4 +1,6 @@
 #include "interpolate_axis.hpp"
+#include "axis_algorithm_interpolate_coordinate.hpp"
+#include "axis_algorithm_interpolate.hpp"
 #include "type.hpp"
 #include "field.hpp"
 
@@ -82,5 +84,23 @@ namespace xios {
     }
 
     return auxInputs;
+  }
+
+  CGenericAlgorithmTransformation* CInterpolateAxis::createAlgorithm(bool isSource,
+                                                        CGrid* gridDst, CGrid* gridSrc,
+                                                        int elementPositionInGrid,
+                                                        std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                        std::map<int, int>& elementPositionInGridDst2DomainPosition)
+  {
+    if (!coordinate.isEmpty())  return CAxisAlgorithmInterpolateCoordinate::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid, 
+                                      elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
+                                      elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition);
+    else return CAxisAlgorithmInterpolate::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid, 
+                elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
+                elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition);
   }
 }

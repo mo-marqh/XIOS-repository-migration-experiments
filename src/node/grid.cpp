@@ -15,7 +15,6 @@
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
 #include "distribution_client.hpp"
-#include "grid_transformation.hpp"
 #include "server.hpp"
 #include "distribution_type.hpp"
 #include "grid_remote_connector.hpp"
@@ -45,9 +44,8 @@ namespace xios
       , clientDistribution_(0), isIndexSent(false)
       , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
 	    , isCompressible_(false)
-      , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), order_()
+      , gridSrc_(), order_()
       , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
@@ -64,9 +62,8 @@ namespace xios
       , clientDistribution_(0), isIndexSent(false)
       , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
 	    , isCompressible_(false)
-      , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), order_()
+      , gridSrc_(), order_()
       , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
@@ -77,7 +74,6 @@ namespace xios
    CGrid::~CGrid(void)
    {
     if (0 != clientDistribution_) delete clientDistribution_;
-    if (0 != transformations_) delete transformations_;
    }
 
    ///---------------------------------------------------------------
@@ -1362,7 +1358,7 @@ namespace xios
     CGridMaskConnector gridMaskConnector(fullViews) ;
 
     CArray<bool,1> maskOut ;
-    gridGathererConnector.transfer(event,maskOut,false) ;
+    gridGathererConnector.transfer_or(event,maskOut) ;
     gridMaskConnector.computeConnector(maskOut) ;
 
     CContextClient* client = event.getContextServer()->getAssociatedClient() ;
@@ -1687,15 +1683,6 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  
-
-  vector<std::string> CGrid::getAuxInputTransformGrid(void)
-  TRY
-  {
-    if (transformations_ != nullptr) return transformations_->getAuxInputs() ;
-  }
-  CATCH_DUMP_ATTR
-
 
 
 //**********************************************************
@@ -1709,7 +1696,7 @@ namespace xios
     registerAlgorithmTransformation() ; // needed to enable self-registration of the transformations
                                         // big mystery why it doesn't work witout that...
                                         // problem with the linker ?? 
-    
+
     std::shared_ptr<CFilter> inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc));
     std::shared_ptr<CFilter> outputFilter = inputFilter ;
 
@@ -1791,11 +1778,15 @@ namespace xios
             transformation->inheritFrom(srcTransform) ;
             tmpGridDst->addDomain(dstDomain->getId()) ;
 
+            algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
+                                                     posInGrid,posInGrid,posInGrid,
+                                                     posInGrid,posInGrid,posInGrid );
             //reuse existing algorithm interface for, now
-            algo = CGridTransformationFactory<CDomain>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
+         /*   algo = CGridTransformationFactory<CDomain>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
                                                                              transformation, 0, 
                                                                              posInGrid,posInGrid,posInGrid,
                                                                              posInGrid,posInGrid,posInGrid );
+           */
             dstDomain->setTransformationAlgorithm(algo) ;
             transformationPath.removeNextTransform() ;
             dstDomain->setTransformationPaths(transformationPath) ;
@@ -1818,11 +1809,15 @@ namespace xios
             transformation->inheritFrom(srcTransform) ;
             tmpGridDst->addAxis(dstAxis->getId()) ;
 
+             algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
+                                                     posInGrid,posInGrid,posInGrid,
+                                                     posInGrid,posInGrid,posInGrid );
+
             //reuse existing algorithm interface for, now
-            algo = CGridTransformationFactory<CAxis>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
+           /* algo = CGridTransformationFactory<CAxis>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
                                                                            transformation, 0, 
                                                                            posInGrid,posInGrid,posInGrid,
-                                                                           posInGrid,posInGrid,posInGrid );
+                                                                           posInGrid,posInGrid,posInGrid );*/
             dstAxis->setTransformationAlgorithm(algo) ;
             transformationPath.removeNextTransform() ;
             dstAxis->setTransformationPaths(transformationPath) ;
@@ -1845,11 +1840,14 @@ namespace xios
             transformation->inheritFrom(srcTransform) ;
             tmpGridDst->addScalar(dstScalar->getId()) ;
 
+            algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
+                                                     posInGrid,posInGrid,posInGrid,
+                                                     posInGrid,posInGrid,posInGrid );
             //reuse existing algorithm interface for, now
-            algo = CGridTransformationFactory<CScalar>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
+           /* algo = CGridTransformationFactory<CScalar>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
                                                                              transformation, 0, 
                                                                              posInGrid,posInGrid,posInGrid,
-                                                                             posInGrid,posInGrid,posInGrid );
+                                                                             posInGrid,posInGrid,posInGrid );*/
             dstScalar->setTransformationAlgorithm(algo) ;
             transformationPath.removeNextTransform() ;
             dstScalar->setTransformationPaths(transformationPath) ;
@@ -1916,6 +1914,7 @@ namespace xios
 
     if (hadTransform)
     {
+      
       if (!isSource)
       {
         CGridAlgorithm* gridAlgorithm  ;
@@ -1928,6 +1927,15 @@ namespace xios
 
         shared_ptr<CTransformFilter> transformFilter = shared_ptr<CTransformFilter>(gridAlgorithm->createTransformFilter(gc, detectMissingValues, defaultValue)) ;
         outputFilter->connectOutput(transformFilter,0) ;
+        vector<string> auxFieldId = algo->getAuxFieldId() ; // better to do that at transformation not algo ??
+        int i=1; 
+        for (auto& it : auxFieldId)
+        {
+          CField* auxField = CField::get(it) ;
+          auxField->buildWorkflowGraph(gc) ;
+          auxField->getInstantDataFilter()->connectOutput(transformFilter,i) ;
+          i++ ;
+        }
         outputFilter = transformFilter ;
       }
 

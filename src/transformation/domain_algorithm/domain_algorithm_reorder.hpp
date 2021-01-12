@@ -26,8 +26,8 @@ namespace xios
 
       static bool registerTrans();
 
-    private:
-
+  
+    public:
       static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                      CTransformation<CDomain>* transformation,
                                                      int elementPositionInGrid,

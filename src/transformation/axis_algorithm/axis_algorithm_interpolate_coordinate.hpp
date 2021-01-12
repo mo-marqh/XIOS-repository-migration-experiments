@@ -6,10 +6,10 @@
 
    \brief Algorithm for interpolation on an axis.
  */
-#ifndef __XIOS_AXIS_ALGORITHM_INTERPOLATE_HPP__
-#define __XIOS_AXIS_ALGORITHM_INTERPOLATE_HPP__
+#ifndef __XIOS_AXIS_ALGORITHM_INTERPOLATE_COORDINATE_HPP__
+#define __XIOS_AXIS_ALGORITHM_INTERPOLATE_COORDINATE_HPP__
 
-#include "algorithm_transformation_weight.hpp"
+#include "algorithm_transformation_transfer.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -17,37 +17,39 @@ namespace xios {
 class CAxis;
 class CGrid;
 class CInterpolateAxis;
+class CTransformFilter;
 
 /*!
-  \class CAxisAlgorithmInterpolate
+  \class CAxisAlgorithmInterpolateCoordinate
   Implementing interpolation on axis
   The values on axis source are assumed monotonic
 */
-class CAxisAlgorithmInterpolate : public CAlgorithmTransformationWeight
+class CAxisAlgorithmInterpolateCoordinate : public CAlgorithmTransformationTransfer
 {
 public:
-  CAxisAlgorithmInterpolate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis);
+  CAxisAlgorithmInterpolateCoordinate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis);
 
-  virtual ~CAxisAlgorithmInterpolate() {}
-
+  virtual ~CAxisAlgorithmInterpolateCoordinate() {}
+  virtual vector<string> getAuxFieldId(void)  ;
+  virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, 
+                     const vector<CArray<double,1>>& auxDataIn, CArray<double,1>& dataOut) ;
   static bool registerTrans();
-
+  virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
+  
 private:
-  void computeRemap(const std::vector<CArray<double,1>* >& dataAuxInputs) ;
-  void retrieveAllAxisValue(const CArray<double,1>& axisValue, const CArray<bool,1>& axisMask,
-                            std::vector<double>& recvBuff, std::vector<int>& indexVec);
-  void computeInterpolantPoint(const std::vector<double>& recvBuff, const std::vector<int>&, int transPos = 0);
-  void computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos = 0);
-  void fillInAxisValue(std::vector<CArray<double,1> >& vecAxisValue,
-                       const std::vector<CArray<double,1>* >& dataAuxInputs);
+  void computeInterp(int nsrc, vector<double>& srcCoordinate, vector<double>& srcValue, vector<int>& srcIndex,
+                     int ndst, vector<double>& dstCoordinate, vector<double>& dstValue, vector<int>& dstIndex) ;
 
-private:
   // Interpolation order
   int order_;
   StdString coordinate_;
-  std::vector<std::vector<int> > transPosition_;
+  bool hasCoordinate_=false ;
+
   CAxis* axisSrc_=nullptr ;
   CAxis* axisDest_=nullptr;
+  size_t ngloSrc_ ;
+  size_t nDest_ ;
+  vector<double> destCoordinate_ ;
 
 public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,

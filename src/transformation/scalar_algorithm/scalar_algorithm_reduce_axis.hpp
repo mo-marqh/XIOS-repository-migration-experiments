@@ -33,8 +33,8 @@ public:
 
   static bool registerTrans();
 
-private:
 
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CScalar>* transformation,
                                                 int elementPositionInGrid,

@@ -31,8 +31,8 @@ public:
   virtual ~CAxisAlgorithmReduceAxis();
 
   static bool registerTrans();
-  
-private:
+
+public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,

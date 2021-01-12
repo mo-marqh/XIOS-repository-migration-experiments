@@ -38,8 +38,7 @@ namespace xios {
    class CDistributionServer;
    class CServerDistributionDescription;
    class CClientServerMapping;
-   class CGridTransformation;
-
+  
    ///--------------------------------------------------------------
 
    // Declare/Define CGridAttribute
@@ -214,10 +213,6 @@ namespace xios {
          ////////    TRANSFORMATIONS           /////
          ///////////////////////////////////////////
       public:
-         CGridTransformation* getTransformations();
-
-         std::vector<std::string> getAuxInputTransformGrid(void) ; 
-         void setTransformationAlgorithms();
          pair<shared_ptr<CFilter>, shared_ptr<CFilter> > buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues,
                                                                                   double defaultValue, CGrid*& newGrid) ;
       private:
@@ -225,10 +220,6 @@ namespace xios {
       public:
         void setGridAlgorithm(CGridAlgorithm* gridAlgorithm) {gridAlgorithm_ = gridAlgorithm;}
         CGridAlgorithm* getGridAlgorithm(void) { return gridAlgorithm_ ;}
-      private:
-         bool isTransformed_;
-         CGridTransformation* transformations_;
-         bool hasTransform_;
        
         ///////////////////////////////////////////
       public:
