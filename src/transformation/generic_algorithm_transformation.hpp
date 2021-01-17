@@ -39,7 +39,8 @@ class CGenericAlgorithmTransformation
     virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut) { abort() ;} //=0
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) { abort() ;} //=0
-    
+    virtual bool isGenerateTransformation(void) { return false ;}
+
     virtual vector<string> getAuxFieldId(void) ;
   protected :
     typedef std::unordered_map<int, std::vector<int> > TransformationIndexMap;

@@ -63,6 +63,7 @@ TRY
     computeDistributionGridDestination(gridDest);
   }
   fillInAttributesDomainDestination();
+  domainDestination->checkAttributes() ;
 }
 CATCH
 

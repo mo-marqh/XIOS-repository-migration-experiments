@@ -9,5 +9,8 @@ namespace xios
     return algorithm_->createTransformFilter(gc, this, detectMissingValues, defaultValue) ;
   }
 
-
+  bool CGridAlgorithm::isGenerateTranformation(void)
+  { 
+    return algorithm_->isGenerateTransformation() ;
+  }  
 }

@@ -1707,11 +1707,13 @@ namespace xios
     bool isNewGrid ;
     if (CGrid::has(newId))
     {
+      cout<<"Retrive existing grid : "<<newId<<endl ;
       newGrid = CGrid::get(newId);
       isNewGrid = false ;
     }
     else  
     {
+      cout<<"Create new grid : "<<newId<<endl ;
       newGrid = CGrid::create(newId) ;
       isNewGrid = true ;
     }
@@ -1766,93 +1768,149 @@ namespace xios
         if (dstElementType==EElement::DOMAIN)
         {
           CDomain* dstDomain ;
-          if (CDomain::has(dstElementId)) dstDomain = CDomain::get(dstElementId) ;
-          else
+          CDomain* lastDstDomain ;
+          bool isGenerate=false ;
+   
+          do 
           {
-            dstDomain = CDomain::create() ;
-            dstDomain->createAlias(dstElementId) ;
-            if (srcElementId=="" && srcElement.type==TYPE_DOMAIN)  dstDomain->duplicateAttributes(srcElement.domain) ; // make a copy
-            else dstDomain->duplicateAttributes(dstElement.domain) ; // make a copy
-            CTransformation<CDomain>* transformation = CTransformation<CDomain>::createTransformation(transType,"") ;
-            auto srcTransform = CTransformation<CDomain>::getTransformation(transType, transId) ;
-            transformation->inheritFrom(srcTransform) ;
-            tmpGridDst->addDomain(dstDomain->getId()) ;
 
-            algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
-                                                     posInGrid,posInGrid,posInGrid,
-                                                     posInGrid,posInGrid,posInGrid );
-            //reuse existing algorithm interface for, now
-         /*   algo = CGridTransformationFactory<CDomain>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
-                                                                             transformation, 0, 
-                                                                             posInGrid,posInGrid,posInGrid,
-                                                                             posInGrid,posInGrid,posInGrid );
-           */
-            dstDomain->setTransformationAlgorithm(algo) ;
+            if (CDomain::has(dstElementId)) 
+            {
+              dstDomain = CDomain::get(dstElementId) ;
+              cout<<"Retrive existing domain : "<<dstElementId<<endl ;
+            }
+            else
+            {
+              dstDomain = CDomain::create() ;
+              dstDomain->createAlias(dstElementId) ;
+              cout<<"Create new domain : "<<dstDomain->getId()<<" with alias : "<<dstElementId<<endl ;
+
+              if (isGenerate) dstDomain->duplicateAttributes(lastDstDomain) ;
+              else if (srcElementId=="" && srcElement.type==TYPE_DOMAIN)  dstDomain->duplicateAttributes(srcElement.domain) ; // make a copy
+              else dstDomain->duplicateAttributes(dstElement.domain) ; // make a copy
+              CTransformation<CDomain>* transformation = CTransformation<CDomain>::createTransformation(transType,"") ;
+              auto srcTransform = CTransformation<CDomain>::getTransformation(transType, transId) ;
+              transformation->inheritFrom(srcTransform) ;
+              CGrid* tmpGridDst=CGrid::create(); // destination Grid
+              tmpGridDst->addDomain(dstDomain->getId()) ;
+
+              algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
+                                                       posInGrid,posInGrid,posInGrid,
+                                                       posInGrid,posInGrid,posInGrid );
+
+
+              dstDomain->setTransformationAlgorithm(algo) ;
+              dstDomain->setTransformationPaths(transformationPath) ;
+            }
+            algo=dstDomain->getTransformationAlgorithm() ;
+            isGenerate = algo->isGenerateTransformation() ;
             transformationPath.removeNextTransform() ;
+            dstElementId=transformationPath.getNextElementId() ;
+            srcElementId=transformationPath.getNextElementSrcId() ;
+            transType = transformationPath.getNextTransformationType() ;
+            transId = transformationPath.getNextTransformationId() ;
+            lastDstDomain=dstDomain ;
             dstDomain->setTransformationPaths(transformationPath) ;
-          }
+          } while(transformationPath.hasTransform() && isGenerate) ;
+
           if (isNewGrid) newGrid->addDomain(dstDomain->getId()) ;
           algo = dstDomain->getTransformationAlgorithm() ;
         }
         else if (dstElementType==EElement::AXIS)
         {
           CAxis* dstAxis ;
-          if (CAxis::has(dstElementId)) dstAxis = CAxis::get(dstElementId) ;
-          else
+          CAxis* lastDstAxis ;
+          bool isGenerate=false ;
+
+          do 
           {
-            dstAxis = CAxis::create() ;
-            dstAxis->createAlias(dstElementId) ;
-            if (srcElementId=="" && srcElement.type==TYPE_AXIS)  dstAxis->duplicateAttributes(srcElement.axis) ; // make a copy
-            else dstAxis->duplicateAttributes(dstElement.axis) ; // make a copy
-            CTransformation<CAxis>* transformation = CTransformation<CAxis>::createTransformation(transType,"") ;
-            auto srcTransform = CTransformation<CAxis>::getTransformation(transType, transId) ;
-            transformation->inheritFrom(srcTransform) ;
-            tmpGridDst->addAxis(dstAxis->getId()) ;
+            if (CAxis::has(dstElementId)) 
+            {
+              dstAxis = CAxis::get(dstElementId) ;
+              cout<<"Retrive existing axis : "<<dstElementId<<endl ;
+            }
+            else
+            {
+              dstAxis = CAxis::create() ;
+              dstAxis->createAlias(dstElementId) ;
+              cout<<"Create new axis : "<<dstAxis->getId()<<" with alias : "<<dstElementId<<endl ;
+              
+              if (isGenerate) dstAxis->duplicateAttributes(lastDstAxis) ;
+              else if (srcElementId=="" && srcElement.type==TYPE_AXIS)  dstAxis->duplicateAttributes(srcElement.axis) ; // make a copy
+              else dstAxis->duplicateAttributes(dstElement.axis) ; // make a copy
+              CTransformation<CAxis>* transformation = CTransformation<CAxis>::createTransformation(transType,"") ;
+              auto srcTransform = CTransformation<CAxis>::getTransformation(transType, transId) ;
+              transformation->inheritFrom(srcTransform) ;
+              tmpGridDst->addAxis(dstAxis->getId()) ;
 
-             algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
-                                                     posInGrid,posInGrid,posInGrid,
-                                                     posInGrid,posInGrid,posInGrid );
+              algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
+                                                      posInGrid,posInGrid,posInGrid,
+                                                      posInGrid,posInGrid,posInGrid );
 
-            //reuse existing algorithm interface for, now
-           /* algo = CGridTransformationFactory<CAxis>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
-                                                                           transformation, 0, 
-                                                                           posInGrid,posInGrid,posInGrid,
-                                                                           posInGrid,posInGrid,posInGrid );*/
-            dstAxis->setTransformationAlgorithm(algo) ;
+              dstAxis->setTransformationAlgorithm(algo) ;
+              dstAxis->setTransformationPaths(transformationPath) ;
+            }
+           
+            algo=dstAxis->getTransformationAlgorithm() ;
+            isGenerate = algo->isGenerateTransformation() ;
             transformationPath.removeNextTransform() ;
+            dstElementId=transformationPath.getNextElementId() ;
+            srcElementId=transformationPath.getNextElementSrcId() ;
+            transType = transformationPath.getNextTransformationType() ;
+            transId = transformationPath.getNextTransformationId() ;
+            lastDstAxis=dstAxis ;
             dstAxis->setTransformationPaths(transformationPath) ;
-          }
-           if (isNewGrid) newGrid->addAxis(dstAxis->getId()) ;
+          } while(transformationPath.hasTransform() && isGenerate) ;
+           
+          if (isNewGrid) newGrid->addAxis(dstAxis->getId()) ;
           algo = dstAxis->getTransformationAlgorithm() ;
         }
         else if (dstElementType==EElement::SCALAR)
         {
           CScalar* dstScalar ;
-          if (CScalar::has(dstElementId)) dstScalar = CScalar::get(dstElementId) ;
-          else
-          {
-            dstScalar = CScalar::create() ;
-            dstScalar->createAlias(dstElementId) ;
-            if (srcElementId=="" && srcElement.type==TYPE_SCALAR)  dstScalar->duplicateAttributes(srcElement.scalar) ; // make a copy
-            else dstScalar->duplicateAttributes(dstElement.scalar) ; // make a copy
-            CTransformation<CScalar>* transformation = CTransformation<CScalar>::createTransformation(transType,"") ;
-            auto srcTransform = CTransformation<CScalar>::getTransformation(transType, transId) ;
-            transformation->inheritFrom(srcTransform) ;
-            tmpGridDst->addScalar(dstScalar->getId()) ;
+          CScalar* lastDstScalar ;
+          bool isGenerate=false ;
 
-            algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
-                                                     posInGrid,posInGrid,posInGrid,
-                                                     posInGrid,posInGrid,posInGrid );
-            //reuse existing algorithm interface for, now
-           /* algo = CGridTransformationFactory<CScalar>::createTransformation(transType, false, tmpGridDst, tmpGridSrc,
-                                                                             transformation, 0, 
-                                                                             posInGrid,posInGrid,posInGrid,
-                                                                             posInGrid,posInGrid,posInGrid );*/
-            dstScalar->setTransformationAlgorithm(algo) ;
+          do 
+          {
+            if (CScalar::has(dstElementId)) 
+            {
+              dstScalar = CScalar::get(dstElementId) ;
+              cout<<"Retrive existing scalar : "<<dstElementId<<endl ;
+            }
+            else
+            {
+              dstScalar = CScalar::create() ;
+              dstScalar->createAlias(dstElementId) ;
+              cout<<"Create new scalar : "<<dstScalar->getId()<<" with alias : "<<dstElementId<<endl ;
+              
+              if (isGenerate) dstScalar->duplicateAttributes(lastDstScalar) ;
+              else if (srcElementId=="" && srcElement.type==TYPE_SCALAR)  dstScalar->duplicateAttributes(srcElement.scalar) ; // make a copy
+              else dstScalar->duplicateAttributes(dstElement.scalar) ; // make a copy
+              CTransformation<CScalar>* transformation = CTransformation<CScalar>::createTransformation(transType,"") ;
+              auto srcTransform = CTransformation<CScalar>::getTransformation(transType, transId) ;
+              transformation->inheritFrom(srcTransform) ;
+              tmpGridDst->addScalar(dstScalar->getId()) ;
+
+              algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
+                                                       posInGrid,posInGrid,posInGrid,
+                                                       posInGrid,posInGrid,posInGrid );
+              
+              dstScalar->setTransformationAlgorithm(algo) ;
+              dstScalar->setTransformationPaths(transformationPath) ;
+            }
+            algo=dstScalar->getTransformationAlgorithm() ;
+            isGenerate = algo->isGenerateTransformation() ;
             transformationPath.removeNextTransform() ;
+            dstElementId=transformationPath.getNextElementId() ;
+            srcElementId=transformationPath.getNextElementSrcId() ;
+            transType = transformationPath.getNextTransformationType() ;
+            transId = transformationPath.getNextTransformationId() ;
+            lastDstScalar=dstScalar ;
             dstScalar->setTransformationPaths(transformationPath) ;
-          }
-           if (isNewGrid) newGrid->addScalar(dstScalar->getId()) ;
+          } while(transformationPath.hasTransform() && isGenerate) ;
+
+          if (isNewGrid) newGrid->addScalar(dstScalar->getId()) ;
           algo = dstScalar->getTransformationAlgorithm() ;          
         }
         // here create a new spatial filter with algo
