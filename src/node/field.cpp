@@ -18,7 +18,6 @@
 #include "filter_expr_node.hpp"
 #include "lex_parser.hpp"
 #include "temporal_filter.hpp"
-#include "spatial_transform_filter.hpp"
 #include "server_from_client_source_filter.hpp"
 #include "file_reader_source_filter.hpp"
 #include "tracer.hpp"
