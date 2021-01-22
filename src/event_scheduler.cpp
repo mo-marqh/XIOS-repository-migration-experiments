@@ -75,6 +75,7 @@ namespace xios
   void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId)
   {
     registerEvent(timeLine, contextHashId, level) ;
+    checkEvent() ;
   }
   
   void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId, const size_t lev)
@@ -93,7 +94,7 @@ namespace xios
 
   bool CEventScheduler::queryEvent(const size_t timeLine, const size_t contextHashId)
   {
-
+    checkEvent() ;
     if (! eventStack.empty() && eventStack.front().first==timeLine && eventStack.front().second==contextHashId)
     {
       eventStack.pop() ;

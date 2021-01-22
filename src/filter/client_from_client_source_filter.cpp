@@ -33,9 +33,10 @@ namespace xios
 
     CDataPacketPtr packet(new CDataPacket);
     packet->date = date;
-    packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
-
+    for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> packet->timestamp  ; // better management of time lien later...
+    packet->timestamp = date;
+         
     grid_->getClientFromClientConnector()->transfer(event,packet->data) ;
     onOutputReady(packet);
   }
@@ -46,6 +47,7 @@ namespace xios
     CDate currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate() ;
     if (wasDataAlreadyReceived_) isDataLate = lastDateReceived_ + offset_ + freqOp_ <= currentDate ;
     else isDataLate = CContext::getCurrent()->getCalendar()->getInitDate()+ offset_ <= currentDate ;
+    return isDataLate ;
   }
 
 } // namespace xios

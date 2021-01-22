@@ -1206,13 +1206,23 @@ namespace xios
     CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
     gridPtr->sendCreateChild(this->getId(),client);
     this->sendAllAttributesToServer(client);
-    distributeGridToFileServer(client) ;
+    distributeGridToServer(client) ;
   }
 
 
-  void CGrid::distributeGridToFileServer(CContextClient* client)
+  void CGrid::sendGridToCouplerOut(CContextClient* client, const string& fieldId)
+  {
+    if (sendGridToCouplerOut_done_.count(client)!=0) return ;
+    else sendGridToCouplerOut_done_.insert(client) ;
+    this->sendAllAttributesToServer(client, getCouplingAlias(fieldId));
+    distributeGridToServer(client,fieldId) ;
+  }
+
+
+  void CGrid::distributeGridToServer(CContextClient* client, const string& fieldId)
   {
     CContext* context = CContext::getCurrent();
+    bool isCoupling = !fieldId.empty() ;
     // simple Distribution for now 
     // distribute over the fisrt element except if it is a scalar
     auto& elements = getElements() ;
@@ -1260,23 +1270,35 @@ namespace xios
     {
       if (elements[i].type==TYPE_DOMAIN) 
       { 
-         CDomain* domain = (CDomain*) elements[i].ptr ;
-         sendAddDomain(domain->getId(),client) ;
-         domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
-         scattererConnectors.push_back(scattererConnector) ;
+        CDomain* domain = (CDomain*) elements[i].ptr ;
+        if (isCoupling) domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector,  domain->getCouplingAlias(fieldId,i)) ;
+        else 
+        {
+          sendAddDomain(domain->getId(),client) ;
+          domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+        }
+        scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_AXIS)
       {
         CAxis* axis = (CAxis*) elements[i].ptr ;
-        sendAddAxis(axis->getId(),client) ;
-        axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+        if (isCoupling) axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector,  axis->getCouplingAlias(fieldId,i)) ;
+        else 
+        {
+          sendAddAxis(axis->getId(),client) ;
+          axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+        }
         scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_SCALAR)
       {
         CScalar* scalar = (CScalar*) elements[i].ptr ;
-        sendAddScalar(scalar->getId(),client) ;
-        scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+        if (isCoupling) scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector,  scalar->getCouplingAlias(fieldId,i)) ;
+        else 
+        {
+          sendAddScalar(scalar->getId(),client) ;
+          scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i), scattererConnector) ;
+        }
         scattererConnectors.push_back(scattererConnector) ;
       }
     }
@@ -1290,7 +1312,8 @@ namespace xios
 
     CEventClient event(getType(), EVENT_ID_SEND_MASK);
     CMessage message ;
-    message<<getId() ; 
+    if (isCoupling) message<<getCouplingAlias(fieldId) ;
+    else message<<getId() ; 
     gridScattererConnector.transfer(maskOut, client, event, message) ;
     for(auto& it : scattererConnectors) delete it ;
 
@@ -1320,8 +1343,8 @@ namespace xios
     clientToServerConnector_[client] = new CGridScattererConnector(clientToServerConnectors) ;
     clientFromServerConnector_[client] = new CGridGathererConnector(clientFromServerConnectors) ;
 
-
   }
+
 
   void CGrid::recvMask(CEventServer& event)
   {
@@ -1372,97 +1395,23 @@ namespace xios
     }
   }
 
-
-  void CGrid::sendGridToCouplerOut(CContextClient* client, const string& fieldId)
+  string CGrid::getCouplingAlias(const string& fieldId)
   {
-/*    if (sendGridToCouplerOut_done_.count(client)!=0) return ;
-    else sendGridToCouplerOut_done_.insert(client) ;
- 
-    CContext* context = CContext::getCurrent();
-    // simple Distribution for now 
-    // distribute over the fisrt element except if it is a scalar
-    auto& elements = getElements() ;
-    int posDistributed = 0 ;
-    for(auto& element : elements)
-    {
-      if (element.type==TYPE_DOMAIN) break ;
-      else if (element.type==TYPE_AXIS) break ;
-      else if (element.type==TYPE_SCALAR) posDistributed++ ;
-    }
-    
-    vector<CLocalView*> localViews ;
-    vector<CDistributedView*> remoteViews ;
-
-    for(int i=0 ; i<elements.size() ; i++)
-    {
-      if (elements[i].type==TYPE_DOMAIN) 
-      { 
-         CDomain* domain = (CDomain*) elements[i].ptr ;
-         domain->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
-         remoteViews.push_back(domain->getRemoteElement(client)->getView(CElementView::FULL)) ;
-         localViews.push_back(domain->getLocalView(CElementView::FULL)) ;
-      }
-      else if (elements[i].type==TYPE_AXIS)
-      {
-        CAxis* axis = (CAxis*) elements[i].ptr ;
-        axis->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
-        remoteViews.push_back(axis->getRemoteElement(client)->getView(CElementView::FULL)) ;
-        localViews.push_back(axis->getLocalView(CElementView::FULL)) ;
-      }
-      else if (elements[i].type==TYPE_SCALAR)
-      {
-        CScalar* scalar = (CScalar*) elements[i].ptr ;
-        scalar->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
-        remoteViews.push_back(scalar->getRemoteElement(client)->getView(CElementView::FULL)) ;
-        localViews.push_back(scalar->getLocalView(CElementView::FULL)) ;
-      }
-    }
-    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
-    gridRemoteConnector.computeConnector() ;
-    
-    vector<CScattererConnector*> clientToClientConnectors ;
-    for(int i=0 ; i<elements.size() ; i++)
-    {
-      if (elements[i].type==TYPE_DOMAIN) 
-      { 
-         CDomain* domain = (CDomain*) elements[i].ptr ;
-         sendAddDomain(domain->getId(),client) ;
-         domain->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-         clientToClientConnectors.push_back(domain->getClientToServerConnector(client)) ;
-      }
-      else if (elements[i].type==TYPE_AXIS)
-      {
-        CAxis* axis = (CAxis*) elements[i].ptr ;
-        sendAddAxis(axis->getId(),client) ;
-        axis->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-        clientToClientConnectors.push_back(axis->getClientToServerConnector(client)) ;
-      }
-      else if (elements[i].type==TYPE_SCALAR)
-      {
-        CScalar* scalar = (CScalar*) elements[i].ptr ;
-        sendAddScalar(scalar->getId(),client) ;
-        scalar->distributeToServer(client, gridRemoteConnector.getDistributedGlobalIndex(i)) ;
-        clientToClientConnectors.push_back(scalar->getClientToServerConnector(client)) ;
-      }
-    }
-    
-    // compute the grid clientToServerConnector to send flux from client to servers
-    clientToClientConnector_[client] = new CGridScattererConnector(clientToClientConnectors) ;*/
+    return "_grid_of_"+fieldId;
   }
 
   void CGrid::makeAliasForCoupling(const string& fieldId)
   {
-    string gridId="_grid_of_"+fieldId ;
+    string gridId=getCouplingAlias(fieldId) ;
     createAlias(gridId) ;
-    
-    const auto& domVect = getDomains() ;
-    for (int pos=0; pos<domVect.size();pos++) domVect[pos]->makeAliasForCoupling(fieldId, pos);
 
-    const auto& axisVect=getAxis() ;
-    for (int pos=0; pos<axisVect.size();pos++) axisVect[pos]->makeAliasForCoupling(fieldId, pos);
-
-    const auto& scalVect=getScalars() ;
-    for (int pos=0; pos<scalVect.size();pos++) scalVect[pos]->makeAliasForCoupling(fieldId, pos);
+    auto& elements = getElements() ;
+    for(int i=0 ; i<elements.size() ; i++)
+    {
+      if (elements[i].type==TYPE_DOMAIN) elements[i].domain->makeAliasForCoupling(fieldId, i);
+      else if (elements[i].type==TYPE_AXIS) elements[i].axis->makeAliasForCoupling(fieldId, i);
+      else if (elements[i].type==TYPE_SCALAR) elements[i].scalar->makeAliasForCoupling(fieldId, i);
+    }
   }
 
    /*!

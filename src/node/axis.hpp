@@ -174,7 +174,7 @@ namespace xios
     
       public:
          void makeAliasForCoupling(const string& fieldId, int posInGrid) ;
-
+         string getCouplingAlias(const string& fieldId, int posInGrid) ;
 
       private:
 

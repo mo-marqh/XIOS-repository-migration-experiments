@@ -14,7 +14,7 @@ namespace xios
     , field_(field), client_(client)
   {
     if (!field)
-      ERROR("CFileWriterFilter::CFileWriterFilter(CField* field)",
+      ERROR("CClientToServerStoreFilter::CClientToServerStoreFilter(CGarbageCollector& gc, CField* field, CContextClient* client)",
             "The field cannot be null.");
   }
 

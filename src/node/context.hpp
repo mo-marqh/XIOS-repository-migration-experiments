@@ -13,9 +13,11 @@
 #include "mpi.hpp"
 #include "services_manager.hpp"
 #include "server_context.hpp"
+#include "event_scheduler.hpp"
 
 
-namespace xios {
+namespace xios
+{
    class CContextClient;
    class CContextServer;
 
@@ -338,6 +340,11 @@ namespace xios {
         int intraCommSize_ ; //! context intra communicator size
         
       private:
+         CEventScheduler* eventScheduler_ ; //! The local event scheduler for context
+         size_t hashId_ ; //! the local hashId for scheduler
+         size_t timeLine_=0 ;
+         void initEventScheduler(void) ;
+
          bool isPostProcessed;
          bool allProcessed;
          bool finalized;

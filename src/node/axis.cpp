@@ -451,9 +451,14 @@ namespace xios {
 
     }
 
+  string CAxis::getCouplingAlias(const string& fieldId, int posInGrid)
+  {
+    return "_axis["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+  }
+
   void CAxis::makeAliasForCoupling(const string& fieldId, int posInGrid)
   {
-    const string axisId = "_axis["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    const string axisId = getCouplingAlias(fieldId,posInGrid)  ;
     this->createAlias(axisId) ;
   }
 

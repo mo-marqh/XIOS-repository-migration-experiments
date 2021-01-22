@@ -51,10 +51,10 @@ namespace xios
     SRegisterContextInfo contextInfo ;
     CXios::getContextsManager()->getContextInfo(context->getId(), contextInfo, intraComm) ;
 
-    if (contextInfo.serviceType != CServicesManager::CLIENT) // we must have an event scheduler => to be retrieve from the associated services
-    {
+  //  if (contextInfo.serviceType != CServicesManager::CLIENT) // we must have an event scheduler => to be retrieve from the associated services
+  //  {
       if (!isAttachedModeEnabled()) eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
-    }
+  //  }
 
 
     currentTimeLine=1;
@@ -322,6 +322,7 @@ namespace xios
         }
         else if (!eventScheduler_ || eventScheduler_->queryEvent(currentTimeLine,hashId) )
         {
+          MPI_Barrier(intraComm) ;
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier
@@ -331,6 +332,7 @@ namespace xios
 //         context->setProcessingEvent() ;
          isProcessingEvent_=true ;
          CTimer::get("Process events").resume();
+         info(100)<<"Received Event "<<currentTimeLine<<" of class "<<event->classId<<" of type "<<event->type<<endl ;
          dispatchEvent(*event);
          CTimer::get("Process events").suspend();
          isProcessingEvent_=false ;

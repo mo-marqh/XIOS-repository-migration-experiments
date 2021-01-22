@@ -585,43 +585,12 @@ namespace xios
       for(auto grid : gridPath)
       {
         grid->solveElementsRefInheritance() ;
-       
-        // new
-        
         std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid->buildTransformationGraph(gc, false,  gridSrc, detectMissingValues, defaultValue, newGrid) ;
         lastFilter->connectOutput(filters.first, 0);
         lastFilter = filters.second;
         gridSrc = newGrid ;
-
-        // end new
-/*
-        grid->completeGrid(gridSrc); // grid generation, to be checked
-        grid->checkElementsAttributes() ;
-        grid->prepareTransformGrid(gridSrc) ; // prepare the grid tranformation
-        for(auto fieldId : grid->getAuxInputTransformGrid()) // try to build workflow graph for auxillary field tranformation
-          if (!CField::get(fieldId)->buildWorkflowGraph(gc)) return false ;
-        gridSrc=grid ;
-*/
       }
 
-    /*  
-      std::shared_ptr<COutputPin> lastFilter ;
-      if (filterExpr) lastFilter=filterExpr ;
-      else lastFilter = inputFilter ;
-      
-      gridSrc=getDirectFieldReference()->getGrid() ;
-      for(auto grid : gridPath) 
-      {
-        grid->makeTransformGrid() ; // make the grid transformation
-        if (grid->hasTransform()) 
-        {
-          std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridSrc, grid, detectMissingValues, defaultValue); 
-          lastFilter->connectOutput(filters.first, 0);
-          lastFilter = filters.second;
-          gridSrc=grid ;
-        }
-      }
-    */
       grid_=newGrid ;
       grid_ref=grid_->getId() ; // for server 
       instantDataFilter = lastFilter ;
@@ -664,7 +633,6 @@ namespace xios
         newGrid->duplicateAttributes(grid_) ; // for grid attributes (mask)
         grid_ = newGrid ;
         grid_ref=grid_->getId() ; // for server 
-//        grid_->completeGrid(); // grid generation, to be checked => later
         grid_->checkElementsAttributes() ;
         instantDataFilter=inputFilter ;
       }
@@ -1283,7 +1251,8 @@ namespace xios
   {
     if (sendFieldToCouplerOut_done_) return ;
     else sendFieldToCouplerOut_done_=true ;
-    grid_->sendGridToCouplerOut(client, this->getId());
+    sentGrid_ = grid_-> duplicateSentGrid() ;
+    sentGrid_->sendGridToCouplerOut(client, this->getId());
     this->sendGridCompleted();
 
   }
@@ -1329,6 +1298,15 @@ namespace xios
    }
    CATCH_DUMP_ATTR
 
+  bool CField::isGridCompleted(void)
+  TRY
+  { 
+    bool isFullCompleted ;
+    MPI_Allreduce(&isGridCompleted_,&isFullCompleted,1,MPI_C_BOOL, MPI_LAND, CContext::getCurrent()->getIntraComm() ) ;
+    if ( (isGridCompleted_==false && isFullCompleted==true) ) ERROR("bool CField::isGridCompleted(void)",<< "incoherecy in MPI_AllReduce") ;
+    return isFullCompleted ; 
+  }
+  CATCH_DUMP_ATTR
 
   void CField::sendAddAllVariables(CContextClient* client)
   TRY

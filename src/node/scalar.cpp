@@ -196,14 +196,19 @@ namespace xios
     if (sendScalarToCouplerOut_done_.count(client)!=0) return ;
     else sendScalarToCouplerOut_done_.insert(client) ;
 
-    string scalarId="_scalar["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    string scalarId = getCouplingAlias(fieldId, posInGrid) ;
 
     this->sendAllAttributesToServer(client, scalarId);
   }  
 
+  string CScalar::getCouplingAlias(const string& fieldId, int posInGrid)
+  {
+    return "_scalar["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+  }
+
   void CScalar::makeAliasForCoupling(const string& fieldId, int posInGrid)
   {
-    const string scalarId = "_scalar["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    const string scalarId = getCouplingAlias(fieldId, posInGrid) ;
     this->createAlias(scalarId) ;
   }
 

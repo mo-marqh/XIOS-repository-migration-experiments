@@ -173,6 +173,7 @@ namespace xios {
 
       public:
          void makeAliasForCoupling(const string& fieldId) ;
+         string getCouplingAlias(const string& fieldId) ;
 
       public:
          void sendAddDomain(const std::string& id,CContextClient* contextClient);
@@ -340,7 +341,7 @@ namespace xios {
         CGridLocalConnector* getWorkflowToModelConnector(void) { if (workflowToModelConnector_==nullptr) computeWorkflowToModelConnector() ; return workflowToModelConnector_;}
 
       public: //? 
-        void distributeGridToFileServer(CContextClient* client);
+        void distributeGridToServer(CContextClient* client, const string& fieldId="");
       
             
       private:

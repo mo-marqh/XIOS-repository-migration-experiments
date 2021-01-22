@@ -1780,6 +1780,10 @@ namespace xios {
    }
 
 
+  string CDomain::getCouplingAlias(const string& fieldId, int posInGrid)
+  {
+    return "_domain["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+  }
    
   /* to be removed later when coupling will be reimplemented, just to  not forget */
   void CDomain::sendDomainToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid)
@@ -1787,7 +1791,7 @@ namespace xios {
     if (sendDomainToFileServer_done_.count(client)!=0) return ;
     else sendDomainToFileServer_done_.insert(client) ;
     
-    const string domainId = "_domain["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    const string domainId = getCouplingAlias(fieldId, posInGrid) ;
     
     if (!domain_ref.isEmpty())
     {
@@ -1804,7 +1808,7 @@ namespace xios {
 
   void CDomain::makeAliasForCoupling(const string& fieldId, int posInGrid)
   {
-    const string domainId = "_domain["+std::to_string(posInGrid)+"]_of_"+fieldId ;
+    const string domainId = getCouplingAlias(fieldId, posInGrid);
     this->createAlias(domainId) ;
   }
 

@@ -235,7 +235,7 @@ namespace xios
       private:
           bool isGridCompleted_ = true ;
       public:
-          bool isGridCompleted() { return isGridCompleted_ ;} 
+          bool isGridCompleted()  ; 
           void setGridCompleted(void) { isGridCompleted_= true; }
           void unsetGridCompleted(void) { isGridCompleted_ = false ;}
       
