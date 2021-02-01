@@ -2058,7 +2058,7 @@ namespace xios{
      else
      {
        //if(file->output_freq.getValue() < freq_op.getValue())
-       if(freq_op.getValue() > file->output_freq.getValue() )
+       if((isFieldRead || isFieldWrite) && (freq_op.getValue() > file->output_freq.getValue()) )
        {
          ERROR("void CField::checkTimeAttributes(void)",
                << "output file has output_freq < freq_op" << std::endl
