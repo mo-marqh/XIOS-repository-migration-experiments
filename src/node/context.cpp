@@ -502,7 +502,7 @@ namespace xios {
 
          //! Free internally allocated communicators
          for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-           MPI_Comm_free(&(*it));
+           /* MPI_Comm_free(&(*it)) */ ; // WARNING remove freeing communicator !! --> deadlock raised, to be checked
          comms.clear();
 
          info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
@@ -544,7 +544,7 @@ namespace xios {
 
          //! Free internally allocated communicators
          for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-           MPI_Comm_free(&(*it));
+           /* MPI_Comm_free(&(*it)) */;  // WARNING remove freeing communicator !! --> deadlock raised, to be checked
          comms.clear();
 
          info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
@@ -560,7 +560,7 @@ namespace xios {
    TRY
    {
      for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-       MPI_Comm_free(&(*it));
+       /* MPI_Comm_free(&(*it)) */ ; // WARNING remove freeing communicator !! --> deadlock raised, to be checked
      comms.clear();
    }
    CATCH_DUMP_ATTR

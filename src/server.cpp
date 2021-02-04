@@ -406,7 +406,7 @@ namespace xios
       delete eventScheduler ;
 
       for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
-        MPI_Comm_free(&(*it));
+        /* MPI_Comm_free(&(*it)) */; // WARNING remove freeing communicator !! --> deadlock raised, to be checked
 
       for (std::list<MPI_Comm>::iterator it = contextIntraComms.begin(); it != contextIntraComms.end(); it++)
         MPI_Comm_free(&(*it));
@@ -418,7 +418,7 @@ namespace xios
 //          MPI_Comm_free(&(*it));
 
         for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++)
-          MPI_Comm_free(&(*it));
+          /* MPI_Comm_free(&(*it)) */ ; // WARNING remove freeing communicator !! --> deadlock raised, to be checked
 
       MPI_Comm_free(&intraComm);
 
@@ -483,7 +483,7 @@ namespace xios
               {
                 MPI_Send(&msg,1,MPI_INT,0,0,*itr) ;
               }
-              MPI_Comm_free(&(*it));
+              /* MPI_Comm_free(&(*it)); */ // WARNING remove freeing communicator !! --> deadlock raised, to be checked
               interCommLeft.erase(it) ;
               break ;
             }

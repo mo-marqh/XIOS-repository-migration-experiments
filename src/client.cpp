@@ -277,9 +277,9 @@ namespace xios
       }
 
 
-      MPI_Comm_free(&interComm);
+      /* MPI_Comm_free(&interComm); */ // WARNING remove freeing communicator !! --> deadlock raised, to be checked
       for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
-        MPI_Comm_free(&(*it));
+        /* MPI_Comm_free(&(*it)) */ ; // WARNING remove freeing communicator !! --> deadlock raised, to be checked
       MPI_Comm_free(&intraComm);
 
       CTimer::get("XIOS init/finalize").suspend() ;
