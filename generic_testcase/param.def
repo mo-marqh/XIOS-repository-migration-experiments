@@ -1,0 +1,5 @@
+&params_run
+duration='4ts'
+nb_proc_atm=1
+nb_proc_oce=0
+/
