@@ -54,6 +54,9 @@ TRY
 {
   interpAxis->checkValid(axisSource);
   order_ = interpAxis->order.getValue();
+  if (interpAxis->extrapolate.isEmpty()) extrapolate_=false ;
+  else extrapolate_=interpAxis->extrapolate ;
+  
   this->idAuxInputs_.clear();
   if (!interpAxis->coordinate.isEmpty())
   {
@@ -131,8 +134,8 @@ TRY
   int numValue = axisDestValue.numElements();
   if(!coordinateDST_.empty())
   {
-    int nDomPoint = (*dataAuxInputs[0]).numElements()/numValue ;
     int dst_position_in_data = dataAuxInputs.size()-1;
+    int nDomPoint = (*dataAuxInputs[dst_position_in_data]).numElements()/numValue ;
     for(int ii=0; ii<numValue; ii++)
     {
       axisDestValue(ii) = (*dataAuxInputs[dst_position_in_data])(ii*nDomPoint+transPos);
@@ -191,8 +194,42 @@ TRY
       }
 
     }
+    else
+    {
+      it=itb ;
+      if (destValue <= *it) 
+      {
+        int numVal=0 ;
+        while(numVal <= order_ && it!=ite)
+        {
+          if (*it != sfmax)
+          { 
+            interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[std::distance(itb, it)],*it));
+            ++numVal ;
+          }
+          ++it ;
+        }
+      }
+      
+      it=ite ;
+      --it ;
+      if (destValue >= *it) 
+      {
+        int numVal=0 ;
+        do
+        {
+          if (*it != sfmax)
+          {
+            interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[std::distance(itb, it)],*it));
+            ++numVal ;
+          }
+          --it ;
+        } while(it!=itb && numVal<=order_) ;
+      }
+    }
   }
-  computeWeightedValueAndMapping(interpolatingIndexValues, transPos);
+  
+  computeWeightedValueAndMapping(axisDestValue, interpolatingIndexValues, transPos);
 }
 CATCH
 
@@ -202,7 +239,7 @@ CATCH
   Compute weight (coeff) of Lagrange's polynomial
   \param [in] interpolatingIndexValues the necessary axis value to calculate the coeffs
 */
-void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos)
+void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(CArray<double,1>& axisDestValue, const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos)
 TRY
 {
   TransformationIndexMap& transMap = this->transformationMapping_[transPos];
@@ -213,7 +250,8 @@ TRY
   for (it = itb; it != ite; ++it)
   {
     int globalIndexDest = it->first;
-    double localValue = axisDest_->value(globalIndexDest - ibegin);
+//    double localValue = axisDest_->value(globalIndexDest - ibegin);
+    double localValue = axisDestValue(globalIndexDest - ibegin);
     const std::vector<std::pair<int,double> >& interpVal = it->second;
     int interpSize = interpVal.size();
     transMap[globalIndexDest].resize(interpSize);

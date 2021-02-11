@@ -17,7 +17,7 @@ namespace xios {
 class CAxis;
 class CGrid;
 class CInterpolateAxis;
-
+ 
 /*!
   \class CAxisAlgorithmInterpolate
   Implementing interpolation on axis
@@ -44,13 +44,14 @@ private:
   void computeInterpolantPoint(const std::vector<double>& recvBuff, const std::vector<int>&, int transPos = 0);
   void computeInterpolantPoint(const std::vector<double>& recvBuff, const std::vector<int>&, 
                                const std::vector<CArray<double,1>* >& dataAuxInputs, int transPos = 0);
-  void computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos = 0);
+  void computeWeightedValueAndMapping(CArray<double,1>& axisDestValue, const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos = 0);
   void fillInAxisValue(std::vector<CArray<double,1> >& vecAxisValue,
                        const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   // Interpolation order
   int order_;
+  bool extrapolate_ ;
   StdString coordinate_;
   StdString coordinateDST_;
   bool isInversed_;
