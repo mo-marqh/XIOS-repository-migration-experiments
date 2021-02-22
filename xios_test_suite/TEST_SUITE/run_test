@@ -20,7 +20,7 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
   echo "cd \${SLURM_SUBMIT_DIR}">> compile.sh
   echo "ulimit -c 0">> compile.sh
   echo "cd ../.. ">> compile.sh
-  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16" >> compile.sh
+  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --use_tv --build_dir ${build_dir} --job 16" >> compile.sh
   cmd=$(sbatch compile.sh)
   jobid="${cmd//[!0-9]/}"
   output=$(squeue -u rpsl954 | grep ${jobid})
@@ -52,7 +52,7 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   echo "#MSUB -r XIOS_rev"$svnR >> compile.sh
   echo "#MSUB -m work,scratch" >> compile.sh
   echo "cd ../.. ">> compile.sh
-  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16" >> compile.sh
+  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --use_tv --build_dir ${build_dir} --job 16" >> compile.sh
   cmd=$(ccc_msub compile.sh)
   jobid="${cmd//[!0-9]/}"
   output=$(ccc_mpp | grep ${jobid})

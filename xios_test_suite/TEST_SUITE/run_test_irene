@@ -6,8 +6,8 @@ export mode=prod
 bash ./run_test
 
 
-export arch=X64_IRENE
-export mode=debug
+#export arch=X64_IRENE
+#export mode=debug
 
-bash ./run_test
+#bash ./run_test
 

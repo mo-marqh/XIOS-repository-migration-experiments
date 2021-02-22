@@ -1,2 +1,2 @@
 arch = X64_IRENE
-mode = prod, debug
+mode = prod

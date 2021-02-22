@@ -2,29 +2,35 @@
 <context id="atm">
   
   <calendar type="Gregorian" time_origin="1850-01-01 00:00:00" /> 
-  
-  <domain_definition>
-    <domain id="domain" />
-    <domain id="other_domain" />
-    <domain id="square_domain" ni_glo="36" nj_glo="36" type="rectilinear"/>
-  </domain_definition>
-
+ 
+  <scalar_definition>
+    <scalar id="scalar" /> 
+    <scalar id="other_scalar" /> 
+  </scalar_definition>
+ 
+ 
   <axis_definition>
     <axis id="axis" />
+    <axis id="axis_str" n_glo="10" label="(0,9) [toto titi tata turlututu tito tati tuto tato tete tetu ] "/>
     <axis id="domain_X" />
     <axis id="domain_Y" />
     <axis id="ensemble" />
-
 
     <axis id="other_axis" />
     <axis id="other_domain_X" />
     <axis id="other_domain_Y" />
     <axis id="other_ensemble" />
+
+    <axis id="axis_zoom" axis_ref="axis">
+        <zoom_axis begin="0" n="5"/>
+    </axis>
   </axis_definition>
 
-  <scalar_definition>
-    <scalar id="scalar" /> 
-  </scalar_definition>
+ 
+  <domain_definition>
+    <domain id="domain" />
+    <domain id="other_domain" />
+  </domain_definition>
   
   
   
@@ -36,63 +42,16 @@
     </grid>
     
     <grid id="grid2D">
-      <domain domain_ref="domain" />
+      <domain domain_ref="domain" id="grid2D_dom" />
     </grid>
 
     <grid id="grid1D">
       <axis axis_ref="axis" />
     </grid>
-   
-    <grid id="grid2D_zoom">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
+
+    <grid id="grid0D">
+      <scalar scalar_ref="scalar" />
     </grid>
-
-    <grid id="grid2D_extract">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
-    </grid>
-
-    <grid id="grid3D_zoom">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
-      <axis axis_ref="axis" />
-    </grid>
-
-    <grid id="grid3D_extract">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
-      <axis axis_ref="axis" />
-    </grid>
-
-    <grid id="grid2D_square">
-      <domain domain_ref="square_domain">
-      <generate_rectilinear_domain lon_start="-175"/>
-      <interpolate_domain />
-      </domain> 
-    </grid>
-
-    <grid id="grid2D_reorder">
-      <domain domain_ref="domain">
-      <reorder_domain invert_lat="true" />
-      </domain> 
-    </grid>
-
-    <grid id="grid2D_expand">
-      <domain domain_ref="domain">
-      <expand_domain order="1" type="node"/>
-      </domain> 
-    </grid>
-
-
-
-
-
-
 
     <grid id="grid_X">
       <axis axis_ref="domain_X" />
@@ -140,6 +99,11 @@
       <axis axis_ref="ensemble" />
     </grid>
 
+    <grid id="grid0D_W">
+      <scalar scalar_ref="scalar" />
+      <axis axis_ref="ensemble" />
+    </grid>
+
     <grid id="grid_XW">
       <axis axis_ref="domain_X" />
       <axis axis_ref="ensemble" />
@@ -176,18 +140,21 @@
     </grid>
 
  
- 
     <grid id="other_grid3D">
       <domain domain_ref="other_domain" />
       <axis axis_ref="other_axis" />
     </grid>
     
     <grid id="other_grid2D">
-      <domain domain_ref="other_domain" />
+      <domain domain_ref="other_domain" id="test_dom" />
     </grid>
 
     <grid id="other_grid1D">
       <axis axis_ref="other_axis" />
+    </grid>
+
+    <grid id="other_grid0D">
+      <scalar scalar_ref="other_scalar" />
     </grid>
 
     <grid id="other_grid_X">
@@ -236,6 +203,11 @@
       <axis axis_ref="other_ensemble" />
     </grid>
 
+    <grid id="other_grid0D_W">
+      <scalar scalar_ref="other_scalar" />
+      <axis axis_ref="other_ensemble" />
+    </grid>
+
     <grid id="other_grid_XW">
       <axis axis_ref="other_domain_X" />
       <axis axis_ref="other_ensemble" />
@@ -271,17 +243,18 @@
       <axis axis_ref="other_ensemble" />
     </grid>
 
-   
+
   </grid_definition>
   
   
   <field_definition level="1" prec="8" operation="instant" freq_op="1ts" enabled=".true." default_value="1.e+20" detect_missing_value="true">
+    <field id="field0D" grid_ref="grid0D"/>
     <field id="field2D" grid_ref="grid2D" />
     <field id="field3D" grid_ref="grid3D"  />
     <field id="pressure" grid_ref="grid3D"  />
-    <field id="field3D_recv" read_access="true" grid_ref="grid3D"  field_ref="field3D" />
-    <field id="field3D_resend" grid_ref="grid3D" />
 
+   <!-- <field id="field3D_recv" read_access="true" grid_ref="grid3D"  field_ref="field3D"/>
+    <field id="field3D_resend" grid_ref="grid3D" /> -->
     <field id="field_X" grid_ref="grid_X" />
     <field id="field_Y" grid_ref="grid_Y" />
     <field id="field_Z" grid_ref="grid1D" />
@@ -290,13 +263,18 @@
     <field id="field_XZ" grid_ref="grid_XZ" />
     <field id="field_YZ" grid_ref="grid_YZ" />
 
+    <field id="field_zoom_vert" field_ref="field3D" grid_ref="grid_zoom_vert"  />
+    <field id="field_zoom_vert_sum" field_ref="field_zoom_vert" grid_ref="grid_zoom_vert_sum"  />
 
+
+    <field id="field0D_W" grid_ref="grid0D_W"/>
     <field id="field2D_W" grid_ref="grid2D_W"/>
     <field id="field3D_W" grid_ref="grid3D_W"  />
     <field id="pressure_W" grid_ref="grid3D_W"  />
+<!-- ym disable for now
     <field id="field3D_recv_W" read_access="true" grid_ref="grid3D_W"  field_ref="field3D_W"/>
     <field id="field3D_resend_W" grid_ref="grid3D_W" />
-
+-->
     <field id="field_XW" grid_ref="grid_XW" />
     <field id="field_YW" grid_ref="grid_YW" />
     <field id="field_ZW" grid_ref="grid1D_W" />
@@ -306,12 +284,16 @@
     <field id="field_YZW" grid_ref="grid_YZW" />
 
 
-    <field id="other_field2D" grid_ref="other_grid2D"/>
+
+    <field id="other_field0D" grid_ref="other_grid0D"/>
+<!--    <field id="other_field2D" grid_ref="other_grid2D"/> -->
+    <field id="other_field2D" grid_ref="zoom1"/>
     <field id="other_field3D" grid_ref="other_grid3D"  />
     <field id="other_pressure" grid_ref="other_grid3D"  />
+<!-- ym disable for now
     <field id="other_field3D_recv" read_access="true" grid_ref="other_grid3D"  field_ref="other_field3D"/>
     <field id="other_field3D_resend" grid_ref="other_grid3D" />
-
+-->
     <field id="other_field_X" grid_ref="other_grid_X" />
     <field id="other_field_Y" grid_ref="other_grid_Y" />
     <field id="other_field_Z" grid_ref="other_grid1D" />
@@ -320,12 +302,14 @@
     <field id="other_field_XZ" grid_ref="other_grid_XZ" />
     <field id="other_field_YZ" grid_ref="other_grid_YZ" />
 
+    <field id="other_field0D_W" grid_ref="other_grid0D_W"/>
     <field id="other_field2D_W" grid_ref="other_grid2D_W"/>
     <field id="other_field3D_W" grid_ref="other_grid3D_W"  />
     <field id="other_pressure_W" grid_ref="other_grid3D_W"  />
+<!-- ym disable for now
     <field id="other_field3D_recv_W" read_access="true" grid_ref="other_grid3D_W"  field_ref="other_field3D_W"/>
     <field id="other_field3D_resend_W" grid_ref="other_grid3D_W" />
-
+-->
     <field id="other_field_XW" grid_ref="other_grid_XW" />
     <field id="other_field_YW" grid_ref="other_grid_YW" />
     <field id="other_field_ZW" grid_ref="other_grid1D_W" />
@@ -333,91 +317,190 @@
     <field id="other_field_XYZW" grid_ref="other_grid_XYZW" />
     <field id="other_field_XZW" grid_ref="other_grid_XZW" />
     <field id="other_field_YZW" grid_ref="other_grid_YZW" />
+    
+  </field_definition>
+  
 
-    
-    
+<!-- test transform  -->
+
+
+  <axis_definition>
+    <axis id="axis_inverse" axis_ref="axis">
+      <inverse_axis />
+    </axis>
+
+    <axis id="axis_extract" >
+      <extract_axis begin="1" n="5" />
+    </axis>
+
+
+
+  </axis_definition>
+
+  <domain_definition>
+
+    <domain id="domain_extract">
+      <extract_domain ibegin="0" ni="36" jbegin="2" nj="3" />
+    </domain>
+ 
+ 
+    <domain id="domain_reorder" domain_ref="domain">
+      <reorder_domain invert_lat="true" shift_lon_fraction="0.5"/>
+    </domain>
+  
+    <domain id="domain_expand" >
+      <expand_domain order="1" type="edge"/>
+    </domain>
+  
+    <domain id="domain_interpolate" domain_ref="other_domain" >
+      <interpolate_domain detect_missing_value="false"/>
+    </domain>
+  
+    <domain id="domain_connect" >
+      <compute_connectivity_domain type="edge"/>
+    </domain>
+
+    <domain id="domain_recti" ni_glo="40" nj_glo="20" type="rectilinear" />
+
+  
+    <domain id="domain_expand_extract" >
+      <expand_domain order="1" type="edge"/>
+      <extract_domain ibegin="0" ni="38" jbegin="2" nj="3" />
+    </domain>
+  
+
+
+  </domain_definition>
+  
+  <grid_definition>
+ 
+    <grid id="grid1D_inverse">
+      <axis axis_ref="axis_inverse" />
+    </grid>
+  
+    <grid id="grid1D_extract">
+      <axis axis_ref="axis_extract" />
+    </grid>
+  
+
+    <grid id="grid2D_extract">
+      <domain domain_ref="domain_extract" />
+    </grid>
+  
+    <grid id="grid2D_zoom">
+      <domain domain_ref="domain_zoom" />
+    </grid>
+ 
+
+    <grid id="grid2D_reorder">
+      <domain domain_ref="domain_reorder" />
+    </grid>
+ 
+    <grid id="grid2D_expand">
+      <domain domain_ref="domain_expand" />
+    </grid>
+
+    <grid id="grid2D_interpolate">
+      <domain domain_ref="domain_interpolate" />
+    </grid>
+  
+
+    <grid id="grid2D_connect">
+      <domain domain_ref="domain_connect" />
+    </grid>
+
+
+    <grid id="grid2D_recti">
+      <domain domain_ref="domain_recti" >
+        <generate_rectilinear_domain lat_start="-85" lon_start="-175" />
+        <interpolate_domain detect_missing_value="false"/>
+      </domain>
+    </grid>
+ 
+    <grid id="grid2D_expand_extract">
+      <domain domain_ref="domain_expand_extract" />
+    </grid>
+  
+    <grid id="grid2D_extract_domain">  
+      <axis  n_glo="36">
+        <extract_domain position="2" direction="jDir" />
+      </axis>
+    </grid>
+
+    <grid id="grid3D_axis_interpolate">
+      <domain domain_ref="domain"/>
+      <axis n_glo="2" value="(0,1)[40000 20000]">
+        <interpolate_axis coordinate="pressure" />
+      </axis>
+    </grid> 
+ 
+    <grid id="grid3D_axis_interpolate_bis">
+      <domain domain_ref="domain"/>
+      <axis n_glo="2" value="(0,1)[40000 20000]">
+        <interpolate_axis />
+      </axis>
+    </grid> 
+
+
+  </grid_definition>
+ 
+ 
+  <field_definition>
+    <field_group id="fields_with_domain_transformation" operation="instant" >
+      <field id="field2D_extract"  field_ref="field2D" grid_ref="grid2D_extract"/>
+      <field id="field2D_reorder"  field_ref="field2D" grid_ref="grid2D_reorder" />
+      <field id="field2D_expand"   field_ref="field2D" grid_ref="grid2D_expand"/>
+      <field id="field2D_connect"  field_ref="field2D" grid_ref="grid2D_connect"/>
+      <field id="field2D_interpo"  field_ref="field2D" grid_ref="grid2D_interpolate"/>
+      <field id="field2D_recti"    field_ref="field2D" grid_ref="grid2D_recti"/>
+      <field id="field2D_exp_ext"  field_ref="field2D" grid_ref="grid2D_expand_extract"/>
+      <field id="field2D_reorder_ext"  field_ref="field2D_reorder" grid_ref="grid2D_extract"/>
+    </field_group>
+
+    <field_group id="fields_with_axis_transformation" operation="instant"  >
+      <field id="fieldZ_inverse"   field_ref="field_Z" grid_ref="grid1D_inverse"/>
+      <field id="fieldZ_extract"   field_ref="field_Z" grid_ref="grid1D_extract"/>
+      <field id="field2D_extract_domain"   field_ref="field2D" grid_ref="grid2D_extract_domain"/>
+      <field id="field3D_interpo"  field_ref="field3D" grid_ref="grid3D_axis_interpolate"/>
+      <field id="field3D_interpo_bis"  field_ref="field3D" grid_ref="grid3D_axis_interpolate_bis"/>
+    </field_group>
+
   </field_definition>
 
 
 
-<!-- implementation of specifics test case -->
-<!-- simplest test cases : output data to file -->
-
-  
-
-  <file_definition  type="one_file" >
-    <file id="atm_output_domain_transformation_zoom" output_freq="12ts" type="one_file" enabled="true">
-       <field field_ref="field2D" />
-       <field field_ref="field3D" />
-       <field id="field2D_zoom" field_ref="field2D" grid_ref="grid2D_zoom" />
-       <field id="field3D_zoom" field_ref="field3D" grid_ref="grid3D_zoom" />
-    </file>
-
-    <file id="atm_output_domain_transformation_extract" output_freq="12ts" type="one_file" enabled="true">
-       <field field_ref="field2D" />
-       <field field_ref="field3D" />
-       <field id="field2D_extract" field_ref="field2D" grid_ref="grid2D_extract" />
-       <field id="field3D_extract" field_ref="field3D" grid_ref="grid3D_extract" />
-    </file>
-
-    <file id="atm_output_domain_transformation_interpolate" output_freq="12ts" type="one_file" enabled="true">
-       <field field_ref="field2D" />
-       <field id="field2D_interpolate" field_ref="field2D" grid_ref="grid2D_square" />
-    </file>
-
-   <file id="atm_output_domain_transformation_reorder" output_freq="12ts" type="one_file" enabled="true">
-       <field field_ref="field2D" />
-       <field id="field2D_reorder" field_ref="field2D" grid_ref="grid2D_reorder" />
-    </file>
-
-   <file id="atm_output_domain_transformation_expand" output_freq="12ts" type="one_file" enabled="true">
-       <field id="field2D_expand" field_ref="field2D" grid_ref="grid2D_expand" />
-    </file>
-
-
-
-    <file id="atm_output" output_freq="1ts" type="one_file" enabled="false">
-       <field field_ref="field3D" />
-       <field field_ref="field2D" /> 
-       <field field_ref="field_X" />
-       <field field_ref="field_Y" />
-       <field field_ref="field_XY" />
-       <field field_ref="field_Z" />
-       <field field_ref="field_XYZ" />
-       <field field_ref="field_XZ" />
-       <field field_ref="field_YZ" />
-       <field field_ref="pressure"  /> 
-       <field field_ref="field3D_resend" />
-    </file>
-
-    <file id="atm_output_other" output_freq="1ts" type="one_file" enabled="false">
-       <field field_ref="other_field3D" />
-       <field field_ref="other_field2D" /> 
-       <field field_ref="other_field_X" />
-       <field field_ref="other_field_Y" />
-       <field field_ref="other_field_XY" />
-       <field field_ref="other_field_Z" />
-       <field field_ref="other_field_XYZ" />
-       <field field_ref="other_field_XZ" />
-       <field field_ref="other_field_YZ" />
-       <field field_ref="other_pressure"  /> 
-       <field field_ref="other_field3D_resend" />
-    </file>
-
-    <file id="atm_output_W" output_freq="1ts" enabled="false">
-       <field field_ref="field3D_W" />
-       <field field_ref="field2D_W" /> 
-       <field field_ref="field_XW" />
-       <field field_ref="field_YW" />
-       <field field_ref="field_XYW" />
-       <field field_ref="field_ZW" />
-       <field field_ref="field_XYZW" />
-       <field field_ref="field_XZW" />
-       <field field_ref="field_YZW" />
-    </file>
+  <file_definition>
     
+  <file id="atm_output_domain" output_freq="1ts" type="one_file" enabled="false">
+      <field field_ref="field2D_extract" />
+      <field field_ref="field2D_reorder" />
+      <field field_ref="field2D_expand" />
+      <field field_ref="field2D_interpo" />
+      <field field_ref="field2D_recti" />
+      <field field_ref="field2D_exp_ext" />
+      <field field_ref="field2D_reorder_ext" />
+      <field id="field2D"  />
+  </file>
+     
+  <file id="atm_output_axis" output_freq="4ts" type="one_file" enabled="false">
+      <field field_ref="fieldZ_inverse" enabled="false"  />
+      <field field_ref="fieldZ_extract"  enabled="true"/>
+      <field field_ref="field2D_extract_domain"  enabled="false"/>
+      <field id="field_Z"  enabled="true"/>
+      <field id="field2D"  enabled="true"/>
+  </file>
+     
+  <file id="atm_output_interpolate" output_freq="1ts" type="one_file" enabled="true">
+      <field field_ref="field3D_interpo" />
+      <field field_ref="field3D_interpo_bis" />
+      <field id="field3D"  />
+  </file>
     
+
+
   </file_definition>
-  
+
+
+
   
 </context>
