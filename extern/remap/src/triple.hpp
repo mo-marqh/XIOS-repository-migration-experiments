@@ -35,9 +35,10 @@ public:
 
 	Vector& operator+=(const Vector& rhs)
 	{
-		u += rhs.u;
-		v += rhs.v;
-		w += rhs.w;
+           u += rhs.u;
+           v += rhs.v;
+           w += rhs.w;
+           return *this ;
 	}
 
 	double u, v, w;

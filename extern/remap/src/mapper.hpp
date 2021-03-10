@@ -26,7 +26,7 @@ public:
        void setSourceValue(const double* val) ;
        void getTargetValue(double* val) ;
 
-       double buildSSTree(vector<Node>& srcMsh, vector<Node>& trgMsh)
+       void buildSSTree(vector<Node>& srcMsh, vector<Node>& trgMsh)
        {
          sstree.build(srcMsh, trgMsh);
        }
