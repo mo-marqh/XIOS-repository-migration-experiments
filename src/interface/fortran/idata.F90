@@ -675,7 +675,7 @@ MODULE IDATA
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: vardid
          INTEGER  (kind = C_INT)   , VALUE        :: varid_size
-         LOGICAL  (kind = 4)                      :: data_logic
+         LOGICAL  (kind = C_BOOL)                 :: data_logic
          LOGICAL  (kind = C_BOOL)                 :: is_var_existed
       END SUBROUTINE cxios_get_variable_data_logic
 
@@ -717,7 +717,7 @@ MODULE IDATA
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: vardid
          INTEGER  (kind = C_INT)   , VALUE        :: varid_size
-         LOGICAL  (kind = 4)       , VALUE        :: data_logic
+         LOGICAL  (kind = C_BOOL)       , VALUE   :: data_logic
          LOGICAL  (kind = C_BOOL)                 :: is_var_existed
       END SUBROUTINE cxios_set_variable_data_logic
 
@@ -1338,8 +1338,9 @@ MODULE IDATA
 
    ! Get variable functions
    LOGICAL FUNCTION xios(getVar_k8)(varId, data_k8)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len = *)               , INTENT(IN) :: varId
       REAL     (kind = 8)              , INTENT(OUT):: data_k8
 
@@ -1349,8 +1350,9 @@ MODULE IDATA
    END FUNCTION xios(getVar_k8)
 
    LOGICAL FUNCTION xios(getVar_k4)(varId, data_k4)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len = *)               , INTENT(IN) :: varId
       REAL     (kind = 4)              , INTENT(OUT):: data_k4
 
@@ -1360,8 +1362,9 @@ MODULE IDATA
    END FUNCTION xios(getVar_k4)
 
    LOGICAL FUNCTION xios(getVar_int)(varId, data_int)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len = *)               , INTENT(IN) :: varId
       INTEGER                          , INTENT(OUT):: data_int
 
@@ -1371,19 +1374,22 @@ MODULE IDATA
    END FUNCTION xios(getVar_int)
 
    LOGICAL FUNCTION xios(getVar_logic)(varId, data_logic)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len  = *)              , INTENT(IN) :: varId
-      LOGICAL  (kind = 4)              , INTENT(OUT):: data_logic
+      LOGICAL  ,INTENT(OUT)                         :: data_logic
+      LOGICAL (C_BOOL)                              :: data_tmp
 
-      CALL cxios_get_variable_data_logic(varId, len(varId), data_logic, val)
-
+      CALL cxios_get_variable_data_logic(varId, len(varId), data_tmp, val)
       xios(getVar_logic) = val
+      IF (val) data_logic = data_tmp
    END FUNCTION xios(getVar_logic)
 
    LOGICAL FUNCTION xios(getVar_char)(varId, data_char)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len  = *)              , INTENT(IN) :: varId
       CHARACTER(len  = *)              , INTENT(OUT):: data_char
 
@@ -1394,8 +1400,9 @@ MODULE IDATA
 
    ! Set variable functions
    LOGICAL FUNCTION xios(setVar_k8)(varId, data_k8)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len = *)               , INTENT(IN) :: varId
       REAL     (kind = 8)              , INTENT(IN) :: data_k8
 
@@ -1405,8 +1412,9 @@ MODULE IDATA
    END FUNCTION xios(setVar_k8)
 
    LOGICAL FUNCTION xios(setVar_k4)(varId, data_k4)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len = *)               , INTENT(IN) :: varId
       REAL     (kind = 4)              , INTENT(IN) :: data_k4
 
@@ -1416,8 +1424,9 @@ MODULE IDATA
    END FUNCTION xios(setVar_k4)
 
    LOGICAL FUNCTION xios(setVar_int)(varId, data_int)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                           :: val
       CHARACTER(len = *)               , INTENT(IN) :: varId
       INTEGER                          , INTENT(IN) :: data_int
 
@@ -1427,19 +1436,23 @@ MODULE IDATA
    END FUNCTION xios(setVar_int)
 
    LOGICAL FUNCTION xios(setVar_logic)(varId, data_logic)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL(kind = C_BOOL)                        :: val
       CHARACTER(len  = *)              , INTENT(IN) :: varId
-      LOGICAL  (kind = 4)              , INTENT(IN) :: data_logic
+      LOGICAL                          , INTENT(IN) :: data_logic
+      LOGICAL  (kind = C_BOOL)                      :: data_tmp
 
-      CALL cxios_set_variable_data_logic(varId, len(varId), data_logic, val)
+      data_tmp = data_logic
+      CALL cxios_set_variable_data_logic(varId, len(varId), data_tmp, val)
 
       xios(setVar_logic) = val
    END FUNCTION xios(setVar_logic)
 
    LOGICAL FUNCTION xios(setVar_char)(varId, data_char)
+   USE ISO_C_BINDING
    IMPLICIT NONE
-      LOGICAL  (kind = 1)                           :: val
+      LOGICAL  (kind = C_BOOL)                      :: val
       CHARACTER(len  = *)              , INTENT(IN) :: varId
       CHARACTER(len  = *)              , INTENT(IN) :: data_char
 
