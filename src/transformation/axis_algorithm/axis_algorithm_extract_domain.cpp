@@ -50,6 +50,7 @@ CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(bool isSource, CAxis* a
  : CAlgorithmTransformationTransfer(isSource), pos_(-1), axisDest_(axisDestination), domainSrc_(domainSource)
 TRY
 {
+  axisDestination->checkAttributes() ;
   algo->checkValid(axisDestination, domainSource);
   StdString op = "extract";
 

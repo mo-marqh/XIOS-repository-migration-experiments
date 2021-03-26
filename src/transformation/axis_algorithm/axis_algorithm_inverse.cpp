@@ -51,6 +51,7 @@ CAxisAlgorithmInverse::CAxisAlgorithmInverse(bool isSource, CAxis* axisDestinati
  : CAlgorithmTransformationTransfer(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
+  axisDestination->checkAttributes() ;
   if (axisDestination->n_glo.getValue() != axisSource->n_glo.getValue())
   {
     ERROR("CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource)",
@@ -61,8 +62,8 @@ TRY
 
   auto& transMap = this->transformationMapping_;
 
-  int globalIndexSize = axisDestination->index.size();
-  for (int idx = 0; idx < globalIndexSize; ++idx)
+  int globalIndexSize = axisDestination->n_glo.getValue();
+  for (int idx = 0; idx < axisDestination->index.numElements(); ++idx)
   {
     transMap[axisDestination->index(idx)] = globalIndexSize-axisDestination->index(idx)-1;
   }
