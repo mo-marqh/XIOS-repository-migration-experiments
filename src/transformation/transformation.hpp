@@ -4,6 +4,7 @@
 #include "xios_spl.hpp"
 #include "xml_node.hpp"
 #include "transformation_enum.hpp"
+#include "exception.hpp"
 
 namespace xios {
 

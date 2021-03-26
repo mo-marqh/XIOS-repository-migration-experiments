@@ -150,7 +150,7 @@ namespace xios
       template<typename T>
       void transfer(map<int, CArray<T,1>>& dataIn, CArray<T,1>& dataOut, T missingValue)
       {
-        transfer(1, 1, dataIn, dataout, missingValue)
+        transfer(1, 1, dataIn, dataOut, missingValue);
       }
       
       template<typename T>

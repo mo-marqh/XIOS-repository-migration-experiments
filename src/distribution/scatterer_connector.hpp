@@ -49,7 +49,7 @@ namespace xios
     template<typename T, int n>
     void transfer(int sizeT, const CArray<T,n>& dataIn, map<int, CArray<T,1>>& dataOut)
     {
-      transfer(1, sizeT, dataIn, dataOut)
+      transfer(1, sizeT, dataIn, dataOut);
     }
     
     template<typename T, int n>

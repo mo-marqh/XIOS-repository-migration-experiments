@@ -145,10 +145,7 @@ namespace xios
       }; // class CAttribute
 
 #define macrotype(_TYPE_)\
-  template<> int CAttributeTemplate<_TYPE_>::TV_ttf_display_type( const CAttributeTemplate<_TYPE_>* attr ) \
-  {\
-    return show_TV_ttf_display_type (attr) ;\
-  }
+  template<> int CAttributeTemplate<_TYPE_>::TV_ttf_display_type( const CAttributeTemplate<_TYPE_>* attr );
 
 macrotype(double)
 macrotype(int)

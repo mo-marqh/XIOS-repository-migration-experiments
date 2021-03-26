@@ -12,25 +12,25 @@ namespace xios
   MPI_Datatype MPI_GetType(void) ;
 
   template<>
-  MPI_Datatype MPI_GetType<char>(void) { return MPI_CHAR ;}
+  MPI_Datatype MPI_GetType<char>(void);
 
   template<>
-  MPI_Datatype MPI_GetType<short int>(void) { return MPI_SHORT ;}
+  MPI_Datatype MPI_GetType<short int>(void);
 
   template<>
-  MPI_Datatype MPI_GetType<int>(void) { return MPI_INT ;}
+  MPI_Datatype MPI_GetType<int>(void);
 
   template<>
-  MPI_Datatype MPI_GetType<size_t>(void) { return MPI_SIZE_T ;}
+  MPI_Datatype MPI_GetType<size_t>(void);
 
   template<>
-  MPI_Datatype MPI_GetType<float>(void) { return MPI_FLOAT ;}
+  MPI_Datatype MPI_GetType<float>(void);
 
   template<>
-  MPI_Datatype MPI_GetType<double>(void) { return MPI_DOUBLE ;}
+  MPI_Datatype MPI_GetType<double>(void);
 
   template<>
-  MPI_Datatype MPI_GetType<long double>(void) { return MPI_LONG_DOUBLE ;}
+  MPI_Datatype MPI_GetType<long double>(void);
 
 
 } 

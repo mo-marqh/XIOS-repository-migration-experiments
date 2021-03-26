@@ -298,7 +298,7 @@ namespace xios
       CArray(Array<T_numtype,N_rank2>& array, R0 r0, R1 r1, R2 r2, R3 r3, R4 r4, R5 r5, R6 r6, R7 r7, R8 r8, R9 r9, R10 r10)
         : Array<T_numtype,N_rank>(array, r0,r1, r2, r3, r4, r5, r6, r7, r8, r9, r10)
         , initialized(true)
-      { bool neverTrue ; neverTrue=false ; bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol(); }
+      { bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol(); }
 
       virtual ~CArray() {}
 
@@ -644,10 +644,7 @@ namespace xios
 
 
 #define macrotyperank(_TYPE_,_RANK_)\
-  template<> int CArray<_TYPE_,_RANK_>::TV_ttf_display_type( const CArray<_TYPE_,_RANK_>* array ) \
-  {\
-    return show_TV_ttf_display_type (array) ;\
-  }
+  template<> int CArray<_TYPE_,_RANK_>::TV_ttf_display_type( const CArray<_TYPE_,_RANK_>* array );
 
 #define macrotype(_TYPE_)\
 macrotyperank(_TYPE_,1)\

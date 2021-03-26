@@ -117,10 +117,7 @@ namespace xios
 
 
 #define macrotyperank(_TYPE_,_RANK_)\
-  template<> int CAttributeArray<_TYPE_,_RANK_>::TV_ttf_display_type(const CAttributeArray<_TYPE_,_RANK_>* array ) \
-  {\
-    return CAttributeArray<_TYPE_,_RANK_>::show_TV_ttf_display_type (array) ;\
-  }
+  template<> int CAttributeArray<_TYPE_,_RANK_>::TV_ttf_display_type(const CAttributeArray<_TYPE_,_RANK_>* array );
 
 #define macrotype(_TYPE_)\
 macrotyperank(_TYPE_,1)\
