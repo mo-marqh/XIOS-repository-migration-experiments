@@ -16,6 +16,10 @@ MODULE ICONTEXT
       MODULE PROCEDURE xios(set_current_context_hdl), xios(set_current_context_id)
    END INTERFACE xios(set_current_context)
 
+   INTERFACE xios(get_current_context)
+      MODULE PROCEDURE xios(get_current_context_hdl), xios(get_current_context_id)
+   END INTERFACE xios(get_current_context)
+
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
    SUBROUTINE xios(get_context_handle)(idt,ret)
@@ -26,15 +30,25 @@ MODULE ICONTEXT
       CALL cxios_context_handle_create(ret%daddr, idt, len(idt))
    END SUBROUTINE xios(get_context_handle)
 
-   SUBROUTINE xios(get_current_context)(context)
+   SUBROUTINE xios(get_current_context_hdl)(context)
       IMPLICIT NONE
 
-      TYPE(txios(context)), INTENT(IN) :: context
+      TYPE(txios(context)), INTENT(OUT) :: context
 
       CALL cxios_context_get_current(context%daddr)
 
-   END SUBROUTINE xios(get_current_context)
+   END SUBROUTINE xios(get_current_context_hdl)
 
+   SUBROUTINE xios(get_current_context_id)(idt)
+      IMPLICIT NONE
+      CHARACTER(len = *) , INTENT(OUT) :: idt
+      TYPE(txios(context)) :: context
+
+      CALL cxios_context_get_current(context%daddr)
+      CALL cxios_context_get_id(context%daddr, idt, len(idt))
+
+   END SUBROUTINE xios(get_current_context_id)
+   
    SUBROUTINE xios(set_current_context_hdl)(context, withswap)
       IMPLICIT NONE
 

@@ -411,42 +411,76 @@ extern "C"
    CATCH_DUMP_STACK
 
    // ---------------------- Ecriture des données ------------------------------
+   
+   void cxios_write_data_k80_hdl(CField* field, double* data_k8, int data_Xsize)
+   TRY
+   {
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS send field").resume();
+      CContext* context = CContext::getCurrent();
+      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+        context->eventLoop();
+      CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
+      field->setData(data);
+      CTimer::get("XIOS send field").suspend();
+      CTimer::get("XIOS").suspend();
+   }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k80(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
    TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k80_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+   }
+   CATCH_DUMP_STACK
 
+
+
+  
+   void cxios_write_data_k81_hdl(CField* field, double* data_k8, int data_Xsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
+
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
+
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
+
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
    CATCH_DUMP_STACK
-
+   
    void cxios_write_data_k81(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
    TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k81_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+    
+   }
+   CATCH_DUMP_STACK
 
+
+
+   void cxios_write_data_k82_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
+      CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
@@ -458,39 +492,61 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k82_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize) ;
+   }
+   CATCH_DUMP_STACK
 
+
+
+
+
+
+   void cxios_write_data_k83_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
+      CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
    CATCH_DUMP_STACK
-
+   
    void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
    TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k83_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize, data_Zsize) ;
 
+
+   }
+   CATCH_DUMP_STACK
+
+
+
+
+
+
+   void cxios_write_data_k84_hdl(CField* field, double* data_k8, int data_0size, int data_1size, int data_2size, int data_3size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
+      CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
@@ -505,14 +561,28 @@ extern "C"
 
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
+      cxios_write_data_k84_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size) ;
+   }
+   CATCH_DUMP_STACK
+
+
+
+   
+
+   void cxios_write_data_k85_hdl(CField* field, double* data_k8,
+                             int data_0size, int data_1size, int data_2size,
+                             int data_3size, int data_4size)
+   TRY
+   {
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
+      CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
@@ -526,22 +596,34 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k85_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size) ;
 
+   }
+   CATCH_DUMP_STACK
+
+
+
+   void cxios_write_data_k86_hdl(CField* field, double* data_k8,
+                             int data_0size, int data_1size, int data_2size,
+                             int data_3size, int data_4size, int data_5size)
+   TRY
+   {
+ 
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
+      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
+      CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
    CATCH_DUMP_STACK
-
+   
    void cxios_write_data_k86(const char* fieldid, int fieldid_size, double* data_k8,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size, int data_5size)
@@ -549,23 +631,35 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k86_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
 
+  }
+   CATCH_DUMP_STACK
+   
+
+
+
+   void cxios_write_data_k87_hdl(CField* field, double* data_k8,
+                             int data_0size, int data_1size, int data_2size,
+                             int data_3size, int data_4size, int data_5size,
+                             int data_6size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//        context->checkBuffersAndListen();
 
-      CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
+      CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
    CATCH_DUMP_STACK
-
+   
    void cxios_write_data_k87(const char* fieldid, int fieldid_size, double* data_k8,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size, int data_5size,
@@ -574,18 +668,27 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k87_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
+   }
+   CATCH_DUMP_STACK
+   
 
+
+
+
+   void cxios_write_data_k40_hdl(CField* field, float* data_k4, int data_Xsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
-
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//        context->checkBuffersAndListen();
 
-      CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
-      CField::get(fieldid_str)->setData(data);
-
+      CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
+      CArray<double, 1> data(data_Xsize) ;
+      data = data_tmp;
+      field->setData(data);
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
@@ -596,18 +699,27 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k40_hdl(CField::get(fieldid_str), data_k4, data_Xsize);
 
+   }
+   CATCH_DUMP_STACK
+   
+   
+   void cxios_write_data_k41_hdl(CField* field, float* data_k4, int data_Xsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
+
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
       CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
-      CArray<double, 1> data(data_Xsize) ;
+      CArray<double, 1> data(data_Xsize);
       data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
+
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
@@ -618,19 +730,25 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k41_hdl(CField::get(fieldid_str), data_k4, data_Xsize);
+   }
+   CATCH_DUMP_STACK
 
+
+   void cxios_write_data_k42_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
-      CArray<double, 1> data(data_Xsize);
+      CArray<float, 2> data_tmp(data_k4, shape(data_Xsize, data_Ysize), neverDeleteData);
+      CArray<double, 2> data(data_Xsize, data_Ysize);
       data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
@@ -642,43 +760,60 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k42_hdl(CField::get(fieldid_str), data_k4, data_Xsize,data_Ysize);
+   }
+   CATCH_DUMP_STACK
 
+
+
+
+   void cxios_write_data_k43_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<float, 2> data_tmp(data_k4, shape(data_Xsize, data_Ysize), neverDeleteData);
-      CArray<double, 2> data(data_Xsize, data_Ysize);
+      CArray<float, 3> data_tmp(data_k4, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
+      CArray<double, 3> data(data_Xsize, data_Ysize, data_Zsize);
       data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
-   }
+    }
    CATCH_DUMP_STACK
-
+   
    void cxios_write_data_k43(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
    TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k43_hdl(CField::get(fieldid_str), data_k4, data_Xsize,data_Ysize, data_Zsize);
+    }
+   CATCH_DUMP_STACK
+   
 
+   
+   void cxios_write_data_k44_hdl(CField* field, float* data_k4,
+                             int data_0size, int data_1size, int data_2size,
+                             int data_3size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<float, 3> data_tmp(data_k4, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
-      CArray<double, 3> data(data_Xsize, data_Ysize, data_Zsize);
+      CArray<float, 4> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
+      CArray<double, 4> data(data_0size, data_1size, data_2size, data_3size);
       data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
@@ -692,19 +827,29 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k44_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size) ;
+    }
+   CATCH_DUMP_STACK
 
+
+
+
+   void cxios_write_data_k45_hdl(CField* field, float* data_k4,
+                             int data_0size, int data_1size, int data_2size,
+                             int data_3size, int data_4size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<float, 4> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
-      CArray<double, 4> data(data_0size, data_1size, data_2size, data_3size);
+      CArray<float, 5> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
+      CArray<double, 5> data(data_0size, data_1size, data_2size, data_3size, data_4size);
       data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
@@ -718,19 +863,28 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k45_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size) ;
+    }
+   CATCH_DUMP_STACK
 
+
+
+   void cxios_write_data_k46_hdl(CField* field, float* data_k4,
+                             int data_0size, int data_1size, int data_2size,
+                             int data_3size, int data_4size, int data_5size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<float, 5> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
-      CArray<double, 5> data(data_0size, data_1size, data_2size, data_3size, data_4size);
+      CArray<float, 6> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
+      CArray<double, 6> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size);
       data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
@@ -744,26 +898,35 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_write_data_k46_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
+    }
+   CATCH_DUMP_STACK
 
+
+   void cxios_write_data_k47_hdl(CField* field, float* data_k4,
+                             int data_0size, int data_1size, int data_2size,
+                             int data_3size, int data_4size, int data_5size,
+                             int data_6size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<float, 6> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
-      CArray<double, 6> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size);
+      CArray<float, 7> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
+      CArray<double, 7> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size);
       data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
+      field->setData(data);
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
     }
    CATCH_DUMP_STACK
 
-   void cxios_write_data_k47(const char* fieldid, int fieldid_size, float* data_k4,
+  void cxios_write_data_k47(const char* fieldid, int fieldid_size, float* data_k4,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size, int data_5size,
                              int data_6size)
@@ -771,43 +934,53 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-
-      CTimer::get("XIOS").resume();
-      CTimer::get("XIOS send field").resume();
-
-      CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->eventLoop();
-//ym        context->checkBuffersAndListen();
-
-      CArray<float, 7> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
-      CArray<double, 7> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size);
-      data = data_tmp;
-      CField::get(fieldid_str)->setData(data);
-
-      CTimer::get("XIOS send field").suspend();
-      CTimer::get("XIOS").suspend();
+      cxios_write_data_k47_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
     }
    CATCH_DUMP_STACK
 
+
    // ---------------------- Lecture des données ------------------------------
 
-   void cxios_read_data_k80(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
+   void cxios_read_data_k80_hdl(CField* field, double* data_k8, int data_Xsize)
    TRY
    {
-      std::string fieldid_str;
-      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      field->getData(data);
+
+      CTimer::get("XIOS recv field").suspend();
+      CTimer::get("XIOS").suspend();
+   }
+   CATCH_DUMP_STACK
+
+   void cxios_read_data_k80(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
+   TRY
+   {
+      std::string fieldid_str;
+      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k80_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+   }
+   CATCH_DUMP_STACK
+   
+   
+   void cxios_read_data_k81_hdl(CField* field, double* data_k8, int data_Xsize)
+   TRY
+   {
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS recv field").resume();
+
+      CContext* context = CContext::getCurrent();
+      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+        context->eventLoop();
+
+      CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
+      field->getData(data);
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
@@ -819,17 +992,22 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k81_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+   }
+   CATCH_DUMP_STACK
 
+   void cxios_read_data_k82_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
+      field->getData(data);
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
@@ -841,39 +1019,53 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k82_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize) ;
+   }
+   CATCH_DUMP_STACK
 
+
+   void cxios_read_data_k83_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
+      field->getData(data);
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
    CATCH_DUMP_STACK
 
+
    void cxios_read_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
    TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k83_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize, data_Zsize) ;
+   }
+   CATCH_DUMP_STACK
 
+   void cxios_read_data_k84_hdl(CField* field, double* data_k8,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
+      field->getData(data);
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
@@ -887,17 +1079,24 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k84_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size) ;
+   }
+   CATCH_DUMP_STACK
 
+   void cxios_read_data_k85_hdl(CField* field, double* data_k8,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size, int data_4size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
+      field->getData(data);
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
@@ -911,17 +1110,24 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k85_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size) ;
+   }
+   CATCH_DUMP_STACK
 
+   void cxios_read_data_k86_hdl(CField* field, double* data_k8,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size, int data_4size, int data_5size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
+      field->getData(data);
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
@@ -935,17 +1141,25 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k86_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
+   }
+   CATCH_DUMP_STACK
 
+   void cxios_read_data_k87_hdl(CField* field, double* data_k8,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size, int data_4size, int data_5size,
+                            int data_6size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
+      field->getData(data);
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
@@ -960,17 +1174,29 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k87_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
+   }
+   CATCH_DUMP_STACK
 
+
+
+
+
+
+   void cxios_read_data_k40_hdl(CField* field, float* data_k4, int data_Xsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
-      CField::get(fieldid_str)->getData(data);
+      CArray<double, 1> data(data_Xsize);
+      field->getData(data);
+      CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
+      data_tmp = data;
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
@@ -982,17 +1208,24 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k40_hdl(CField::get(fieldid_str), data_k4, data_Xsize) ;
+   }
+   CATCH_DUMP_STACK
 
+
+
+   void cxios_read_data_k41_hdl(CField* field, float* data_k4, int data_Xsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
       CArray<double, 1> data(data_Xsize);
-      CField::get(fieldid_str)->getData(data);
+      field->getData(data);
       CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
       data_tmp = data;
 
@@ -1006,18 +1239,26 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k41_hdl(CField::get(fieldid_str), data_k4, data_Xsize) ;
+   }
+   CATCH_DUMP_STACK
 
+
+
+
+   void cxios_read_data_k42_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 1> data(data_Xsize);
-      CField::get(fieldid_str)->getData(data);
-      CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
+      CArray<double, 2> data(data_Xsize, data_Ysize);
+      field->getData(data);
+      CArray<float, 2> data_tmp(data_k4, shape(data_Xsize, data_Ysize), neverDeleteData);
       data_tmp = data;
 
       CTimer::get("XIOS recv field").suspend();
@@ -1030,23 +1271,30 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k42_hdl(CField::get(fieldid_str), data_k4, data_Xsize, data_Ysize) ;
+   }
+   CATCH_DUMP_STACK
 
+
+
+   void cxios_read_data_k43_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 2> data(data_Xsize, data_Ysize);
-      CField::get(fieldid_str)->getData(data);
-      CArray<float, 2> data_tmp(data_k4, shape(data_Xsize, data_Ysize), neverDeleteData);
+      CArray<double, 3> data(data_Xsize, data_Ysize, data_Zsize);
+      field->getData(data);
+      CArray<float, 3> data_tmp(data_k4, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
       data_tmp = data;
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
-   }
+    }
    CATCH_DUMP_STACK
 
    void cxios_read_data_k43(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
@@ -1054,18 +1302,26 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k43_hdl(CField::get(fieldid_str), data_k4,data_Xsize, data_Ysize, data_Zsize) ;
+    }
+   CATCH_DUMP_STACK
 
+
+   void cxios_read_data_k44_hdl(CField* field, float* data_k4,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 3> data(data_Xsize, data_Ysize, data_Zsize);
-      CField::get(fieldid_str)->getData(data);
-      CArray<float, 3> data_tmp(data_k4, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
+      CArray<double, 4> data(data_0size, data_1size, data_2size, data_3size);
+      field->getData(data);
+      CArray<float, 4> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
       data_tmp = data;
 
       CTimer::get("XIOS recv field").suspend();
@@ -1080,18 +1336,27 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k44_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size) ;
+    }
+   CATCH_DUMP_STACK
 
+
+
+   void cxios_read_data_k45_hdl(CField* field, float* data_k4,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size, int data_4size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 4> data(data_0size, data_1size, data_2size, data_3size);
-      CField::get(fieldid_str)->getData(data);
-      CArray<float, 4> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
+      CArray<double, 5> data(data_0size, data_1size, data_2size, data_3size, data_4size);
+      field->getData(data);
+      CArray<float, 5> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
       data_tmp = data;
 
       CTimer::get("XIOS recv field").suspend();
@@ -1106,18 +1371,26 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k45_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size) ;
+    }
+   CATCH_DUMP_STACK
 
+
+   void cxios_read_data_k46_hdl(CField* field, float* data_k4,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size, int data_4size, int data_5size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 5> data(data_0size, data_1size, data_2size, data_3size, data_4size);
-      CField::get(fieldid_str)->getData(data);
-      CArray<float, 5> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
+      CArray<double, 6> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size);
+      field->getData(data);
+      CArray<float, 6> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
       data_tmp = data;
 
       CTimer::get("XIOS recv field").suspend();
@@ -1132,25 +1405,35 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+      cxios_read_data_k46_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
+    }
+   CATCH_DUMP_STACK
 
+
+
+   void cxios_read_data_k47_hdl(CField* field, float* data_k4,
+                            int data_0size, int data_1size, int data_2size,
+                            int data_3size, int data_4size, int data_5size,
+                            int data_6size)
+   TRY
+   {
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
       if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
-//ym        context->checkBuffersAndListen();
 
-      CArray<double, 6> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size);
-      CField::get(fieldid_str)->getData(data);
-      CArray<float, 6> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
+      CArray<double, 7> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size);
+      field->getData(data);
+      CArray<float, 7> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
       data_tmp = data;
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
     }
    CATCH_DUMP_STACK
-
+ 
    void cxios_read_data_k47(const char* fieldid, int fieldid_size, float* data_k4,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size, int data_4size, int data_5size,
@@ -1159,22 +1442,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-
-      CTimer::get("XIOS").resume();
-      CTimer::get("XIOS recv field").resume();
-
-      CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
-        context->eventLoop();
-//ym        context->checkBuffersAndListen();
-
-      CArray<double, 7> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size);
-      CField::get(fieldid_str)->getData(data);
-      CArray<float, 7> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
-      data_tmp = data;
-
-      CTimer::get("XIOS recv field").suspend();
-      CTimer::get("XIOS").suspend();
+      cxios_read_data_k47_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
     }
    CATCH_DUMP_STACK
 } // extern "C"
