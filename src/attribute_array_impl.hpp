@@ -13,13 +13,12 @@ namespace xios
       template <typename T_numtype, int N_rank>
       CAttributeArray<T_numtype, N_rank>::CAttributeArray(const StdString & id)
          : CAttribute(id)
-      { bool alwaysFalse ; alwaysFalse=false ; if (alwaysFalse) TV_ttf_display_type(this); }
+      {  }
 
       template <typename T_numtype, int N_rank>
       CAttributeArray<T_numtype,N_rank>::CAttributeArray(const StdString & id, const CArray<T_numtype,N_rank>& value)
          : CAttribute(id)
       {
-         bool alwaysFalse ; alwaysFalse=false ; if (alwaysFalse) TV_ttf_display_type(this);
          this->setValue(value);
       }
 
@@ -27,7 +26,6 @@ namespace xios
       CAttributeArray<T_numtype, N_rank>::CAttributeArray(const StdString & id, xios_map<StdString, CAttribute*> & umap)
          : CAttribute(id)
       {
-         bool alwaysFalse ; alwaysFalse=false ; if (alwaysFalse) TV_ttf_display_type(this);
          umap.insert(umap.end(), std::make_pair(id, this));
       }
 
@@ -36,7 +34,6 @@ namespace xios
                                                            xios_map<StdString, CAttribute*> & umap)
          : CAttribute(id)
       {
-         bool alwaysFalse ; alwaysFalse=false ; if (alwaysFalse) TV_ttf_display_type(this);
          this->setValue(value);
          umap.insert(umap.end(), std::make_pair(id, this));
       }

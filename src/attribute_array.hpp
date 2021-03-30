@@ -64,47 +64,6 @@ namespace xios
             virtual void generateFortranInterfaceGetBody_(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;
  
- static int show_TV_ttf_display_type ( const CAttributeArray<T_numtype,N_rank>* array )
-      {
-        int status ;
-        if (array->isEmpty()) 
-        {
-          status = TV_ttf_add_row("State", TV_ttf_type_ascii_string,"(empty)") ;
-          if (status != TV_ttf_ec_ok) return TV_ttf_format_raw ;
-          else return TV_ttf_format_ok_elide ;
-        }
-        else 
-        {
-          char tname[128] ;
-          char bname[128] = "value_type" ;
-#ifdef __GNUC__
-         size_t size = sizeof(bname) ;
-         abi::__cxa_demangle(typeid(T_numtype).name(), bname, &size, &status) ;
-         if (status !=0) return TV_ttf_format_raw ;
-#endif
-          int dim = array->dimensions() ;
-          if (dim==1) snprintf (tname, sizeof(tname), "%s[%d]", bname, array->extent(0));
-          if (dim==2) snprintf (tname, sizeof(tname), "%s[%d][%d]", bname, array->extent(1), array->extent(0));
-          if (dim==3) snprintf (tname, sizeof(tname), "%s[%d][%d][%d]", bname, array->extent(2), array->extent(1), array->extent(3));
-          if (dim==4) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d]", bname, array->extent(0), array->extent(1), array->extent(2), array->extent(3));
-          if (dim==5) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d][%d]", bname, array->extent(4), array->extent(3), array->extent(2), array->extent(1)
-                                                                                      ,array->extent(0));
-          if (dim==6) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d][%d][%d]", bname, array->extent(5), array->extent(4), array->extent(3), array->extent(2)
-                                                                                      ,array->extent(1),array->extent(0));
-          if (dim==7) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d][%d][%d][%d]", bname, array->extent(6), array->extent(5), array->extent(4), array->extent(3)
-                                                                                      ,array->extent(2),array->extent(1),array->extent(0));
-          status = TV_ttf_add_row("array_values", tname, array->dataFirst()) ;
-          if (status != TV_ttf_ec_ok) return TV_ttf_format_raw ;
-          else return TV_ttf_format_ok ;
-        }
-      }
-      
-            
-            static int TV_ttf_display_type ( const  CAttributeArray<T_numtype,N_rank>* array )
-           {
-             return CAttributeArray<T_numtype,N_rank>::show_TV_ttf_display_type (array) ;
-           }
-
          private :
           bool isEqual_(const CAttributeArray& attr);
           CArray<T_numtype, N_rank> inheritedValue ;
@@ -116,27 +75,6 @@ namespace xios
       }; // class CAttributeEnum
 
 
-#define macrotyperank(_TYPE_,_RANK_)\
-  template<> int CAttributeArray<_TYPE_,_RANK_>::TV_ttf_display_type(const CAttributeArray<_TYPE_,_RANK_>* array );
-
-#define macrotype(_TYPE_)\
-macrotyperank(_TYPE_,1)\
-macrotyperank(_TYPE_,2)\
-macrotyperank(_TYPE_,3)\
-macrotyperank(_TYPE_,4)\
-macrotyperank(_TYPE_,5)\
-macrotyperank(_TYPE_,6)\
-macrotyperank(_TYPE_,7)
-
-macrotype(double)
-macrotype(int)
-macrotype(bool)
-macrotype(size_t)
-macrotype(float)
-macrotype(string)
-
-#undef macrotyperank
-#undef macrotype
 } // namespace xios
 
 #endif // __XIOS_ATTRIBUTE_ARRAY__

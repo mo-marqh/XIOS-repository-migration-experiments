@@ -6,11 +6,6 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 #include "message.hpp"
-#include "tv_data_display.h"
-#ifdef __GNUC__
-#include <typeinfo>
-#include <cxxabi.h>
-#endif
 #include <cmath>
 
 using namespace blitz;
@@ -21,12 +16,7 @@ namespace xios
   template <typename T_numtype,int N_rank>
   class CArray ;
 
- template <typename T_numtype,int N_rank>
- int TV_ttf_display_type ( const CArray<T_numtype, N_rank>* array ) ;
 }
-
-template <typename T_numtype,int N_rank>
-int TV_ttf_display_type ( const xios::CArray<T_numtype, N_rank>* array ) ;
 
 namespace xios
 {
@@ -35,270 +25,221 @@ namespace xios
   {
     private:
       bool initialized;
-      void inc_symbol(void)
-      {
-        TV_ttf_display_type(this);
-      }
+
     public:
       typedef typename Array<T_numtype,N_rank>::T_default_storage T_default_storage;
       using Array<T_numtype,N_rank>::operator =;
 
       template<typename T_expr> explicit CArray(_bz_ArrayExpr<T_expr> expr)
         : Array<T_numtype,N_rank>(expr)
-        , initialized(true)
-      { bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol(); }
+        , initialized(true) {  }
 
       CArray(GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(storage)
-        , initialized(false)
-      { bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(false) { }
 
       explicit CArray(int length0, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, length1, storage)
-        , initialized(true)
-      { bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, length1, length2, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, length1, length2, length3, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, int length4, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0,length1, length2, length3, length4, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, int length4, int length5, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, length1, length2, length3, length4, length5, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, int length4, int length5, int length6, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, length1, length2, length3, length4, length5, length6, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, int length4, int length5, int length6, int length7,
              GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, length1, length2, length3, length4, length5, length6, length7, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, int length4, int length5, int length6,
              int length7, int length8, GeneralArrayStorage<N_rank> storage = T_default_storage())
        : Array<T_numtype,N_rank>(length0, length1, length2, length3, length4, length5, length6, length7, length8, storage)
-       , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+       , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, int length4,
              int length5, int length6, int length7, int length8, int length9, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(length0, length1, length2, length3, length4, length5, length6, length7, length8, length9, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(int length0, int length1, int length2, int length3, int length4, int length5, int length6,
              int length7, int length8, int length9, int length10, GeneralArrayStorage<N_rank> storage = T_default_storage())
        : Array<T_numtype,N_rank>(length0, length1, length2, length3, length4, length5, length6, length7, length8, length9, length10, storage)
-       , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+       , initialized(true) { }
 
       CArray(T_numtype* restrict dataFirst, TinyVector<int, N_rank> shape, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(dataFirst, shape, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(T_numtype* restrict dataFirst, TinyVector<int, N_rank> shape, TinyVector<diffType, N_rank> stride,
              GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(dataFirst, shape, stride, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(T_numtype* restrict dataFirst, TinyVector<int, N_rank> shape, preexistingMemoryPolicy deletionPolicy,
             GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(dataFirst, shape, deletionPolicy, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(T_numtype* restrict dataFirst, TinyVector<int, N_rank> shape, TinyVector<diffType, N_rank> stride,
              preexistingMemoryPolicy deletionPolicy, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(dataFirst, shape, stride, deletionPolicy, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(const TinyVector<int, N_rank>& extent, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(extent, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(const TinyVector<int, N_rank>& lbounds, const TinyVector<int, N_rank>& extent,
              const GeneralArrayStorage<N_rank>& storage)
         : Array<T_numtype,N_rank>(lbounds, extent, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, Range r4, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, r4, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, Range r4, Range r5, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, r4, r5, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, Range r4, Range r5, Range r6,
              GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, r4, r5, r6, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, Range r4, Range r5, Range r6, Range r7,
              GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, r4, r5, r6, r7, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, Range r4, Range r5,
              Range r6, Range r7, Range r8, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, r4, r5, r6, r7, r8, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, Range r4, Range r5,
              Range r6, Range r7, Range r8, Range r9, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Range r0, Range r1, Range r2, Range r3, Range r4, Range r5, Range r6, Range r7,
              Range r8, Range r9, Range r10, GeneralArrayStorage<N_rank> storage = T_default_storage())
         : Array<T_numtype,N_rank>(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(const CArray<T_numtype, N_rank>& array)
         : Array<T_numtype,N_rank>(array)
-        , initialized(array.initialized)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(array.initialized) { }
 
       CArray(const Array<T_numtype, N_rank>& array)
         : Array<T_numtype,N_rank>(array)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(const TinyVector<int,N_rank-1>& shape, int lastExtent, const GeneralArrayStorage<N_rank>& storage)
         : Array<T_numtype,N_rank>(shape, lastExtent, storage)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0)
         : Array<T_numtype,N_rank>(array, r0)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1)
         : Array<T_numtype,N_rank>(array, r0, r1)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2)
         : Array<T_numtype,N_rank>( array, r0, r1, r2)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2, Range r3)
         : Array<T_numtype,N_rank>(array, r0, r1, r2, r3)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) { }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2,
              Range r3, Range r4)
         : Array<T_numtype,N_rank>(array, r0, r1, r2, r3,  r4)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2,
              Range r3, Range r4, Range r5)
         : Array<T_numtype,N_rank>( array, r0, r1, r2, r3, r4, r5)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2, Range r3,
              Range r4, Range r5, Range r6)
         : Array<T_numtype,N_rank>( array, r0, r1, r2, r3, r4, r5, r6)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2, Range r3, Range r4,
              Range r5, Range r6, Range r7)
         : Array<T_numtype,N_rank>(array, r0, r1, r2, r3, r4, r5, r6, r7)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2, Range r3, Range r4, Range r5,
              Range r6, Range r7, Range r8)
         : Array<T_numtype,N_rank>(array, r0, r1, r2, r3, r4, r5, r6, r7, r8)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2, Range r3, Range r4, Range r5,
              Range r6, Range r7, Range r8, Range r9)
         : Array<T_numtype,N_rank>(array, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, Range r0, Range r1, Range r2, Range r3, Range r4, Range r5, Range r6,
              Range r7, Range r8, Range r9, Range r10)
         : Array<T_numtype,N_rank>(array, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, const RectDomain<N_rank>& subdomain)
         : Array<T_numtype,N_rank>(array, subdomain)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       CArray(Array<T_numtype, N_rank>& array, const StridedDomain<N_rank>& subdomain)
         : Array<T_numtype,N_rank>(array, subdomain)
-        , initialized(true)
-      {bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol();}
+        , initialized(true) {  }
 
       template<int N_rank2, typename R0, typename R1, typename R2, typename R3, typename R4, typename R5,
                             typename R6, typename R7, typename R8, typename R9, typename R10>
       CArray(Array<T_numtype,N_rank2>& array, R0 r0, R1 r1, R2 r2, R3 r3, R4 r4, R5 r5, R6 r6, R7 r7, R8 r8, R9 r9, R10 r10)
         : Array<T_numtype,N_rank>(array, r0,r1, r2, r3, r4, r5, r6, r7, r8, r9, r10)
         , initialized(true)
-      { bool neverTrue ; neverTrue=false ; if(neverTrue) inc_symbol(); }
+      {    }
 
       virtual ~CArray() {}
 
@@ -568,48 +509,7 @@ namespace xios
       virtual size_t size(void) const { return size(this->numElements()); }
       virtual std::vector<T_numtype> getVector(void) { return vector<T_numtype>(this->dataFirst(),this->dataFirst()+this->numElements()) ;}
       static size_t size(sizeType numElements) { return (N_rank + 1) * sizeof(int) + sizeof(size_t) + numElements * sizeof(T_numtype); }
-      
-      static int show_TV_ttf_display_type ( const CArray<T_numtype,N_rank>* array )
-      {
-        int status ;
-        if (array->isEmpty()) 
-        {
-          status = TV_ttf_add_row("State", TV_ttf_type_ascii_string,"(empty)") ;
-          if (status != TV_ttf_ec_ok) return TV_ttf_format_raw ;
-          else return TV_ttf_format_ok_elide ;
-        }
-        else 
-        {
-          char tname[128] ;
-          char bname[128] = "value_type" ;
-#ifdef __GNUC__
-         size_t size = sizeof(bname) ;
-         abi::__cxa_demangle(typeid(T_numtype).name(), bname, &size, &status) ;
-         if (status !=0) return TV_ttf_format_raw ;
-#endif
-          int dim = array->dimensions() ;
-          if (dim==1) snprintf (tname, sizeof(tname), "%s[%d]", bname, array->extent(0));
-          if (dim==2) snprintf (tname, sizeof(tname), "%s[%d][%d]", bname, array->extent(1), array->extent(0));
-          if (dim==3) snprintf (tname, sizeof(tname), "%s[%d][%d][%d]", bname, array->extent(2), array->extent(1), array->extent(3));
-          if (dim==4) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d]", bname, array->extent(0), array->extent(1), array->extent(2), array->extent(3));
-          if (dim==5) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d][%d]", bname, array->extent(4), array->extent(3), array->extent(2), array->extent(1)
-                                                                                      ,array->extent(0));
-          if (dim==6) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d][%d][%d]", bname, array->extent(5), array->extent(4), array->extent(3), array->extent(2)
-                                                                                      ,array->extent(1),array->extent(0));
-          if (dim==7) snprintf (tname, sizeof(tname), "%s[%d][%d][%d][%d][%d][%d][%d]", bname, array->extent(6), array->extent(5), array->extent(4), array->extent(3)
-                                                                                      ,array->extent(2),array->extent(1),array->extent(0));
-          status = TV_ttf_add_row("array_values", tname, array->dataFirst()) ;
-          if (status != TV_ttf_ec_ok) return TV_ttf_format_raw ;
-          else return TV_ttf_format_ok ;
-        }
-      }
-      
-
-      static int TV_ttf_display_type ( const CArray<T_numtype,N_rank>* array )
-      {
-        return show_TV_ttf_display_type (array) ;
-      }
-      
+    
       virtual CBaseType* clone(void) const { return new CArray(*this); }
 
       virtual bool toBuffer(CBufferOut& buffer) const
@@ -641,29 +541,6 @@ namespace xios
       }
 
   };
-
-
-#define macrotyperank(_TYPE_,_RANK_)\
-  template<> int CArray<_TYPE_,_RANK_>::TV_ttf_display_type( const CArray<_TYPE_,_RANK_>* array );
-
-#define macrotype(_TYPE_)\
-macrotyperank(_TYPE_,1)\
-macrotyperank(_TYPE_,2)\
-macrotyperank(_TYPE_,3)\
-macrotyperank(_TYPE_,4)\
-macrotyperank(_TYPE_,5)\
-macrotyperank(_TYPE_,6)\
-macrotyperank(_TYPE_,7)
-
-macrotype(double)
-macrotype(int)
-macrotype(bool)
-macrotype(size_t)
-macrotype(float)
-macrotype(string)
-
-#undef macrotyperank
-#undef macrotype
 
 
 

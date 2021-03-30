@@ -42,14 +42,9 @@
       public :                                                    \
          using CAttributeArray<T_num, T_rank>::operator = ;       \
          bool alwaysFalse=false;\
-         name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {if (alwaysFalse) TV_ttf_display_type(this);} \
+         name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {} \
          virtual bool doSend() const { return helper(__VA_ARGS__); }   \
          bool helper(bool returnTrue=true) const { return returnTrue; }   \
-         static int TV_ttf_display_type ( const name##_attr* array )\
-         {\
-           cout<<"TV_ttf_display_type"<<endl ;\
-           return CArray<T_num,T_rank>::TV_ttf_display_type((const CArray<T_num,T_rank>*)array) ;\
-         }\
          virtual ~name##_attr(void) {}                            \
    } name;
 
