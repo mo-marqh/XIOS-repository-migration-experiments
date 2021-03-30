@@ -43,10 +43,18 @@ CDomainAlgorithmReorder::CDomainAlgorithmReorder(bool isSource, CDomain* domainD
 : CAlgorithmTransformationNoDataModification(isSource)
 TRY
 {
+  domainDestination->type.setValue( CDomain::type_attr::rectilinear );
+  domainDestination->ni_glo = domainSource->ni_glo;
+  domainDestination->nj_glo = domainSource->nj_glo;
+  domainDestination->ni = domainSource->ni;
+  domainDestination->nj = domainSource->nj;
+  domainDestination->ibegin = domainSource->ibegin;
+  domainDestination->jbegin = domainSource->jbegin;
+
   reorderDomain->checkValid(domainSource);
   domainDestination->checkAttributes() ; // for now but maybe use domainSource as template for domain destination
 
-  if (domainDestination->type !=  CDomain::type_attr::rectilinear)
+  if (domainSource->type !=  CDomain::type_attr::rectilinear)
   {
       ERROR("CDomainAlgorithmReorder::CDomainAlgorithmReorder(CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain)",
            << "Domain destination is not rectilinear. This filter work only for rectilinear domain and destination domain with < id = "
@@ -61,12 +69,11 @@ TRY
            << "Domain destination " <<domainDestination->getId() << std::endl);
   }
   
-  if (!reorderDomain->invert_lat.isEmpty())
+  if (!reorderDomain->invert_lat.isEmpty() && reorderDomain->invert_lat.getValue() )
   {
     CArray<int,1>& j_index=domainDestination->j_index ;
     int nglo = j_index.numElements() ;
     int nj_glo =domainDestination->nj_glo ;
-    
     for (size_t i = 0; i < nglo ; ++i)
     {
       j_index(i)=(nj_glo-1)-j_index(i) ;
@@ -79,7 +86,6 @@ TRY
     int  offset = ni_glo*reorderDomain->shift_lon_fraction ;
     CArray<int,1>& i_index=domainDestination->i_index ;
     int nglo = i_index.numElements() ;
-    
     for (size_t i = 0; i < nglo ; ++i)
     {
       i_index(i)=  (i_index(i)+offset+ni_glo)%ni_glo ;
