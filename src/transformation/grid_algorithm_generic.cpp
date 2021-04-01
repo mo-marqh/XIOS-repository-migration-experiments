@@ -63,7 +63,11 @@ namespace xios
     vector<CArray<double,1>> auxDataOutTmp(auxData.size()) ;
 
     gridTransformConnector_->transfer(dataIn, dataOutTmp) ;
-    for (int i=0; i<auxData.size();i++)  gridTransformConnector_->transfer(auxData[i], auxDataOutTmp[i]) ;
+    for (int i=0; i<auxData.size();i++)  
+    {
+      if (algorithm_->transformAuxField(i)) gridTransformConnector_->transfer(auxData[i], auxDataOutTmp[i]) ;
+      else auxDataOutTmp[i].reference(auxData[i]) ;
+    }
 
     algorithm_->apply(dimBefore_, dimAfter_, dataOutTmp, auxDataOutTmp, dataOut) ;
   }

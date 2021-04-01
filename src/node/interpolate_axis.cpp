@@ -59,13 +59,34 @@ namespace xios {
              << "Order of interpolation is " << order );
     }
 
+    if (!this->coordinate.isEmpty() && (!this->coordinate_src.isEmpty() || !this->coordinate_dst.isEmpty()))
+    {
+       ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+               << "<coordinate> is incompatible with <coordinate_src> or <coordinate_dst> attributes. <coordinate> attribute is present only for backward"
+               << "compatibility and is now declared obsolete") ;
+    }
 
     if (!this->coordinate.isEmpty())
     {
-      StdString coordinate = this->coordinate.getValue();
       if (!CField::has(coordinate))
         ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
                << "Coordinate field whose id " << coordinate << "does not exist "
+               << "Please define one");
+    }
+
+    if (!this->coordinate_src.isEmpty())
+    {
+      if (!CField::has(coordinate_src))
+        ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+               << "Coordinate field whose id " << coordinate_src << "does not exist "
+               << "Please define one");
+    }
+
+    if (!this->coordinate_dst.isEmpty())
+    {
+      if (!CField::has(coordinate_dst))
+        ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+               << "Coordinate field whose id " << coordinate_dst << "does not exist "
                << "Please define one");
     }
   }
@@ -73,11 +94,39 @@ namespace xios {
   std::vector<StdString> CInterpolateAxis::checkAuxInputs_()
   {
     std::vector<StdString> auxInputs;
+    
+    if (!this->coordinate.isEmpty() && (!this->coordinate_src.isEmpty() || !this->coordinate_dst.isEmpty()))
+    {
+       ERROR("std::vector<StdString> CInterpolateAxis::checkAuxInputs_()",
+               << "<coordinate> is incompatible with <coordinate_src> or <coordinate_dst> attributes. <coordinate> attribute is present only for backward"
+               << "compatibility and is now declared obsolete") ;
+    }
+
     if (!this->coordinate.isEmpty())
     {
       StdString coordinate = this->coordinate.getValue();
       if (!CField::has(coordinate))
-        ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+        ERROR("std::vector<StdString> CInterpolateAxis::checkAuxInputs_()",
+               << "Coordinate field whose id " << coordinate << "does not exist "
+               << "Please define one");
+      auxInputs.push_back(coordinate);
+    }
+
+    if (!this->coordinate_src.isEmpty())
+    {
+      StdString coordinate = this->coordinate_src.getValue();
+      if (!CField::has(coordinate))
+        ERROR("std::vector<StdString> CInterpolateAxis::checkAuxInputs_()",
+               << "Coordinate field whose id " << coordinate << "does not exist "
+               << "Please define one");
+      auxInputs.push_back(coordinate);
+    }
+
+    if (!this->coordinate_dst.isEmpty())
+    {
+      StdString coordinate = this->coordinate_dst.getValue();
+      if (!CField::has(coordinate))
+        ERROR("std::vector<StdString> CInterpolateAxis::checkAuxInputs_()",
                << "Coordinate field whose id " << coordinate << "does not exist "
                << "Please define one");
       auxInputs.push_back(coordinate);
@@ -96,9 +145,11 @@ namespace xios {
                                                         std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                         std::map<int, int>& elementPositionInGridDst2DomainPosition)
   {
-    if (!coordinate.isEmpty())  return CAxisAlgorithmInterpolateCoordinate::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid, 
-                                      elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
-                                      elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition);
+    if (!coordinate.isEmpty() || !coordinate_src.isEmpty() || !coordinate_dst.isEmpty()) 
+       return CAxisAlgorithmInterpolateCoordinate::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid, 
+              elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
+              elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition);
+    
     else return CAxisAlgorithmInterpolate::create(isSource, gridDst,  gridSrc, this, elementPositionInGrid, 
                 elementPositionInGridSrc2ScalarPosition, elementPositionInGridSrc2AxisPosition, elementPositionInGridSrc2DomainPosition,
                 elementPositionInGridDst2ScalarPosition, elementPositionInGridDst2AxisPosition, elementPositionInGridDst2DomainPosition);

@@ -40,7 +40,7 @@ class CGenericAlgorithmTransformation
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut) { abort() ;} //=0
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) { abort() ;} //=0
     virtual bool isGenerateTransformation(void) { return false ;}
-
+    virtual bool transformAuxField(int pos) { return true ;}
     virtual vector<string> getAuxFieldId(void) ;
   protected :
     typedef std::unordered_map<int, std::vector<int> > TransformationIndexMap;

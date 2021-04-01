@@ -54,8 +54,20 @@ namespace xios
 
   vector<string> CAxisAlgorithmInterpolateCoordinate::getAuxFieldId(void)
   {
-    if (hasCoordinate_) return vector<string>(1,coordinate_) ;
+    if (hasCoordinateSrc_ && hasCoordinateDest_) return {coordinateSrc_,coordinateDest_} ;
+    else if (hasCoordinateSrc_) return {coordinateSrc_} ;
+    else if (hasCoordinateDest_) return {coordinateDest_} ;
     else return vector<string>() ;
+  }
+  
+  bool CAxisAlgorithmInterpolateCoordinate::transformAuxField(int pos)
+  {
+    if (pos==0)
+    {
+      if (hasCoordinateSrc_) return true ;
+      else if(hasCoordinateDest_) return false ;
+    }
+    if (pos==1) return false ;
   }
 
   CAxisAlgorithmInterpolateCoordinate::CAxisAlgorithmInterpolateCoordinate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
@@ -68,18 +80,37 @@ namespace xios
     order_ = interpAxis->order.getValue();
     if (!interpAxis->coordinate.isEmpty())
     {
-      coordinate_ = interpAxis->coordinate.getValue();
+      coordinateSrc_ = interpAxis->coordinate.getValue();
       hasCoordinate_=true ;
+      hasCoordinateSrc_=true ;
     }
-  
-    ngloSrc_=axisSource->n_glo ;
+
+    if (!interpAxis->coordinate_src.isEmpty())
+    {
+      coordinateSrc_ = interpAxis->coordinate_src.getValue();
+      hasCoordinate_=true ;
+      hasCoordinateSrc_=true ;
+    }
+
+    if (!interpAxis->coordinate_dst.isEmpty())
+    {
+      coordinateDest_ = interpAxis->coordinate_dst.getValue();
+      hasCoordinate_=true ;
+      hasCoordinateDest_=true ;
+    }
+
+    ngloSrc_=axisSource->n_glo ; 
     nDest_ =  axisDest_-> getLocalView(CElementView::WORKFLOW)->getSize() ;
-    CArray<double,1> coord ;
-    CLocalConnector destConnector(axisDest_->getLocalView(CElementView::FULL), axisDest_->getLocalView(CElementView::WORKFLOW)) ;
-    destConnector.computeConnector() ;
-    destConnector.transfer(axisDest_->value, coord) ;
-    destCoordinate_ = vector<double>(coord.dataFirst(), coord.dataFirst()+nDest_) ;
     
+    if (!hasCoordinateDest_)
+    {
+      CArray<double,1> coord ;
+      CLocalConnector destConnector(axisDest_->getLocalView(CElementView::FULL), axisDest_->getLocalView(CElementView::WORKFLOW)) ;
+      destConnector.computeConnector() ;
+      destConnector.transfer(axisDest_->value, coord) ;
+      destCoordinate_ = vector<double>(coord.dataFirst(), coord.dataFirst()+nDest_) ;
+    }
+
     CArray<size_t,1> globalIndex(ngloSrc_) ;
     for(int i=0;i<ngloSrc_;i++) 
     {
@@ -92,28 +123,46 @@ namespace xios
     axisSourceGlo.addFullView() ; 
 
     this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisSourceGlo.getView(CElementView::FULL)) ;
+
+    if (!hasCoordinateSrc_)
+    {
+      CArray<double,1> coord ;
+      CArray<double,1> coordGlo ;
+      CLocalConnector srcConnector(axisSrc_->getLocalView(CElementView::FULL), axisSrc_->getLocalView(CElementView::WORKFLOW)) ;
+      srcConnector.computeConnector() ;
+      srcConnector.transfer(axisSrc_->value, coord) ; // full view value -> workflow value
+      transferTransformConnector_ -> transfer(coord, coordGlo) ; // workflow view -> full global view
+      srcCoordinate_ = vector<double>(coordGlo.dataFirst(), coordGlo.dataFirst()+ngloSrc_) ;
+    }
   }
   CATCH
 
   CTransformFilter* CAxisAlgorithmInterpolateCoordinate::createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue)
   {
-    return new CTransformFilter(gc, 2, algo, detectMissingValues, defaultValue) ;  
+    if (hasCoordinateSrc_ && hasCoordinateDest_) return new CTransformFilter(gc, 3, algo, detectMissingValues, defaultValue) ;
+    else return new CTransformFilter(gc, 2, algo, detectMissingValues, defaultValue) ;  
   }
 
   void CAxisAlgorithmInterpolateCoordinate::apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, 
                                                    const vector<CArray<double,1>>& auxDataIn, CArray<double,1>& dataOut)
   {
     CArray<double,1> dataInTmp;
-    CArray<double,1> auxDataInTmp ;
+    CArray<double,1> auxDataInSrc ;
     transferTransformConnector_ -> transfer(dimBefore, dimAfter, dataIn, dataInTmp) ;
-    transferTransformConnector_ -> transfer(dimBefore, dimAfter, auxDataIn[0], auxDataInTmp) ;
-  
+    if (hasCoordinateSrc_)  transferTransformConnector_ -> transfer(dimBefore, dimAfter, auxDataIn[0], auxDataInSrc) ;
+
+   
     dataOut.resize(dimBefore*dimAfter*nDest_) ;
-    const double* pressure = auxDataInTmp.dataFirst() ;
+    const double* pressureSrc ;
+    const double* pressureDest ;
+    if (hasCoordinateSrc_)  pressureSrc = auxDataInSrc.dataFirst() ;
+    if (hasCoordinateDest_ && hasCoordinateSrc_) pressureDest = auxDataIn[1].dataFirst() ;
+    else if (hasCoordinateDest_ && !hasCoordinateSrc_ ) pressureDest = auxDataIn[0].dataFirst() ;
+    
     const double* in = dataInTmp.dataFirst() ;
     double* out = dataOut.dataFirst() ;
 
-    size_t sliceSrc = dimAfter*ngloSrc_ ;
+    size_t sliceSrc  = dimAfter*ngloSrc_ ;
     size_t sliceDest = dimAfter*nDest_ ;
     vector<double> srcCoordinate(ngloSrc_) ;
     vector<double> destCoordinate(nDest_) ;
@@ -122,26 +171,92 @@ namespace xios
     vector<double> destValue(nDest_) ;
     std::vector<int> destIndex(nDest_);
 
-    size_t nsrc ;
+    size_t nsrc, nDest ;
+
     for(size_t j=0, posJsrc=0, posJdest=0 ;  j<dimBefore ; j++, posJsrc+=sliceSrc, posJdest+=sliceDest )
       for(size_t k=0, posKsrc=posJsrc, posKdest=posJdest ; k<dimAfter ; k++, posKsrc++,posKdest++)
       {
-        nsrc=0 ;
-        for(size_t i=0, posIsrc=posKsrc, posIdest=posKdest ; i<ngloSrc_ ; i++, posIsrc+=dimAfter, posIdest+=dimAfter)
+        if (hasCoordinateSrc_)
         {
-          if ( !( std::isnan(pressure[posIsrc]) || std::isnan(in[posIsrc]) ) )
+          nsrc=0 ;
+          for(size_t i=0, posIsrc=posKsrc, posIdest=posKdest ; i<ngloSrc_ ; i++, posIsrc+=dimAfter, posIdest+=dimAfter)
           {
-            srcCoordinate[nsrc]=pressure[posIsrc] ;
-            srcValue[nsrc] = in[posIsrc] ;
-            nsrc++ ;
+            if ( !( std::isnan(pressureSrc[posIsrc]) || std::isnan(in[posIsrc]) ) )
+            {
+              srcCoordinate[nsrc]=pressureSrc[posIsrc] ;
+              srcValue[nsrc] = in[posIsrc] ;
+              nsrc++ ;
+            }
           }
         }
-        destCoordinate = destCoordinate_ ;    
-        computeInterp(nsrc, srcCoordinate, srcValue, srcIndex, nDest_, destCoordinate, destValue, destIndex) ;
+        else
+        {
+          nsrc=0 ;
+          for(size_t i=0, posIsrc=posKsrc ; i<ngloSrc_ ; i++, posIsrc+=dimAfter)
+          {
+            if ( !( std::isnan(srcCoordinate_[i]) || std::isnan(in[posIsrc]) ) )
+            {
+              srcCoordinate[nsrc]=srcCoordinate_[i] ;
+              srcValue[nsrc] = in[posIsrc] ;
+              nsrc++ ;
+            }
+          }
+        }  
 
-        for(size_t i=0, posIdest=posKdest ; i<nDest_ ; i++, posIdest+=dimAfter)  out[posIdest] = destValue[i] ;
+        if (hasCoordinateDest_)
+        {
+          nDest=0 ;
+          for(size_t i=0, posIdest=posKdest ; i<nDest_ ; i++, posIdest+=dimAfter)
+          {
+            if ( !( std::isnan(pressureDest[posIdest]) ) )
+            {
+              destCoordinate[nDest]=pressureDest[posIdest] ;
+              nDest++ ;
+            }
+          }
+        }
+        else
+        {
+          nDest=0 ;
+          for(size_t i=0, posIdest=posKdest ; i<nDest_ ; i++, posIdest+=dimAfter)
+          {
+            if ( !( std::isnan(destCoordinate[i]) ) )
+            {
+              destCoordinate[nDest]=destCoordinate_[i] ;
+              nDest++ ;
+            }
+          }
+        }
+  
+        computeInterp(nsrc, srcCoordinate, srcValue, srcIndex, nDest, destCoordinate, destValue, destIndex) ;
+        
+        if (hasCoordinateDest_)
+        {
+          nDest=0 ;
+          for(size_t i=0, posIdest=posKdest ; i<nDest_ ; i++, posIdest+=dimAfter)  
+          {
+            if ( !( std::isnan(pressureDest[posIdest]) ) )  
+            {
+              out[posIdest] = destValue[nDest] ;
+              nDest++ ;
+            }
+            else out[posIdest] = std::numeric_limits<double>::quiet_NaN() ;
+          }
+        }
+        else
+        {
+          nDest=0 ;
+          for(size_t i=0, posIdest=posKdest ; i<nDest_ ; i++, posIdest+=dimAfter)  
+          {
+            if ( !( std::isnan(destCoordinate[i]) ) )  
+            {
+              out[posIdest] = destValue[nDest] ;
+              nDest++ ;
+            }
+            else out[posIdest] = std::numeric_limits<double>::quiet_NaN() ;
+          }
+        }
       }
-
   }
 
   void CAxisAlgorithmInterpolateCoordinate::computeInterp(int nsrc, vector<double>& srcCoordinate, vector<double>& srcValue, vector<int>& srcIndex,

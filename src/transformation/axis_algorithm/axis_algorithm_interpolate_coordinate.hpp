@@ -31,6 +31,7 @@ public:
 
   virtual ~CAxisAlgorithmInterpolateCoordinate() {}
   virtual vector<string> getAuxFieldId(void)  ;
+  virtual bool transformAuxField(int pos) ;
   virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, 
                      const vector<CArray<double,1>>& auxDataIn, CArray<double,1>& dataOut) ;
   static bool registerTrans();
@@ -42,14 +43,18 @@ private:
 
   // Interpolation order
   int order_;
-  StdString coordinate_;
+  StdString coordinateSrc_; // pressure src
+  StdString coordinateDest_; // pressure dst
   bool hasCoordinate_=false ;
+  bool hasCoordinateSrc_=false ;
+  bool hasCoordinateDest_=false ;
 
   CAxis* axisSrc_=nullptr ;
   CAxis* axisDest_=nullptr;
   size_t ngloSrc_ ;
   size_t nDest_ ;
-  vector<double> destCoordinate_ ;
+  vector<double> srcCoordinate_  ; // src axis value
+  vector<double> destCoordinate_ ; // dst axis value
 
 public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
