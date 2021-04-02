@@ -53,7 +53,9 @@ namespace xios
 
   //  if (contextInfo.serviceType != CServicesManager::CLIENT) // we must have an event scheduler => to be retrieve from the associated services
   //  {
-      if (!isAttachedModeEnabled()) eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
+      //if (!isAttachedModeEnabled()) eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
+      eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
+
   //  }
 
 
@@ -315,14 +317,25 @@ namespace xios
 
       if (event->isFull())
       {
-        if (!scheduled && eventScheduler_) // Skip event scheduling for attached mode and reception on client side
+        if (!scheduled && !isAttachedModeEnabled()) // Skip event scheduling for attached mode and reception on client side
         {
           eventScheduler_->registerEvent(currentTimeLine,hashId);
           scheduled=true;
         }
-        else if (!eventScheduler_ || eventScheduler_->queryEvent(currentTimeLine,hashId) )
+        else if (isAttachedModeEnabled() || eventScheduler_->queryEvent(currentTimeLine,hashId) )
         {
-          MPI_Barrier(intraComm) ;
+          MPI_Request req ;
+          MPI_Status status ;
+
+          MPI_Ibarrier(intraComm,&req) ;
+          int flag=false ;
+          do  
+          {
+            eventScheduler_->checkEvent()  ;
+            MPI_Test(&req,&flag,&status) ;
+          } while (!flag) ;
+
+          //MPI_Barrier(intraComm) ;
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier

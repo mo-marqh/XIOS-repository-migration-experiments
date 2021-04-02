@@ -108,6 +108,7 @@ namespace xios
 
          // Put sever or client into loop state
          bool eventLoop(bool enableEventsProcessing=true);
+         bool scheduledEventLoop(bool enableEventsProcessing=true) ; 
          void globalEventLoop(void);
 
          // Finalize a context

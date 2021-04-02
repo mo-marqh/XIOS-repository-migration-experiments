@@ -715,12 +715,9 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-   
-
-  bool CContext::eventLoop(bool enableEventsProcessing)
+  bool CContext::scheduledEventLoop(bool enableEventsProcessing) 
   {
-    bool finished=true; 
-    bool out; 
+    bool out, finished; 
     size_t timeLine=timeLine_ ;
     if (serviceType_==CServicesManager::CLIENT)
     {
@@ -730,31 +727,38 @@ namespace xios
 
     do
     { 
-      if (client!=nullptr && !finalized) client->checkBuffers();
-    
-      for (int i = 0; i < clientPrimServer.size(); ++i)
-      {
-        if (!finalized) clientPrimServer[i]->checkBuffers();
-        if (!finalized) finished &= serverPrimServer[i]->eventLoop(enableEventsProcessing);
-      }
-
-      for (auto couplerOut : couplerOutClient_)
-        if (!finalized) couplerOut.second->checkBuffers();
-    
-      for (auto couplerIn : couplerInClient_)
-        if (!finalized) couplerIn.second->checkBuffers();
-    
-      for (auto couplerOut : couplerOutServer_)
-        if (!finalized) couplerOut.second->eventLoop(enableEventsProcessing);
-
-      for (auto couplerIn : couplerInServer_)
-        if (!finalized) couplerIn.second->eventLoop(enableEventsProcessing);
-    
-      if (server!=nullptr) if (!finalized) finished &= server->eventLoop(enableEventsProcessing);
-  
+      finished=eventLoop(enableEventsProcessing) ;
       if (serviceType_==CServicesManager::CLIENT) out = eventScheduler_->queryEvent(timeLine,hashId_) ;
       else out=true ;
     }  while(!out) ;
+    
+    return finished ;
+  }
+
+  bool CContext::eventLoop(bool enableEventsProcessing)
+  {
+    bool  finished; 
+    if (client!=nullptr && !finalized) client->checkBuffers();
+    
+    for (int i = 0; i < clientPrimServer.size(); ++i)
+    {
+      if (!finalized) clientPrimServer[i]->checkBuffers();
+      if (!finalized) finished &= serverPrimServer[i]->eventLoop(enableEventsProcessing);
+    }
+
+    for (auto couplerOut : couplerOutClient_)
+      if (!finalized) couplerOut.second->checkBuffers();
+    
+    for (auto couplerIn : couplerInClient_)
+      if (!finalized) couplerIn.second->checkBuffers();
+    
+    for (auto couplerOut : couplerOutServer_)
+      if (!finalized) couplerOut.second->eventLoop(enableEventsProcessing);
+
+    for (auto couplerIn : couplerInServer_)
+      if (!finalized) couplerIn.second->eventLoop(enableEventsProcessing);
+    
+    if (server!=nullptr) if (!finalized) finished &= server->eventLoop(enableEventsProcessing);
     return finalized && finished ;
   }
 
@@ -1058,12 +1062,12 @@ namespace xios
           if (ready) field->sendFieldToCouplerOut() ;
           couplersReady &= ready ;
         }
-        this->eventLoop() ;
+        this->scheduledEventLoop() ;
 
       } while (!couplersReady) ;
       
       first=false ;
-      this->eventLoop() ;
+      this->scheduledEventLoop() ;
 
     } while (!workflowGraphIsCompleted) ;
 
@@ -1197,7 +1201,7 @@ namespace xios
     {
       ok = true ;
       for(auto& couplerOutClient : couplerOutClient_) ok &= isCouplerInCloseDefinition(couplerOutClient.second) ;
-      this->eventLoop() ;
+      this->scheduledEventLoop() ;
     } while (!ok) ;
 
      CTimer::get("Context : close definition").suspend() ;
