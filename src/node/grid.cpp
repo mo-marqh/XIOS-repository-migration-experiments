@@ -1709,7 +1709,8 @@ namespace xios
         if (srcElement.type==TYPE_DOMAIN)      tmpGridSrc->addDomain(srcElement.domain->getId()) ;
         else if (srcElement.type==TYPE_AXIS)   tmpGridSrc->addAxis(srcElement.axis->getId()) ;
         else if (srcElement.type==TYPE_SCALAR) tmpGridSrc->addScalar(srcElement.scalar->getId()) ;
-        tmpGridSrc->checkElementsAttributes() ;
+        // WARNING -> suppress checkElement attribute ? What append ?
+        // tmpGridSrc->checkElementsAttributes() ;
         CGrid* tmpGridDst=CGrid::create(); // destination Grid
         map<int,int> posInGrid={{0,0}} ;
                
