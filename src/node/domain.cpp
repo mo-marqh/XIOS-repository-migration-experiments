@@ -804,12 +804,15 @@ namespace xios {
         nj_glo = 1;
         nj = 1;
         jbegin = 0;
-        if (!i_index.isEmpty()) ni = i_index.numElements();
-        j_index.resize(ni);
-        for(int i=0;i<ni;++i) j_index(i)=0;
+        if (!i_index.isEmpty()) 
+        {
+          ni = i_index.numElements();
+          j_index.resize(ni);
+          for(int i=0;i<ni;++i) j_index(i)=0;
+        }
+        
 
-        if (!area.isEmpty())
-          area.transposeSelf(1, 0);
+        if (!area.isEmpty()) area.transposeSelf(1, 0); // => to be checked why is it transposed
      }
 
      if (ni_glo.isEmpty())
