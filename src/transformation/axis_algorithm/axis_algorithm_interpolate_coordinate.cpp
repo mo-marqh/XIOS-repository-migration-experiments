@@ -290,9 +290,8 @@ namespace xios
           {
             for(int j=lastj; j<nsrc; j++)
             { 
-              if (x >= srcCoordinate[srcIndex[j]] && x<srcCoordinate[srcIndex[j+1]]) ;
               lastj=j ;
-              break ;
+              if (x >= srcCoordinate[srcIndex[j]] && x<srcCoordinate[srcIndex[j+1]]) break ;
             }  
           }
           x0=srcCoordinate[srcIndex[lastj]] ;
@@ -319,10 +318,8 @@ namespace xios
         {
           for(int j=lastj; j<nsrc; j++)
           { 
-            if (x >= srcCoordinate[srcIndex[j]] && x<srcCoordinate[srcIndex[j+1]]) ;
-            
             lastj=j ;
-            break ;
+            if (x >= srcCoordinate[srcIndex[j]] && x<srcCoordinate[srcIndex[j+1]])  break ;
           }  
         }
        
