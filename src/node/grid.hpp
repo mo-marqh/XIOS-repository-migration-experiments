@@ -335,7 +335,7 @@ namespace xios {
         CGridLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_;}
 
       private:
-        CGridLocalConnector* workflowToModelConnector_ ;
+        CGridLocalConnector* workflowToModelConnector_ = nullptr;
       public:
         void computeWorkflowToModelConnector(void) ;
         CGridLocalConnector* getWorkflowToModelConnector(void) { if (workflowToModelConnector_==nullptr) computeWorkflowToModelConnector() ; return workflowToModelConnector_;}
