@@ -738,6 +738,8 @@ namespace xios
   bool CContext::eventLoop(bool enableEventsProcessing)
   {
     bool  finished; 
+    setCurrent(getId()) ;
+
     if (client!=nullptr && !finalized) client->checkBuffers();
     
     for (int i = 0; i < clientPrimServer.size(); ++i)
@@ -759,6 +761,7 @@ namespace xios
       if (!finalized) couplerIn.second->eventLoop(enableEventsProcessing);
     
     if (server!=nullptr) if (!finalized) finished &= server->eventLoop(enableEventsProcessing);
+    setCurrent(getId()) ;
     return finalized && finished ;
   }
 
