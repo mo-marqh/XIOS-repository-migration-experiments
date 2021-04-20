@@ -14,14 +14,14 @@ namespace xios
     current = 1;
     end = size;
     used=0 ;
-    buffer = new char[size]; // use MPI_ALLOC_MEM later?
+    MPI_Alloc_mem(size, MPI_INFO_NULL, &buffer) ;
     currentWindows=1 ;
     if (windows[0]==MPI_WIN_NULL && windows[1]==MPI_WIN_NULL) hasWindows=false ;
   }
 
   CServerBuffer::~CServerBuffer()
   {
-    delete [] buffer ;
+    MPI_Free_mem(buffer) ;
   }
 
   void CServerBuffer::updateCurrentWindows(void)
@@ -221,7 +221,7 @@ namespace xios
 
   bool CServerBuffer::getBufferFromClient(size_t timeLine, char*& buffer, size_t& count)
   {
-    if (!hasWindows) return false ;
+    if (!hasWindows || resizingBuffer_) return false ;
 
     
     size_t header[3] ;

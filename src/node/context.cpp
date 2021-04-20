@@ -291,123 +291,6 @@ namespace xios
    ///---------------------------------------------------------------
 
 
-   void CContext::setClientServerBuffer(vector<CField*>& fields, bool bufferForWriting)
-   TRY
-   {
-      // Estimated minimum event size for small events (20 is an arbitrary constant just for safety)
-     const size_t minEventSize = CEventClient::headerSize + 20 * sizeof(int);
-      // Ensure there is at least some room for 20 of such events in the buffers
-     size_t minBufferSize = std::max(CXios::minBufferSize, 20 * minEventSize);
-
-#define DECLARE_NODE(Name_, name_)    \
-     if (minBufferSize < sizeof(C##Name_##Definition)) minBufferSize = sizeof(C##Name_##Definition);
-#define DECLARE_NODE_PAR(Name_, name_)
-#include "node_type.conf"
-#undef DECLARE_NODE
-#undef DECLARE_NODE_PAR
-
-
-     map<CContextClient*,map<int,size_t>> dataSize ;
-     map<CContextClient*,map<int,size_t>> maxEventSize ;
-     map<CContextClient*,map<int,size_t>> attributesSize ;  
-
-     for(auto field : fields)
-     {
-       field->setContextClientDataBufferSize(dataSize, maxEventSize, bufferForWriting) ;
-       field->setContextClientAttributesBufferSize(attributesSize, maxEventSize, bufferForWriting) ;
-     }
-     
-
-     for(auto& it : attributesSize)
-     {
-       auto contextClient = it.first ;
-       auto& contextDataSize =  dataSize[contextClient] ;
-       auto& contextAttributesSize =  attributesSize[contextClient] ;
-       auto& contextMaxEventSize =  maxEventSize[contextClient] ;
-   
-       for (auto& it : contextAttributesSize)
-       {
-         auto serverRank=it.first ;
-         auto& buffer = contextAttributesSize[serverRank] ;
-         if (contextDataSize[serverRank] > buffer) buffer=contextDataSize[serverRank] ;
-         buffer *= CXios::bufferSizeFactor;
-         if (buffer < minBufferSize) buffer = minBufferSize;
-         if (buffer > CXios::maxBufferSize ) buffer = CXios::maxBufferSize;
-       }
-
-       // Leaders will have to send some control events so ensure there is some room for those in the buffers
-       if (contextClient->isServerLeader())
-         for(auto& rank : contextClient->getRanksServerLeader())
-           if (!contextAttributesSize.count(rank))
-           {
-             contextAttributesSize[rank] = minBufferSize;
-             contextMaxEventSize[rank] = minEventSize;
-           }
-      
-       contextClient->setBufferSize(contextAttributesSize, contextMaxEventSize);    
-     }
-   }
-   CATCH_DUMP_ATTR
-
-
-    /*!
-    Sets client buffers.
-    \param [in] contextClient
-    \param [in] bufferForWriting True if buffers are used for sending data for writing
-    This flag is only true for client and server-1 for communication with server-2
-  */
-  // ym obsolete to be removed
-   void CContext::setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting)
-   TRY
-   {
-      // Estimated minimum event size for small events (20 is an arbitrary constant just for safety)
-     const size_t minEventSize = CEventClient::headerSize + 20 * sizeof(int);
-
-      // Ensure there is at least some room for 20 of such events in the buffers
-      size_t minBufferSize = std::max(CXios::minBufferSize, 20 * minEventSize);
-
-#define DECLARE_NODE(Name_, name_)    \
-     if (minBufferSize < sizeof(C##Name_##Definition)) minBufferSize = sizeof(C##Name_##Definition);
-#define DECLARE_NODE_PAR(Name_, name_)
-#include "node_type.conf"
-#undef DECLARE_NODE
-#undef DECLARE_NODE_PAR
-
-     // Compute the buffer sizes needed to send the attributes and data corresponding to fields
-     std::map<int, StdSize> maxEventSize;
-     std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize, contextClient, bufferForWriting);
-     std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize, contextClient, bufferForWriting);
-
-     std::map<int, StdSize>::iterator it, ite = dataBufferSize.end();
-     for (it = dataBufferSize.begin(); it != ite; ++it)
-       if (it->second > bufferSize[it->first]) bufferSize[it->first] = it->second;
-
-     // Apply the buffer size factor, check that we are above the minimum buffer size and below the maximum size
-     ite = bufferSize.end();
-     for (it = bufferSize.begin(); it != ite; ++it)
-     {
-       it->second *= CXios::bufferSizeFactor;
-       if (it->second < minBufferSize) it->second = minBufferSize;
-       if (it->second > CXios::maxBufferSize) it->second = CXios::maxBufferSize;
-     }
-
-     // Leaders will have to send some control events so ensure there is some room for those in the buffers
-     if (contextClient->isServerLeader())
-     {
-       const std::list<int>& ranks = contextClient->getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-       {
-         if (!bufferSize.count(*itRank))
-         {
-           bufferSize[*itRank] = minBufferSize;
-           maxEventSize[*itRank] = minEventSize;
-         }
-       }
-     }
-     contextClient->setBufferSize(bufferSize, maxEventSize);
-   }
-   CATCH_DUMP_ATTR
-
  /*!
     * Compute the required buffer size to send the fields data.
     * \param maxEventSize [in/out] the size of the bigger event for each connected server
@@ -715,6 +598,14 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
+  void CContext::globalEventLoop(void)
+  {
+    lockContext() ;
+    CXios::getDaemonsManager()->eventLoop() ;
+    unlockContext() ;
+    setCurrent(getId()) ;
+  }
+
   bool CContext::scheduledEventLoop(bool enableEventsProcessing) 
   {
     bool out, finished; 
@@ -738,6 +629,8 @@ namespace xios
   bool CContext::eventLoop(bool enableEventsProcessing)
   {
     bool  finished; 
+    if (isLockedContext()) return ;
+    
     setCurrent(getId()) ;
 
     if (client!=nullptr && !finalized) client->checkBuffers();
@@ -791,20 +684,6 @@ namespace xios
         MPI_Comm_free(&interComm) ;
         couplerOutClient_[fullContextId] = client ;
         couplerOutServer_[fullContextId] = server ;
-
-/*
-      // for now, we don't now which beffer size must be used for client coupler
-      // It will be evaluated later. Fix a constant size for now...
-      // set to 10Mb for development
-       map<int,size_t> bufferSize, maxEventSize ;
-       for(int i=0;i<client->getRemoteSize();i++)
-       {
-         bufferSize[i]=10000000 ;
-         maxEventSize[i]=10000000 ;
-       }
-
-       client->setBufferSize(bufferSize, maxEventSize);    
-*/
       }
     }
     else if (couplerInClient_.find(fullContextId)==couplerInClient_.end())
@@ -826,26 +705,11 @@ namespace xios
        server->setAssociatedClient(client) ;
        MPI_Comm_free(&interComm) ;
 
-       map<int,size_t> bufferSize, maxEventSize ;
-       for(int i=0;i<client->getRemoteSize();i++)
-       {
-         bufferSize[i]=10000000 ;
-         maxEventSize[i]=10000000 ;
-       }
-
-       client->setBufferSize(bufferSize, maxEventSize);    
        couplerInClient_[fullContextId] = client ;
        couplerInServer_[fullContextId] = server ;        
     }
   }
   
-  void CContext::globalEventLoop(void)
-  {
-    CXios::getDaemonsManager()->eventLoop() ;
-    setCurrent(getId()) ;
-  }
-
-
    void CContext::finalize(void)
    TRY
    {
@@ -1053,7 +917,6 @@ namespace xios
       {
         // connect to couplerOut -> to do
       }
-      if (first) setClientServerBuffer(couplerOutField, true) ; // set buffer context --> to check
 
       bool couplersReady ;
       do 
@@ -1098,7 +961,6 @@ namespace xios
       {
         field->connectToFileServer(garbageCollector) ; // connect the field to server filter
       }
-      setClientServerBuffer(fileOutField, true) ; // set buffer context --> to review
       for(auto field : fileOutField) field->sendFieldToFileServer() ;
     }
 
@@ -1206,6 +1068,16 @@ namespace xios
       for(auto& couplerOutClient : couplerOutClient_) ok &= isCouplerInCloseDefinition(couplerOutClient.second) ;
       this->scheduledEventLoop() ;
     } while (!ok) ;
+
+    // Now evaluate the size of the context client buffers
+    map<CContextClient*,map<int,size_t>> fieldBufferEvaluation ;
+    for(auto field : fileOutField) field->evaluateBufferSize(fieldBufferEvaluation, CXios::isOptPerformance) ; // output to server
+    for(auto field : couplerOutField) field->evaluateBufferSize(fieldBufferEvaluation, CXios::isOptPerformance) ; // output to coupler
+    for(auto field : fieldModelIn) field->evaluateBufferSize(fieldBufferEvaluation, CXios::isOptPerformance) ; // server to client (for io servers)
+    
+    // fix size for each context client
+    for(auto& it : fieldBufferEvaluation) it.first->setBufferSize(it.second) ;
+
 
      CTimer::get("Context : close definition").suspend() ;
   }

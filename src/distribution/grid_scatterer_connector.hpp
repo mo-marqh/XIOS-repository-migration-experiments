@@ -41,7 +41,8 @@ namespace xios
         }    
       }     
 
-
+      const map<int,int>& getTransferedDataSize(void) {return dstSize_;}
+     
       template<typename T, int N> 
       void transfer(const CArray<T,N>& input, map<int, CArray<T,1>>& output)
       {

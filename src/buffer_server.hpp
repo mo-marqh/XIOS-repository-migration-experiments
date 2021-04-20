@@ -25,6 +25,7 @@ namespace xios
       void lockBuffer(void) ;
       void unlockBuffer(void) ;
       void notifyClientFinalize(void) ;
+      void notifyBufferResizing(void) { resizingBuffer_=true ;}
     private:
       char* buffer;
       size_t first;   // first occupied element
@@ -34,7 +35,7 @@ namespace xios
       size_t used ;  // count of element occupied
       std::vector<MPI_Win> windows_ ;
       std::vector<MPI_Aint> winAddress_ ;
-
+      bool resizingBuffer_ = false ;
       int currentWindows ;
       bool hasWindows ;
       int windowsRank_ ;

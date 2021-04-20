@@ -496,6 +496,44 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
+  bool CField::evaluateBufferSize(map<CContextClient*,map<int,size_t>>& evaluateBuffer, bool isOptPerformance)
+  {
+    CContextClient* client=nullptr ;
+
+    for(int i=0;i<2;i++)
+    {
+      map<int,int> dataSize ;
+      if (i==0  && clientToServerStoreFilter_) client = clientToServerStoreFilter_-> getTransferedDataSize(dataSize) ;
+      if (i==1  && serverToClientStoreFilter_) client = serverToClientStoreFilter_-> getTransferedDataSize(dataSize) ;
+
+      if (client!=nullptr)
+      {
+        map<int,size_t> bufferSize ;
+   
+        if (evaluateBuffer.count(client)!=0) bufferSize = evaluateBuffer[client] ;
+        if (isOptPerformance)
+        {
+          for(auto& it : dataSize) 
+          {
+            if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second ;
+            else bufferSize[it.first]+=it.second ;
+          }
+        }
+        else
+        {
+          for(auto& it : dataSize) 
+          {
+            if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second ;
+            else bufferSize[it.first]=std::max(bufferSize[it.first],(size_t)it.second) ;
+          }
+        }
+        evaluateBuffer[client] = bufferSize ;
+        client=nullptr ;
+      }
+    }
+    if (client==nullptr) return false ;
+    else return true;
+  }  
 
 
   size_t CField::getGlobalWrittenSize()

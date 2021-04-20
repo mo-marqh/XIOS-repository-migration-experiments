@@ -32,6 +32,8 @@ namespace xios
     void finalizeSignal(void) ;
     void freeComm(void) ;
     bool isAttachedMode(void) { return isAttachedMode_ ;}
+    CService* getParentService(void) {return parentService_ ; }
+
     private:
     void createIntercomm(void) ;
     

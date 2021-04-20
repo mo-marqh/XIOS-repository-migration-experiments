@@ -19,6 +19,7 @@
 #include "pool_ressource.hpp"
 #include "services.hpp"
 #include "contexts_manager.hpp"
+#include "timeline_events.hpp"
 
 #include <boost/functional/hash.hpp>
 #include <random>
@@ -187,11 +188,12 @@ namespace xios
     it=buffers.find(rank);
     if (it==buffers.end()) // Receive the buffer size and allocate the buffer
     {
-       MPI_Aint recvBuff[3] ;
-       MPI_Recv(recvBuff, 3, MPI_AINT, rank, 20, interComm, &status);
-       StdSize buffSize = recvBuff[0];
+       MPI_Aint recvBuff[4] ;
+       MPI_Recv(recvBuff, 4, MPI_AINT, rank, 20, interComm, &status);
+       remoteHashId_ = recvBuff[0] ;
+       StdSize buffSize = recvBuff[1];
        vector<MPI_Aint> winAdress(2) ;
-       winAdress[0]=recvBuff[1] ; winAdress[1]=recvBuff[2] ;
+       winAdress[0]=recvBuff[2] ; winAdress[1]=recvBuff[3] ;
        mapBufferSize_.insert(std::make_pair(rank, buffSize));
        it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows, winAdress, rank, buffSize)))).first;
      
@@ -289,15 +291,30 @@ namespace xios
       char* startBuffer=(char*)buffer.ptr();
       CBufferIn newBuffer(startBuffer,buffer.remain());
       newBuffer>>size>>timeLine;
-      it=events.find(timeLine);
-      if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
-      it->second->push(rank,buffers[rank],startBuffer,size);
 
+      if (timeLine==timelineEventNotifyChangeBufferSize)
+      {
+        buffers[rank]->notifyBufferResizing() ;
+        buffers[rank]->updateCurrentWindows() ;
+      } 
+      else if (timeLine==timelineEventChangeBufferSize)
+      {
+        size_t newSize ;
+        vector<MPI_Aint> winAdress(2) ;
+        newBuffer>>newSize>>winAdress[0]>>winAdress[1] ;
+        buffers.erase(rank) ;
+        buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows, winAdress, rank, newSize)));
+      }
+      else
+      {
+        it=events.find(timeLine);
+        if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
+        it->second->push(rank,buffers[rank],startBuffer,size);
+        if (timeLine>0) lastTimeLine[rank]=timeLine ;
+      }
       buffer.advance(size);
       count=buffer.remain();
     }
-
-    if (timeLine>0) lastTimeLine[rank]=timeLine ;
     
     CTimer::get("Process request").suspend();
   }
@@ -309,6 +326,8 @@ namespace xios
     
 //    if (context->isProcessingEvent()) return ;
     if (isProcessingEvent_) return ;
+    if (isAttachedModeEnabled())
+      if (!CXios::getDaemonsManager()->isScheduledContext(remoteHashId_)) return ;
 
     it=events.find(currentTimeLine);
     if (it!=events.end())
@@ -355,6 +374,7 @@ namespace xios
          events.erase(it);
          currentTimeLine++;
          scheduled = false;
+         if (isAttachedModeEnabled()) CXios::getDaemonsManager()->unscheduleContext() ;
         }
       }
       else getBufferFromClient(currentTimeLine) ;

@@ -25,6 +25,14 @@ namespace xios
       CServerToClientStoreFilter(CGarbageCollector& gc, CField* field, CContextClient* client);
 
       /*!
+       * Get the size of data transfered by call. Needed for context client buffer size evaluation
+       *
+       * \param size : map returning the size for each server rank  
+       * \return the associated context client
+       */
+      CContextClient* getTransferedDataSize(map<int,int>& size) ;
+
+      /*!
        * Tests if the filter must auto-trigger.
        *
        * \return true if the filter must auto-trigger

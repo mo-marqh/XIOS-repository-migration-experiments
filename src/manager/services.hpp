@@ -36,7 +36,7 @@ namespace xios
     int getPartitionId(void) {return partitionId_;}
     int getType(void) {return type_;}
     int getNbPartitions(void) {return nbPartitions_;}
-
+    
     private:
     void sendNotification(int rank) ;
     void notificationsDumpOut(CBufferOut& buffer) ;

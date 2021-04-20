@@ -71,6 +71,7 @@ namespace xios
       CEventScheduler* eventScheduler_ ;
       bool isProcessingEvent_ ;
       CContextClient* associatedClient_ ;
+      size_t remoteHashId_; //!< the hash is of the calling context client
   } ;
 
 }

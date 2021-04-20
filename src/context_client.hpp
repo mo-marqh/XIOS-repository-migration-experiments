@@ -62,7 +62,7 @@ namespace xios
       bool isNotifiedFinalized(void) ;
       void finalize(void);
 
-      void setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize);
+      void setBufferSize(const std::map<int,StdSize>& mapSize);
 
       int getRemoteSize(void) {return serverSize;}
       int getServerSize(void) {return serverSize;}
@@ -74,9 +74,10 @@ namespace xios
       void setAssociatedServer(CContextServer* associatedServer) { associatedServer=associatedServer_;}
       /*! get the associated server (dual chanel client/server) */      
       CContextServer* getAssociatedServer(void) { return associatedServer_;}
-
+      void setGrowableBuffer(void) { isGrowableBuffer_=true;}
+      void setFixedBuffer(void) { isGrowableBuffer_=false;}
     public:
-      CContext* context; //!< Context for client
+      CContext* context_; //!< Context for client
 
       size_t timeLine; //!< Timeline of each event
 
@@ -97,6 +98,8 @@ namespace xios
       map<int,CClientBuffer*> buffers; //!< Buffers for connection to servers
 
       bool pureOneSided ; //!< if true, client will communicated with servers only trough one sided communication. Otherwise the hybrid mode P2P /One sided is used.
+
+      size_t hashId_ ; //!< hash id on the context client that will be used for context server to identify the remote calling context client.
 
     private:
       void lockBuffers(list<int>& ranks) ;
@@ -121,7 +124,7 @@ namespace xios
       std::vector<std::vector<MPI_Win> >windows ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
       bool isAttached_ ;
       CContextServer* associatedServer_ ; //!< The server associated to the pair client/server
-
+      bool isGrowableBuffer_ = true ;
   };
 }
 

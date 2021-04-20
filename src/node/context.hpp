@@ -149,8 +149,6 @@ namespace xios
           
          std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
-         void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false); // old interface to be removed
-         void setClientServerBuffer(vector<CField*>& fields, bool bufferForWriting) ; 
 
          // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
          void distributeFiles(const std::vector<CFile*>& files);
@@ -356,8 +354,16 @@ namespace xios
          int serviceType_;  //!< service associated to the context
          string contextId_ ; //!< context client id for the servers. For clients this is same as getId() 
          bool isProcessingEvent_ ;
+    private:     
          CServerContext* parentServerContext_ ;
-
+    public:
+         CServerContext* getParentServerContext(void) { return parentServerContext_; }
+    private: 
+      bool lockedContext_=false;
+    public: 
+        void lockContext(void) {lockedContext_=true; }
+        void unlockContext(void) {lockedContext_=true; }
+        bool isLockedContext(void) { return lockedContext_;}
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;
         // virtual void fromBinary(StdIStream & is);

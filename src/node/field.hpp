@@ -109,7 +109,9 @@ namespace xios
          std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
          // Grid data buffer size for each connection of contextclient
          std::map<int, StdSize> getGridDataBufferSize(CContextClient* client, bool bufferForWriting = false);
-
+         
+         // evaluation the size of the buffer for the field
+         bool evaluateBufferSize(map<CContextClient*,map<int,size_t>>& evaluateBuffer, bool isOptPerformance) ;
        public:
           void makeGridAliasForCoupling(void) ;
        public:

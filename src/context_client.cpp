@@ -11,6 +11,10 @@
 #include "timer.hpp"
 #include "cxios.hpp"
 #include "server.hpp"
+#include "services.hpp"
+#include <boost/functional/hash.hpp>
+#include <random>
+#include <chrono>
 
 namespace xios
 {
@@ -24,7 +28,7 @@ namespace xios
      : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4), associatedServer_(nullptr)
     {
       
-      context = parent;
+      context_ = parent;
       intraComm = intraComm_;
       interComm = interComm_;
       MPI_Comm_rank(intraComm, &clientRank);
@@ -64,6 +68,12 @@ namespace xios
       }
 
       MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf) ;
+
+      auto time=chrono::system_clock::now().time_since_epoch().count() ;
+      std::default_random_engine rd(time); // not reproducible from a run to another
+      std::uniform_int_distribution<size_t> dist;
+      hashId_=dist(rd) ;
+      MPI_Bcast(&hashId_,1,MPI_SIZE_T,0,intraComm) ; // Bcast to all server of the context
 
       timeLine = 1;
     }
@@ -123,7 +133,7 @@ namespace xios
     void CContextClient::sendEvent(CEventClient& event)
     {
       list<int> ranks = event.getRanks();
-      info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<endl ;
+      info(100)<<"Event "<<timeLine<<" of context "<<context_->getId()<<endl ;
       if (CXios::checkEventSync)
       {
         int typeId, classId, typeId_in, classId_in, timeLine_out;
@@ -153,15 +163,17 @@ namespace xios
         //for (auto itRank = ranks.begin(); itRank != ranks.end(); itRank++) buffers[*itRank]->infoBuffer() ;
 
         unlockBuffers(ranks) ;
-        info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<"  sent"<<endl ;
+        info(100)<<"Event "<<timeLine<<" of context "<<context_->getId()<<"  sent"<<endl ;
           
         checkBuffers(ranks);
       }
       
       if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
       {
-        waitEvent(ranks);
-        CContext::setCurrent(context->getId());
+        while (checkBuffers(ranks)) context_->globalEventLoop() ;
+      
+        CXios::getDaemonsManager()->scheduleContext(hashId_) ;
+        while (CXios::getDaemonsManager()->isScheduledContext(hashId_)) context_->globalEventLoop() ;
       }
       
       timeLine++;
@@ -176,7 +188,7 @@ namespace xios
     {
       while (checkBuffers(ranks))
       {
-        CXios::getDaemonsManager()->eventLoop() ;
+        context_->eventLoop() ;
       }
 
       MPI_Request req ;
@@ -255,7 +267,7 @@ namespace xios
         {
           for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
           checkBuffers();
-          
+/*          
           context->server->listen();
 
           if (context->serverPrimServer.size()>0)
@@ -264,8 +276,10 @@ namespace xios
  //ym           CServer::contextEventLoop(false) ; // avoid dead-lock at finalize...
             context->globalEventLoop() ;
           }
-
+*/
+           context_->globalEventLoop() ;
         }
+
       } while (!areBuffersFree && !nonBlocking);
       CTimer::get("Blocking time").suspend();
 
@@ -294,14 +308,17 @@ namespace xios
       if (!isAttachedModeEnabled()) Wins=windows[rank] ;
   
       CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, Wins, clientRank, rank, mapBufferSize_[rank], maxEventSizes[rank]);
+      if (isGrowableBuffer_) buffer->setGrowableBuffer(1.2) ;
+      else buffer->fixBuffer() ;
       // Notify the server
-      CBufferOut* bufOut = buffer->getBuffer(0, 3*sizeof(MPI_Aint));
-      MPI_Aint sendBuff[3] ;
-      sendBuff[0]=mapBufferSize_[rank]; // Stupid C++
-      sendBuff[1]=buffers[rank]->getWinAddress(0); 
-      sendBuff[2]=buffers[rank]->getWinAddress(1); 
+      CBufferOut* bufOut = buffer->getBuffer(0, 4*sizeof(MPI_Aint));
+      MPI_Aint sendBuff[4] ;
+      sendBuff[0]=hashId_;
+      sendBuff[1]=mapBufferSize_[rank];
+      sendBuff[2]=buffers[rank]->getWinAddress(0); 
+      sendBuff[3]=buffers[rank]->getWinAddress(1); 
       info(100)<<"CContextClient::newBuffer : rank "<<rank<<" winAdress[0] "<<buffers[rank]->getWinAddress(0)<<" winAdress[1] "<<buffers[rank]->getWinAddress(1)<<endl;
-      bufOut->put(sendBuff, 3); // Stupid C++
+      bufOut->put(sendBuff, 4); 
       buffer->checkBuffer(true);
 
    }
@@ -382,10 +399,9 @@ namespace xios
     * \param [in] mapSize maps the rank of the connected servers to the size of the correspoinding buffer
     * \param [in] maxEventSize maps the rank of the connected servers to the size of the biggest event
    */
-   void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize)
+   void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize)
    {
-     mapBufferSize_ = mapSize;
-     maxEventSizes = maxEventSize;
+     for(auto& it : mapSize) {buffers[it.first]->fixBufferSize(std::min(it.second*CXios::bufferSizeFactor*1.01,CXios::maxBufferSize*1.0));}
    }
 
   /*!
@@ -462,11 +478,11 @@ namespace xios
     StdSize totalBuf = 0;
     for (itMap = itbMap; itMap != iteMap; ++itMap)
     {
-      report(10) << " Memory report : Context <" << context->getId() << "> : client side : memory used for buffer of each connection to server" << endl
+      report(10) << " Memory report : Context <" << context_->getId() << "> : client side : memory used for buffer of each connection to server" << endl
                  << "  +) To server with rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
       totalBuf += itMap->second;
     }
-    report(0) << " Memory report : Context <" << context->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
+    report(0) << " Memory report : Context <" << context_->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
 
   }
 

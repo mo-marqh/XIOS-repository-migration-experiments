@@ -43,6 +43,11 @@ namespace xios
     nStep_++ ;
   }
 
+  CContextClient* CServerToClientStoreFilter::getTransferedDataSize(map<int,int>& size)
+  {
+    size = grid_->getServerToClientConnector()->getTransferedDataSize() ;
+    return client_ ;
+  }
 
   bool CServerToClientStoreFilter::mustAutoTrigger() const
   {

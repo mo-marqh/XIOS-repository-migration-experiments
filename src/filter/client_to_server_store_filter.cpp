@@ -27,6 +27,12 @@ namespace xios
     field_->getSentGrid()->getClientToServerConnector(client_)->transfer(data[0]->data, client_, event, message) ;
     CTimer::get("Field : send data").suspend();
   }
+  
+  CContextClient* CClientToServerStoreFilter::getTransferedDataSize(map<int,int>& size)
+  {
+    size = field_->getSentGrid()->getClientToServerConnector(client_)->getTransferedDataSize() ;
+    return client_ ;
+  }
 
   bool CClientToServerStoreFilter::mustAutoTrigger() const
   {

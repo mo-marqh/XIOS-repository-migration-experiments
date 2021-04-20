@@ -28,7 +28,14 @@ namespace xios
       MPI_Aint getWinAddress(int numWindows) ;
       void infoBuffer(void) ;
       bool isNotifiedFinalized(void) ;
+      void setGrowableBuffer(double growFactor) { growFactor_=growFactor ; isGrowableBuffer_=true ;}
+      void fixBufferSize(size_t bufferSize) { newBufferSize_=bufferSize ; isGrowableBuffer_=false ; resizingBufferStep_=1 ;}
+      void fixBuffer(void) { isGrowableBuffer_=false ;}
     private:
+       void resizeBuffer(size_t newSize) ;
+       void resizeBufferNotify(void) ;
+
+
       char* buffer[2];
       char* bufferHeader[2];
       size_t* firstTimeLine[2] ;
@@ -37,10 +44,15 @@ namespace xios
       size_t* finalize[2] ;
       bool winState[2] ;
       int current;
+      
+      double growFactor_=1.2 ;
+      bool isGrowableBuffer_=true ;
 
+      int resizingBufferStep_ = 0 ;
+      size_t newBufferSize_ ;
       StdSize count;
       StdSize maxEventSize;
-      const StdSize bufferSize;
+      StdSize bufferSize;
       const StdSize estimatedMaxEventSize;
 
 
