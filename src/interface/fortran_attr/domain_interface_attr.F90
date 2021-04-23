@@ -743,6 +743,25 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_nj_glo
 
 
+    SUBROUTINE cxios_set_domain_ntiles(domain_hdl, ntiles) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: ntiles
+    END SUBROUTINE cxios_set_domain_ntiles
+
+    SUBROUTINE cxios_get_domain_ntiles(domain_hdl, ntiles) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      INTEGER (KIND=C_INT)             :: ntiles
+    END SUBROUTINE cxios_get_domain_ntiles
+
+    FUNCTION cxios_is_defined_domain_ntiles(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_ntiles
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_ntiles
+
+
     SUBROUTINE cxios_set_domain_nvertex(domain_hdl, nvertex) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
@@ -819,6 +838,174 @@ MODULE domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_standard_name
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
     END FUNCTION cxios_is_defined_domain_standard_name
+
+
+    SUBROUTINE cxios_set_domain_tile_data_ibegin(domain_hdl, tile_data_ibegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_ibegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_data_ibegin
+
+    SUBROUTINE cxios_get_domain_tile_data_ibegin(domain_hdl, tile_data_ibegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_ibegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_data_ibegin
+
+    FUNCTION cxios_is_defined_domain_tile_data_ibegin(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_data_ibegin
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_data_ibegin
+
+
+    SUBROUTINE cxios_set_domain_tile_data_jbegin(domain_hdl, tile_data_jbegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_jbegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_data_jbegin
+
+    SUBROUTINE cxios_get_domain_tile_data_jbegin(domain_hdl, tile_data_jbegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_jbegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_data_jbegin
+
+    FUNCTION cxios_is_defined_domain_tile_data_jbegin(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_data_jbegin
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_data_jbegin
+
+
+    SUBROUTINE cxios_set_domain_tile_data_ni(domain_hdl, tile_data_ni, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_ni
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_data_ni
+
+    SUBROUTINE cxios_get_domain_tile_data_ni(domain_hdl, tile_data_ni, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_ni
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_data_ni
+
+    FUNCTION cxios_is_defined_domain_tile_data_ni(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_data_ni
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_data_ni
+
+
+    SUBROUTINE cxios_set_domain_tile_data_nj(domain_hdl, tile_data_nj, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_nj
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_data_nj
+
+    SUBROUTINE cxios_get_domain_tile_data_nj(domain_hdl, tile_data_nj, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_data_nj
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_data_nj
+
+    FUNCTION cxios_is_defined_domain_tile_data_nj(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_data_nj
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_data_nj
+
+
+    SUBROUTINE cxios_set_domain_tile_ibegin(domain_hdl, tile_ibegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_ibegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_ibegin
+
+    SUBROUTINE cxios_get_domain_tile_ibegin(domain_hdl, tile_ibegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_ibegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_ibegin
+
+    FUNCTION cxios_is_defined_domain_tile_ibegin(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_ibegin
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_ibegin
+
+
+    SUBROUTINE cxios_set_domain_tile_jbegin(domain_hdl, tile_jbegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_jbegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_jbegin
+
+    SUBROUTINE cxios_get_domain_tile_jbegin(domain_hdl, tile_jbegin, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_jbegin
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_jbegin
+
+    FUNCTION cxios_is_defined_domain_tile_jbegin(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_jbegin
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_jbegin
+
+
+    SUBROUTINE cxios_set_domain_tile_ni(domain_hdl, tile_ni, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_ni
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_ni
+
+    SUBROUTINE cxios_get_domain_tile_ni(domain_hdl, tile_ni, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_ni
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_ni
+
+    FUNCTION cxios_is_defined_domain_tile_ni(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_ni
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_ni
+
+
+    SUBROUTINE cxios_set_domain_tile_nj(domain_hdl, tile_nj, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_nj
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_tile_nj
+
+    SUBROUTINE cxios_get_domain_tile_nj(domain_hdl, tile_nj, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: tile_nj
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_tile_nj
+
+    FUNCTION cxios_is_defined_domain_tile_nj(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_nj
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_nj
 
 
     SUBROUTINE cxios_set_domain_type(domain_hdl, type, type_size) BIND(C)

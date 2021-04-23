@@ -90,15 +90,21 @@ namespace xios {
 
          StdSize  getDataSize(void) const;
 
+         StdSize  getTileDataSize(int tileId);
+
+         StdSize  getTileSize(int tileId);
+
          /// Entrees-sorties de champs
          template <int n>
          void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
          template <int n>
-         void maskField(const CArray<double,n>& field, CArray<double,1>& stored) const;
+         void maskField(const CArray<double,n>& field, CArray<double,1>& stored, bool isTiled = false) const;
          template <int n>
          void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;  
          template <int n>
          void uncompressField(const CArray<double,n>& data, CArray<double,1>& outData) const; 
+         template <int n>
+         void copyTile(const CArray<double,n>& tileData, CArray<double, 1>& stored, int tileId);
 
          virtual void parse(xml::CXMLNode& node);
 
@@ -204,7 +210,9 @@ namespace xios {
          size_t getGlobalWrittenSize(void) ;
       public:
          CArray<int, 1> storeIndex_client;
+         CArray<int, 1> storeIndexTiled_client;
          CArray<bool, 1> storeMask_client;
+         CArray<bool, 1> storeMaskTiled_client;
 
 /** Map containing indexes that will be sent in sendIndex(). */
          std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv;
@@ -223,6 +231,9 @@ namespace xios {
 /** Map storing received indexes. Key = sender rank, value = index array. */
          map<int, CArray<size_t, 1> > outGlobalIndexFromClient;
 
+/** Map storing received indexes. Key = sender rank, value = index array for tiled domains */
+         map<int, CArray<size_t, 1> > outGlobalIndexFromClientTiled;
+
 // Manh Ha's comment: " A client receives global index from other clients (via recvIndex)
 // then does mapping these index into local index of STORE_CLIENTINDEX
 // In this way, store_clientIndex can be used as an input of a source filter
@@ -231,6 +242,11 @@ namespace xios {
 /** Map storing received data. Key = sender rank, value = data array.
  *  The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData() */
          map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient; 
+
+/** Map storing received data. Key = sender rank, value = data array.
+ *  The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData() */
+         map<int, CArray<size_t, 1> > outLocalIndexStoreOnClientTiled;
+
 
 /** Indexes calculated based on server-like distribution.
  *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
@@ -255,6 +271,10 @@ namespace xios {
                                          const std::vector<CScalar*>& scalars,
                                          const CArray<int,1>& axisDomainOrder);
 
+         int getNTiles();
+         bool isTiled(void) const;
+         bool isTiledOnly(void) const;
+
       private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
@@ -271,7 +291,8 @@ namespace xios {
         void storeField_arr(const double* const data, CArray<double, 1>& stored) const;
         void restoreField_arr(const CArray<double, 1>& stored, double* const data) const;
         void uncompressField_arr(const double* const data, CArray<double, 1>& outData) const;
-        void maskField_arr(const double* const data, CArray<double, 1>& stored) const;
+        void maskField_arr(const double* const data, CArray<double, 1>& stored, bool isTiled = false) const;
+        void copyTile_arr(const double* const tileData, CArray<double, 1>& stored, int tileId);
 
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
@@ -298,9 +319,12 @@ namespace xios {
         int getDistributedDimension();
 
         void computeClientIndex();
+        void computeClientIndexTiled();
         void computeConnectedClients();
         void computeClientIndexScalarGrid(); 
         void computeConnectedClientsScalarGrid(); 
+
+        void computeTileIndex();
 
       private:
 
@@ -312,6 +336,15 @@ namespace xios {
         bool isDomainAxisChecked;
         bool isIndexSent;
 
+        int nTiles_;
+/** True if tiled data is defined on the grid */
+        bool isTiled_;
+/** True if ONLY tiled data is defined on the grid */
+        bool isTiledOnly_;
+
+/** Vector containing local domain indexes for each tile */
+        std::vector<CArray<int,1> > storeTileIndex;
+
         CDomainGroup* vDomainGroup_;
         CAxisGroup* vAxisGroup_;
         CScalarGroup* vScalarGroup_;
@@ -320,6 +353,10 @@ namespace xios {
 
 /** Client-like distribution calculated based on the knowledge of the entire grid */
         CDistributionClient* clientDistribution_;
+
+/** Client-like distribution calculated based on the knowledge of the entire grid in case of a tiled domain */
+        CDistributionClient* clientDistributionTiled_;
+
 
 /** Server-like distribution calculated upon receiving indexes */
         CDistributionServer* serverDistribution_;
@@ -386,17 +423,23 @@ namespace xios {
    CATCH
 
    template <int n>
-   void CGrid::maskField(const CArray<double,n>& field, CArray<double,1>& stored) const
+   void CGrid::copyTile(const CArray<double,n>& tileData, CArray<double,1>& storedData, int tileId)
+   {
+      this->copyTile_arr(tileData.dataFirst(), storedData, tileId);
+   }
+
+   template <int n>
+   void CGrid::maskField(const CArray<double,n>& field, CArray<double,1>& stored, bool isTiled) const
    {
 //#ifdef __XIOS_DEBUG
       if (this->getDataSize() != field.numElements())
-         ERROR("void CGrid::inputField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
+         ERROR("void CGrid::maskField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
                 << "[ Awaiting data of size = " << this->getDataSize() << ", "
                 << "Received data size = "      << field.numElements() << " ] "
                 << "The data array does not have the right size! "
                 << "Grid = " << this->getId())
 //#endif
-      this->maskField_arr(field.dataFirst(), stored);
+      this->maskField_arr(field.dataFirst(), stored, isTiled);
    }
 
    template <int n>

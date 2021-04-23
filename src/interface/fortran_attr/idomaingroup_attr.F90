@@ -15,7 +15,9 @@ CONTAINS
     , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
     , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
     , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-    , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+    , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+    , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
@@ -59,10 +61,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: ni_glo
       INTEGER  , OPTIONAL, INTENT(IN) :: nj
       INTEGER  , OPTIONAL, INTENT(IN) :: nj_glo
+      INTEGER  , OPTIONAL, INTENT(IN) :: ntiles
       INTEGER  , OPTIONAL, INTENT(IN) :: nvertex
       INTEGER  , OPTIONAL, INTENT(IN) :: prec
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: radius
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_ni(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_nj(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_ni(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_nj(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
       CALL xios(get_domaingroup_handle) &
@@ -72,7 +83,9 @@ CONTAINS
       , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
       , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
       , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-      , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+      , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+      , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+       )
 
   END SUBROUTINE xios(set_domaingroup_attr)
 
@@ -81,7 +94,9 @@ CONTAINS
     , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
     , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
     , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-    , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+    , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+    , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -124,10 +139,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: ni_glo
       INTEGER  , OPTIONAL, INTENT(IN) :: nj
       INTEGER  , OPTIONAL, INTENT(IN) :: nj_glo
+      INTEGER  , OPTIONAL, INTENT(IN) :: ntiles
       INTEGER  , OPTIONAL, INTENT(IN) :: nvertex
       INTEGER  , OPTIONAL, INTENT(IN) :: prec
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: radius
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_ni(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_nj(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_ni(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_nj(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
       CALL xios(set_domaingroup_attr_hdl_)  &
@@ -135,7 +159,9 @@ CONTAINS
       , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
       , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
       , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-      , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+      , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+      , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+       )
 
   END SUBROUTINE xios(set_domaingroup_attr_hdl)
 
@@ -144,8 +170,9 @@ CONTAINS
     , bounds_lon_name_, comment_, data_dim_, data_i_index_, data_ibegin_, data_j_index_, data_jbegin_  &
     , data_ni_, data_nj_, dim_i_name_, dim_j_name_, domain_ref_, group_ref_, i_index_, ibegin_, j_index_  &
     , jbegin_, lat_name_, latvalue_1d_, latvalue_2d_, lon_name_, long_name_, lonvalue_1d_, lonvalue_2d_  &
-    , mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_, nvertex_, prec_, radius_, standard_name_  &
-    , type_ )
+    , mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_, ntiles_, nvertex_, prec_, radius_, standard_name_  &
+    , tile_data_ibegin_, tile_data_jbegin_, tile_data_ni_, tile_data_nj_, tile_ibegin_, tile_jbegin_  &
+    , tile_ni_, tile_nj_, type_ )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -188,10 +215,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: ni_glo_
       INTEGER  , OPTIONAL, INTENT(IN) :: nj_
       INTEGER  , OPTIONAL, INTENT(IN) :: nj_glo_
+      INTEGER  , OPTIONAL, INTENT(IN) :: ntiles_
       INTEGER  , OPTIONAL, INTENT(IN) :: nvertex_
       INTEGER  , OPTIONAL, INTENT(IN) :: prec_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: radius_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name_
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_ibegin_(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_jbegin_(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_ni_(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_data_nj_(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_ibegin_(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_jbegin_(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_ni_(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: tile_nj_(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
 
       IF (PRESENT(area_)) THEN
@@ -383,6 +419,11 @@ CONTAINS
       (domaingroup_hdl%daddr, nj_glo_)
       ENDIF
 
+      IF (PRESENT(ntiles_)) THEN
+        CALL cxios_set_domaingroup_ntiles &
+      (domaingroup_hdl%daddr, ntiles_)
+      ENDIF
+
       IF (PRESENT(nvertex_)) THEN
         CALL cxios_set_domaingroup_nvertex &
       (domaingroup_hdl%daddr, nvertex_)
@@ -403,6 +444,46 @@ CONTAINS
       (domaingroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
+      IF (PRESENT(tile_data_ibegin_)) THEN
+        CALL cxios_set_domaingroup_tile_data_ibegin &
+      (domaingroup_hdl%daddr, tile_data_ibegin_, SHAPE(tile_data_ibegin_))
+      ENDIF
+
+      IF (PRESENT(tile_data_jbegin_)) THEN
+        CALL cxios_set_domaingroup_tile_data_jbegin &
+      (domaingroup_hdl%daddr, tile_data_jbegin_, SHAPE(tile_data_jbegin_))
+      ENDIF
+
+      IF (PRESENT(tile_data_ni_)) THEN
+        CALL cxios_set_domaingroup_tile_data_ni &
+      (domaingroup_hdl%daddr, tile_data_ni_, SHAPE(tile_data_ni_))
+      ENDIF
+
+      IF (PRESENT(tile_data_nj_)) THEN
+        CALL cxios_set_domaingroup_tile_data_nj &
+      (domaingroup_hdl%daddr, tile_data_nj_, SHAPE(tile_data_nj_))
+      ENDIF
+
+      IF (PRESENT(tile_ibegin_)) THEN
+        CALL cxios_set_domaingroup_tile_ibegin &
+      (domaingroup_hdl%daddr, tile_ibegin_, SHAPE(tile_ibegin_))
+      ENDIF
+
+      IF (PRESENT(tile_jbegin_)) THEN
+        CALL cxios_set_domaingroup_tile_jbegin &
+      (domaingroup_hdl%daddr, tile_jbegin_, SHAPE(tile_jbegin_))
+      ENDIF
+
+      IF (PRESENT(tile_ni_)) THEN
+        CALL cxios_set_domaingroup_tile_ni &
+      (domaingroup_hdl%daddr, tile_ni_, SHAPE(tile_ni_))
+      ENDIF
+
+      IF (PRESENT(tile_nj_)) THEN
+        CALL cxios_set_domaingroup_tile_nj &
+      (domaingroup_hdl%daddr, tile_nj_, SHAPE(tile_nj_))
+      ENDIF
+
       IF (PRESENT(type_)) THEN
         CALL cxios_set_domaingroup_type &
       (domaingroup_hdl%daddr, type_, len(type_))
@@ -415,7 +496,9 @@ CONTAINS
     , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
     , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
     , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-    , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+    , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+    , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
@@ -459,10 +542,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: ni_glo
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj_glo
+      INTEGER  , OPTIONAL, INTENT(OUT) :: ntiles
       INTEGER  , OPTIONAL, INTENT(OUT) :: nvertex
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: radius
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_ni(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_nj(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_ni(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_nj(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
       CALL xios(get_domaingroup_handle) &
@@ -472,7 +564,9 @@ CONTAINS
       , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
       , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
       , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-      , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+      , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+      , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+       )
 
   END SUBROUTINE xios(get_domaingroup_attr)
 
@@ -481,7 +575,9 @@ CONTAINS
     , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
     , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
     , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-    , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+    , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+    , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -524,10 +620,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: ni_glo
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj_glo
+      INTEGER  , OPTIONAL, INTENT(OUT) :: ntiles
       INTEGER  , OPTIONAL, INTENT(OUT) :: nvertex
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: radius
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_ni(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_nj(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_ibegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_jbegin(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_ni(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_nj(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
       CALL xios(get_domaingroup_attr_hdl_)  &
@@ -535,7 +640,9 @@ CONTAINS
       , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
       , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
       , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-      , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+      , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+      , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+       )
 
   END SUBROUTINE xios(get_domaingroup_attr_hdl)
 
@@ -544,8 +651,9 @@ CONTAINS
     , bounds_lon_name_, comment_, data_dim_, data_i_index_, data_ibegin_, data_j_index_, data_jbegin_  &
     , data_ni_, data_nj_, dim_i_name_, dim_j_name_, domain_ref_, group_ref_, i_index_, ibegin_, j_index_  &
     , jbegin_, lat_name_, latvalue_1d_, latvalue_2d_, lon_name_, long_name_, lonvalue_1d_, lonvalue_2d_  &
-    , mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_, nvertex_, prec_, radius_, standard_name_  &
-    , type_ )
+    , mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_, ntiles_, nvertex_, prec_, radius_, standard_name_  &
+    , tile_data_ibegin_, tile_data_jbegin_, tile_data_ni_, tile_data_nj_, tile_ibegin_, tile_jbegin_  &
+    , tile_ni_, tile_nj_, type_ )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -588,10 +696,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: ni_glo_
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj_
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj_glo_
+      INTEGER  , OPTIONAL, INTENT(OUT) :: ntiles_
       INTEGER  , OPTIONAL, INTENT(OUT) :: nvertex_
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: radius_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name_
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_ibegin_(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_jbegin_(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_ni_(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_data_nj_(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_ibegin_(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_jbegin_(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_ni_(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: tile_nj_(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
 
       IF (PRESENT(area_)) THEN
@@ -783,6 +900,11 @@ CONTAINS
       (domaingroup_hdl%daddr, nj_glo_)
       ENDIF
 
+      IF (PRESENT(ntiles_)) THEN
+        CALL cxios_get_domaingroup_ntiles &
+      (domaingroup_hdl%daddr, ntiles_)
+      ENDIF
+
       IF (PRESENT(nvertex_)) THEN
         CALL cxios_get_domaingroup_nvertex &
       (domaingroup_hdl%daddr, nvertex_)
@@ -803,6 +925,46 @@ CONTAINS
       (domaingroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
+      IF (PRESENT(tile_data_ibegin_)) THEN
+        CALL cxios_get_domaingroup_tile_data_ibegin &
+      (domaingroup_hdl%daddr, tile_data_ibegin_, SHAPE(tile_data_ibegin_))
+      ENDIF
+
+      IF (PRESENT(tile_data_jbegin_)) THEN
+        CALL cxios_get_domaingroup_tile_data_jbegin &
+      (domaingroup_hdl%daddr, tile_data_jbegin_, SHAPE(tile_data_jbegin_))
+      ENDIF
+
+      IF (PRESENT(tile_data_ni_)) THEN
+        CALL cxios_get_domaingroup_tile_data_ni &
+      (domaingroup_hdl%daddr, tile_data_ni_, SHAPE(tile_data_ni_))
+      ENDIF
+
+      IF (PRESENT(tile_data_nj_)) THEN
+        CALL cxios_get_domaingroup_tile_data_nj &
+      (domaingroup_hdl%daddr, tile_data_nj_, SHAPE(tile_data_nj_))
+      ENDIF
+
+      IF (PRESENT(tile_ibegin_)) THEN
+        CALL cxios_get_domaingroup_tile_ibegin &
+      (domaingroup_hdl%daddr, tile_ibegin_, SHAPE(tile_ibegin_))
+      ENDIF
+
+      IF (PRESENT(tile_jbegin_)) THEN
+        CALL cxios_get_domaingroup_tile_jbegin &
+      (domaingroup_hdl%daddr, tile_jbegin_, SHAPE(tile_jbegin_))
+      ENDIF
+
+      IF (PRESENT(tile_ni_)) THEN
+        CALL cxios_get_domaingroup_tile_ni &
+      (domaingroup_hdl%daddr, tile_ni_, SHAPE(tile_ni_))
+      ENDIF
+
+      IF (PRESENT(tile_nj_)) THEN
+        CALL cxios_get_domaingroup_tile_nj &
+      (domaingroup_hdl%daddr, tile_nj_, SHAPE(tile_nj_))
+      ENDIF
+
       IF (PRESENT(type_)) THEN
         CALL cxios_get_domaingroup_type &
       (domaingroup_hdl%daddr, type_, len(type_))
@@ -815,7 +977,9 @@ CONTAINS
     , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
     , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
     , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-    , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+    , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+    , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
@@ -894,6 +1058,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: nj_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: nj_glo
       LOGICAL(KIND=C_BOOL) :: nj_glo_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ntiles
+      LOGICAL(KIND=C_BOOL) :: ntiles_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: nvertex
       LOGICAL(KIND=C_BOOL) :: nvertex_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: prec
@@ -902,6 +1068,22 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: radius_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name
       LOGICAL(KIND=C_BOOL) :: standard_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_ibegin
+      LOGICAL(KIND=C_BOOL) :: tile_data_ibegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_jbegin
+      LOGICAL(KIND=C_BOOL) :: tile_data_jbegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_ni
+      LOGICAL(KIND=C_BOOL) :: tile_data_ni_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_nj
+      LOGICAL(KIND=C_BOOL) :: tile_data_nj_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_ibegin
+      LOGICAL(KIND=C_BOOL) :: tile_ibegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_jbegin
+      LOGICAL(KIND=C_BOOL) :: tile_jbegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_ni
+      LOGICAL(KIND=C_BOOL) :: tile_ni_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_nj
+      LOGICAL(KIND=C_BOOL) :: tile_nj_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
@@ -912,7 +1094,9 @@ CONTAINS
       , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
       , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
       , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-      , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+      , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+      , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+       )
 
   END SUBROUTINE xios(is_defined_domaingroup_attr)
 
@@ -921,7 +1105,9 @@ CONTAINS
     , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
     , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
     , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-    , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+    , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+    , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -999,6 +1185,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: nj_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: nj_glo
       LOGICAL(KIND=C_BOOL) :: nj_glo_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ntiles
+      LOGICAL(KIND=C_BOOL) :: ntiles_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: nvertex
       LOGICAL(KIND=C_BOOL) :: nvertex_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: prec
@@ -1007,6 +1195,22 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: radius_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name
       LOGICAL(KIND=C_BOOL) :: standard_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_ibegin
+      LOGICAL(KIND=C_BOOL) :: tile_data_ibegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_jbegin
+      LOGICAL(KIND=C_BOOL) :: tile_data_jbegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_ni
+      LOGICAL(KIND=C_BOOL) :: tile_data_ni_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_nj
+      LOGICAL(KIND=C_BOOL) :: tile_data_nj_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_ibegin
+      LOGICAL(KIND=C_BOOL) :: tile_ibegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_jbegin
+      LOGICAL(KIND=C_BOOL) :: tile_jbegin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_ni
+      LOGICAL(KIND=C_BOOL) :: tile_ni_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_nj
+      LOGICAL(KIND=C_BOOL) :: tile_nj_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
@@ -1015,7 +1219,9 @@ CONTAINS
       , bounds_lon_name, comment, data_dim, data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni  &
       , data_nj, dim_i_name, dim_j_name, domain_ref, group_ref, i_index, ibegin, j_index, jbegin, lat_name  &
       , latvalue_1d, latvalue_2d, lon_name, long_name, lonvalue_1d, lonvalue_2d, mask_1d, mask_2d  &
-      , name, ni, ni_glo, nj, nj_glo, nvertex, prec, radius, standard_name, type )
+      , name, ni, ni_glo, nj, nj_glo, ntiles, nvertex, prec, radius, standard_name, tile_data_ibegin  &
+      , tile_data_jbegin, tile_data_ni, tile_data_nj, tile_ibegin, tile_jbegin, tile_ni, tile_nj, type  &
+       )
 
   END SUBROUTINE xios(is_defined_domaingroup_attr_hdl)
 
@@ -1024,8 +1230,9 @@ CONTAINS
     , bounds_lon_name_, comment_, data_dim_, data_i_index_, data_ibegin_, data_j_index_, data_jbegin_  &
     , data_ni_, data_nj_, dim_i_name_, dim_j_name_, domain_ref_, group_ref_, i_index_, ibegin_, j_index_  &
     , jbegin_, lat_name_, latvalue_1d_, latvalue_2d_, lon_name_, long_name_, lonvalue_1d_, lonvalue_2d_  &
-    , mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_, nvertex_, prec_, radius_, standard_name_  &
-    , type_ )
+    , mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_, ntiles_, nvertex_, prec_, radius_, standard_name_  &
+    , tile_data_ibegin_, tile_data_jbegin_, tile_data_ni_, tile_data_nj_, tile_ibegin_, tile_jbegin_  &
+    , tile_ni_, tile_nj_, type_ )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -1103,6 +1310,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: nj__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: nj_glo_
       LOGICAL(KIND=C_BOOL) :: nj_glo__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ntiles_
+      LOGICAL(KIND=C_BOOL) :: ntiles__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: nvertex_
       LOGICAL(KIND=C_BOOL) :: nvertex__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: prec_
@@ -1111,6 +1320,22 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: radius__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name_
       LOGICAL(KIND=C_BOOL) :: standard_name__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_ibegin_
+      LOGICAL(KIND=C_BOOL) :: tile_data_ibegin__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_jbegin_
+      LOGICAL(KIND=C_BOOL) :: tile_data_jbegin__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_ni_
+      LOGICAL(KIND=C_BOOL) :: tile_data_ni__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_data_nj_
+      LOGICAL(KIND=C_BOOL) :: tile_data_nj__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_ibegin_
+      LOGICAL(KIND=C_BOOL) :: tile_ibegin__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_jbegin_
+      LOGICAL(KIND=C_BOOL) :: tile_jbegin__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_ni_
+      LOGICAL(KIND=C_BOOL) :: tile_ni__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: tile_nj_
+      LOGICAL(KIND=C_BOOL) :: tile_nj__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type_
       LOGICAL(KIND=C_BOOL) :: type__tmp
 
@@ -1336,6 +1561,12 @@ CONTAINS
         nj_glo_ = nj_glo__tmp
       ENDIF
 
+      IF (PRESENT(ntiles_)) THEN
+        ntiles__tmp = cxios_is_defined_domaingroup_ntiles &
+      (domaingroup_hdl%daddr)
+        ntiles_ = ntiles__tmp
+      ENDIF
+
       IF (PRESENT(nvertex_)) THEN
         nvertex__tmp = cxios_is_defined_domaingroup_nvertex &
       (domaingroup_hdl%daddr)
@@ -1358,6 +1589,54 @@ CONTAINS
         standard_name__tmp = cxios_is_defined_domaingroup_standard_name &
       (domaingroup_hdl%daddr)
         standard_name_ = standard_name__tmp
+      ENDIF
+
+      IF (PRESENT(tile_data_ibegin_)) THEN
+        tile_data_ibegin__tmp = cxios_is_defined_domaingroup_tile_data_ibegin &
+      (domaingroup_hdl%daddr)
+        tile_data_ibegin_ = tile_data_ibegin__tmp
+      ENDIF
+
+      IF (PRESENT(tile_data_jbegin_)) THEN
+        tile_data_jbegin__tmp = cxios_is_defined_domaingroup_tile_data_jbegin &
+      (domaingroup_hdl%daddr)
+        tile_data_jbegin_ = tile_data_jbegin__tmp
+      ENDIF
+
+      IF (PRESENT(tile_data_ni_)) THEN
+        tile_data_ni__tmp = cxios_is_defined_domaingroup_tile_data_ni &
+      (domaingroup_hdl%daddr)
+        tile_data_ni_ = tile_data_ni__tmp
+      ENDIF
+
+      IF (PRESENT(tile_data_nj_)) THEN
+        tile_data_nj__tmp = cxios_is_defined_domaingroup_tile_data_nj &
+      (domaingroup_hdl%daddr)
+        tile_data_nj_ = tile_data_nj__tmp
+      ENDIF
+
+      IF (PRESENT(tile_ibegin_)) THEN
+        tile_ibegin__tmp = cxios_is_defined_domaingroup_tile_ibegin &
+      (domaingroup_hdl%daddr)
+        tile_ibegin_ = tile_ibegin__tmp
+      ENDIF
+
+      IF (PRESENT(tile_jbegin_)) THEN
+        tile_jbegin__tmp = cxios_is_defined_domaingroup_tile_jbegin &
+      (domaingroup_hdl%daddr)
+        tile_jbegin_ = tile_jbegin__tmp
+      ENDIF
+
+      IF (PRESENT(tile_ni_)) THEN
+        tile_ni__tmp = cxios_is_defined_domaingroup_tile_ni &
+      (domaingroup_hdl%daddr)
+        tile_ni_ = tile_ni__tmp
+      ENDIF
+
+      IF (PRESENT(tile_nj_)) THEN
+        tile_nj__tmp = cxios_is_defined_domaingroup_tile_nj &
+      (domaingroup_hdl%daddr)
+        tile_nj_ = tile_nj__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN

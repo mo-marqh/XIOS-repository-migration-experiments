@@ -103,7 +103,15 @@ namespace xios {
          bool isEmpty(void) const;
          bool isDistributed(void) const;
          bool isCompressible(void) const; 
- 
+
+         bool isTiled(void) const;
+         bool isTiledOnly(void) const;
+         int getTileId(int i, int j) const;
+         int getTileDataISize(int tileId) const;
+         int getTileDataJSize(int tileId) const;
+         void computeCompressionTiled(CArray<int,1>& dataIndexI, CArray<int,1>& dataIndexJ,
+                                      CArray<int,1>& infoIndexI, CArray<int,1>& infoIndexJ);
+
          std::vector<int> getNbGlob();
          bool isEqual(CDomain* domain);
 
@@ -169,6 +177,7 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
+         void checkTiles();
 
          void setTransformations(const TransMapTypes&);         
          void computeNGlobDomain();
@@ -222,13 +231,18 @@ namespace xios {
          std::map<int, std::map<int,size_t> > connectedDataSize_;
          std::map<int, std::vector<int> > connectedServerRank_;
 
-         //! True if and only if the data defined on the domain can be outputted in a compressed way
+//! True if and only if the data defined on the domain can be outputted in a compressed way
          bool isCompressible_;
          bool isRedistributed_;
          TransMapTypes transformationMap_;         
          bool isUnstructed_;
          std::unordered_map<size_t,size_t> globalLocalIndexMap_;
-       
+
+//! True if tiled data is defined on the domain
+         bool isTiled_;
+//! True if ONLY tiled data is defined on the domain
+         bool isTiledOnly_;
+
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
          static std::map<StdString, ETranformationType> transformationMapList_;

@@ -67,130 +67,144 @@ MODULE IDATA
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
       END SUBROUTINE cxios_write_data_k80
 
-      SUBROUTINE cxios_write_data_k81_hdl(field_hdl, data_k8, data_Xsize) BIND(C)
+      SUBROUTINE cxios_write_data_k81_hdl(field_hdl, data_k8, data_Xsize, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k81_hdl
 
-      SUBROUTINE cxios_write_data_k81(fieldid, fieldid_size, data_k8, data_Xsize) BIND(C)
+      SUBROUTINE cxios_write_data_k81(fieldid, fieldid_size, data_k8, data_Xsize, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k81
 
-      SUBROUTINE cxios_write_data_k82_hdl(field_hdl, data_k8, data_Xsize, data_Ysize) BIND(C)
+      SUBROUTINE cxios_write_data_k82_hdl(field_hdl, data_k8, data_Xsize, data_Ysize, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k82_hdl
 
-      SUBROUTINE cxios_write_data_k82(fieldid, fieldid_size, data_k8, data_Xsize, data_Ysize) BIND(C)
+      SUBROUTINE cxios_write_data_k82(fieldid, fieldid_size, data_k8, data_Xsize, data_Ysize, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k82
 
-      SUBROUTINE cxios_write_data_k83_hdl(field_hdl, data_k8, data_Xsize, data_Ysize, data_Zsize) BIND(C)
+      SUBROUTINE cxios_write_data_k83_hdl(field_hdl, data_k8, data_Xsize, data_Ysize, data_Zsize, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize, data_Zsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k83_hdl
 
-      SUBROUTINE cxios_write_data_k83(fieldid, fieldid_size, data_k8, data_Xsize, data_Ysize, data_Zsize) BIND(C)
+      SUBROUTINE cxios_write_data_k83(fieldid, fieldid_size, data_k8, data_Xsize, data_Ysize, data_Zsize, &
+                                      tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize, data_Zsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k83
 
       SUBROUTINE cxios_write_data_k84_hdl(field_hdl, data_k8, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size) BIND(C)
+                                      data_3size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k84_hdl
 
       SUBROUTINE cxios_write_data_k84(fieldid, fieldid_size, data_k8, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size) BIND(C)
+                                      data_3size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k84
 
       SUBROUTINE cxios_write_data_k85_hdl(field_hdl, data_k8, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size) BIND(C)
+                                      data_3size, data_4size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k85_hdl
 
       SUBROUTINE cxios_write_data_k85(fieldid, fieldid_size, data_k8, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size) BIND(C)
+                                      data_3size, data_4size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k85
 
       SUBROUTINE cxios_write_data_k86_hdl(field_hdl, data_k8, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size, data_5size) BIND(C)
+                                      data_3size, data_4size, data_5size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k86_hdl
 
       SUBROUTINE cxios_write_data_k86(fieldid, fieldid_size, data_k8, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size, data_5size) BIND(C)
+                                      data_3size, data_4size, data_5size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k86
 
       SUBROUTINE cxios_write_data_k87_hdl(field_hdl, data_k8, &
                                       data_0size, data_1size, data_2size, &
                                       data_3size, data_4size, data_5size, &
-                                      data_6size) BIND(C)
+                                      data_6size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
          INTEGER  (kind = C_INT)   , VALUE        :: data_6size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k87_hdl
 
       SUBROUTINE cxios_write_data_k87(fieldid, fieldid_size, data_k8, &
                                       data_0size, data_1size, data_2size, &
                                       data_3size, data_4size, data_5size, &
-                                      data_6size) BIND(C)
+                                      data_6size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
@@ -198,6 +212,7 @@ MODULE IDATA
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
          INTEGER  (kind = C_INT)   , VALUE        :: data_6size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k87
 
       SUBROUTINE cxios_write_data_k40_hdl(field_hdl, data_k4, data_Xsize) BIND(C)
@@ -215,130 +230,143 @@ MODULE IDATA
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
       END SUBROUTINE cxios_write_data_k40
 
-      SUBROUTINE cxios_write_data_k41_hdl(field_hdl, data_k4, data_Xsize) BIND(C)
+      SUBROUTINE cxios_write_data_k41_hdl(field_hdl, data_k4, data_Xsize, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k41_hdl
 
-      SUBROUTINE cxios_write_data_k41(fieldid, fieldid_size, data_k4, data_Xsize) BIND(C)
+      SUBROUTINE cxios_write_data_k41(fieldid, fieldid_size, data_k4, data_Xsize, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k41
 
-      SUBROUTINE cxios_write_data_k42_hdl(field_hdl, data_k4, data_Xsize, data_Ysize) BIND(C)
+      SUBROUTINE cxios_write_data_k42_hdl(field_hdl, data_k4, data_Xsize, data_Ysize, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k42_hdl
  
-      SUBROUTINE cxios_write_data_k42(fieldid, fieldid_size, data_k4, data_Xsize, data_Ysize) BIND(C)
+      SUBROUTINE cxios_write_data_k42(fieldid, fieldid_size, data_k4, data_Xsize, data_Ysize, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k42
 
-      SUBROUTINE cxios_write_data_k43_hdl(field_hdl, data_k4, data_Xsize, data_Ysize, data_Zsize) BIND(C)
+      SUBROUTINE cxios_write_data_k43_hdl(field_hdl, data_k4, data_Xsize, data_Ysize, data_Zsize, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize, data_Zsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k43_hdl
 
-      SUBROUTINE cxios_write_data_k43(fieldid, fieldid_size, data_k4, data_Xsize, data_Ysize, data_Zsize) BIND(C)
+      SUBROUTINE cxios_write_data_k43(fieldid, fieldid_size, data_k4, data_Xsize, data_Ysize, data_Zsize, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize, data_Ysize, data_Zsize
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k43
 
       SUBROUTINE cxios_write_data_k44_hdl(field_hdl, data_k4, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size) BIND(C)
+                                      data_3size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k44_hdl
 
       SUBROUTINE cxios_write_data_k44(fieldid, fieldid_size, data_k4, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size) BIND(C)
+                                      data_3size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k44
 
       SUBROUTINE cxios_write_data_k45_hdl(field_hdl, data_k4, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size) BIND(C)
+                                      data_3size, data_4size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k45_hdl
 
       SUBROUTINE cxios_write_data_k45(fieldid, fieldid_size, data_k4, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size) BIND(C)
+                                      data_3size, data_4size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k45
 
       SUBROUTINE cxios_write_data_k46_hdl(field_hdl, data_k4, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size, data_5size) BIND(C)
+                                      data_3size, data_4size, data_5size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k46_hdl
  
       SUBROUTINE cxios_write_data_k46(fieldid, fieldid_size, data_k4, &
                                       data_0size, data_1size, data_2size, &
-                                      data_3size, data_4size, data_5size) BIND(C)
+                                      data_3size, data_4size, data_5size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k46
 
       SUBROUTINE cxios_write_data_k47_hdl(field_hdl, data_k4, &
                                       data_0size, data_1size, data_2size, &
                                       data_3size, data_4size, data_5size, &
-                                      data_6size) BIND(C)
+                                      data_6size, tileid) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE      :: field_hdl
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
          INTEGER  (kind = C_INT)   , VALUE        :: data_6size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k47_hdl
 
       SUBROUTINE cxios_write_data_k47(fieldid, fieldid_size, data_k4, &
                                       data_0size, data_1size, data_2size, &
                                       data_3size, data_4size, data_5size, &
-                                      data_6size) BIND(C)
+                                      data_6size, tileid) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
          REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
@@ -346,6 +374,7 @@ MODULE IDATA
          INTEGER  (kind = C_INT)   , VALUE        :: data_0size, data_1size, data_2size
          INTEGER  (kind = C_INT)   , VALUE        :: data_3size, data_4size, data_5size
          INTEGER  (kind = C_INT)   , VALUE        :: data_6size
+         INTEGER  (kind = C_INT)   , VALUE        :: tileid
       END SUBROUTINE cxios_write_data_k47
 
 
@@ -833,117 +862,201 @@ MODULE IDATA
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data1d_k8(:)
-      CALL cxios_write_data_k81_hdl(field_hdl%daddr, data1d_k8, size(data1d_k8, 1))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k81_hdl(field_hdl%daddr, data1d_k8, size(data1d_k8, 1), tileid)
    END SUBROUTINE xios(send_field_r8_1d_hdl)
 
    SUBROUTINE xios(send_field_r8_1d)(fieldid, data1d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data1d_k8(:)
-      CALL cxios_write_data_k81(fieldid, len(fieldid), data1d_k8, size(data1d_k8, 1))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k81(fieldid, len(fieldid), data1d_k8, size(data1d_k8, 1), tileid)
    END SUBROUTINE xios(send_field_r8_1d)
+
+   SUBROUTINE xios(send_field_tiled_r8_1d)(fieldid, data1d_k8, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data1d_k8(:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k81(fieldid, len(fieldid), data1d_k8, size(data1d_k8, 1), tileid)
+   END SUBROUTINE xios(send_field_tiled_r8_1d)
 
    SUBROUTINE  xios(send_field_r8_2d_hdl)(field_hdl, data2d_k8)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data2d_k8(:,:)
-      CALL cxios_write_data_k82_hdl(field_hdl%daddr, data2d_k8, size(data2d_k8, 1), size(data2d_k8, 2))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k82_hdl(field_hdl%daddr, data2d_k8, size(data2d_k8, 1), size(data2d_k8, 2), tileid)
    END SUBROUTINE  xios(send_field_r8_2d_hdl)
 
    SUBROUTINE  xios(send_field_r8_2d)(fieldid, data2d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data2d_k8(:,:)
-      CALL cxios_write_data_k82(fieldid, len(fieldid), data2d_k8, size(data2d_k8, 1), size(data2d_k8, 2))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k82(fieldid, len(fieldid), data2d_k8, size(data2d_k8, 1), &
+                                size(data2d_k8, 2), tileid)
    END SUBROUTINE  xios(send_field_r8_2d)
+
+   SUBROUTINE  xios(send_field_tiled_r8_2d)(fieldid, data2d_k8, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data2d_k8(:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k82(fieldid, len(fieldid), data2d_k8, size(data2d_k8, 1), &
+                                size(data2d_k8, 2), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r8_2d)
 
    SUBROUTINE  xios(send_field_r8_3d_hdl)(field_hdl, data3d_k8)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data3d_k8(:,:,:)
-      CALL cxios_write_data_k83_hdl(field_hdl%daddr, data3d_k8, size(data3d_k8, 1), size(data3d_k8, 2), size(data3d_k8, 3))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k83_hdl(field_hdl%daddr, data3d_k8, size(data3d_k8, 1), size(data3d_k8, 2), size(data3d_k8, 3), &
+                                    tileid)
    END SUBROUTINE  xios(send_field_r8_3d_hdl)
 
    SUBROUTINE  xios(send_field_r8_3d)(fieldid, data3d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data3d_k8(:,:,:)
-      CALL cxios_write_data_k83(fieldid, len(fieldid), data3d_k8, size(data3d_k8, 1), size(data3d_k8, 2), size(data3d_k8, 3))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k83(fieldid, len(fieldid), data3d_k8, size(data3d_k8, 1), size(data3d_k8, 2), size(data3d_k8, 3), &
+                                tileid)
    END SUBROUTINE  xios(send_field_r8_3d)
+
+   SUBROUTINE  xios(send_field_tiled_r8_3d)(fieldid, data3d_k8, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data3d_k8(:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k83(fieldid, len(fieldid), data3d_k8, size(data3d_k8, 1), &
+                                      size(data3d_k8, 2), size(data3d_k8, 3), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r8_3d)
 
    SUBROUTINE  xios(send_field_r8_4d_hdl)(field_hdl, data4d_k8)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data4d_k8(:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k84_hdl(field_hdl%daddr, data4d_k8, &
                                 size(data4d_k8, 1), size(data4d_k8, 2), size(data4d_k8, 3), &
-                                size(data4d_k8, 4))
+                                size(data4d_k8, 4), tileid)
    END SUBROUTINE  xios(send_field_r8_4d_hdl)
 
    SUBROUTINE  xios(send_field_r8_4d)(fieldid, data4d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data4d_k8(:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k84(fieldid, len(fieldid), data4d_k8, &
                                 size(data4d_k8, 1), size(data4d_k8, 2), size(data4d_k8, 3), &
-                                size(data4d_k8, 4))
+                                size(data4d_k8, 4), tileid)
    END SUBROUTINE  xios(send_field_r8_4d)
+
+   SUBROUTINE  xios(send_field_tiled_r8_4d)(fieldid, data4d_k8, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data4d_k8(:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k84(fieldid, len(fieldid), data4d_k8, &
+                                size(data4d_k8, 1), size(data4d_k8, 2), size(data4d_k8, 3), &
+                                size(data4d_k8, 4), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r8_4d)
 
    SUBROUTINE  xios(send_field_r8_5d_hdl)(field_hdl, data5d_k8)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data5d_k8(:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k85_hdl(field_hdl%daddr, data5d_k8, &
                                 size(data5d_k8, 1), size(data5d_k8, 2), size(data5d_k8, 3), &
-                                size(data5d_k8, 4), size(data5d_k8, 5))
+                                size(data5d_k8, 4), size(data5d_k8, 5), tileid)
    END SUBROUTINE  xios(send_field_r8_5d_hdl)
 
    SUBROUTINE  xios(send_field_r8_5d)(fieldid, data5d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data5d_k8(:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k85(fieldid, len(fieldid), data5d_k8, &
                                 size(data5d_k8, 1), size(data5d_k8, 2), size(data5d_k8, 3), &
-                                size(data5d_k8, 4), size(data5d_k8, 5))
+                                size(data5d_k8, 4), size(data5d_k8, 5), tileid)
    END SUBROUTINE  xios(send_field_r8_5d)
+
+   SUBROUTINE  xios(send_field_tiled_r8_5d)(fieldid, data5d_k8, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data5d_k8(:,:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k85(fieldid, len(fieldid), data5d_k8, &
+                                size(data5d_k8, 1), size(data5d_k8, 2), size(data5d_k8, 3), &
+                                size(data5d_k8, 4), size(data5d_k8, 5), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r8_5d)
 
    SUBROUTINE  xios(send_field_r8_6d_hdl)(field_hdl, data6d_k8)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data6d_k8(:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k86_hdl(field_hdl%daddr, data6d_k8, &
                                 size(data6d_k8, 1), size(data6d_k8, 2), size(data6d_k8, 3), &
-                                size(data6d_k8, 4), size(data6d_k8, 5), size(data6d_k8, 6))
+                                size(data6d_k8, 4), size(data6d_k8, 5), size(data6d_k8, 6), tileid)
    END SUBROUTINE  xios(send_field_r8_6d_hdl)
 
    SUBROUTINE  xios(send_field_r8_6d)(fieldid, data6d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data6d_k8(:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k86(fieldid, len(fieldid), data6d_k8, &
                                 size(data6d_k8, 1), size(data6d_k8, 2), size(data6d_k8, 3), &
-                                size(data6d_k8, 4), size(data6d_k8, 5), size(data6d_k8, 6))
+                                size(data6d_k8, 4), size(data6d_k8, 5), size(data6d_k8, 6), tileid)
    END SUBROUTINE  xios(send_field_r8_6d)
+
+   SUBROUTINE  xios(send_field_tiled_r8_6d)(fieldid, data6d_k8, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data6d_k8(:,:,:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k86(fieldid, len(fieldid), data6d_k8, &
+                                size(data6d_k8, 1), size(data6d_k8, 2), size(data6d_k8, 3), &
+                                size(data6d_k8, 4), size(data6d_k8, 5), size(data6d_k8, 6), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r8_6d)
 
    SUBROUTINE  xios(send_field_r8_7d_hdl)(field_hdl, data7d_k8)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data7d_k8(:,:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k87_hdl(field_hdl%daddr, data7d_k8, &
                                 size(data7d_k8, 1), size(data7d_k8, 2), size(data7d_k8, 3), &
                                 size(data7d_k8, 4), size(data7d_k8, 5), size(data7d_k8, 6), &
-                                size(data7d_k8, 7))
+                                size(data7d_k8, 7), tileid)
    END SUBROUTINE  xios(send_field_r8_7d_hdl)
 
    SUBROUTINE  xios(send_field_r8_7d)(fieldid, data7d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data7d_k8(:,:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k87(fieldid, len(fieldid), data7d_k8, &
                                 size(data7d_k8, 1), size(data7d_k8, 2), size(data7d_k8, 3), &
                                 size(data7d_k8, 4), size(data7d_k8, 5), size(data7d_k8, 6), &
-                                size(data7d_k8, 7))
+                                size(data7d_k8, 7), tileid)
    END SUBROUTINE  xios(send_field_r8_7d)
+
+   SUBROUTINE  xios(send_field_tiled_r8_7d)(fieldid, data7d_k8, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 8), DIMENSION(*), INTENT(IN) :: data7d_k8(:,:,:,:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k87(fieldid, len(fieldid), data7d_k8, &
+                                size(data7d_k8, 1), size(data7d_k8, 2), size(data7d_k8, 3), &
+                                size(data7d_k8, 4), size(data7d_k8, 5), size(data7d_k8, 6), &
+                                size(data7d_k8, 7), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r8_7d)
 
    SUBROUTINE xios(send_field_r4_0d_hdl)(field_hdl, data_k4)
    IMPLICIT NONE
@@ -963,117 +1076,199 @@ MODULE IDATA
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data1d_k4(:)
-      CALL cxios_write_data_k41_hdl(field_hdl%daddr, data1d_k4, size(data1d_k4, 1))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k41_hdl(field_hdl%daddr, data1d_k4, size(data1d_k4, 1), tileid)
    END SUBROUTINE xios(send_field_r4_1d_hdl)
 
    SUBROUTINE xios(send_field_r4_1d)(fieldid, data1d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data1d_k4(:)
-      CALL cxios_write_data_k41(fieldid, len(fieldid), data1d_k4, size(data1d_k4, 1))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k41(fieldid, len(fieldid), data1d_k4, size(data1d_k4, 1), tileid)
    END SUBROUTINE xios(send_field_r4_1d)
+
+   SUBROUTINE xios(send_field_tiled_r4_1d)(fieldid, data1d_k4, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data1d_k4(:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k41(fieldid, len(fieldid), data1d_k4, size(data1d_k4, 1), tileid)
+   END SUBROUTINE xios(send_field_tiled_r4_1d)
 
    SUBROUTINE xios(send_field_r4_2d_hdl)(field_hdl, data2d_k4)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data2d_k4(:,:)
-      CALL cxios_write_data_k42_hdl(field_hdl%daddr, data2d_k4, size(data2d_k4, 1), size(data2d_k4, 2))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k42_hdl(field_hdl%daddr, data2d_k4, size(data2d_k4, 1), size(data2d_k4, 2), tileid)
    END SUBROUTINE xios(send_field_r4_2d_hdl)
 
    SUBROUTINE xios(send_field_r4_2d)(fieldid, data2d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data2d_k4(:,:)
-      CALL cxios_write_data_k42(fieldid, len(fieldid), data2d_k4, size(data2d_k4, 1), size(data2d_k4, 2))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k42(fieldid, len(fieldid), data2d_k4, size(data2d_k4, 1), size(data2d_k4, 2), tileid)
    END SUBROUTINE xios(send_field_r4_2d)
+
+   SUBROUTINE xios(send_field_tiled_r4_2d)(fieldid, data2d_k4, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data2d_k4(:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k42(fieldid, len(fieldid), data2d_k4, size(data2d_k4, 1), size(data2d_k4, 2), tileid)
+   END SUBROUTINE xios(send_field_tiled_r4_2d)
 
    SUBROUTINE xios(send_field_r4_3d_hdl)(field_hdl, data3d_k4)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data3d_k4(:,:,:)
-      CALL cxios_write_data_k43_hdl(field_hdl%daddr, data3d_k4, size(data3d_k4, 1), size(data3d_k4, 2), size(data3d_k4, 3))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k43_hdl(field_hdl%daddr, data3d_k4, size(data3d_k4, 1), size(data3d_k4, 2), size(data3d_k4, 3), &
+                                    tileid)
    END SUBROUTINE xios(send_field_r4_3d_hdl)
 
    SUBROUTINE xios(send_field_r4_3d)(fieldid, data3d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data3d_k4(:,:,:)
-      CALL cxios_write_data_k43(fieldid, len(fieldid), data3d_k4, size(data3d_k4, 1), size(data3d_k4, 2), size(data3d_k4, 3))
+      INTEGER, PARAMETER                            :: tileid = -1
+      CALL cxios_write_data_k43(fieldid, len(fieldid), data3d_k4, size(data3d_k4, 1), size(data3d_k4, 2), size(data3d_k4, 3), &
+                                tileid)
    END SUBROUTINE xios(send_field_r4_3d)
+
+   SUBROUTINE xios(send_field_tiled_r4_3d)(fieldid, data3d_k4, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data3d_k4(:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k43(fieldid, len(fieldid), data3d_k4, size(data3d_k4, 1), size(data3d_k4, 2), size(data3d_k4, 3), &
+                                tileid)
+   END SUBROUTINE xios(send_field_tiled_r4_3d)
 
    SUBROUTINE  xios(send_field_r4_4d_hdl)(field_hdl, data4d_k4)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data4d_k4(:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k44_hdl(field_hdl%daddr, data4d_k4, &
                                 size(data4d_k4, 1), size(data4d_k4, 2), size(data4d_k4, 3), &
-                                size(data4d_k4, 4))
+                                size(data4d_k4, 4), tileid)
    END SUBROUTINE  xios(send_field_r4_4d_hdl)
-   
+
    SUBROUTINE  xios(send_field_r4_4d)(fieldid, data4d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data4d_k4(:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k44(fieldid, len(fieldid), data4d_k4, &
                                 size(data4d_k4, 1), size(data4d_k4, 2), size(data4d_k4, 3), &
-                                size(data4d_k4, 4))
+                                size(data4d_k4, 4), tileid)
    END SUBROUTINE  xios(send_field_r4_4d)
+
+   SUBROUTINE  xios(send_field_tiled_r4_4d)(fieldid, data4d_k4, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data4d_k4(:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k44(fieldid, len(fieldid), data4d_k4, &
+                                size(data4d_k4, 1), size(data4d_k4, 2), size(data4d_k4, 3), &
+                                size(data4d_k4, 4), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r4_4d)
 
    SUBROUTINE  xios(send_field_r4_5d_hdl)(field_hdl, data5d_k4)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data5d_k4(:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k45_hdl(field_hdl%daddr, data5d_k4, &
                                 size(data5d_k4, 1), size(data5d_k4, 2), size(data5d_k4, 3), &
-                                size(data5d_k4, 4), size(data5d_k4, 5))
+                                size(data5d_k4, 4), size(data5d_k4, 5), tileid)
    END SUBROUTINE  xios(send_field_r4_5d_hdl)
 
    SUBROUTINE  xios(send_field_r4_5d)(fieldid, data5d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data5d_k4(:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k45(fieldid, len(fieldid), data5d_k4, &
                                 size(data5d_k4, 1), size(data5d_k4, 2), size(data5d_k4, 3), &
-                                size(data5d_k4, 4), size(data5d_k4, 5))
+                                size(data5d_k4, 4), size(data5d_k4, 5), tileid)
    END SUBROUTINE  xios(send_field_r4_5d)
+
+   SUBROUTINE  xios(send_field_tiled_r4_5d)(fieldid, data5d_k4, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data5d_k4(:,:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k45(fieldid, len(fieldid), data5d_k4, &
+                                size(data5d_k4, 1), size(data5d_k4, 2), size(data5d_k4, 3), &
+                                size(data5d_k4, 4), size(data5d_k4, 5), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r4_5d)
 
    SUBROUTINE  xios(send_field_r4_6d_hdl)(field_hdl, data6d_k4)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data6d_k4(:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k46_hdl(field_hdl%daddr, data6d_k4, &
                                 size(data6d_k4, 1), size(data6d_k4, 2), size(data6d_k4, 3), &
-                                size(data6d_k4, 4), size(data6d_k4, 5), size(data6d_k4, 6))
+                                size(data6d_k4, 4), size(data6d_k4, 5), size(data6d_k4, 6), tileid)
    END SUBROUTINE  xios(send_field_r4_6d_hdl)
    
    SUBROUTINE  xios(send_field_r4_6d)(fieldid, data6d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data6d_k4(:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k46(fieldid, len(fieldid), data6d_k4, &
                                 size(data6d_k4, 1), size(data6d_k4, 2), size(data6d_k4, 3), &
-                                size(data6d_k4, 4), size(data6d_k4, 5), size(data6d_k4, 6))
+                                size(data6d_k4, 4), size(data6d_k4, 5), size(data6d_k4, 6), tileid)
    END SUBROUTINE  xios(send_field_r4_6d)
+
+   SUBROUTINE  xios(send_field_tiled_r4_6d)(fieldid, data6d_k4, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data6d_k4(:,:,:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k46(fieldid, len(fieldid), data6d_k4, &
+                                size(data6d_k4, 1), size(data6d_k4, 2), size(data6d_k4, 3), &
+                                size(data6d_k4, 4), size(data6d_k4, 5), size(data6d_k4, 6), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r4_6d)
 
    SUBROUTINE  xios(send_field_r4_7d_hdl)(field_hdl, data7d_k4)
    IMPLICIT NONE
       TYPE(txios(field))              :: field_hdl
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data7d_k4(:,:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k47_hdl(field_hdl%daddr, data7d_k4, &
                                 size(data7d_k4, 1), size(data7d_k4, 2), size(data7d_k4, 3), &
                                 size(data7d_k4, 4), size(data7d_k4, 5), size(data7d_k4, 6), &
-                                size(data7d_k4, 7))
+                                size(data7d_k4, 7), tileid)
    END SUBROUTINE  xios(send_field_r4_7d_hdl)
    
    SUBROUTINE  xios(send_field_r4_7d)(fieldid, data7d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
       REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data7d_k4(:,:,:,:,:,:,:)
+      INTEGER, PARAMETER                            :: tileid = -1
       CALL cxios_write_data_k47(fieldid, len(fieldid), data7d_k4, &
                                 size(data7d_k4, 1), size(data7d_k4, 2), size(data7d_k4, 3), &
                                 size(data7d_k4, 4), size(data7d_k4, 5), size(data7d_k4, 6), &
-                                size(data7d_k4, 7))
+                                size(data7d_k4, 7), tileid)
    END SUBROUTINE  xios(send_field_r4_7d)
+
+   SUBROUTINE  xios(send_field_tiled_r4_7d)(fieldid, data7d_k4, tileid)
+   IMPLICIT NONE
+      CHARACTER(len = *)               , INTENT(IN) :: fieldid
+      REAL     (kind = 4), DIMENSION(*), INTENT(IN) :: data7d_k4(:,:,:,:,:,:,:)
+      INTEGER                          , INTENT(IN) :: tileid
+      CALL cxios_write_data_k47(fieldid, len(fieldid), data7d_k4, &
+                                size(data7d_k4, 1), size(data7d_k4, 2), size(data7d_k4, 3), &
+                                size(data7d_k4, 4), size(data7d_k4, 5), size(data7d_k4, 6), &
+                                size(data7d_k4, 7), tileid)
+   END SUBROUTINE  xios(send_field_tiled_r4_7d)
 
    ! Receive field functions
    SUBROUTINE xios(recv_field_r8_0d_hdl)(field_hdl, data0d_k8)

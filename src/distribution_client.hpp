@@ -33,7 +33,7 @@ public:
 
   public:
     /** Default constructor */
-    CDistributionClient(int rank, CGrid* grid);
+    CDistributionClient(int rank, CGrid* grid, bool isTiled = false);
 
     void createGlobalIndexSendToServer();
 
@@ -60,11 +60,12 @@ public:
 
   protected:
     void createGlobalIndex();
-    void readDistributionInfo(CGrid* grid);
+    void readDistributionInfo(CGrid* grid, bool isTiled);
     void readDistributionInfo(const std::vector<CDomain*>& domList,
                               const std::vector<CAxis*>& axisList,
                               const std::vector<CScalar*>& scalarList,
-                              const CArray<int,1>& axisDomainOrder);
+                              const CArray<int,1>& axisDomainOrder,
+                              bool isTiled);
   private:
     //! Create local index of a domain
     void createLocalDomainDataIndex();

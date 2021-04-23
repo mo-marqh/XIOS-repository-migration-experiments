@@ -45,7 +45,10 @@ namespace xios
        * \param data an array containing the data
        */
       template <int N>
-      void streamData(CDate date, const CArray<double, N>& data);
+      void streamData(CDate date, const CArray<double, N>& data, bool isTiled = false);
+
+      template <int N>
+      void streamTile(CDate date, const CArray<double, N>& data, int ntile);
 
       void virtual buildGraph(CDataPacketPtr packet);
 
@@ -74,6 +77,8 @@ namespace xios
       const double defaultValue;
       const bool compression ; //!< indicates if data need to be compressed : on client side : true, on server side : false
       const bool mask ;        //!< indicates whether grid mask should be applied (true for clients, false for servers)
+      int ntiles ;
+      CArray<double, 1> storedTileData;
   }; // class CSourceFilter
 } // namespace xios
 

@@ -10,7 +10,7 @@
 
 namespace xios {
 
-CDistributionClient::CDistributionClient(int rank, CGrid* grid)
+CDistributionClient::CDistributionClient(int rank, CGrid* grid, bool isTiled)
    : CDistribution(rank, 0)
    , axisDomainOrder_()
    , nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_()
@@ -23,7 +23,7 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    , elementLocalIndex_(), elementGlobalIndex_(), elementIndexData_()
    , elementNLocal_(), elementNGlobal_()
 {
-  readDistributionInfo(grid);
+  readDistributionInfo(grid, isTiled);
   createGlobalIndex();
 }
 
@@ -49,14 +49,14 @@ void CDistributionClient::partialClear()
 stored and used to calculate index distribution between client and server
   \param [in] grid Grid to read
 */
-void CDistributionClient::readDistributionInfo(CGrid* grid)
+void CDistributionClient::readDistributionInfo(CGrid* grid, bool isTiled)
 {
   std::vector<CDomain*> domList = grid->getDomains();
   std::vector<CAxis*> axisList = grid->getAxis();
   std::vector<CScalar*> scalarList = grid->getScalars();
   CArray<int,1> axisDomainOrder = grid->axis_domain_order;
 
-  readDistributionInfo(domList, axisList, scalarList, axisDomainOrder);
+  readDistributionInfo(domList, axisList, scalarList, axisDomainOrder, isTiled);
 
   // Then check mask of grid
   int gridDim = domList.size() * 2 + axisList.size();
@@ -101,12 +101,13 @@ like before, e.g: data_n_index to make sure a compability, however, it should be
   \param [in] axisList List of axis of grid
   \param [in] scalarList List of scalar of grid
   \param [in] axisDomainOrder order of axis and domain inside a grid. 2 if domain, 1 if axis and zero if scalar
-//  \param [in] gridMask Mask of grid, for now, keep it 3 dimension, but it needs changing
+  \param [in] isTiled If true, domain data attributes should be ignored
 */
 void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domList,
                                                const std::vector<CAxis*>& axisList,
                                                const std::vector<CScalar*>& scalarList,
-                                               const CArray<int,1>& axisDomainOrder)
+                                               const CArray<int,1>& axisDomainOrder,
+                                               bool isTiled)
 {
   domainNum_ = domList.size();
   axisNum_   = axisList.size();
@@ -176,22 +177,42 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nBeginLocal_.at(indexMap_[idx]+1) = 0;
       nBeginGlobal_.at(indexMap_[idx]+1) = domList[domIndex]->jbegin;
 
-      dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue();
-      dataIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->data_j_index);
-      infoIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->j_index);
-
       // On the i axis
       nLocal_.at(indexMap_[idx]) = domList[domIndex]->ni.getValue();
       nGlob_.at(indexMap_[idx]) = domList[domIndex]->ni_glo.getValue();
       nBeginLocal_.at(indexMap_[idx]) = 0;
       nBeginGlobal_.at(indexMap_[idx]) = domList[domIndex]->ibegin;
 
-      dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
-      dataIndex_.at(indexMap_[idx]).reference(domList[domIndex]->data_i_index);
-      infoIndex_.at(indexMap_[idx]).reference(domList[domIndex]->i_index);
+      if (isTiled)
+      // Ignore all data attributes, if defined, for tiled domains
+      {
+        dataBegin_.at(indexMap_[idx]+1) = 0;
+        dataBegin_.at(indexMap_[idx]) = 0;
 
-      dataNIndex_.at(idx) = domList[domIndex]->data_i_index.numElements();
-      dataDims_.at(idx) = domList[domIndex]->data_dim.getValue();
+        // Fill dataIndex_ and infoIndex_
+        CArray<int,1>& infoIndexI = infoIndex_.at(indexMap_[idx]);
+        CArray<int,1>& infoIndexJ = infoIndex_.at(indexMap_[idx]+1);
+        CArray<int,1>& dataIndexI = dataIndex_.at(indexMap_[idx]);
+        CArray<int,1>& dataIndexJ = dataIndex_.at(indexMap_[idx]+1);
+        domList[domIndex]->computeCompressionTiled(dataIndexI, dataIndexJ, infoIndexI, infoIndexJ);
+
+      }
+      else
+      {
+        // On the j axis
+        dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue();
+        dataIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->data_j_index);
+        infoIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->j_index);
+
+        // On the i axis
+        dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
+        dataIndex_.at(indexMap_[idx]).reference(domList[domIndex]->data_i_index);
+        infoIndex_.at(indexMap_[idx]).reference(domList[domIndex]->i_index);
+
+      }
+
+      dataNIndex_.at(idx) = isTiled ? (domList[domIndex]->ni*domList[domIndex]->nj) : domList[domIndex]->data_i_index.numElements();
+      dataDims_.at(idx) = isTiled ? 1 : domList[domIndex]->data_dim.getValue();
 
       isDataDistributed_ |= domList[domIndex]->isDistributed();
 

@@ -15,13 +15,16 @@
 namespace xios {
 
   template <int N>
-  void CField::setData(const CArray<double, N>& _data)
+  void CField::setData(const CArray<double, N>& _data, int tileid)
   TRY
   {
     if (clientSourceFilter)
     {
       if (check_if_active.isEmpty() || (!check_if_active.isEmpty() && (!check_if_active) || isActive(true)))
-        clientSourceFilter->streamData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
+        if (tileid > -1)
+          clientSourceFilter->streamTile(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data, tileid); // tiled domain
+        else
+          clientSourceFilter->streamData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
     }
     else if (instantDataFilter)
       ERROR("void CField::setData(const CArray<double, N>& _data)",

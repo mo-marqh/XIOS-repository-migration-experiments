@@ -34,6 +34,7 @@ namespace xios {
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
       , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
       , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
+      , isTiled_(false), isTiledOnly_(false)
    {
    }
 
@@ -47,6 +48,7 @@ namespace xios {
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
       , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
       , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
+      , isTiled_(false), isTiledOnly_(false)
    {
     }
 
@@ -245,6 +247,36 @@ namespace xios {
    TRY
    {
       return isCompressible_;
+   }
+   CATCH
+
+   bool CDomain::isTiled(void) const
+   TRY
+   {
+      return isTiled_;
+   }
+   CATCH
+
+   bool CDomain::isTiledOnly(void) const
+   TRY
+   {
+      return isTiledOnly_;
+   }
+   CATCH
+
+   int CDomain::getTileId(int i, int j) const
+   TRY
+   {
+     int tileId = 0;
+     bool stop = false;
+     while (!stop)
+     {
+       if ((i >= tile_ibegin(tileId) ) && (i < tile_ni(tileId)+tile_ibegin(tileId) )
+           && (j >= tile_jbegin(tileId) ) && (j < tile_nj(tileId)+tile_jbegin(tileId) ) )
+         stop = true;
+       ++tileId;
+     }
+     return (tileId - 1);
    }
    CATCH
 
@@ -1263,6 +1295,39 @@ namespace xios {
    CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
+
+   /*!
+    * For tiled domains, data_i/j_index should not take into
+    * account parameters defining data (data_ni/nj, data_i/jbegin...)
+    * \param [out] dataIndexI
+    * \param [out] dataIndexJ
+    * \param [out] infoIndexI
+    * \param [out] infoIndexJ
+    */
+
+   void CDomain::computeCompressionTiled(CArray<int,1>& dataIndexI, CArray<int,1>& dataIndexJ,
+                                         CArray<int,1>& infoIndexI, CArray<int,1>& infoIndexJ)
+   TRY
+   {
+     const int dsize = ni * nj;
+     dataIndexI.resize(dsize);
+     dataIndexJ.resize(dsize);
+
+     dataIndexJ = 0;
+     for (int k = 0; k < ni * nj; ++k)
+       dataIndexI(k) = k;
+
+     infoIndexI.resize(ni*nj);
+     for (int j = 0; j < nj; ++j)
+       for (int i = 0; i < ni; ++i) infoIndexI(i+j*ni) = i+ibegin;
+
+     infoIndexJ.resize(ni*nj);
+     for (int j = 0; j < nj; ++j)
+       for (int i = 0; i < ni; ++i) infoIndexJ(i+j*ni) = j+jbegin;
+   }
+   CATCH_DUMP_ATTR
+
+   //----------------------------------------------------------------
    void CDomain::computeLocalMask(void)
    TRY
    {
@@ -1722,6 +1787,88 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   //----------------------------------------------------------------
+   void CDomain::checkTiles()
+   TRY
+   {
+     if (!ntiles.isEmpty() && ntiles.getValue() >=1) isTiled_ = true;
+     if (!tile_only.isEmpty() && tile_only.getValue() == true) {
+       isTiled_ = true;
+       isTiledOnly_ = true;
+     }
+
+     if (isTiled_)
+     {
+
+       // Attributes tile_ni/nj and tile_i/jbegin are mandatory for tiled domains
+       if (tile_ni.numElements() != ntiles || tile_ibegin.numElements() != ntiles)
+           ERROR("CDomain::checkTiles()",
+                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "'tile_ni' or 'tile_ibegin' are ill defined: these attributes must be specified for tiled domains and be of the size 'ntiles'." << std::endl
+                 << "The number of tiles is  " << ntiles.getValue() << " while the size of 'tile_ni' is " << tile_ni.numElements() 
+                 << " and the size of 'tile_ibegin' is " << tile_ibegin.numElements() << ".");
+
+       if (tile_nj.numElements() != ntiles || tile_jbegin.numElements() != ntiles)
+           ERROR("CDomain::checkTiles()",
+                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "'tile_nj' or 'tile_jbegin' are ill defined: these attributes must be specified for tiled domains and be of the size 'ntiles'." << std::endl
+                 << "The number of tiles is  " << ntiles.getValue() << " while the size of 'tile_nj' is " << tile_nj.numElements()
+                 << " and the size of 'tile_jbegin' is " << tile_jbegin.numElements() << ".");
+
+       // Check on consistency of individual tile sizes and local domain size
+       int sizeTiles = 0;
+       for (int iTile = 0; iTile < ntiles.getValue(); ++iTile)
+       {
+         sizeTiles += tile_ni(iTile) * tile_nj(iTile);
+       }
+       if (sizeTiles != (ni*nj))
+           ERROR("CDomain::checkTiles()",
+                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "tiles should cover the entire local domain and cannot overlap." << std::endl << ".");
+
+
+       // Fill in tile_data_ni/nj and tile_data_i/jbegin if they are not specified
+       if (tile_data_ni.numElements() == 0 || tile_data_nj.numElements() == 0)
+       {
+         tile_data_ni.resize(ntiles);
+         tile_data_nj.resize(ntiles);
+         for (int iTile = 0; iTile < ntiles.getValue(); ++iTile)
+         {
+           tile_data_ni(iTile) = tile_ni(iTile);
+           tile_data_nj(iTile) = tile_nj(iTile);
+         }
+       }
+
+       if (tile_data_ibegin.numElements() == 0 || tile_data_jbegin.numElements() == 0)
+       {
+         tile_data_ibegin.resize(ntiles);
+         tile_data_jbegin.resize(ntiles);
+         tile_data_ibegin = 0;
+         tile_data_jbegin = 0;
+       }
+
+     } // isTiled_
+   }
+   CATCH_DUMP_ATTR
+
+   //----------------------------------------------------------------
+   int CDomain::getTileDataISize(int tileId) const
+   TRY
+   {
+     int retvalue = (tile_data_ni(tileId) > tile_ni(tileId)) ? tile_data_ni(tileId) : tile_ni(tileId);
+     return retvalue;
+   }
+   CATCH_DUMP_ATTR
+
+   //----------------------------------------------------------------
+   int CDomain::getTileDataJSize(int tileId) const
+   TRY
+   {
+     int retvalue = (tile_data_nj(tileId) > tile_nj(tileId)) ? tile_data_nj(tileId) : tile_nj(tileId);
+     return retvalue;
+   }
+   CATCH_DUMP_ATTR
+
    void CDomain::checkAttributesOnClientAfterTransformation()
    TRY
    {
@@ -1755,6 +1902,7 @@ namespace xios {
         this->checkBounds();
         this->checkArea();
         this->checkLonLat();
+        this->checkTiles();
       }
 
       if (context->hasClient && !context->hasServer)

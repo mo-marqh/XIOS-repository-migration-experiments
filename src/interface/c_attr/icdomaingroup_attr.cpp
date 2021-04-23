@@ -930,6 +930,29 @@ extern "C"
   }
 
 
+  void cxios_set_domaingroup_ntiles(domaingroup_Ptr domaingroup_hdl, int ntiles)
+  {
+    CTimer::get("XIOS").resume();
+    domaingroup_hdl->ntiles.setValue(ntiles);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_ntiles(domaingroup_Ptr domaingroup_hdl, int* ntiles)
+  {
+    CTimer::get("XIOS").resume();
+    *ntiles = domaingroup_hdl->ntiles.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_ntiles(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->ntiles.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domaingroup_nvertex(domaingroup_Ptr domaingroup_hdl, int nvertex)
   {
     CTimer::get("XIOS").resume();
@@ -1020,6 +1043,206 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = domaingroup_hdl->standard_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_data_ibegin(domaingroup_Ptr domaingroup_hdl, int* tile_data_ibegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_ibegin, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_data_ibegin.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_data_ibegin(domaingroup_Ptr domaingroup_hdl, int* tile_data_ibegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_ibegin, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_data_ibegin.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_data_ibegin(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_data_ibegin.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_data_jbegin(domaingroup_Ptr domaingroup_hdl, int* tile_data_jbegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_jbegin, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_data_jbegin.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_data_jbegin(domaingroup_Ptr domaingroup_hdl, int* tile_data_jbegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_jbegin, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_data_jbegin.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_data_jbegin(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_data_jbegin.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_data_ni(domaingroup_Ptr domaingroup_hdl, int* tile_data_ni, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_ni, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_data_ni.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_data_ni(domaingroup_Ptr domaingroup_hdl, int* tile_data_ni, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_ni, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_data_ni.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_data_ni(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_data_ni.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_data_nj(domaingroup_Ptr domaingroup_hdl, int* tile_data_nj, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_nj, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_data_nj.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_data_nj(domaingroup_Ptr domaingroup_hdl, int* tile_data_nj, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_data_nj, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_data_nj.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_data_nj(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_data_nj.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_ibegin(domaingroup_Ptr domaingroup_hdl, int* tile_ibegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_ibegin, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_ibegin.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_ibegin(domaingroup_Ptr domaingroup_hdl, int* tile_ibegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_ibegin, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_ibegin.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_ibegin(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_ibegin.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_jbegin(domaingroup_Ptr domaingroup_hdl, int* tile_jbegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_jbegin, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_jbegin.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_jbegin(domaingroup_Ptr domaingroup_hdl, int* tile_jbegin, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_jbegin, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_jbegin.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_jbegin(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_jbegin.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_ni(domaingroup_Ptr domaingroup_hdl, int* tile_ni, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_ni, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_ni.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_ni(domaingroup_Ptr domaingroup_hdl, int* tile_ni, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_ni, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_ni.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_ni(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_ni.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_tile_nj(domaingroup_Ptr domaingroup_hdl, int* tile_nj, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_nj, shape(extent[0]), neverDeleteData);
+    domaingroup_hdl->tile_nj.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_nj(domaingroup_Ptr domaingroup_hdl, int* tile_nj, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(tile_nj, shape(extent[0]), neverDeleteData);
+    tmp=domaingroup_hdl->tile_nj.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_nj(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_nj.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

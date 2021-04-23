@@ -38,6 +38,9 @@ namespace xios {
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
       , computedWrittenIndex_(false)
       , clients()
+      , nTiles_(0)
+      , isTiled_(false), isTiledOnly_(false)
+      , storeTileIndex()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
      setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
@@ -59,6 +62,9 @@ namespace xios {
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
       , computedWrittenIndex_(false)
       , clients()
+      , nTiles_(0)
+      , isTiled_(false), isTiledOnly_(false)
+      , storeTileIndex()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
      setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
@@ -101,6 +107,76 @@ namespace xios {
      return retvalue;
    }
    CATCH
+
+   //---------------------------------------------------------------
+   /*!
+    * Returns size of tile data
+    */
+
+   StdSize CGrid::getTileDataSize(int tileId)
+   TRY
+   {
+     StdSize tileGridSize =1 ;
+     int numElement = axis_domain_order.numElements();
+
+     std::vector<CAxis*> axisListP = this->getAxis();
+     std::vector<CDomain*> domainListP = this->getDomains();
+
+     int axisIndex = 0, domIndex = 0;
+     for (int idx = 0; idx < numElement; ++idx)
+     {
+       int eleDim = axis_domain_order(idx);
+       if (2 == eleDim)
+       {
+         tileGridSize *= domainListP[domIndex]->tile_data_ni(tileId);
+         tileGridSize *= domainListP[domIndex]->tile_data_nj(tileId);
+         ++domIndex;
+          }
+       else if (1 == eleDim)
+       {
+         tileGridSize *= axisListP[axisIndex]->n.getValue();
+         ++axisIndex;
+       }
+     } // loop over grid elements
+     return tileGridSize;
+   }
+   CATCH
+
+   //---------------------------------------------------------------
+   /*!
+    * Returns tile size
+    */
+
+   StdSize CGrid::getTileSize(int tileId)
+   TRY
+   {
+     StdSize tileGridSize =1 ;
+     int numElement = axis_domain_order.numElements();
+
+     std::vector<CAxis*> axisListP = this->getAxis();
+     std::vector<CDomain*> domainListP = this->getDomains();
+
+     int axisIndex = 0, domIndex = 0;
+     for (int idx = 0; idx < numElement; ++idx)
+     {
+       int eleDim = axis_domain_order(idx);
+       if (2 == eleDim)
+       {
+         tileGridSize *= domainListP[domIndex]->tile_ni(tileId);
+         tileGridSize *= domainListP[domIndex]->tile_nj(tileId);
+         ++domIndex;
+          }
+       else if (1 == eleDim)// So it's an axis
+       {
+         tileGridSize *= axisListP[axisIndex]->n.getValue();
+         ++axisIndex;
+       }
+     } // loop over grid elements
+     return tileGridSize;
+   }
+   CATCH
+
+   //---------------------------------------------------------------
 
    /*!
     * Compute the minimum buffer size required to send the attributes to the server(s).
@@ -560,6 +636,8 @@ namespace xios {
         {
           if (sendAtt) domListP[i]->sendCheckedAttributes();
           else domListP[i]->checkAttributesOnClient();
+          if (domListP[i]->isTiled()) this->isTiled_ = true;
+          if (domListP[i]->isTiledOnly()) this->isTiledOnly_ = true;
         }
       }
    }
@@ -755,6 +833,78 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   //---------------------------------------------------------------
+
+   /*
+     Compute the global index and its local index taking account mask and data index.
+     These global indexes will be used to compute the connection of this client (sender) to its servers (receivers)
+     (via function computeConnectedClient)
+     These global indexes also correspond to data sent to servers (if any)
+   */
+   void CGrid::computeClientIndexTiled()
+   TRY
+   {
+     CContext* context = CContext::getCurrent();
+
+     CContextClient* client = context->client;
+     int rank = client->clientRank;
+
+     clientDistributionTiled_ = new CDistributionClient(rank, this, true);
+     // Get local data index on client
+     int nbStoreIndex = clientDistributionTiled_->getLocalDataIndexOnClient().size();
+     int nbStoreGridMask = clientDistributionTiled_->getLocalMaskIndexOnClient().size();
+     // nbStoreGridMask = nbStoreIndex if grid mask is defined, and 0 otherwise
+     storeIndexTiled_client.resize(nbStoreIndex);
+     storeMaskTiled_client.resize(nbStoreGridMask);
+     for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndexTiled_client(idx) = (clientDistributionTiled_->getLocalDataIndexOnClient())[idx];
+     for (int idx = 0; idx < nbStoreGridMask; ++idx) storeMaskTiled_client(idx) = (clientDistributionTiled_->getLocalMaskIndexOnClient())[idx];
+
+     if (0 == serverDistribution_) isDataDistributed_= clientDistributionTiled_->isDataDistributed();
+     else
+     {
+        // Mapping global index received from clients to the storeIndex_client
+        CDistributionClient::GlobalLocalDataMap& globalDataIndex = clientDistributionTiled_->getGlobalDataIndexOnClient();
+        CDistributionClient::GlobalLocalDataMap::const_iterator itGloe = globalDataIndex.end();
+        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClientTiled.begin(),
+                                               ite = outGlobalIndexFromClientTiled.end(), it;
+
+        for (it = itb; it != ite; ++it)
+        {
+          int rank = it->first;
+          CArray<size_t,1>& globalIndex = outGlobalIndexFromClientTiled[rank];
+          outLocalIndexStoreOnClientTiled.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
+          CArray<size_t,1>& localIndex = outLocalIndexStoreOnClientTiled[rank];
+          size_t nbIndex = 0;
+
+          // Keep this code for this moment but it should be removed (or moved to DEBUG) to improve performance
+          for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
+          {
+            if (itGloe != globalDataIndex.find(globalIndex(idx)))
+            {
+              ++nbIndex;
+            }
+          }
+
+          if (doGridHaveDataDistributed(client) && (nbIndex != localIndex.numElements()))
+               ERROR("void CGrid::computeClientIndex()",
+                  << "Number of local index on client is different from number of received global index"
+                  << "Rank of sent client " << rank <<"."
+                  << "Number of local index " << nbIndex << ". "
+                  << "Number of received global index " << localIndex.numElements() << ".");
+
+          nbIndex = 0;
+          for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
+          {
+            if (itGloe != globalDataIndex.find(globalIndex(idx)))
+            {
+              localIndex(idx) = globalDataIndex[globalIndex(idx)];
+            }
+          }
+        }
+      }
+   }
+   CATCH_DUMP_ATTR
+
    /*!
      Compute connected receivers and indexes to be sent to these receivers.
    */
@@ -900,7 +1050,16 @@ namespace xios {
      }
      else
      {
-       computeClientIndex();
+       if (this->isTiled_)
+       {
+         computeClientIndexTiled();
+         if (!this->isTiledOnly_)
+           computeClientIndex();
+       }
+       else
+         computeClientIndex();
+
+       if (this->isTiled_) computeTileIndex();
        if (context->hasClient)
        {
          computeConnectedClients();
@@ -1096,6 +1255,113 @@ namespace xios {
     }
    }
    CATCH_DUMP_ATTR
+
+   //---------------------------------------------------------------
+
+   /*
+   */
+   void CGrid::computeTileIndex()
+   TRY
+   {
+     int numElement = axis_domain_order.numElements();
+     storeTileIndex.resize(nTiles_);
+
+     std::vector<CAxis*> axisListP = this->getAxis();
+     std::vector<CDomain*> domainListP = this->getDomains();
+
+     // First, allocate storeTileIndex[0..ntiles]
+     for (int iTile = 0; iTile < nTiles_; ++iTile)
+     {
+       int tileGridSize = 1;
+       int axisIndex = 0, domIndex = 0;
+       for (int idx = 0; idx < numElement; ++idx)
+       {
+         int eleDim = axis_domain_order(idx);
+         if (2 == eleDim)
+         {
+           tileGridSize *= domainListP[domIndex]->getTileDataISize(iTile);
+           tileGridSize *= domainListP[domIndex]->getTileDataJSize(iTile);
+           ++domIndex;
+         }
+         else if (1 == eleDim)// So it's an axis
+         {
+           tileGridSize *= axisListP[axisIndex]->n.getValue();
+           ++axisIndex;
+         }
+       } // loop over grid elements
+       storeTileIndex[iTile].resize(tileGridSize);
+       storeTileIndex[iTile] = -1;
+     } // loop over tiles
+
+     // Now fill in storeTileIndex
+     // Currently assuming two possible situations : (1) domain x axis or (2) domain
+     std::vector<int> tileIndexCount (nTiles_,0);
+     int axisSize = 1;
+     if (axisListP.size() != 0) axisSize = axisListP[0]->n.getValue();
+     int ni = domainListP[0]->ni.getValue();
+     int nj = domainListP[0]->nj.getValue();
+
+     for (int idxAxis = 0; idxAxis < axisSize; ++idxAxis)
+     {
+       for (int jIdxDom = 0; jIdxDom < nj; ++jIdxDom)
+       {
+         for (int iIdxDom = 0; iIdxDom < ni; ++iIdxDom)
+         {
+           int tile = domainListP[0]->getTileId(iIdxDom, jIdxDom);
+           int tileOffset =  domainListP[0]->tile_data_ibegin(tile);  // only sign of offset matters
+
+           // case 1: data size corresponds to tile size
+           if (tileOffset == 0)
+           {
+             storeTileIndex[tile](tileIndexCount[tile]) = idxAxis*nj*ni + jIdxDom * ni + iIdxDom;
+             ++tileIndexCount[tile];
+           }
+           // case 2: masked data
+           else if (tileOffset > 0)
+           {
+             int iBegin = domainListP[0]->tile_ibegin(tile) + domainListP[0]->tile_data_ibegin(tile); // tile data relative to domain
+             int jBegin = domainListP[0]->tile_jbegin(tile) + domainListP[0]->tile_data_jbegin(tile); // tile data relative to domain
+             int iEnd = iBegin + domainListP[0]->tile_data_ni(tile);
+             int jEnd = jBegin + domainListP[0]->tile_data_nj(tile);
+             if ((jIdxDom >= jBegin) && (jIdxDom < jEnd) && (iIdxDom >= iBegin) && (iIdxDom < iEnd))
+             {
+               storeTileIndex[tile](tileIndexCount[tile]) = idxAxis*nj*ni + jIdxDom * ni + iIdxDom;
+             }
+             ++tileIndexCount[tile];
+           }
+           // case 3: ghost zones
+           else
+           {
+             int tileDataNi = domainListP[0]->tile_data_ni(tile);
+             int tileDataNj = domainListP[0]->tile_data_nj(tile);
+             int tileDomSize = tileDataNi * tileDataNj;
+             int tileNi = domainListP[0]->tile_ni(tile);
+             int iBegin = domainListP[0]->tile_data_ibegin(tile);
+             int jBegin = domainListP[0]->tile_data_jbegin(tile);
+
+             // add the ghost zone at the beginning of a domain tile
+             if (tileIndexCount[tile] % tileDomSize == 0)
+               tileIndexCount[tile] += (abs(jBegin)*tileDataNi + abs(iBegin));
+
+             storeTileIndex[tile](tileIndexCount[tile]) = idxAxis*nj*ni + jIdxDom*ni + iIdxDom;
+             
+             // add two ghost zones at the right end of a tile
+             if ( (iIdxDom+1) % tileNi == 0 )
+               tileIndexCount[tile] += (2*abs(iBegin));
+
+             // add ghost zone at the end of a domain tile
+             if ((tileIndexCount[tile] + abs(jBegin)*tileDataNi-abs(iBegin) + 1) % tileDomSize == 0)
+               tileIndexCount[tile] += (abs(jBegin)*tileDataNi -abs(iBegin));
+
+             ++tileIndexCount[tile];
+           }
+         } // loop over domain first dimension
+       } // loop over domain second dimension
+     } // loop over axis dimension
+
+   }
+   CATCH_DUMP_ATTR
+
 //----------------------------------------------------------------
 
    CGrid* CGrid::createGrid(CDomain* domain)
@@ -1357,17 +1623,57 @@ namespace xios {
    }
    CATCH
 
-   void CGrid::maskField_arr(const double* const data, CArray<double, 1>& stored) const
+   void CGrid::maskField_arr(const double* const data, CArray<double, 1>& stored, bool isTiled) const
+   TRY
    {
-      const StdSize size = storeIndex_client.numElements();
+      const CArray<int, 1>& storeIndex_clientP = isTiled ? storeIndexTiled_client : storeIndex_client;
+      const CArray<bool, 1>& storeMask_clientP = isTiled ? storeMaskTiled_client : storeMask_client;
+      const StdSize size = storeIndex_clientP.numElements();
       stored.resize(size);
       const double nanValue = std::numeric_limits<double>::quiet_NaN();
 
-      if (storeMask_client.numElements() != 0)
-        for(StdSize i = 0; i < size; i++) stored(i) = (storeMask_client(i)) ? data[storeIndex_client(i)] : nanValue;
+      if (storeMask_clientP.numElements() != 0)
+        for(StdSize i = 0; i < size; i++) stored(i) = (storeMask_clientP(i)) ? data[storeIndex_clientP(i)] : nanValue;
       else
-        for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
+        for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_clientP(i)];
    }
+   CATCH
+
+   void CGrid::copyTile_arr(const double* const tileData, CArray<double, 1>& stored, int tileId)
+   TRY
+   {
+     StdSize tileSize = this->getTileSize(tileId);
+     const StdSize tileDataSize = this->getTileDataSize(tileId);
+
+     // case 1: data correspond in size to a tile
+     if (tileSize == tileDataSize)
+     {
+       for(StdSize i = 0; i < tileDataSize; i++)
+         stored(storeTileIndex[tileId](i)) = tileData[i];
+     }
+     // case 2: masked data
+     else if (tileSize > tileDataSize)
+     {
+       int tileDataCount = 0;
+       for(StdSize i = 0; i < tileSize; i++)
+         if (storeTileIndex[tileId](i) >= 0)
+         {
+           stored(storeTileIndex[tileId](i)) = tileData[tileDataCount];
+           ++tileDataCount;
+         }
+     }
+     // case 3: ghost zones
+     else
+     {
+       for(StdSize i = 0; i < tileDataSize; i++)
+         if (storeTileIndex[tileId](i) >= 0)
+         {
+           stored(storeTileIndex[tileId](i)) = tileData[i];
+         }
+
+     }
+   }
+   CATCH
 
    void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) const
    TRY
@@ -2252,6 +2558,7 @@ namespace xios {
       {
         pDom->solveRefInheritance(apply);
         pDom->solveInheritanceTransformation();
+        if (!pDom->ntiles.isEmpty() && pDom->ntiles.getValue()>0) nTiles_=pDom->ntiles.getValue();
       }
     }
 
@@ -2280,6 +2587,27 @@ namespace xios {
     }
   }
   CATCH_DUMP_ATTR
+
+  int CGrid::getNTiles()
+  TRY
+  {
+    return nTiles_;
+  }
+  CATCH_DUMP_ATTR
+
+  bool CGrid::isTiled(void) const
+  TRY
+  {
+     return isTiled_;
+  }
+  CATCH
+
+  bool CGrid::isTiledOnly(void) const
+  TRY
+  {
+     return isTiledOnly_;
+  }
+  CATCH
 
   bool CGrid::isTransformed()
   TRY

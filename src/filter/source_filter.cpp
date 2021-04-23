@@ -18,6 +18,8 @@ namespace xios
     , mask(mask)
     , offset(offset)
     , hasMissingValue(hasMissingValue), defaultValue(defaultValue)
+    , ntiles(0)
+    , storedTileData()
   {
     if (!grid)
       ERROR("CSourceFilter::CSourceFilter(CGrid* grid)",
@@ -52,9 +54,28 @@ namespace xios
 
   }
 
+  template <int N>
+  void CSourceFilter::streamTile(CDate date, const CArray<double, N>& tileData, int tileId)
+  {
+    if (ntiles==0)
+    {
+      const double nanValue = std::numeric_limits<double>::quiet_NaN();
+//      storedTileData.resize(grid->storeIndex_client.numElements());
+      storedTileData.resize(grid->getDataSize());
+      storedTileData = nanValue;
+    }
+    grid->copyTile(tileData, storedTileData, tileId);
+    ++ntiles;
+    if (ntiles==grid->getNTiles())
+    {
+      // Data entering workflow will be exactly of size ni*nj for a grid 2d or ni*nj*n for a grid 3d
+      streamData(date, storedTileData, true);
+      ntiles = 0;
+    }
+  }
 
   template <int N>
-  void CSourceFilter::streamData(CDate date, const CArray<double, N>& data)
+  void CSourceFilter::streamData(CDate date, const CArray<double, N>& data, bool isTiled)
   {
     date = date + offset; // this is a temporary solution, it should be part of a proper temporal filter
 
@@ -73,7 +94,10 @@ namespace xios
     else
     {
       if (mask)
-        grid->maskField(data, packet->data);
+        if (isTiled)
+          grid->maskField(data, packet->data, isTiled);
+        else
+          grid->maskField(data, packet->data);
       else
         grid->inputField(data, packet->data);
     }
@@ -96,13 +120,21 @@ namespace xios
     onOutputReady(packet);
   }
 
-  template void CSourceFilter::streamData<1>(CDate date, const CArray<double, 1>& data);
-  template void CSourceFilter::streamData<2>(CDate date, const CArray<double, 2>& data);
-  template void CSourceFilter::streamData<3>(CDate date, const CArray<double, 3>& data);
-  template void CSourceFilter::streamData<4>(CDate date, const CArray<double, 4>& data);
-  template void CSourceFilter::streamData<5>(CDate date, const CArray<double, 5>& data);
-  template void CSourceFilter::streamData<6>(CDate date, const CArray<double, 6>& data);
-  template void CSourceFilter::streamData<7>(CDate date, const CArray<double, 7>& data);
+  template void CSourceFilter::streamData<1>(CDate date, const CArray<double, 1>& data, bool isTiled);
+  template void CSourceFilter::streamData<2>(CDate date, const CArray<double, 2>& data, bool isTiled);
+  template void CSourceFilter::streamData<3>(CDate date, const CArray<double, 3>& data, bool isTiled);
+  template void CSourceFilter::streamData<4>(CDate date, const CArray<double, 4>& data, bool isTiled);
+  template void CSourceFilter::streamData<5>(CDate date, const CArray<double, 5>& data, bool isTiled);
+  template void CSourceFilter::streamData<6>(CDate date, const CArray<double, 6>& data, bool isTiled);
+  template void CSourceFilter::streamData<7>(CDate date, const CArray<double, 7>& data, bool isTiled);
+
+  template void CSourceFilter::streamTile<1>(CDate date, const CArray<double, 1>& data, int ntile);
+  template void CSourceFilter::streamTile<2>(CDate date, const CArray<double, 2>& data, int ntile);
+  template void CSourceFilter::streamTile<3>(CDate date, const CArray<double, 3>& data, int ntile);
+  template void CSourceFilter::streamTile<4>(CDate date, const CArray<double, 4>& data, int ntile);
+  template void CSourceFilter::streamTile<5>(CDate date, const CArray<double, 5>& data, int ntile);
+  template void CSourceFilter::streamTile<6>(CDate date, const CArray<double, 6>& data, int ntile);
+  template void CSourceFilter::streamTile<7>(CDate date, const CArray<double, 7>& data, int ntile);
 
   void CSourceFilter::streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data)
   {
