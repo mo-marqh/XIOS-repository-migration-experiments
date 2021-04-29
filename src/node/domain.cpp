@@ -1858,7 +1858,7 @@ namespace xios {
      int retvalue = (tile_data_ni(tileId) > tile_ni(tileId)) ? tile_data_ni(tileId) : tile_ni(tileId);
      return retvalue;
    }
-   CATCH_DUMP_ATTR
+   CATCH
 
    //----------------------------------------------------------------
    int CDomain::getTileDataJSize(int tileId) const
@@ -1867,7 +1867,7 @@ namespace xios {
      int retvalue = (tile_data_nj(tileId) > tile_nj(tileId)) ? tile_data_nj(tileId) : tile_nj(tileId);
      return retvalue;
    }
-   CATCH_DUMP_ATTR
+   CATCH
 
    void CDomain::checkAttributesOnClientAfterTransformation()
    TRY
