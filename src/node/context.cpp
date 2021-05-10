@@ -629,7 +629,7 @@ namespace xios
   bool CContext::eventLoop(bool enableEventsProcessing)
   {
     bool  finished; 
-    if (isLockedContext()) return ;
+    if (isLockedContext()) return false;
     
     setCurrent(getId()) ;
 
