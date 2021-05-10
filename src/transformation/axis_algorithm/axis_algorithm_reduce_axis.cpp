@@ -51,6 +51,7 @@ TRY
 {
   eliminateRedondantSrc_= false ;
   algo->checkValid(axisDestination, axisSource);
+  axisDestination->checkAttributes() ;
 
   switch (algo->operation)
   {
@@ -71,18 +72,18 @@ TRY
          << "Operation is wrongly defined. Supported operations: sum, min, max, average." << std::endl
          << "Axis source " <<axisSource->getId() << std::endl
          << "Axis destination " << axisDestination->getId());
-
-    TransformationIndexMap& transMap = this->transformationMapping_;
-    CArray<int,1>& axisDstIndex = axisDestination->index;
-    int nbAxisIdx = axisDstIndex.numElements();
-    for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
-    {
-      int globalAxisIdx = axisDstIndex(idxAxis);
-      transMap[globalAxisIdx].resize(1);
-      transMap[globalAxisIdx][0]=globalAxisIdx ;      
-    }
-
   }
+
+  TransformationIndexMap& transMap = this->transformationMapping_;
+  CArray<int,1>& axisDstIndex = axisDestination->index;
+  int nbAxisIdx = axisDstIndex.numElements();
+  for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+  {
+    int globalAxisIdx = axisDstIndex(idxAxis);
+    transMap[globalAxisIdx].resize(1);
+    transMap[globalAxisIdx][0]=globalAxisIdx ;      
+  }
+
  
   axisDestination->checkAttributes() ;
   this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
