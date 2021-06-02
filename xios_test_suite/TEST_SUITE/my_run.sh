@@ -30,6 +30,10 @@ if [[ ${xios_machine_name} == "irene" ]]; then
     sleep 30
     ((i+=30))
     output=$(ccc_mpp | grep ${jobid})
+    if [[ $i -eq 300 ]]; then
+      ccc_mdel $jobid
+      break
+    fi
   done
 fi
 
