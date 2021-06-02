@@ -1,7 +1,7 @@
 [
 	{
 		"Domain": ["lmdz"],
-		"NumberServers": [2, 4, 6, 8],
+		"NumberServers": [2],
 		"DomMask": ["false"],
 		"AxisMask": ["false"]
 	}

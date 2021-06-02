@@ -7,11 +7,11 @@ user_acct=os.getenv("user_account")
 
 def OSinfo(runthis):
 	red = lambda text: '\033[0;31m' + text + '\033[0m'
-	osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
-	theInfo = osstdout.communicate()[0].strip()
-	if osstdout.returncode!=0:
+	osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+	theInfo, theErr = osstdout.communicate()
+	if theErr:
 		print(red(runthis+" FAILED"))
-		print(theInfo)
+		print(theErr)
 		sys.exit()
 
 

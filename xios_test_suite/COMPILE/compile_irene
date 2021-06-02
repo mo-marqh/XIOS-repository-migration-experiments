@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x 
+#set -x 
 
 export revision=$(svn info --show-item revision .. 2>&1)
 

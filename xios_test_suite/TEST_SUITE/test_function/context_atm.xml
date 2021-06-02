@@ -6,7 +6,6 @@
   <domain_definition>
     <domain id="domain" />
     <domain id="other_domain" />
-    <domain id="square_domain" ni_glo="36" nj_glo="36" type="rectilinear"/>
   </domain_definition>
 
   <axis_definition>
@@ -44,54 +43,6 @@
       <axis axis_ref="axis" />
     </grid>
    
-    <grid id="grid2D_zoom">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
-    </grid>
-
-    <grid id="grid2D_extract">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
-    </grid>
-
-    <grid id="grid3D_zoom">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
-      <axis axis_ref="axis" />
-    </grid>
-
-    <grid id="grid3D_extract">
-      <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
-      </domain> 
-      <axis axis_ref="axis" />
-    </grid>
-
-    <grid id="grid2D_square">
-      <domain domain_ref="square_domain">
-      <generate_rectilinear_domain lon_start="-175"/>
-      <interpolate_domain />
-      </domain> 
-    </grid>
-
-    <grid id="grid2D_reorder">
-      <domain domain_ref="domain">
-      <reorder_domain invert_lat="true" />
-      </domain> 
-    </grid>
-
-    <grid id="grid2D_expand">
-      <domain domain_ref="domain">
-      <expand_domain order="1" type="node"/>
-      </domain> 
-    </grid>
-
-
-
-
 
 
 
@@ -347,36 +298,35 @@
   
 
   <file_definition  type="one_file" >
-    <file id="atm_output_domain_transformation_zoom" output_freq="12ts" type="one_file" enabled="false">
-       <field field_ref="field2D" />
-       <field field_ref="field3D" />
-       <field id="field2D_zoom" field_ref="field2D" grid_ref="grid2D_zoom" />
-       <field id="field3D_zoom" field_ref="field3D" grid_ref="grid3D_zoom" />
+    <file id="atm_output_reduction_1D" output_freq="6ts" type="one_file" enabled="true" >
+       <field field_ref="field_Z" freq_op="3ts" operation="average" name="field1D_average"/>
+       <field field_ref="field_Z" freq_op="3ts" operation="accumulate" name="field1D_sum"/>
+       <field field_ref="field_Z" freq_op="3ts" operation="maximum" name="field1D_max"/>
+       <field field_ref="field_Z" freq_op="3ts" operation="minimum" name="field1D_min"/>
+    </file>
+   
+    <file id="atm_output_reduction_2D" output_freq="6ts" type="one_file" enabled="true"  >
+       <field field_ref="field2D" freq_op="3ts" operation="average" name="field2D_average"/>
+       <field field_ref="field2D" freq_op="3ts" operation="accumulate" name="field2D_sum"/>
+       <field field_ref="field2D" freq_op="3ts" operation="maximum" name="field2D_max"/>
+       <field field_ref="field2D" freq_op="3ts" operation="minimum" name="field2D_min"/>
+    </file>
+   
+    <file id="atm_output_reduction_3D" output_freq="6ts" type="one_file" enabled="true"  >
+       <field field_ref="field3D" freq_op="3ts" operation="average" name="field3D_average"/>
+       <field field_ref="field3D" freq_op="3ts" operation="accumulate" name="field3D_sum"/>
+       <field field_ref="field3D" freq_op="3ts" operation="maximum" name="field3D_max"/>
+       <field field_ref="field3D" freq_op="3ts" operation="minimum" name="field3D_min"/>
+    </file>
+   
+    <file id="atm_output_reduction_ref" output_freq="1ts" type="one_file" enabled="true">
+       <field field_ref="field_Z"   />
+       <field field_ref="field2D"   />
+       <field field_ref="field3D"   />
     </file>
 
-    <file id="atm_output_domain_transformation_extract" output_freq="12ts" type="one_file" enabled="false">
-       <field field_ref="field2D" />
-       <field field_ref="field3D" />
-       <field id="field2D_extract" field_ref="field2D" grid_ref="grid2D_extract" />
-       <field id="field3D_extract" field_ref="field3D" grid_ref="grid3D_extract" />
-    </file>
 
-    <file id="atm_output_domain_transformation_interpolate" output_freq="12ts" type="one_file" enabled="true">
-       <field field_ref="field2D" />
-       <field id="field2D_interpolate" field_ref="field2D" grid_ref="grid2D_square" />
-    </file>
-
-   <file id="atm_output_domain_transformation_reorder" output_freq="12ts" type="one_file" enabled="true">
-       <field field_ref="field2D" />
-       <field id="field2D_reorder" field_ref="field2D" grid_ref="grid2D_reorder" />
-    </file>
-
-   <file id="atm_output_domain_transformation_expand" output_freq="12ts" type="one_file" enabled="true">
-       <field id="field2D_expand" field_ref="field2D" grid_ref="grid2D_expand" />
-    </file>
-
-
-
+  
     <file id="atm_output" output_freq="1ts" type="one_file" enabled="false">
        <field field_ref="field3D" />
        <field field_ref="field2D" /> 

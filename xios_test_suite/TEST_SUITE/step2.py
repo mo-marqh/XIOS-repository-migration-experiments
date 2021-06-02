@@ -17,12 +17,22 @@ ref_file=os.getenv("ref_file")
 
 def OSinfo(runthis):
     red = lambda text: '\033[0;31m' + text + '\033[0m'
-    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
-    theInfo = osstdout.communicate()[0].strip()
-    if osstdout.returncode!=0:
+    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+    theInfo, theErr = osstdout.communicate()
+    #print(theInfo)
+    if theErr:
         print(red(runthis+" FAILED"))
-        print(theInfo)
+        print(theErr)
         sys.exit()
+
+#def OSinfo(runthis):
+#    red = lambda text: '\033[0;31m' + text + '\033[0m'
+#    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+#    theInfo = osstdout.communicate()[0].strip()
+#    if osstdout.returncode!=0:
+#        print(red(runthis+" FAILED"))
+#        print(theInfo)
+#        sys.exit()
 
 
 
@@ -71,11 +81,17 @@ def main():
                 config_name = list(config.split("/"))[1]
                 for checkfile in checkfiles:
                     if os.path.exists(config+"/"+checkfile) and os.path.exists("reference/ref_"+config+"/"+checkfile):
-                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+" | > diff.txt")
-                        if os.stat("diff.txt").st_size==0:
+                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+"  2>&1 |grep -v 'Found more than one time variable'|grep -v 'cdo diffn: Processed'|grep -v 'dimensional variables are not supported'|grep -v 'Time variable >time_counter< not found!' > diff_"+checkfile+".txt")
+                        if os.stat("diff_"+checkfile+".txt").st_size==0: # if no diff -> set 0
                             report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(1)+"\n")
-                    elif os.path.exists(config+"/"+checkfile):
+                        else: # if cdo diffn returns diff -> set -1
+                            report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-1)+"\n")
+
+                    elif os.path.exists(config+"/"+checkfile): # if no ref file -> set 0
                         report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(0)+"\n")
+                    elif os.path.exists("reference/ref_"+config+"/"+checkfile): # if no output file -> set -2
+                        report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-2)+"\n")
+
                    
 
 if __name__== "__main__":
