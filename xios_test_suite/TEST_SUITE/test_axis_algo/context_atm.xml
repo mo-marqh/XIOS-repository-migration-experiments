@@ -343,6 +343,7 @@
     <field id="field_X" grid_ref="grid_X" />
     <field id="field_Y" grid_ref="grid_Y" />
     <field id="field_Z" grid_ref="grid1D" />
+    <field id="field0D" grid_ref="grid0D" />
     <field id="field_XY" grid_ref="grid_XY" />
     <field id="field_XYZ" grid_ref="grid_XYZ" />
     <field id="field_XZ" grid_ref="grid_XZ" />
@@ -448,10 +449,10 @@
        <field id="field_temporal_splitting" field_ref="field_src" grid_ref="grid_dst" />
     </file>
     
-    <file id="atm_output_axis_transformation_duplicate_scalar" output_freq="4ts" type="one_file" enabled="false">
-       <field field_ref="field_Z" />
-       <field id="field_0D" field_ref="field_Z" name="field_0D" grid_ref="grid0D" />
-       <field id="field_duplicate_scalar" field_ref="field_0D" name="field_duplicate_scalar" grid_ref="grid1D_duplicate_scalar" />
+    <file id="atm_output_axis_transformation_duplicate_scalar" output_freq="4ts" type="one_file" enabled="true">
+       <!--field field_ref="field0D" /-->
+       <!--field id="field_0D" field_ref="field_Z" name="field_0D" grid_ref="grid0D" /-->
+       <field id="field_duplicate_scalar" field_ref="field0D" name="field_duplicate_scalar" grid_ref="grid1D_duplicate_scalar" />
     </file>
 
 

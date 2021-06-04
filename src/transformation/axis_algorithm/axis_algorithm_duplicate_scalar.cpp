@@ -45,6 +45,7 @@ CATCH
 CAxisAlgorithmDuplicateScalar::CAxisAlgorithmDuplicateScalar(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo)
  : CAlgorithmTransformationTransfer(isSource)
 {
+  axisDestination->checkAttributes() ;
   
   CArray<int,1>& axisDstIndex = axisDestination->index;
 
