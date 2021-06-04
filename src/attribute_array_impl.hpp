@@ -136,6 +136,15 @@ namespace xios
         oss << this->getName() << "=\"" << CArray<T_numtype, N_rank>::dump() << "\"";
       return (oss.str());
     }
+    
+    template <typename T_numtype, int N_rank>
+    StdString CAttributeArray<T_numtype,N_rank>::_dumpGraph(void) const
+    {
+      StdOStringStream oss;
+      if (! isEmpty() && this->hasId() && (this->numElements()!=0))
+        oss << this->getName() << "=" << CArray<T_numtype, N_rank>::dump() << "";
+      return (oss.str());
+    }
 
 
       template <typename T_numtype, int N_rank>

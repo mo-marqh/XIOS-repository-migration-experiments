@@ -213,6 +213,15 @@ namespace xios
   {
     CInterface::AttributeFortranInterfaceGetDeclaration<string>(oss, className, this->getName());
   }
+  
+  template <class T>
+  StdString CAttributeEnum<T>::_dumpGraph(void) const
+  {
+     StdOStringStream oss;
+     if (!CEnum<T>::isEmpty() && this->hasId())
+        oss << this->getName() << "=" << CEnum<T>::toString() << "</br>";
+     return (oss.str());
+  }
 } // namespace xios
 
 #endif // __XIOS_ATTRIBUTE_ENUM_IMPL_HPP__

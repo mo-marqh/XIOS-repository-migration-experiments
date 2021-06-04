@@ -19,7 +19,7 @@
 #include "contexts_manager.hpp"
 #include "servers_ressource.hpp"
 #include <cstdio>
-
+#include "workflow_graph.hpp"
 
 
 namespace xios
@@ -317,6 +317,8 @@ namespace xios
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
+
+      CWorkflowGraph::drawWorkFlowGraph_server();
     }
 
     /*!

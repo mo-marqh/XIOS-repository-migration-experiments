@@ -62,6 +62,7 @@ namespace xios
             virtual StdString toString(void) const { return _toString();}
             virtual void fromString(const StdString & str) { if (str==resetInheritanceStr) { reset(); _canInherite=false ;}  else _fromString(str);}
             virtual StdString dump(void) const { return _toString();}
+            virtual StdString dumpGraph(void) const { return _dumpGraph();}
 
             virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);} 
             virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); } 
@@ -82,6 +83,7 @@ namespace xios
           bool _toBuffer  (CBufferOut& buffer) const;
           bool _fromBuffer(CBufferIn& buffer) ;
           CEnum<T> inheritedValue ;
+          StdString _dumpGraph(void) const;
       }; // class CAttributeEnum    
    
 } // namespace xios

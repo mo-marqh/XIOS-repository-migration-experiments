@@ -209,6 +209,15 @@ namespace xios
             oss << this->getName() << "=\"" << CType<T>::dump() << "\"";
          return (oss.str());
       }
+      
+      template <class T>
+         StdString CAttributeTemplate<T>::_dumpGraph(void) const
+      {
+         StdOStringStream oss;
+         if (!CType<T>::isEmpty() && this->hasId())
+            oss << this->getName() << "=" << CType<T>::dump() << "</br>";
+         return (oss.str());
+      }
 
 
       //---------------------------------------------------------------

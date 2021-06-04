@@ -15,7 +15,7 @@
 #include "services_manager.hpp"
 #include <functional>
 #include <cstdio>
-
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -507,7 +507,7 @@ namespace xios
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
     
-      
+      CWorkflowGraph::drawWorkFlowGraph_client();
     }
     
 

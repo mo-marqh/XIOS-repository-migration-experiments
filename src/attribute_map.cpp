@@ -58,10 +58,31 @@ namespace xios
         return str;
       }
 
+      ///--------------------------------------------------------------
+      /*!
+        Record all non-empty attributes of an object (used only for field) for graph
+      */
+      StdString CAttributeMap::recordXiosAttributes(void) const
+      {
+        StdString str;
+        typedef std::pair<StdString, CAttribute*> StdStrAttPair;
+        auto it = SuperClassMap::begin(), end = SuperClassMap::end();
+        for (; it != end; it++)
+        {
+          const StdStrAttPair& att = *it;
+          if (!att.second->isEmpty())
+          {
+            str.append(att.second->dumpGraph());
+            str.append(" ");
+          }
+        }
+        return str;
+      }
+
       //---------------------------------------------------------------
 
       /*
-        Clear an attribute and reset its value
+        Cleassr an attribute and reset its value
         \param[in] key id of attribute
       */
       void CAttributeMap::clearAttribute(const StdString& key)
