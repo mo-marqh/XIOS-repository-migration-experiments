@@ -215,7 +215,7 @@ namespace xios {
          ///////////////////////////////////////////
       public:
          pair<shared_ptr<CFilter>, shared_ptr<CFilter> > buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues,
-                                                                                  double defaultValue, CGrid*& newGrid) ;
+                                                                                  double defaultValue, CGrid*& newGrid, bool graphEnabled=false, CField* field=0) ;
       private:
         CGridAlgorithm* gridAlgorithm_ = nullptr ;
       public:

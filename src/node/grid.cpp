@@ -1639,9 +1639,10 @@ namespace xios
 //**********************************************************
 
   std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > 
-  CGrid::buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues, double defaultValue, CGrid*& newGrid)
+  CGrid::buildTransformationGraph(CGarbageCollector& gc, bool isSource, CGrid* gridSrc, double detectMissingValues, double defaultValue, CGrid*& newGrid, bool graphEnabled, CField* field)
   TRY
   {
+    static bool transformationGoing = false;
     registerAlgorithmTransformation() ; // needed to enable self-registration of the transformations
                                         // big mystery why it doesn't work witout that...
                                         // problem with the linker ?? 
@@ -1935,6 +1936,14 @@ namespace xios
 
         shared_ptr<CTransformFilter> transformFilter = shared_ptr<CTransformFilter>(gridAlgorithm->createTransformFilter(gc, detectMissingValues, defaultValue)) ;
         outputFilter->connectOutput(transformFilter,0) ;
+        if(graphEnabled)
+        {
+          transformFilter->graphEnabled=true;
+          transformFilter->graphPackage = new CGraphPackage;
+          transformFilter->graphPackage->inFields.push_back(field);
+          transformFilter->graphPackage->show = !transformationGoing;
+        }
+        
         vector<string> auxFieldId = algo->getAuxFieldId() ; // better to do that at transformation not algo ??
         int i=1; 
         for (auto& it : auxFieldId)
@@ -1949,11 +1958,14 @@ namespace xios
 
       if (hasRemainTransform)
       {
+        transformationGoing = true;
         gridSrc=newGrid ;
-        pair<shared_ptr<CFilter>, shared_ptr<CFilter> > filters = this->buildTransformationGraph(gc, isSource, gridSrc, detectMissingValues, defaultValue, newGrid) ;
+        CField *field_bis = field;
+        pair<shared_ptr<CFilter>, shared_ptr<CFilter> > filters = this->buildTransformationGraph(gc, isSource, gridSrc, detectMissingValues, defaultValue, newGrid, graphEnabled, field_bis) ;
         outputFilter->connectOutput(filters.first,0) ;
         outputFilter=filters.second ;
       }
+      transformationGoing = false;
     }
      
     return {inputFilter,outputFilter} ;

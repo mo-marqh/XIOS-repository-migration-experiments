@@ -21,6 +21,7 @@
 #include "server_from_client_source_filter.hpp"
 #include "file_reader_source_filter.hpp"
 #include "tracer.hpp"
+#include "graph_package.hpp"
 
 namespace xios
 {
@@ -584,15 +585,37 @@ namespace xios
     if (buildWorkflowGraphDone_) return true ;
     
     const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
-    const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
-
+    const double defaultValue = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+    bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    info(100)<<"=== Workflow Graph === field id="<<this->getId()<<" build_workflow_graph="<<buildGraph_<<std::endl;
     if (!inputFilter) inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc)); 
      
     if (hasDirectFieldReference())
     {
       CField* fieldRef = getDirectFieldReference();
+      info(100)<<"=== Workflow Graph === fieldRef id="<<fieldRef->getId()<<std::endl;
+
+      //------ build_workflow_graph start
+      if(buildGraph_)
+      {
+        (*fieldRef).build_workflow_graph.set(build_workflow_graph); 
+      }    
+      else
+      {
+        this->build_workflow_graph.set(fieldRef->build_workflow_graph);
+        buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+        info(100)<<"=== Workflow Graph === field id="<<this->getId()<<" updated build_workflow_graph="<<buildGraph_<<std::endl;
+      }
+
+      
+      if(buildGraph_) this->build_workflow_graph.set(build_workflow_graph);
+      //------ build_workflow_graph end
+
       bool ret=fieldRef->buildWorkflowGraph(gc); 
       if (!ret) return false ; // workflow graph cannot be built at this stage
+      
+      this->build_workflow_graph.set(fieldRef->build_workflow_graph);
+      buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     }
 
     // now construct grid and check if element are enabled
@@ -623,7 +646,7 @@ namespace xios
       for(auto grid : gridPath)
       {
         grid->solveElementsRefInheritance() ;
-        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid->buildTransformationGraph(gc, false,  gridSrc, detectMissingValues, defaultValue, newGrid) ;
+        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid->buildTransformationGraph(gc, false,  gridSrc, detectMissingValues, defaultValue, newGrid, buildGraph_, this) ;
         lastFilter->connectOutput(filters.first, 0);
         lastFilter = filters.second;
         gridSrc = newGrid ;
@@ -635,6 +658,14 @@ namespace xios
       
       // connect the input Filter to the reference
       getDirectFieldReference()->getInstantDataFilter()->connectOutput(inputFilter,0);
+      if(buildGraph_) 
+      {
+        info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a transformation filter 2 ============== "<<getDirectFieldReference()->getInstantDataFilter()<<" _ "<<inputFilter<<std::endl;
+        inputFilter->graphEnabled=true;
+        inputFilter->graphPackage = new CGraphPackage;
+        inputFilter->graphPackage->inFields.push_back(this);
+        inputFilter->label_field_id = getDirectFieldReference()->getId(); 
+      }
     }
     else 
     {
@@ -646,7 +677,7 @@ namespace xios
          grid_->solveElementsRefInheritance() ;
          if (fileIn_->isClientSide()) fileIn_->readFieldAttributesMetaData(this);
          CGrid* newGrid ;
-         std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, true, nullptr, detectMissingValues, defaultValue, newGrid) ;
+         std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, true, nullptr, detectMissingValues, defaultValue, newGrid, buildGraph_, this) ;
          grid_ = newGrid ;
          grid_ref=grid_->getId() ; // for server 
          //grid_->completeGrid(); // grid generation, to be checked
@@ -667,7 +698,7 @@ namespace xios
 
         grid_->solveElementsRefInheritance() ;
         CGrid* newGrid ;
-        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, true, nullptr, detectMissingValues, defaultValue, newGrid) ;
+        std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = grid_->buildTransformationGraph(gc, true, nullptr, detectMissingValues, defaultValue, newGrid, buildGraph_, this) ;
         newGrid->duplicateAttributes(grid_) ; // for grid attributes (mask)
         grid_ = newGrid ;
         grid_ref=grid_->getId() ; // for server 
@@ -700,6 +731,14 @@ namespace xios
     clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client));
     // insert temporal filter before sending to files
     getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(clientToServerStoreFilter_, 0);
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_) 
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToFileServer  ============== "<<getTemporalDataFilter(gc, fileOut_->output_freq)<<" _ "<<clientToServerStoreFilter_<<std::endl;
+      clientToServerStoreFilter_->graphPackage = new CGraphPackage;
+      clientToServerStoreFilter_->graphEnabled = true;
+      clientToServerStoreFilter_->graphPackage->inFields.push_back(this);
+    }
   } 
 
   void CField::connectToCouplerOut(CGarbageCollector& gc)
@@ -707,6 +746,14 @@ namespace xios
     // insert temporal filter before sending to files
     clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client));
     instantDataFilter->connectOutput(clientToServerStoreFilter_, 0);
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_) 
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToCouplerOut  ============== "<<instantDataFilter<<" _ "<<clientToServerStoreFilter_<<std::endl;
+      clientToServerStoreFilter_->graphPackage = new CGraphPackage;
+      clientToServerStoreFilter_->graphEnabled = true;
+      clientToServerStoreFilter_->graphPackage->inFields.push_back(this);
+    }
   } 
 
  
@@ -721,6 +768,14 @@ namespace xios
     if (check_if_active.isEmpty()) check_if_active = false; 
     modelToClientSourceFilter_ = std::shared_ptr<CModelToClientSourceFilter>(new CModelToClientSourceFilter(gc, grid_, detectMissingValues, defaultValue));
     modelToClientSourceFilter_ -> connectOutput(inputFilter,0) ;
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_ ) 
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToModelInput  ============== "<<modelToClientSourceFilter_<<" _ "<<inputFilter<<" ***** "<<std::endl;
+      modelToClientSourceFilter_->graphPackage = new CGraphPackage;
+      modelToClientSourceFilter_->graphEnabled = true;
+      modelToClientSourceFilter_->graphPackage->inFields.push_back(this);
+    }
   } 
  
   /*!
@@ -730,6 +785,14 @@ namespace xios
   {
     serverFromClientSourceFilter_ = std::shared_ptr<CServerFromClientSourceFilter>(new CServerFromClientSourceFilter(gc,  grid_));
     serverFromClientSourceFilter_ -> connectOutput(inputFilter,0) ;
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToClientInput  ============== "<<serverFromClientSourceFilter_ << " _ "<<inputFilter<<" ***** "<<std::endl;
+      serverFromClientSourceFilter_->graphPackage = new CGraphPackage;
+      serverFromClientSourceFilter_->graphEnabled = true;
+      serverFromClientSourceFilter_->graphPackage->inFields.push_back(this);
+    }
   } 
 
 
@@ -741,6 +804,14 @@ namespace xios
     checkTimeAttributes();
     clientFromServerSourceFilter_ = std::shared_ptr<CClientFromServerSourceFilter>(new CClientFromServerSourceFilter(gc,this)) ;
     clientFromServerSourceFilter_ -> connectOutput(inputFilter,0) ;
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToServerInput  ============== "<<clientFromServerSourceFilter_ << " _ "<<inputFilter<<std::endl;
+      clientFromServerSourceFilter_->graphPackage = new CGraphPackage;
+      clientFromServerSourceFilter_->graphEnabled = true;
+      clientFromServerSourceFilter_->graphPackage->inFields.push_back(this);
+    }
   } 
 
   /*!
@@ -754,7 +825,14 @@ namespace xios
     if (freq_offset.isEmpty()) freq_offset.setValue(freq_op.getValue() - TimeStep);
     clientFromClientSourceFilter_ = std::shared_ptr<CClientFromClientSourceFilter>(new CClientFromClientSourceFilter(gc, this)) ;
     clientFromClientSourceFilter_ -> connectOutput(inputFilter,0) ;
-   
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToCouplerIn  ============== "<<clientFromClientSourceFilter_ << " _ "<<inputFilter<<std::endl;
+      clientFromClientSourceFilter_->graphPackage = new CGraphPackage;
+      clientFromClientSourceFilter_->graphEnabled = true;
+      clientFromClientSourceFilter_->graphPackage->inFields.push_back(this);
+    }
   } 
 
   /*!
@@ -764,6 +842,14 @@ namespace xios
   {
     fileWriterStoreFilter_ = std::shared_ptr<CFileWriterStoreFilter>(new CFileWriterStoreFilter(gc, this));
     instantDataFilter->connectOutput(fileWriterStoreFilter_, 0);
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToFileWriter  ============== "<<instantDataFilter << " _ "<<fileWriterStoreFilter_<<std::endl;
+      fileWriterStoreFilter_->graphPackage = new CGraphPackage;
+      fileWriterStoreFilter_->graphEnabled = true;
+      fileWriterStoreFilter_->graphPackage->inFields.push_back(this);
+    }
   } 
 
   /*!
@@ -773,6 +859,14 @@ namespace xios
   {
     fileReaderSourceFilter_ = std::shared_ptr<CFileReaderSourceFilter>(new CFileReaderSourceFilter(gc, this));
     fileReaderSourceFilter_->connectOutput(inputFilter, 0);
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToFileReader  ============== "<<fileReaderSourceFilter_ << " _ "<<inputFilter<<std::endl;
+      fileReaderSourceFilter_->graphPackage = new CGraphPackage;
+      fileReaderSourceFilter_->graphEnabled = true;
+      fileReaderSourceFilter_->graphPackage->inFields.push_back(this);
+    }
   }
 
 
@@ -783,6 +877,14 @@ namespace xios
   {
     clientToModelStoreFilter_ = std::shared_ptr<CClientToModelStoreFilter>(new CClientToModelStoreFilter(gc, this));
     instantDataFilter->connectOutput(clientToModelStoreFilter_, 0);
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToModelOutput  ============== "<<instantDataFilter << " _ "<<clientToModelStoreFilter_<<std::endl;
+      clientToModelStoreFilter_->graphPackage = new CGraphPackage;
+      clientToModelStoreFilter_->graphEnabled = true;
+      clientToModelStoreFilter_->graphPackage->inFields.push_back(this);
+    }
   }
 
 
@@ -791,6 +893,14 @@ namespace xios
   {
     serverToClientStoreFilter_ = std::shared_ptr<CServerToClientStoreFilter>(new CServerToClientStoreFilter(gc, this, client));
     instantDataFilter->connectOutput(serverToClientStoreFilter_, 0);
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToServerToClient  ============== "<<instantDataFilter << " _ "<<serverToClientStoreFilter_<<std::endl;
+      serverToClientStoreFilter_->graphPackage = new CGraphPackage;
+      serverToClientStoreFilter_->graphEnabled = true;
+      serverToClientStoreFilter_->graphPackage->inFields.push_back(this);
+    }
   }
 
   /*!
@@ -924,6 +1034,14 @@ namespace xios
                                                                              freq_op, freq_offset, outFreq, detectMissingValues));
 
       instantDataFilter->connectOutput(temporalFilter, 0);
+      const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+      if(buildGraph_) 
+      {
+        info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a getTemporalDataFilter  ============== "<<instantDataFilter << " _ "<<temporalFilter<<std::endl;
+        temporalFilter->graphPackage = new CGraphPackage;
+        temporalFilter->graphEnabled = true;
+        temporalFilter->graphPackage->inFields.push_back(this);
+      }
 
       it = temporalDataFilters.insert(std::make_pair(outFreq, temporalFilter)).first;
     }
@@ -971,6 +1089,14 @@ namespace xios
                                                                 freq_op, freq_offset, outFreq, detectMissingValues));
 
       inputFilter->connectOutput(selfTemporalDataFilter, 0);
+      const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+      if(buildGraph_)
+      {
+        info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a getSelfTemporalDataFilter  ============== "<<inputFilter << " _ "<<selfTemporalDataFilter<<std::endl;
+        selfTemporalDataFilter->graphPackage = new CGraphPackage;
+        selfTemporalDataFilter->graphEnabled = true;
+        selfTemporalDataFilter->graphPackage->inFields.push_back(this);
+      }
       return selfTemporalDataFilter ;
     }
   }
