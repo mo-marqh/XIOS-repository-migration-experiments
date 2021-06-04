@@ -25,6 +25,7 @@ namespace xios
       virtual ~CDomainAlgorithmReorder() {}
 
       static bool registerTrans();
+      virtual StdString getAlgoName() {return "\\nreorder_domain";}
 
   
     public:

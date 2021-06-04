@@ -31,6 +31,7 @@ public:
   virtual ~CAxisAlgorithmDuplicateScalar();
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\nduplicate_scalar";}
 
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,

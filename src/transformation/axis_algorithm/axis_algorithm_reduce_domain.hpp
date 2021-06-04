@@ -31,6 +31,8 @@ public:
   virtual ~CAxisAlgorithmReduceDomain();
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\nreduce_domain";}
+
 protected:
   enum ReduceDirection {
     undefined = 0,

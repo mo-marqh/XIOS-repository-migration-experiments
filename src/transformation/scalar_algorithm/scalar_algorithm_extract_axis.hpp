@@ -32,6 +32,7 @@ public:
   virtual ~CScalarAlgorithmExtractAxis() {} ;
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\nextract_axis";}
 
 protected:
   int pos_;

@@ -31,6 +31,7 @@ public:
   virtual ~CAxisAlgorithmInterpolate() {}
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\ninterpolate_axis";}
 
 private:
   void computeRemap(const std::vector<CArray<double,1>* >& dataAuxInputs) ;

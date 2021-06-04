@@ -20,6 +20,7 @@ public:
   CDomainAlgorithmExtract(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain);
 
   virtual ~CDomainAlgorithmExtract() {}
+  virtual StdString getAlgoName() {return "\\nextract_domain";}
 
   static bool registerTrans();
 

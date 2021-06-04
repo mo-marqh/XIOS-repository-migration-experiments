@@ -26,6 +26,8 @@ public:
   virtual ~CScalarAlgorithmReduceScalar();
 
   static bool registerTrans();
+
+  virtual StdString getAlgoName() {return "\\nreduce_scalar";}
 protected:
   
 

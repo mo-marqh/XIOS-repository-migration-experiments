@@ -26,6 +26,7 @@ public:
   virtual ~CAxisAlgorithmExtract() {}
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\nextract_axis";}
 
 private:
 

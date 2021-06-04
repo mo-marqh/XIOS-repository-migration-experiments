@@ -34,7 +34,7 @@ public:
   virtual ~CDomainAlgorithmGenerateRectilinear() {}
   static bool registerTrans();
   virtual bool isGenerateTransformation(void) { return true ;}
-
+  virtual StdString getAlgoName() {return "\\ngenerate_rectilinear_domain";}
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 

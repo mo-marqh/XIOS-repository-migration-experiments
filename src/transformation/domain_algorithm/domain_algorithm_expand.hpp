@@ -27,6 +27,7 @@ public:
   virtual ~CDomainAlgorithmExpand() {}
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\nexpand_domain";}
 
 protected:
   bool isXPeriodic_; // Flag to determine the periodicity of expansion (only for rectilinear)

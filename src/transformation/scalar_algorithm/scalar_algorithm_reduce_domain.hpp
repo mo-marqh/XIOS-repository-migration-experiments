@@ -32,6 +32,8 @@ public:
 
   static bool registerTrans();
 
+  virtual StdString getAlgoName() {return "\\nreduce_domain";}
+
 protected:
   CDomain* domainSrc_ ;
 

@@ -28,6 +28,8 @@ namespace xios
       CAxisAlgorithmTemporalSplitting(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo);
       virtual ~CAxisAlgorithmTemporalSplitting();
       static bool registerTrans();
+      virtual StdString getAlgoName() {return "\\ntemporal_splitting";}
+
       virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
 
       static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,

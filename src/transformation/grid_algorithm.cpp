@@ -12,5 +12,11 @@ namespace xios
   bool CGridAlgorithm::isGenerateTranformation(void)
   { 
     return algorithm_->isGenerateTransformation() ;
-  }  
+  } 
+
+
+  StdString CGridAlgorithm::getAlgoName()
+  {
+    return algorithm_->getAlgoName();
+  } 
 }

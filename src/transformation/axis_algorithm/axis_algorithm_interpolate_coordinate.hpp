@@ -35,6 +35,7 @@ public:
   virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, 
                      const vector<CArray<double,1>>& auxDataIn, CArray<double,1>& dataOut) ;
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\ninterpolate_axis";}
   virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
   
 private:

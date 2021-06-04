@@ -33,6 +33,7 @@ public:
 
   static bool registerTrans();
 
+  virtual StdString getAlgoName() {return "\\nreduce_axis";}
 
 public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,

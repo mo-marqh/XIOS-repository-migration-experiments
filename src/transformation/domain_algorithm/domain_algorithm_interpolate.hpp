@@ -38,6 +38,7 @@ public:
   virtual void updateData(CArray<double,1>& dataOut);
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\ninterpolate_domain";}
 
 private:
   void readInterpolationInfo(std::string& filename, std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);

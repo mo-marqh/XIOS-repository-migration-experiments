@@ -40,6 +40,7 @@ class CGenericAlgorithmTransformation
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut) { abort() ;} //=0
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) { abort() ;} //=0
     virtual bool isGenerateTransformation(void) { return false ;}
+    virtual StdString getAlgoName() { return "\\nGeneric algorithm transformation";}
     virtual bool transformAuxField(int pos) { return true ;}
     virtual vector<string> getAuxFieldId(void) ;
   protected :

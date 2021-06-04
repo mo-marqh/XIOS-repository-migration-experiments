@@ -31,6 +31,7 @@ public:
   virtual ~CAxisAlgorithmReduceAxis();
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\nreduce_axis_to_axis";}
 
 public:
   static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,

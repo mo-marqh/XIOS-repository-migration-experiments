@@ -27,6 +27,7 @@ class CGridAlgorithm
     virtual void apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) { abort(); } //=0
     virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, bool detectMissingValues, double defaultValue) ;
     virtual bool isGenerateTranformation(void) ;
+    virtual StdString getAlgoName() ;
    
     protected:
       CGenericAlgorithmTransformation* algorithm_=nullptr ;

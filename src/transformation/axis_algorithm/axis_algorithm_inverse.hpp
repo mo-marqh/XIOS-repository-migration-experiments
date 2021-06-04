@@ -29,6 +29,7 @@ public:
   virtual ~CAxisAlgorithmInverse() {}
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\ninverse_axis";}
 
 
 private:

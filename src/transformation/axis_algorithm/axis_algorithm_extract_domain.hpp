@@ -32,6 +32,7 @@ public:
    virtual ~CAxisAlgorithmExtractDomain();
 
   static bool registerTrans();
+  virtual StdString getAlgoName() {return "\\nextract_domain)";}
 protected:
   enum ExtractDirection {
     undefined = 0,
