@@ -3,6 +3,7 @@
 
 #include "garbage_collector.hpp"
 #include "input_pin.hpp"
+#include "graph_package.hpp"
 
 namespace xios
 {
@@ -64,6 +65,8 @@ namespace xios
        * \param timestamp the timestamp used for invalidation
        */
       void virtual invalidate(Time timestamp);
+      CGraphPackage *graphPackage;
+      bool graphEnabled;
 
     protected:
       /*!

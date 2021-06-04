@@ -3,6 +3,7 @@
 #include "exception.hpp"
 #include "calendar_util.hpp"
 #include <limits> 
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -44,8 +45,27 @@ namespace xios
           if (defaultValue_ == packet->data(idx))   packet->data(idx) = nanValue;
     }
     
+    buildWorkflowGraph(packet);
     onOutputReady(packet);
   }
+  
+  void CModelToClientSourceFilter::buildWorkflowGraph(CDataPacketPtr packet)
+  {
+    if(this->graphEnabled)
+    {
+      this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+      if(!packet->graphPackage)
+      {
+        packet->graphPackage = new CGraphDataPackage;
+      }
+      packet->graphPackage->fromFilter = this->graphPackage->filterId;
+      packet->graphPackage->currentField = this->graphPackage->inFields[0];
+      CWorkflowGraph::addNode("Model to Client Source filter", 1, false, 0, packet);
+    }
+  }
+
+
+
 
   template void CModelToClientSourceFilter::streamData<1>(CDate date, const CArray<double, 1>& data);
   template void CModelToClientSourceFilter::streamData<2>(CDate date, const CArray<double, 2>& data);

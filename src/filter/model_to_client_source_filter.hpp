@@ -36,6 +36,9 @@ namespace xios
       template <int N>
       void streamData(CDate date, const CArray<double, N>& data);
 
+      void buildWorkflowGraph(CDataPacketPtr packet);
+
+
       /*!
        * Transforms the data received from the server into a packet and send it
        * in the filter graph. The array containing the data can safely be reused

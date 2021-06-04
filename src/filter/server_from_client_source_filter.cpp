@@ -3,7 +3,7 @@
 #include "exception.hpp"
 #include "calendar_util.hpp"
 #include "context.hpp"
-
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -26,6 +26,14 @@ namespace xios
     packet->status = CDataPacket::NO_ERROR;
     grid_->getServerFromClientConnector()->transfer(event,packet->data) ;
 
+    if(this->graphEnabled)
+    {
+      this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+      packet->graphPackage = new CGraphDataPackage;
+      packet->graphPackage->fromFilter = this->graphPackage->filterId;
+      packet->graphPackage->currentField = this->graphPackage->inFields[0];
+      CWorkflowGraph::addNode("Server from Client Source filter", 1, false, 0, packet);
+    }
     onOutputReady(packet);
   }
 

@@ -5,6 +5,7 @@
 #include "context.hpp"
 #include "grid.hpp"
 #include <limits> 
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -38,6 +39,12 @@ namespace xios
     packet->timestamp = date;
          
     grid_->getClientFromClientConnector()->transfer(event,packet->data) ;
+
+    if(this->graphEnabled)
+    {
+      this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+      CWorkflowGraph::addNode("Client to Client Source filter", 1, false, 0, packet);
+    }
     onOutputReady(packet);
   }
 

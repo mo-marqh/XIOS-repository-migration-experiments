@@ -2,6 +2,7 @@
 #define __XIOS_FILE_WRITER_STORE_FILTER_HPP__
 
 #include "input_pin.hpp"
+#include "graph_package.hpp"
 
 namespace xios
 {
@@ -37,6 +38,9 @@ namespace xios
        * \param date the date associated to the data
        */
       bool virtual isDataExpected(const CDate& date) const;
+
+      CGraphPackage *graphPackage;
+      bool graphEnabled;
 
     protected:
       /*!

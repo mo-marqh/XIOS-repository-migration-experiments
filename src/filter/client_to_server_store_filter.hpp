@@ -2,6 +2,7 @@
 #define __XIOS_CLIENT_TO_SERVER_STORE_FILTER__
 
 #include "input_pin.hpp"
+#include "graph_package.hpp"
 
 namespace xios
 {
@@ -36,6 +37,8 @@ namespace xios
        * \return true if the filter must auto-trigger
        */
       bool virtual mustAutoTrigger() const;
+      
+      void buildWorkflowGraph(std::vector<CDataPacketPtr> data);
 
       /*!
        * Tests whether data is expected for the specified date.
@@ -43,6 +46,8 @@ namespace xios
        * \param date the date associated to the data
        */
       bool virtual isDataExpected(const CDate& date) const;
+      CGraphPackage * graphPackage;
+      bool graphEnabled;
 
     protected:
       /*!

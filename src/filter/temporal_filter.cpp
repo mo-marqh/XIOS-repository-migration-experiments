@@ -1,6 +1,7 @@
 #include "temporal_filter.hpp"
 #include "functor_type.hpp"
 #include "calendar_util.hpp"
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -27,11 +28,41 @@ namespace xios
     , nbSamplingDates(0)
 //    , nextOperationDate(initDate + opFreq + this->samplingOffset)
     , isFirstOperation(true)
+    , graphCycleCompleted(true)
   {
   }
 
+  void CTemporalFilter::buildWorkflowGraph(std::vector<CDataPacketPtr> data)
+  {
+    if(this->graphEnabled )
+    {
+      if(!data[0]->graphPackage)
+      {
+        data[0]->graphPackage = new CGraphDataPackage;
+      }
+      
+      if(graphCycleCompleted)
+      {  
+        this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+        CWorkflowGraph::addNode("Temporal filter", 3, false, 0, data[0]);
+        graphCycleCompleted = false;
+      }
+      
+      data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
+      std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
+      
+      CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
+      data[0]->graphPackage->fromFilter = this->graphPackage->filterId;
+      this->graphPackage->sourceFilterIds.push_back(data[0]->graphPackage->fromFilter); 
+      data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
+      std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
+    }
+
+  }
   CDataPacketPtr CTemporalFilter::apply(std::vector<CDataPacketPtr> data)
   {
+    buildWorkflowGraph(data);
+  
     CDataPacketPtr packet;
 
     if (data[0]->status != CDataPacket::END_OF_STREAM)
@@ -42,7 +73,6 @@ namespace xios
       else
       {
         usePacket = (data[0]->date >= nextSamplingDate);
-//        outputResult = (data[0]->date + samplingFreq > nextOperationDate);
         outputResult = (data[0]->date  > initDate + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth);
         copyLess = (isInstantOperation && usePacket && outputResult);
       }
@@ -74,13 +104,14 @@ namespace xios
           packet->status = data[0]->status;
           packet->data.resize(tmpData.numElements());
           packet->data = tmpData;
+          packet->graphPackage = data[0]->graphPackage;
         }
         else
           packet = data[0];
 
         isFirstOperation = false;
-//        nextOperationDate = initDate + samplingFreq + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth;
-      }
+        graphCycleCompleted = true;
+     }
     }
 
     return packet;

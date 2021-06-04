@@ -4,12 +4,13 @@
 #include "grid.hpp"
 #include "utils.hpp"
 #include "context_client.hpp"
+#include "workflow_graph.hpp"
 
 namespace xios
 {
   CServerToClientStoreFilter::CServerToClientStoreFilter(CGarbageCollector& gc, CField* field, CContextClient* client)
     : CInputPin(gc, 1)
-    , field_(field), client_(client)
+    , field_(field), client_(client), graphEnabled(false)
   {
     if (!field) ERROR("CServerToClientFilter::CServerToClientFilter(CField* field)", "The field cannot be null.");
     grid_ = field_ -> getGrid() ;
@@ -26,6 +27,11 @@ namespace xios
     auto connector = grid_->getServerToClientConnector() ;
     CMessage msg ;
     msg<<field_->getId() ;
+
+    if(this->graphEnabled)
+    {
+      CWorkflowGraph::addNode("Server to Client Store filter", 5, true, 1, packets[0]);
+    }
 
     if (isEOF) 
     {

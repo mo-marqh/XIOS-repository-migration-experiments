@@ -5,7 +5,7 @@ namespace xios
 {
   COutputPin::COutputPin(CGarbageCollector& gc, bool manualTrigger /*= false*/)
     : gc(gc)
-    , manualTrigger(manualTrigger)
+    , manualTrigger(manualTrigger), graphEnabled(false)
   { /* Nothing to do */ }
 
   void COutputPin::connectOutput(std::shared_ptr<CInputPin> inputPin, size_t inputSlot)

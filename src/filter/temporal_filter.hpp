@@ -38,6 +38,8 @@ namespace xios
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
 
+      void buildWorkflowGraph(std::vector<CDataPacketPtr> data);
+
       /*!
        * Tests if the filter must auto-trigger.
        *
@@ -51,6 +53,7 @@ namespace xios
        * \param date the date associated to the data
        */
       bool virtual isDataExpected(const CDate& date) const;
+      bool graphCycleCompleted;
 
     private:
       // Warning the declaration order matters here, double-check the constructor before changing it

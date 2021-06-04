@@ -9,6 +9,7 @@
 #include "timer.hpp"
 #include "tracer.hpp"
 #include <limits> 
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -55,6 +56,12 @@ namespace xios
       info(20)<<"Receiv Data from server to client: FieldId : "<<field_->getId()<<endl ;
       info(20)<<"lastDateReceived_ "<<lastDateReceived_<< "  date "<<packet->date<<endl;                                                                                    // make a registration at initialization once
       packet->status = CDataPacket::NO_ERROR;
+    }
+
+    if(this->graphEnabled)
+    {
+      this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+      CWorkflowGraph::addNode("Client from Server Source filter", 1, false, 0, packet);
     }
     onOutputReady(packet);
 

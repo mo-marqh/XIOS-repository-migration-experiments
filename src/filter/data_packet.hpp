@@ -5,6 +5,7 @@
 
 #include "array_new.hpp"
 #include "date.hpp"
+#include "graph_package.hpp"
 
 namespace xios
 {
@@ -20,6 +21,8 @@ namespace xios
       NO_ERROR,     //!< No error were encountered when handling the packet
       END_OF_STREAM //!< Last packet of the stream, does not have data
     };
+
+    CGraphDataPackage * graphPackage;
 
     CArray<double, 1> data; //!< Array containing the data
     CDate date;             //!< Date associated to the data
@@ -39,8 +42,13 @@ namespace xios
       p->date = date;
       p->timestamp = timestamp;
       p->status = status;
+      p->graphPackage = graphPackage;
       return p;
     };
+
+
+    CDataPacket() : graphPackage(nullptr) {}
+
   }; // struct CDataPacket
 
   typedef std::shared_ptr<CDataPacket> CDataPacketPtr;

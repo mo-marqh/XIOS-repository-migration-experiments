@@ -19,6 +19,8 @@ namespace xios
        */
       CPassThroughFilter(CGarbageCollector& gc);
 
+      StdString label_field_id; //used for omitting redundant pass through filter in graph
+
     protected:
       /*!
        * Returns the input packet without making any modification to it.
@@ -27,6 +29,8 @@ namespace xios
        * \return the untouched source data packet
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      void buildWorkflowGraph(std::vector<CDataPacketPtr> data);
+  
   }; // class CPassThroughFilter
 } // namespace xios
 

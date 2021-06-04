@@ -3,12 +3,13 @@
 #include "field.hpp"
 #include "file.hpp"
 #include "context.hpp"
+#include "workflow_graph.hpp"
 
 namespace xios
 {
   CFileWriterStoreFilter::CFileWriterStoreFilter(CGarbageCollector& gc, CField* field)
     : CInputPin(gc, 1)
-    , field_(field)
+    , field_(field), graphEnabled(false)
 
   {
     CContext* context = CContext::getCurrent();
@@ -66,6 +67,21 @@ namespace xios
         else grid_->getWorkflowToFullConnector()->transfer(dataIn, fieldData ) ;
       }  
       nstep_ = file_->getDataOutput()->writeFieldData(field_, fieldData, lastWrite_,currentWrite, nstep_);
+      if(this->graphEnabled)
+      {
+        
+        this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+        if(!data[0]->graphPackage) data[0]->graphPackage = new CGraphDataPackage;
+        data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
+        std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
+      
+        CWorkflowGraph::addNode("File Writer Store filter", 5, true, 1, data[0]);
+      
+        CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
+        data[0]->graphPackage->fromFilter = this->graphPackage->filterId;
+
+
+      }
     }
 
     lastWrite_ = currentWrite ;

@@ -6,7 +6,7 @@
 #include "field.hpp"
 #include "file.hpp"
 #include "context.hpp"
-
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -44,6 +44,12 @@ namespace xios
     else packet->status = CDataPacket::END_OF_STREAM;
     
     info(20)<<"Read data from file : FieldId "<<field_->getId()<<"  nStep "<<nStep_<<"  date : "<<packet->date<<endl ;
+  
+    if(this->graphEnabled)
+    {
+      this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+      CWorkflowGraph::addNode("File Reader Source filter", 1, false, 0, packet);
+    }
            
     onOutputReady(packet);
   }

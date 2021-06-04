@@ -3,12 +3,13 @@
 #include "grid.hpp"
 #include "timer.hpp"
 #include "tracer.hpp"
+#include "workflow_graph.hpp"
 
 namespace xios
 {
   CClientToModelStoreFilter::CClientToModelStoreFilter(CGarbageCollector& gc, CField* field)
     : CInputPin(gc, 1)
-    , gc_(gc)
+    , gc_(gc), graphEnabled(false)
   {
     context_ = CContext::getCurrent() ;
     grid_ = field->getGrid() ;
@@ -105,6 +106,13 @@ namespace xios
     {
       packet = data[0];
     }
+
+    if(this->graphEnabled)
+    {
+      this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
+      CWorkflowGraph::addNode("Client to Model Store filter", 5, true, 1, packet);
+    }
+
 
     packets_.insert(std::make_pair(packet->timestamp, packet));
     // The packet is always destroyed by the garbage collector
