@@ -1,7 +1,7 @@
 [
 	{
 		"Domain": ["lmdz"],
-		"UseServer2": ["true"],
+		"UseServer2": ["false"],
 		"NumberServers": [2, 4],
         "AxisMask": ["false"]
 	}

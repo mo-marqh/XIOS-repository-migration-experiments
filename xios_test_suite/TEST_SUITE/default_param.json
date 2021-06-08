@@ -3,7 +3,7 @@
     "Domain": "lmdz",
     "DomMask": "false",
     "AxisMask": "false",
-    "UseServer2": "true",
+    "UseServer2": "false",
     "PctServer2": 50,
     "Duration": "1d",
     "NumberClients": 4,
