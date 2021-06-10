@@ -257,7 +257,8 @@ namespace xios {
       nbDomains = setDomains.size();
 
       // create sub communicator for file
-      createSubComFile();
+      createSubComFile();  // NetCDF runs now write of null data
+      MPI_Comm_dup(context->intraComm_, &fileComm) ;
 
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
@@ -278,6 +279,7 @@ namespace xios {
 
     /*!
       Create a sub communicator in which processes participate in reading/opening file
+      Seems to be deprecated (allZoneEmpty too, which is always false)
     */
     void CFile::createSubComFile()
     TRY
