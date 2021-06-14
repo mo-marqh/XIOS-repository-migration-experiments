@@ -39,13 +39,13 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
   cmd=$(sbatch full_job_${arch}_${mode}.sh)
   jobid="${cmd//[!0-9]/}"
   i=0
-  output=$(squeue -u rpsl954 | grep ${jobid})
+  output=$(squeue | grep ${jobid})
   while [ ! -z "$output" ]
   do
     echo "job" $jobid "pending/running for about" ${i} seconds
     sleep 30
     ((i+=30))
-    output=$(squeue -u rpsl954 | grep ${jobid})
+    output=$(squeue | grep ${jobid})
   done
 fi
 

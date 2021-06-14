@@ -23,13 +23,13 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
   echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --build_dir ${build_dir} --job 16" >> compile.sh
   cmd=$(sbatch compile.sh)
   jobid="${cmd//[!0-9]/}"
-  output=$(squeue -u rpsl954 | grep ${jobid})
+  output=$(squeue | grep ${jobid})
   while [ ! -z "$output" ]
   do
     echo "compiling job " $jobid "pending/running for about" ${i} seconds
     sleep 30
     ((i+=30))
-    output=$(squeue -u rpsl954 | grep ${jobid})
+    output=$(squeue | grep ${jobid})
   done
 
 fi
