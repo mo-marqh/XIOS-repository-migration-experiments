@@ -52,7 +52,7 @@
 
     <grid id="grid2D_extract">
       <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
+      <extract_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
       </domain> 
     </grid>
 
@@ -65,7 +65,7 @@
 
     <grid id="grid3D_extract">
       <domain domain_ref="domain">
-      <zoom_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
+      <extract_domain ni="10" ibegin="15" nj="16" jbegin="0"/>
       </domain> 
       <axis axis_ref="axis" />
     </grid>
@@ -354,7 +354,7 @@
        <field id="field3D_zoom" field_ref="field3D" grid_ref="grid3D_zoom" />
     </file>
 
-    <file id="atm_output_domain_transformation_extract" output_freq="12ts" type="one_file" enabled="false">
+    <file id="atm_output_domain_transformation_extract" output_freq="12ts" type="one_file" enabled="true">
        <field field_ref="field2D" />
        <field field_ref="field3D" />
        <field id="field2D_extract" field_ref="field2D" grid_ref="grid2D_extract" />
