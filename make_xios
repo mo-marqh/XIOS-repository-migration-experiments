@@ -10,7 +10,6 @@ build_suffixed="false"
 use_extern_boost="false"
 use_extern_blitz="false"
 use_memtrack="false"
-use_tv="false"
 job="1"
 netcdf_lib="netcdf4_par"
 compil_mode="prod"
@@ -18,6 +17,7 @@ arch_path=$PWD/"arch"
 arch_default_path=$PWD/"arch"
 arch_defined="FALSE"
 arch_path_defined="FALSE"
+fcm_version=new
 
 # Traitement de la ligne de commande
 while (($# > 0))
@@ -34,16 +34,16 @@ while (($# > 0))
 	    echo "       [--avail] : to know available target architectures "
 	    echo "       [--full] : to generate dependencies and recompile from scratch"
 	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"
-        echo "       [--build_path] : absolute path to the build directory"
-        echo "       [--build_dir ]: name of the build directory"
-        echo "       [--build_suffixed ]: generate automatically suffixed name of the build directory (e.g. config_X64_CURIE_prod)"
-        echo "       [--use_extern_boost] : to use external boost library"
-        echo "       [--use_extern_blitz] : to use external blitz library"
-        echo "       [--use_tv] : to use totalview data type display"
+        echo "       [--build_path : absolute path to the build directory"
+        echo "       [--build_dir : name of the build directory"
+        echo "       [--build_suffixed : generate automatically suffixed name of the build directory (e.g. config_X64_CURIE_prod)"
+        echo "       [--use_extern_boost : to use external boost library"
+        echo "       [--use_extern_blitz : to use external blitz library"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
 	    echo "       [--memtrack] : tracking memory leak - developper only"
+	    echo "       [--fcm] : fcm version compatibility : 'new'/'old'"
 	    echo "Example : ./make_xios --prod --arch PW6_VARGAS"
 	    echo "Example : ./make_xios --avail"
             exit;;
@@ -60,11 +60,11 @@ while (($# > 0))
          "--build_suffixed")  build_suffixed="true" ; shift  ;;
          "--use_extern_boost")  use_extern_boost="true" ; shift  ;;
          "--use_extern_blitz")  use_extern_blitz="true" ; shift  ;;
-         "--use_tv")  use_tv="true" ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
          "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
          "--memtrack")  use_memtrack="true" memtrack=$2  ; shift ; shift ;;
+         "--fcm")       fcm_version=$2  ; shift ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
    done
@@ -235,11 +235,6 @@ else
    export BLITZ_LIB=""
 fi
 
-if [[ "$use_tv" == "true" ]]
-then
-   echo "src::tv_data_display $PWD/extern/tv_data_display" >> ${PWD}/bld_dir.cfg
-fi
-
 
 if [[ "$use_memtrack" == "true" ]]
    then
@@ -283,8 +278,16 @@ fi
 
 make_dir=$PWD
 
-export PATH=$PWD/tools/FCM/bin:$PATH
-
+if [[ "$fcm_version" == "new" ]]
+then
+  export PATH=$PWD/tools/FCM_NEW/bin:$PATH
+elif [[ "$fcm_version" == "old" ]]
+then
+  export PATH=$PWD/tools/FCM_OLD/bin:$PATH
+else
+  echo "=> Bad option for --fcm flag : "$fcm_version" , only 'new' or 'old' permitted"
+fi
+  
 if [[ "$compil_full" == "true" ]]
    then
    fcm build --clean --ignore-lock 
