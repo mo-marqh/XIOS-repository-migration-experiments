@@ -17,6 +17,7 @@ arch_path=$PWD/"arch"
 arch_default_path=$PWD/"arch"
 arch_defined="FALSE"
 arch_path_defined="FALSE"
+fcm_version=old
 
 # Traitement de la ligne de commande
 while (($# > 0))
@@ -42,6 +43,7 @@ while (($# > 0))
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
 	    echo "       [--memtrack] : tracking memory leak - developper only"
+	    echo "       [--fcm] : fcm version compatibility : 'new'/'old'"
 	    echo "Example : ./make_xios --prod --arch PW6_VARGAS"
 	    echo "Example : ./make_xios --avail"
             exit;;
@@ -62,6 +64,7 @@ while (($# > 0))
          "--job")   job=$2              ; shift ; shift ;;
          "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
          "--memtrack")  use_memtrack="true" memtrack=$2  ; shift ; shift ;;
+         "--fcm")       fcm_version=$2  ; shift ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
    done
@@ -275,8 +278,16 @@ fi
 
 make_dir=$PWD
 
-export PATH=$PWD/tools/FCM/bin:$PATH
-
+if [[ "$fcm_version" == "new" ]]
+then
+  export PATH=$PWD/tools/FCM_NEW/bin:$PATH
+elif [[ "$fcm_version" == "old" ]]
+then
+  export PATH=$PWD/tools/FCM_OLD/bin:$PATH
+else
+  echo "=> Bad option for --fcm flag : "$fcm_version" , only 'new' or 'old' permitted"
+fi
+  
 if [[ "$compil_full" == "true" ]]
    then
    fcm build --clean --ignore-lock 
