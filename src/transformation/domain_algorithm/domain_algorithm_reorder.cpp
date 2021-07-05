@@ -43,6 +43,8 @@ CDomainAlgorithmReorder::CDomainAlgorithmReorder(bool isSource, CDomain* domainD
 : CAlgorithmTransformationNoDataModification(isSource)
 TRY
 {
+  // Input data for checkAttributes()
+  // checkDomain
   domainDestination->type.setValue( CDomain::type_attr::rectilinear );
   domainDestination->ni_glo = domainSource->ni_glo;
   domainDestination->nj_glo = domainSource->nj_glo;
@@ -50,6 +52,45 @@ TRY
   domainDestination->nj = domainSource->nj;
   domainDestination->ibegin = domainSource->ibegin;
   domainDestination->jbegin = domainSource->jbegin;
+  domainDestination->i_index.resize( domainSource->i_index.numElements() );
+  domainDestination->j_index.resize( domainSource->j_index.numElements() );
+  domainDestination->i_index = domainSource->i_index;
+  domainDestination->j_index = domainSource->j_index;
+  // checkMask -> define domainMask
+  domainDestination->mask_1d.resize( domainSource->mask_1d.numElements() );
+  domainDestination->mask_1d = domainSource->mask_1d; // In XML generic_testcase !!!
+  domainDestination->mask_2d.resize( domainSource->mask_2d.numElements() );
+  domainDestination->mask_2d = domainSource->mask_2d;
+  // checkDomainData
+  domainDestination->data_dim = domainSource->data_dim;
+  domainDestination->data_ni = domainSource->data_ni;
+  domainDestination->data_nj = domainSource->data_nj;
+  domainDestination->data_ibegin = domainSource->data_ibegin;
+  domainDestination->data_jbegin = domainSource->data_ibegin;
+  // checkCompression
+  domainDestination->data_i_index.resize( domainSource->data_i_index.numElements() );
+  domainDestination->data_j_index.resize( domainSource->data_j_index.numElements() );
+  domainDestination->data_i_index = domainSource->data_i_index;
+  domainDestination->data_j_index = domainSource->data_j_index;  
+  // checkLonLat -> define (bounds_)lon/latvalue
+  domainDestination->latvalue_1d.resize( domainSource->latvalue_1d.numElements() );
+  domainDestination->lonvalue_1d.resize( domainSource->lonvalue_1d.numElements() );
+  domainDestination->latvalue_1d = domainSource->latvalue_1d;
+  domainDestination->lonvalue_1d = domainSource->lonvalue_1d;
+  domainDestination->latvalue_2d.resize( domainSource->latvalue_2d.numElements() );
+  domainDestination->lonvalue_2d.resize( domainSource->lonvalue_2d.numElements() );
+  domainDestination->latvalue_2d = domainSource->latvalue_2d;
+  domainDestination->lonvalue_2d = domainSource->lonvalue_2d;
+  // checkBounds
+  domainDestination->bounds_lon_1d.resize( domainSource->bounds_lon_1d.numElements() );
+  domainDestination->bounds_lat_1d.resize( domainSource->bounds_lat_1d.numElements() );
+  domainDestination->bounds_lon_1d = domainSource->bounds_lon_1d;
+  domainDestination->bounds_lat_1d = domainSource->bounds_lat_1d;
+  domainDestination->bounds_lon_2d.resize( domainSource->bounds_lon_2d.numElements() );
+  domainDestination->bounds_lat_2d.resize( domainSource->bounds_lat_2d.numElements() );
+  domainDestination->bounds_lon_2d = domainSource->bounds_lon_2d;
+  domainDestination->bounds_lat_2d = domainSource->bounds_lat_2d;
+  // checkArea
 
   reorderDomain->checkValid(domainSource);
   domainDestination->checkAttributes() ; // for now but maybe use domainSource as template for domain destination
