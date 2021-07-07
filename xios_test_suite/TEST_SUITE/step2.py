@@ -81,7 +81,7 @@ def main():
                 config_name = list(config.split("/"))[1]
                 for checkfile in checkfiles:
                     if os.path.exists(config+"/"+checkfile) and os.path.exists("reference/ref_"+config+"/"+checkfile):
-                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+"  2>&1 |grep -v 'Found more than one time variable'|grep -v 'cdo diffn: Processed'|grep -v 'dimensional variables are not supported'|grep -v 'Time variable >time_counter< not found!' > diff_"+checkfile+".txt")
+                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+"  2>&1 |grep -v 'Found more than one time variable'|grep -v 'cdo diffn: Processed'|grep -v 'Time variable >time_counter< not found!' > diff_"+checkfile+".txt")
                         if os.stat("diff_"+checkfile+".txt").st_size==0: # if no diff -> set 0
                             report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(1)+"\n")
                         else: # if cdo diffn returns diff -> set -1

@@ -115,13 +115,13 @@
 
     <grid id="grid_src">
       <domain domain_ref="domain" />
-      <axis axis_ref="axis" />
+      <!--axis axis_ref="axis" /-->
       <scalar scalar_ref="scalar"/>
     </grid>
   
      <grid id="grid_dst">
       <domain domain_ref="domain" />
-      <axis axis_ref="axis" />
+      <!--axis axis_ref="axis" /-->
       <axis axis_ref="axis_temporal_splitting"/>
     </grid>
   
@@ -393,7 +393,7 @@
     <field id="other_field_XZW" grid_ref="other_grid_XZW" />
     <field id="other_field_YZW" grid_ref="other_grid_YZW" />
 
-    <field id="field_src" grid_ref="grid_src" field_ref="field3D" > field3D </field>
+    <field id="field_src" grid_ref="grid_src" > field2D </field>
     
     
   </field_definition>
