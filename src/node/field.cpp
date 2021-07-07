@@ -669,6 +669,12 @@ namespace xios
     }
     else 
     {
+      std::shared_ptr<COutputPin> lastFilter = inputFilter;
+      if (hasExpression())
+      {
+         if (filterExpr) lastFilter=filterExpr ;
+      }
+      
       if (hasFileIn()) // input file, attemp to read the grid from file
       {
          // must be checked
@@ -685,12 +691,12 @@ namespace xios
          grid_->checkElementsAttributes() ;
 //         grid_->solveDomainAxisBaseRef();
          // probably in future tag grid incomplete if coming from a reading
-         instantDataFilter=inputFilter ;
+         instantDataFilter=lastFilter ;
       }  
       else if (hasCouplerIn())
       {
         grid_->checkElementsAttributes() ;
-        instantDataFilter=inputFilter ;
+        instantDataFilter=lastFilter ;
       }
       else
       {
@@ -703,7 +709,7 @@ namespace xios
         grid_ = newGrid ;
         grid_ref=grid_->getId() ; // for server 
         grid_->checkElementsAttributes() ;
-        instantDataFilter=inputFilter ;
+        instantDataFilter=lastFilter ;
       }
     }
     
