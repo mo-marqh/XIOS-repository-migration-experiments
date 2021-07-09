@@ -46,32 +46,62 @@ TRY
   // Input data for checkAttributes()
   // checkDomain
   domainDestination->type.setValue( CDomain::type_attr::rectilinear );
+  // Keep a 2D point of view for this transformation
   domainDestination->ni_glo = domainSource->ni_glo;
   domainDestination->nj_glo = domainSource->nj_glo;
-  domainDestination->ni = domainSource->ni;
-  domainDestination->nj = domainSource->nj;
-  domainDestination->ibegin = domainSource->ibegin;
-  domainDestination->jbegin = domainSource->jbegin;
-  domainDestination->i_index.resize( domainSource->i_index.numElements() );
-  domainDestination->j_index.resize( domainSource->j_index.numElements() );
-  domainDestination->i_index = domainSource->i_index;
-  domainDestination->j_index = domainSource->j_index;
+  //domainDestination->ni = domainSource->ni;         // Will be computed by checkAttributes
+  //domainDestination->nj = domainSource->nj;         //   in function of :
+  //domainDestination->ibegin = domainSource->ibegin;>ibegin; //     - domainDestination->i_index
+  //domainDestination->jbegin = domainSource->jbegin;>jbegin; //     - domainDestination->j_index
+  CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
+  int indexSize = sourceGlobalIdx.numElements();
+  domainDestination->i_index.resize( indexSize );
+  domainDestination->j_index.resize( indexSize );
+  for (size_t i = 0; i < indexSize ; ++i) {
+    domainDestination->i_index(i) = sourceGlobalIdx(i)%domainSource->ni_glo;
+    domainDestination->j_index(i) = sourceGlobalIdx(i)/domainSource->ni_glo;
+  }
+  // else
+  //   - domainDestination->ni_glo = domainSource->ni_glo * domainSource->nj_glo;
+  //   - domainDestination->nj_glo = 1;
+  //   - domainDestination->i_index = sourceGlobalIdx;
+  //   - domainDestination->i_index = 0;
+
+  CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
+  CArray<int,1> sourceFullIdx     = domainSource->getLocalView(CElementView::FULL    )->getIndex();
+
   // checkMask -> define domainMask
-  domainDestination->mask_1d.resize( domainSource->mask_1d.numElements() );
-  domainDestination->mask_1d = domainSource->mask_1d; // In XML generic_testcase !!!
-  domainDestination->mask_2d.resize( domainSource->mask_2d.numElements() );
-  domainDestination->mask_2d = domainSource->mask_2d;
+  domainDestination->mask_1d.resize( indexSize );
+  //domainDestination->mask_2d.resize( domainSource->mask_2d.numElements() );
+  //domainDestination->mask_2d = domainSource->mask_2d;
+  
   // checkDomainData
-  domainDestination->data_dim = domainSource->data_dim;
-  domainDestination->data_ni = domainSource->data_ni;
-  domainDestination->data_nj = domainSource->data_nj;
-  domainDestination->data_ibegin = domainSource->data_ibegin;
-  domainDestination->data_jbegin = domainSource->data_ibegin;
+  domainDestination->data_dim = 1;//domainSource->data_dim;
+  //domainDestination->data_ni = domainSource->data_ni;
+  //domainDestination->data_nj = domainSource->data_nj;
+  //domainDestination->data_ibegin = domainSource->data_ibegin;
+  //domainDestination->data_jbegin = domainSource->data_ibegin;
   // checkCompression
-  domainDestination->data_i_index.resize( domainSource->data_i_index.numElements() );
-  domainDestination->data_j_index.resize( domainSource->data_j_index.numElements() );
-  domainDestination->data_i_index = domainSource->data_i_index;
-  domainDestination->data_j_index = domainSource->data_j_index;  
+  domainDestination->data_i_index.resize( indexSize );
+  domainDestination->data_j_index.resize( indexSize );
+  domainDestination->data_j_index = 0;
+  int countMasked(0);
+  for (size_t i = 0; i < indexSize ; ++i) {
+    if ( sourceFullIdx(i)==sourceWorkflowIdx(i-countMasked) ) {
+      domainDestination->mask_1d(i) = 1;
+      domainDestination->data_i_index(i) = sourceFullIdx(i);
+      //domainDestination->data_i_index(i) = sourceFullIdx(i)%domainSource->ni -  domainSource->data_ibegin;
+      //domainDestination->data_j_index(i) = sourceFullIdx(i)/domainSource->ni -  domainSource->data_jbegin;
+    }
+    else {
+      domainDestination->mask_1d(i) = 0;
+      domainDestination->data_i_index(i) = -1;
+      //domainDestination->data_j_index(i) = -1;
+      countMasked++;
+    }
+  }
+
+  
   // checkLonLat -> define (bounds_)lon/latvalue
   domainDestination->latvalue_1d.resize( domainSource->latvalue_1d.numElements() );
   domainDestination->lonvalue_1d.resize( domainSource->lonvalue_1d.numElements() );
@@ -93,7 +123,8 @@ TRY
   // checkArea
 
   reorderDomain->checkValid(domainSource);
-  domainDestination->checkAttributes() ; // for now but maybe use domainSource as template for domain destination
+  // domainDestination->checkAttributes() will be operated at the end of the transformation definition to define correctly domainDestination views
+  //domainDestination->checkAttributes() ; // for now but maybe use domainSource as template for domain destination
 
   if (domainSource->type !=  CDomain::type_attr::rectilinear)
   {
