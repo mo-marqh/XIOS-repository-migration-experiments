@@ -42,7 +42,7 @@ namespace xios
   int CXios::nbPoolsServer2 = 1;
   double CXios::bufferSizeFactor = 1.0;
   const double CXios::defaultBufferSizeFactor = 1.0;
-  StdSize CXios::minBufferSize = 1024 * sizeof(double);
+  StdSize CXios::minBufferSize = 64 * sizeof(double);
   StdSize CXios::maxBufferSize = std::numeric_limits<int>::max() ;
   bool CXios::printLogs2Files;
   bool CXios::isOptPerformance = true;
