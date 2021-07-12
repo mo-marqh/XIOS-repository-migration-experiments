@@ -180,10 +180,17 @@ namespace xios
       int sizeVec = vec.size();
       for(int i = 0; i < sizeVec; ++i)
       {
-        hash ^= i + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+        hash ^= jenkins_hash(vec[i]) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
       }
       return hash;
     }
+
+    static inline size_t hash_combine(size_t seed, const T& value)
+    {
+      seed ^= jenkins_hash(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      return seed;
+    }
+
   };
 
   template<typename T, typename Algo = Int2Type<0> >
@@ -199,7 +206,11 @@ namespace xios
     {
       return HashAlgorithm<T>::boost_hash(vec);
     }
-
+    
+    std::size_t hashCombine(size_t seed, const T& val)
+    {
+      return HashAlgorithm<T>::hash_combine(seed, val);
+    }
   private:
     size_t hash_value(const T& val, Int2Type<0>)
     {
