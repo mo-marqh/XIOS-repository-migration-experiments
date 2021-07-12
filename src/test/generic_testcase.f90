@@ -1516,11 +1516,11 @@ CONTAINS
     ENDIF
     
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN
-      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, value=return_X_lon)
+      CALL xios_set_axis_attr(TRIM(domain_id)//"_X", n_glo=ni_glo, begin=ibegin, n=ni, value=return_X_lon, mask=return_X_mask)
     ENDIF
 
     IF (xios_is_valid_axis(TRIM(domain_id)//"_Y")) THEN    
-      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, value=return_Y_lat)
+      CALL xios_set_axis_attr(TRIM(domain_id)//"_Y", n_glo=nj_glo, begin=jbegin, n=nj, value=return_Y_lat, mask=return_Y_mask)
     ENDIF
 
   END SUBROUTINE init_domain_lmdz
