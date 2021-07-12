@@ -47,26 +47,26 @@ namespace xios
       }
     }   
 
-      void getGlobalIndex(int rank, vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, CDistributedView** view, int pos)
+    void getGlobalIndex(int rank, vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, CDistributedView** view, int pos)
+    {
+      // using map can be expensive, find an otherway later
+      auto& globalInd=globalIndex_[rank] ;
+      int localSize=globalInd.numElements() ;
+      auto& index=index_[rank] ;
+      int size=index.numElements() ;
+              
+      if (pos==0)
       {
-        // using map can be expensive, find an otherway later
-        auto& globalInd=globalIndex_[rank] ;
-        int localSize=globalInd.numElements() ;
-        auto& index=index_[rank] ;
-        int size=index.numElements() ;
-                
-        if (pos==0)
-        {
-          for(int i=0;i<size;i++)
-            if (index(i)>=0 && index(i)<localSize) globalIndex.push_back(sliceIndex + globalInd(index(i))) ;
-        }
-        else 
-        {
-          for(int i=0;i<size;i++)
-            if (index(i)>=0 && index(i)<localSize) 
-              view[pos-1]->getGlobalIndex(rank, globalIndex, sliceIndex + globalInd(index(i))*sliceSize[pos], sliceSize, view , pos-1) ;
-        }
+        for(int i=0;i<size;i++)
+          if (index(i)>=0 && index(i)<localSize) globalIndex.push_back(sliceIndex + globalInd(index(i))) ;
       }
+      else 
+      {
+        for(int i=0;i<size;i++)
+          if (index(i)>=0 && index(i)<localSize) 
+            view[pos-1]->getGlobalIndex(rank, globalIndex, sliceIndex + globalInd(index(i))*sliceSize[pos], sliceSize, view , pos-1) ;
+      }
+    }
 
 
     protected:
