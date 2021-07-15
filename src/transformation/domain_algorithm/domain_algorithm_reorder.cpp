@@ -43,88 +43,126 @@ CDomainAlgorithmReorder::CDomainAlgorithmReorder(bool isSource, CDomain* domainD
 : CAlgorithmTransformationNoDataModification(isSource)
 TRY
 {
-  // Input data for checkAttributes()
-  // checkDomain
-  domainDestination->type.setValue( CDomain::type_attr::rectilinear );
-  // Keep a 2D point of view for this transformation
-  domainDestination->ni_glo = domainSource->ni_glo;
-  domainDestination->nj_glo = domainSource->nj_glo;
-  //domainDestination->ni = domainSource->ni;         // Will be computed by checkAttributes
-  //domainDestination->nj = domainSource->nj;         //   in function of :
-  //domainDestination->ibegin = domainSource->ibegin;>ibegin; //     - domainDestination->i_index
-  //domainDestination->jbegin = domainSource->jbegin;>jbegin; //     - domainDestination->j_index
-  CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
-  int indexSize = sourceGlobalIdx.numElements();
-  domainDestination->i_index.resize( indexSize );
-  domainDestination->j_index.resize( indexSize );
-  for (size_t i = 0; i < indexSize ; ++i) {
-    domainDestination->i_index(i) = sourceGlobalIdx(i)%domainSource->ni_glo;
-    domainDestination->j_index(i) = sourceGlobalIdx(i)/domainSource->ni_glo;
-  }
-  // else
-  //   - domainDestination->ni_glo = domainSource->ni_glo * domainSource->nj_glo;
-  //   - domainDestination->nj_glo = 1;
-  //   - domainDestination->i_index = sourceGlobalIdx;
-  //   - domainDestination->i_index = 0;
+   // Reset geometrical attributes to avoid incompatible (user/domainSource) attributs
+   //   attributs will be defined using domainSource and/or transformation attributs
+   domainDestination->type.reset();
+   domainDestination->ni_glo.reset();
+   domainDestination->nj_glo.reset();
+   
+   domainDestination->i_index.reset();   // defined using domainSource->getLocalElement()
+   domainDestination->j_index.reset();   // "
+   domainDestination->ibegin.reset();    // will be computed in domainDestination->checkDomain() (from checkAttributes())
+   domainDestination->ni.reset();        // "
+   domainDestination->jbegin.reset();    // "
+   domainDestination->nj.reset();        // "
+   
+   domainDestination->mask_1d.reset();   // defined scanning domainSource->getFullView() & domainSource->getWorkflowView() differencies
+   domainDestination->mask_2d.reset();   //   in all case domainDestination->mask_1d used as reference  
 
-  CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
-  CArray<int,1> sourceFullIdx     = domainSource->getLocalView(CElementView::FULL    )->getIndex();
+   // domainDestination->data_* attributes will be computed in :
+   domainDestination->data_dim.reset();     // domainDestination->checkDomainData() (from checkAttributes())
+   domainDestination->data_ni.reset();
+   domainDestination->data_nj.reset();
+   domainDestination->data_ibegin.reset();
+   domainDestination->data_jbegin.reset();
+   domainDestination->data_i_index.reset(); // domainDestination->checkCompression() (from checkAttributes())
+   domainDestination->data_j_index.reset();
 
-  // checkMask -> define domainMask
-  domainDestination->mask_1d.resize( indexSize );
-  //domainDestination->mask_2d.resize( domainSource->mask_2d.numElements() );
-  //domainDestination->mask_2d = domainSource->mask_2d;
-  
-  // checkDomainData
-  domainDestination->data_dim = 1;//domainSource->data_dim;
-  //domainDestination->data_ni = domainSource->data_ni;
-  //domainDestination->data_nj = domainSource->data_nj;
-  //domainDestination->data_ibegin = domainSource->data_ibegin;
-  //domainDestination->data_jbegin = domainSource->data_ibegin;
-  // checkCompression
-  domainDestination->data_i_index.resize( indexSize );
-  domainDestination->data_j_index.resize( indexSize );
-  domainDestination->data_j_index = 0;
-  int countMasked(0);
-  for (size_t i = 0; i < indexSize ; ++i) {
-    if ( sourceFullIdx(i)==sourceWorkflowIdx(i-countMasked) ) {
-      domainDestination->mask_1d(i) = 1;
-      domainDestination->data_i_index(i) = sourceFullIdx(i);
-      //domainDestination->data_i_index(i) = sourceFullIdx(i)%domainSource->ni -  domainSource->data_ibegin;
-      //domainDestination->data_j_index(i) = sourceFullIdx(i)/domainSource->ni -  domainSource->data_jbegin;
-    }
-    else {
-      domainDestination->mask_1d(i) = 0;
-      domainDestination->data_i_index(i) = -1;
-      //domainDestination->data_j_index(i) = -1;
-      countMasked++;
-    }
-  }
+   // Next attributes will be set using domainSource->attributes 
+   domainDestination->lonvalue_1d.reset();
+   domainDestination->latvalue_1d.reset();
+   domainDestination->lonvalue_2d.reset();
+   domainDestination->latvalue_2d.reset();
+   domainDestination->nvertex.reset();
+   domainDestination->bounds_lon_1d.reset();
+   domainDestination->bounds_lat_1d.reset();
+   domainDestination->bounds_lon_2d.reset();
+   domainDestination->bounds_lat_2d.reset();
+   domainDestination->area.reset();
+   domainDestination->radius.reset();
 
-  
-  // checkLonLat -> define (bounds_)lon/latvalue
-  domainDestination->latvalue_1d.resize( domainSource->latvalue_1d.numElements() );
-  domainDestination->lonvalue_1d.resize( domainSource->lonvalue_1d.numElements() );
-  domainDestination->latvalue_1d = domainSource->latvalue_1d;
-  domainDestination->lonvalue_1d = domainSource->lonvalue_1d;
-  domainDestination->latvalue_2d.resize( domainSource->latvalue_2d.numElements() );
-  domainDestination->lonvalue_2d.resize( domainSource->lonvalue_2d.numElements() );
-  domainDestination->latvalue_2d = domainSource->latvalue_2d;
-  domainDestination->lonvalue_2d = domainSource->lonvalue_2d;
-  // checkBounds
-  domainDestination->bounds_lon_1d.resize( domainSource->bounds_lon_1d.numElements() );
-  domainDestination->bounds_lat_1d.resize( domainSource->bounds_lat_1d.numElements() );
-  domainDestination->bounds_lon_1d = domainSource->bounds_lon_1d;
-  domainDestination->bounds_lat_1d = domainSource->bounds_lat_1d;
-  domainDestination->bounds_lon_2d.resize( domainSource->bounds_lon_2d.numElements() );
-  domainDestination->bounds_lat_2d.resize( domainSource->bounds_lat_2d.numElements() );
-  domainDestination->bounds_lon_2d = domainSource->bounds_lon_2d;
-  domainDestination->bounds_lat_2d = domainSource->bounds_lat_2d;
-  // checkArea
+ 
+   // Set attributes for this transformation
+   domainDestination->type.setValue( domainSource->type );
+   
+   // Keep a 2D point of view for this transformation which is intrinsically 2D
+   domainDestination->ni_glo = domainSource->ni_glo;
+   domainDestination->nj_glo = domainSource->nj_glo;
+   // Set attributes required to define domainDestination->localElement_ and associated views, full and workflow)
+   CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
+   int indexSize = sourceGlobalIdx.numElements();
+   domainDestination->i_index.resize( indexSize );
+   domainDestination->j_index.resize( indexSize );
+   for (size_t i = 0; i < indexSize ; ++i) {
+     domainDestination->i_index(i) = sourceGlobalIdx(i)%domainSource->ni_glo;
+     domainDestination->j_index(i) = sourceGlobalIdx(i)/domainSource->ni_glo;
+   }
+   // else
+   //   - domainDestination->ni_glo = domainSource->ni_glo * domainSource->nj_glo;
+   //   - domainDestination->nj_glo = 1;
+   //   - domainDestination->i_index = sourceGlobalIdx;
+   //   - domainDestination->j_index = 0;
 
+   // set mask_1d to enable domainMask computing (in checkMask()) 
+   CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
+   CArray<int,1> sourceFullIdx     = domainSource->getLocalView(CElementView::FULL    )->getIndex();
+   domainDestination->mask_1d.resize( indexSize );
+   int countMasked(0); // countMasked will store the offset index between full and workflow views
+   for (size_t i = 0; i < indexSize ; ++i) {
+     if ( sourceFullIdx(i)==sourceWorkflowIdx(i-countMasked) ) {
+       domainDestination->mask_1d(i) = 1;
+     }
+     else {
+       domainDestination->mask_1d(i) = 0;
+       countMasked++;
+     }
+   }
+
+   
+   // Set lon/lat values
+   if (!domainSource->lonvalue_1d.isEmpty() )
+   {
+     domainDestination->latvalue_1d.resize( domainSource->latvalue_1d.numElements() );
+     domainDestination->lonvalue_1d.resize( domainSource->lonvalue_1d.numElements() );
+     domainDestination->latvalue_1d = domainSource->latvalue_1d;
+     domainDestination->lonvalue_1d = domainSource->lonvalue_1d;
+   }
+   else if (!domainSource->lonvalue_2d.isEmpty() )
+   {
+     domainDestination->latvalue_2d.resize( domainSource->latvalue_2d.numElements() );
+     domainDestination->lonvalue_2d.resize( domainSource->lonvalue_2d.numElements() );
+     domainDestination->latvalue_2d = domainSource->latvalue_2d;
+     domainDestination->lonvalue_2d = domainSource->lonvalue_2d;
+   }
+   // Set bounds_lon/lat values
+   if (!domainSource->nvertex.isEmpty() )
+     domainDestination->nvertex = domainSource->nvertex;
+   if (!domainSource->bounds_lon_1d.isEmpty() )
+   {
+     domainDestination->bounds_lon_1d.resize( domainSource->bounds_lon_1d.numElements() );
+     domainDestination->bounds_lat_1d.resize( domainSource->bounds_lat_1d.numElements() );
+     domainDestination->bounds_lon_1d = domainSource->bounds_lon_1d;
+     domainDestination->bounds_lat_1d = domainSource->bounds_lat_1d;
+   }
+   else if (!domainSource->bounds_lon_2d.isEmpty() )
+   {
+     domainDestination->bounds_lon_2d.resize( domainSource->bounds_lon_2d.numElements() );
+     domainDestination->bounds_lat_2d.resize( domainSource->bounds_lat_2d.numElements() );
+     domainDestination->bounds_lon_2d = domainSource->bounds_lon_2d;
+     domainDestination->bounds_lat_2d = domainSource->bounds_lat_2d;
+   }
+   // set area
+   if (!domainSource->area.isEmpty() )
+   {
+     domainDestination->area.resize( domainSource->area.numElements() );
+     domainDestination->area = domainSource->area;    
+   }
+   if (!domainSource->radius.isEmpty() )
+     domainDestination->radius = domainSource->radius;
+
+   
   reorderDomain->checkValid(domainSource);
   // domainDestination->checkAttributes() will be operated at the end of the transformation definition to define correctly domainDestination views
-  //domainDestination->checkAttributes() ; // for now but maybe use domainSource as template for domain destination
 
   if (domainSource->type !=  CDomain::type_attr::rectilinear)
   {
