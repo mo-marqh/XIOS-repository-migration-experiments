@@ -686,6 +686,8 @@ namespace xios
               {
                 SuperClassWriter::addAttribute("edge_coordinates", edge_x + " " + edge_y, &domainName);
                 SuperClassWriter::addAttribute("edge_node_connectivity", edge_nodes, &domainName);
+                SuperClassWriter::addAttribute("face_edge_connectivity", face_edges, &domainName);
+                SuperClassWriter::addAttribute("edge_face_connectivity", edge_faces, &domainName);
                 SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdgesGlo);
                 dim0.clear();
                 dim0.push_back(dimEdge);
@@ -705,6 +707,7 @@ namespace xios
                 SuperClassWriter::addAttribute("long_name", StdString("Maps every edge/link to two nodes that it connects."), &edge_nodes);
                 SuperClassWriter::addAttribute("start_index", 0, &edge_nodes);
               }
+              SuperClassWriter::addAttribute("face_face_connectivity", face_faces, &domainName);
               SuperClassWriter::addAttribute("face_coordinates", face_x + " " + face_y, &domainName);
               SuperClassWriter::addAttribute("face_node_connectivity", face_nodes, &domainName);
               SuperClassWriter::addDimension(dimFace, domain->ni_glo);
