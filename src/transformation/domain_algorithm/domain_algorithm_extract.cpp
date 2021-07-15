@@ -40,6 +40,45 @@ CDomainAlgorithmExtract::CDomainAlgorithmExtract(bool isSource, CDomain* domainD
 : CAlgorithmTransformationTransfer(isSource), domainSrc_(domainSource), domainDest_(domainDestination)
 TRY
 {
+   // Reset geometrical attributes to avoid incompatible (user/domainSource) attributs
+   //   attributs will be defined using domainSource and/or transformation attributs
+   domainDestination->type.reset();
+   domainDestination->ni_glo.reset();
+   domainDestination->nj_glo.reset();
+   
+   domainDestination->i_index.reset();   // defined using domainSource->getLocalElement()
+   domainDestination->j_index.reset();   // "
+   domainDestination->ibegin.reset();    // will be computed in domainDestination->checkDomain() (from checkAttributes())
+   domainDestination->ni.reset();        // "
+   domainDestination->jbegin.reset();    // "
+   domainDestination->nj.reset();        // "
+   
+   domainDestination->mask_1d.reset();   // defined scanning domainSource->getFullView() & domainSource->getWorkflowView() differencies
+   domainDestination->mask_2d.reset();   //   in all case domainDestination->mask_1d used as reference  
+
+   // domainDestination->data_* attributes will be computed in :
+   domainDestination->data_dim.reset();     // domainDestination->checkDomainData() (from checkAttributes())
+   domainDestination->data_ni.reset();
+   domainDestination->data_nj.reset();
+   domainDestination->data_ibegin.reset();
+   domainDestination->data_jbegin.reset();
+   domainDestination->data_i_index.reset(); // domainDestination->checkCompression() (from checkAttributes())
+   domainDestination->data_j_index.reset();
+
+   // Next attributes will be set using domainSource->attributes 
+   domainDestination->lonvalue_1d.reset();
+   domainDestination->latvalue_1d.reset();
+   domainDestination->lonvalue_2d.reset();
+   domainDestination->latvalue_2d.reset();
+   domainDestination->nvertex.reset();
+   domainDestination->bounds_lon_1d.reset();
+   domainDestination->bounds_lat_1d.reset();
+   domainDestination->bounds_lon_2d.reset();
+   domainDestination->bounds_lat_2d.reset();
+   domainDestination->area.reset();
+   domainDestination->radius.reset();
+   
+ 
   extractDomain->checkValid(domainSource);
   extractIBegin_ = extractDomain->ibegin.getValue();
   extractJBegin_ = extractDomain->jbegin.getValue();
@@ -67,7 +106,7 @@ TRY
   }
 
   // Calculate the size of local domain
-  int ind, indLocSrc, indLocDest, iIdxSrc, jIdxSrc, destIBegin = -1, destJBegin = -1, niDest = 0, njDest = 0, ibeginDest, jbeginDest ;
+  int ind, indLocSrc, indLocDest, iIdxSrc, jIdxSrc, destIBegin = -1, destJBegin = -1, niDest = 0, njDest = 0 ;
   int indGloDest, indGloSrc, niGloSrc = domainSrc_->ni_glo, iSrc, jSrc;
   for (int j = 0; j < domainSrc_->nj.getValue(); j++)
   {
@@ -92,34 +131,16 @@ TRY
       }
     }
   }
-  ibeginDest = destIBegin + domainSrc_->ibegin - extractIBegin_;
-  jbeginDest = destJBegin + domainSrc_->jbegin - extractJBegin_;
-  if (niDest==0) ibeginDest=0 ;
-  if (njDest==0) jbeginDest=0 ;
-  
+
+   
+  // Set attributes for this transformation
   domainDest_->type = domainSrc_ -> type ;
-  domainDest_->data_dim = domainSrc_->data_dim ;
   domainDest_->ni_glo.setValue(extractNi_);
   domainDest_->nj_glo.setValue(extractNj_);
-  domainDest_->ni.setValue(niDest);
-  domainDest_->nj.setValue(njDest);
-  domainDest_->ibegin.setValue(ibeginDest);
-  domainDest_->jbegin.setValue(jbeginDest);
   domainDest_->i_index.resize(niDest*njDest);
   domainDest_->j_index.resize(niDest*njDest);
 
-  domainDest_->data_ni.setValue(niDest);
-  domainDest_->data_nj.setValue(njDest);
-  domainDest_->data_ibegin.setValue(0);  // local position
-  domainDest_->data_jbegin.setValue(0);  // local position
-  domainDest_->data_i_index.resize(niDest*njDest); // local position
-  domainDest_->data_j_index.resize(niDest*njDest); // local position
-
-  //domainDest_->domainMask.resize(niDest*njDest);
-
-  if (!domainSrc_->mask_2d.isEmpty()) domainDest_->mask_2d.resize(niDest,njDest);
-  if (!domainSrc_->mask_1d.isEmpty()) domainDest_->mask_1d.resize(niDest*njDest);
-
+  // Resize lon/lat, bounds, area arrays to local domain dimensions
   if (!domainSrc_->lonvalue_1d.isEmpty())
   {
     if (domainDest_->type == CDomain::type_attr::rectilinear)
@@ -138,7 +159,6 @@ TRY
     domainDest_->lonvalue_2d.resize(niDest,njDest);
     domainDest_->latvalue_2d.resize(niDest,njDest);
   }
-
   if (domainSrc_->hasBounds)
   {
     if (!domainSrc_->bounds_lon_2d.isEmpty())
@@ -153,84 +173,100 @@ TRY
     }
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
+
+  // Set attributes required to define domainDestination->localElement_ and associated views, full and workflow)
+  CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
+  int indexSize = sourceGlobalIdx.numElements();
+  domainDest_->mask_1d.resize(niDest*njDest);
+  CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
+  CArray<int,1> sourceFullIdx     = domainSource->getLocalView(CElementView::FULL    )->getIndex();
   
-  for (int iDest = 0; iDest < niDest; iDest++)
-  {
-    iSrc = iDest + destIBegin;
-    for (int jDest = 0; jDest < njDest; jDest++)
+  int countDest(0); // increment of the position in destination domain 
+  int countMasked(0); // countMasked will store the offset index between full and workflow views
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc) {
+    int iIdxSrc = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
+    int jIdxSrc = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
+    // check that point countSrc concerned by extract
+    if ( (iIdxSrc >= extractIBegin_) && (iIdxSrc <= extractIEnd_)
+         && (jIdxSrc >= extractJBegin_) && (jIdxSrc <= extractJEnd_) )
     {
-      jSrc = jDest + destJBegin;
-      ind = jSrc * domainSrc_->ni + iSrc;
-      iIdxSrc = domainSrc_->i_index(ind);
-      jIdxSrc = domainSrc_->j_index(ind);
-      indLocDest = jDest*niDest + iDest;
-      indGloDest = (jDest + jbeginDest)*extractNi_ + (iDest + ibeginDest);
-      indLocSrc = (jDest+destJBegin)*domainSrc_->ni + (iDest+destIBegin);
-      indGloSrc = (jIdxSrc )* niGloSrc + iIdxSrc;
-      domainDest_->i_index(indLocDest) = iDest + ibeginDest;                                             // i_index contains global positions
-      domainDest_->j_index(indLocDest) = jDest + jbeginDest;                                             // i_index contains global positions
-      domainDest_->data_i_index(indLocDest) = (domainSrc_->data_dim == 1) ? indLocDest : iDest;          // data_i_index contains local positions
-      domainDest_->data_j_index(indLocDest) = (domainSrc_->data_dim == 1) ? 0 :jDest;                    // data_i_index contains local positions
-      //domainDest_->domainMask(indLocDest) = domainSrc_->domainMask(indLocSrc);
-
-      if (!domainSrc_->mask_2d.isEmpty())
-        domainDest_->mask_2d(iDest,jDest) = domainSrc_->mask_2d(iSrc,jSrc);
-
-      if (!domainSrc_->mask_1d.isEmpty())
-        domainDest_->mask_1d(indLocDest) = domainSrc_->mask_1d(indLocSrc);
-
-      if (domainSrc_->hasArea)
-        domainDest_->area(iDest,jDest) = domainSrc_->area(iSrc,jSrc);
-
-
-      if (domainSrc_->hasBounds)
+      // if concerned, convert source the global indexation in the extracted frame
+      domainDest_->i_index(countDest) = iIdxSrc-extractIBegin_;
+      domainDest_->j_index(countDest) = jIdxSrc-extractJBegin_;
+      transformationMapping_[extractNi_*(jIdxSrc-extractJBegin_)+iIdxSrc-extractIBegin_]=sourceGlobalIdx(countSrc);
+      if ( sourceFullIdx(countSrc)==sourceWorkflowIdx(countSrc-countMasked) )
       {
-        if (!domainSrc_->bounds_lon_2d.isEmpty())
+        domainDest_->mask_1d(countDest) = 1;
+      }
+      else {
+        domainDest_->mask_1d(countDest) = 0;
+        // if point masked, manage offset between full and worfklow views of domainSource
+        countMasked++;
+      }
+
+      int iIdxDestLocal = countDest%niDest;
+      int jIdxDestLocal = countDest/niDest;
+      int iIdxSrcLocal  = countSrc%domainSource->ni;
+      int jIdxSrcLocal  = countSrc/domainSource->ni;
+
+      // area
+      if (!domainSrc_->area.isEmpty())
+      {
+        domainDest_->area(iIdxDestLocal,jIdxDestLocal) = domainSrc_->area(iIdxSrcLocal,jIdxSrcLocal);
+      }
+
+      // bounds
+      if (!domainDest_->bounds_lon_1d.isEmpty())
+      {
+        for (int n = 0; n < domainSrc_->nvertex; ++n)
         {
-          for (int n = 0; n < domainSrc_->nvertex; ++n)
-          {
-            domainDest_->bounds_lon_2d(n,iDest,jDest) = domainSrc_->bounds_lon_2d(n,iSrc,jSrc);
-            domainDest_->bounds_lat_2d(n,iDest,jDest) = domainSrc_->bounds_lat_2d(n,iSrc,jSrc);
-          }
+          domainDest_->bounds_lon_1d(n, countDest) = domainSrc_->bounds_lon_1d(n,countSrc);
+          domainDest_->bounds_lat_1d(n, countDest) = domainSrc_->bounds_lat_1d(n,countSrc);
         }
-        else if (!domainSrc_->bounds_lon_1d.isEmpty())
+      }
+      else if (!domainDest_->bounds_lon_2d.isEmpty())
+      {
+        for (int n = 0; n < domainSrc_->nvertex; ++n)
         {
-          for (int n = 0; n < domainSrc_->nvertex; ++n)
-          {
-            domainDest_->bounds_lon_1d(n,iDest) = domainSrc_->bounds_lon_1d(n,iSrc);
-            domainDest_->bounds_lat_1d(n,iDest) = domainSrc_->bounds_lat_1d(n,iSrc);
-          }
+          domainDest_->bounds_lon_2d(n, iIdxDestLocal, jIdxDestLocal) = domainSrc_->bounds_lon_2d(n, iIdxSrcLocal, jIdxSrcLocal);
+          domainDest_->bounds_lat_2d(n, iIdxDestLocal, jIdxDestLocal) = domainSrc_->bounds_lat_2d(n, iIdxSrcLocal, jIdxSrcLocal);
         }
       }
 
-      if (domainSrc_->hasLonLat)
+      // lon/lat
+      if (!domainDest_->lonvalue_1d.isEmpty())
       {
         if (domainDest_->type == CDomain::type_attr::rectilinear)
         {
-          domainDest_->latvalue_1d(jDest) = domainSrc_->latvalue_1d(jSrc);
+          // i : scan nbr of points in src
+          domainDest_->lonvalue_1d(iIdxDestLocal) = domainSrc_->lonvalue_1d(iIdxSrcLocal);
+          domainDest_->latvalue_1d(jIdxDestLocal) = domainSrc_->latvalue_1d(jIdxSrcLocal);
         }
-        else if (domainDest_->type == CDomain::type_attr::curvilinear)
+        else if (domainDest_->type == CDomain::type_attr::unstructured)
         {
-          domainDest_->lonvalue_2d(iDest,jDest) = domainSrc_->lonvalue_2d(iSrc,jSrc);
-          domainDest_->latvalue_2d(iDest,jDest) = domainSrc_->latvalue_2d(iSrc,jSrc);
+          domainDest_->lonvalue_1d(countDest) = domainSrc_->lonvalue_1d(countSrc);
+          domainDest_->latvalue_1d(countDest) = domainSrc_->latvalue_1d(countSrc);
         }
       }
-
-      transformationMapping_[indGloDest]=indGloSrc;
-
-    }
-    if (domainSrc_->hasLonLat)
-    {
-      if (domainDest_->type == CDomain::type_attr::unstructured)
+      else if (!domainDest_->lonvalue_2d.isEmpty())
       {
-        domainDest_->lonvalue_1d(iDest) = domainSrc_->lonvalue_1d(iSrc);
-        domainDest_->latvalue_1d(iDest) = domainSrc_->latvalue_1d(iSrc);
+        if (domainDest_->type == CDomain::type_attr::curvilinear)
+        {
+          domainDest_->lonvalue_2d(iIdxDestLocal, jIdxDestLocal) = domainSrc_->lonvalue_2d(iIdxSrcLocal,jIdxSrcLocal);
+          domainDest_->latvalue_2d(iIdxDestLocal, jIdxDestLocal) = domainSrc_->latvalue_2d(iIdxSrcLocal,jIdxSrcLocal);
+        }
       }
-      else if (domainDest_->type == CDomain::type_attr::rectilinear)
-      {
-        domainDest_->lonvalue_1d(iDest) = domainSrc_->lonvalue_1d(iSrc);
-      }
+      
+      // if point i has been identified as extracted, increment position in destination domain for the next point
+      countDest++;
     }
+    else
+      if ( sourceFullIdx(countSrc)!=sourceWorkflowIdx(countSrc-countMasked) )
+      {
+        // manage offset between full and worfklow views of domainSource even if point i is not concerned
+        countMasked++;
+      }
+
   }
   
   domainDestination->checkAttributes() ;
