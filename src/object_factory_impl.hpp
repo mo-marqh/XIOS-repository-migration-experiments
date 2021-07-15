@@ -149,7 +149,8 @@ namespace xios
    const StdString& CObjectFactory::GetUIdBase(void)
    {
       static StdString base ; 
-      base = "__"+CObjectFactory::CurrContext + "::" + U::GetName() + "_undef_id_";
+//      base = "__"+CObjectFactory::CurrContext + "::" + U::GetName() + "_undef_id_";
+      base = CObjectFactory::CurrContext + "__" + U::GetName() + "_undef_id_";
       return base;
    }
 
