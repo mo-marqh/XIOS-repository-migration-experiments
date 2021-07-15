@@ -384,32 +384,7 @@ namespace xios
 
   
   //----------------------------------------------------------------
-
-  void CField::updateRef(CGrid* grid)
-  TRY
-  {
-    if (!grid_ref.isEmpty()) grid_ref.setValue(grid->getId());
-    else
-    {
-      std::vector<CAxis*> axisTmp = grid->getAxis();
-      std::vector<CDomain*> domainTmp = grid->getDomains();
-      if ((1<axisTmp.size()) || (1<domainTmp.size()))
-        ERROR("void CField::updateRef(CGrid* grid)",
-          << "More than one domain or axis is available for domain_ref/axis_ref of field " << this->getId());
-
-      if ((!domain_ref.isEmpty()) && (domainTmp.empty()))
-        ERROR("void CField::updateRef(CGrid* grid)",
-          << "Incoherent between available domain and domain_ref of field " << this->getId());
-      if ((!axis_ref.isEmpty()) && (axisTmp.empty()))
-        ERROR("void CField::updateRef(CGrid* grid)",
-          << "Incoherent between available axis and axis_ref of field " << this->getId());
-
-      if (!domain_ref.isEmpty()) domain_ref.setValue(domainTmp[0]->getId());
-      if (!axis_ref.isEmpty()) axis_ref.setValue(axisTmp[0]->getId());
-    }
-  }
-  CATCH_DUMP_ATTR
-   
+ 
 
   void CField::checkGridOfEnabledFields()
   TRY

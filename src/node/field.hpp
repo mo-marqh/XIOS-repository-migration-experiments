@@ -128,7 +128,6 @@ namespace xios
          void solveGridReference(void);
          void solveServerOperation(void);
          void solveCheckMaskIndex(bool doSendingIndex);
-         void updateRef(CGrid* grid);
          void solveGridDomainAxisRef(bool checkAtt);
          void solveGridDomainAxisBaseRef();
 
