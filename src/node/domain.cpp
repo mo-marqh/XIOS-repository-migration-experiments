@@ -900,8 +900,13 @@ namespace xios {
             if (i_index(idx) < minIndex) minIndex = i_index(idx);
             if (i_index(idx) > maxIndex) maxIndex = i_index(idx);
           }
-          ni = maxIndex - minIndex + 1; 
-          minIIndex = minIIndex;          
+	  if (i_index.numElements()) {
+            ni = maxIndex - minIndex + 1; 
+            minIIndex = minIndex;
+          }	    
+	  else {
+            ni = 0;
+	  }
         }
 
         // It's not so correct but if ibegin is not the first value of i_index 
@@ -962,8 +967,12 @@ namespace xios {
             if (j_index(idx) < minIndex) minIndex = j_index(idx);
             if (j_index(idx) > maxIndex) maxIndex = j_index(idx);
           }
-          nj = maxIndex - minIndex + 1;
-          minJIndex = minIndex; 
+	  if (j_index.numElements()) {
+            nj = maxIndex - minIndex + 1;
+            minJIndex = minIndex; 
+	  }
+          else
+            nj = 0;
         }  
         // It's the same as checkLocalIDomain. It's not so correct but if jbegin is not the first value of j_index 
         // then data on local domain has user-defined distribution. In this case, jbegin has no meaning.
