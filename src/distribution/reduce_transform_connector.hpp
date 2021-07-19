@@ -314,11 +314,17 @@ namespace xios
                     if (touched[pos+l]) out[l] += in[connector_[k]*sizeT+l] ;
                     else 
                     {
-                      touched[pos+l]++ ;
                       out[l] = in[connector_[k]*sizeT+l] ;
                     }
+                    touched[pos+l]++ ;
+
                   }
                 }
+              for(int l=0; l<sizeT; l++) {
+                  if (touched[pos+l]!=0)
+                      out[l] /= touched[pos+l];
+              }
+
             }
           }
         }
@@ -335,7 +341,6 @@ namespace xios
               for(int j=0 ; j<nSrc_[i] ; j++,k++)
                 for(int l=0; l<sizeT; l++) 
                   if (touched[pos+l]==0) out[l] = defaultValue ;
-                  else out[l]/=touched[pos+l] ;
         }
 
       }
