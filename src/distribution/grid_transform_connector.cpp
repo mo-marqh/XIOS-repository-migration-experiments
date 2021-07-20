@@ -58,8 +58,14 @@ namespace xios
         MPI_Get_count(&status, MPI_SIZE_T, &size) ;
         vector<size_t> recvBuff(size) ;
         MPI_Recv(recvBuff.data(), size, MPI_SIZE_T, status.MPI_SOURCE,0, localComm_,&status) ;
-        CArray<size_t,1> arrayTmp(recvBuff.data(), shape(recvBuff.size()), duplicateData) ;
-        recvIndex[status.MPI_SOURCE].reference(arrayTmp) ;
+        if (size!=0) {
+            CArray<size_t,1> arrayTmp(recvBuff.data(), shape(recvBuff.size()), duplicateData) ;
+            recvIndex[status.MPI_SOURCE].reference(arrayTmp) ;
+        }
+        else {
+            CArray<size_t,1> arrayTmp(0) ;
+            recvIndex[status.MPI_SOURCE].reference(arrayTmp) ;
+        }
         if (recvRankSize_.count(status.MPI_SOURCE)==0) recvRankSize_[status.MPI_SOURCE] = size ; 
         else recvRankSize_[status.MPI_SOURCE] *= size ; 
       }
