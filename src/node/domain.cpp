@@ -1124,7 +1124,7 @@ namespace xios {
             if (i>=0 && i<ni && j>=0 && j<nj)
             {
               ind=j*ni+i ;
-              if (!domainMask(ind))
+              if ( (ind<0)||(!domainMask(ind)) )
               {
                 data_i_index(k) = -1;
                 data_j_index(k) = -1;
@@ -1154,7 +1154,7 @@ namespace xios {
             else
               data_i_index(k) = -1;
 
-            if (!domainMask(i)) data_i_index(k) = -1;
+            if ( (i<0)||(!domainMask(i)) ) data_i_index(k) = -1;
           }
         }
       }
@@ -1176,10 +1176,10 @@ namespace xios {
             i=k+data_ibegin ;
             if (i>=0 && i < domainMask.size())
             {
-              if (domainMask(i))
-                data_i_index(k) = k;
-              else
+              if ( (i<0)||(!domainMask(i)) )
                 data_i_index(k) = -1;
+              else
+                data_i_index(k) = k;
             }
             else
               data_i_index(k) = -1;
@@ -1200,15 +1200,15 @@ namespace xios {
               ind=j*ni+i ;
               if (i>=0 && i<ni && j>=0 && j<nj)
               {
-                if (domainMask(ind))
-                {
-                  data_i_index(count) = ki;
-                  data_j_index(count) = kj;
-                }
-                else
+                if ( (ind<0)||(!domainMask(ind)) )
                 {
                   data_i_index(count) = -1;
                   data_j_index(count) = -1;
+                }
+                else
+                {
+                  data_i_index(count) = ki;
+                  data_j_index(count) = kj;
                 }
               }
               else

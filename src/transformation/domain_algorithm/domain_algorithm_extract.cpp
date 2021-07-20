@@ -194,14 +194,15 @@ TRY
       domainDest_->i_index(countDest) = iIdxSrc-extractIBegin_;
       domainDest_->j_index(countDest) = jIdxSrc-extractJBegin_;
       transformationMapping_[extractNi_*(jIdxSrc-extractJBegin_)+iIdxSrc-extractIBegin_]=sourceGlobalIdx(countSrc);
-      if ( sourceFullIdx(countSrc)==sourceWorkflowIdx(countSrc-countMasked) )
+      if ( ( (countSrc-countMasked) >= sourceWorkflowIdx.numElements() )
+         || ( sourceFullIdx(countSrc)!=sourceWorkflowIdx(countSrc-countMasked) ) )
       {
-        domainDest_->mask_1d(countDest) = 1;
-      }
-      else {
         domainDest_->mask_1d(countDest) = 0;
         // if point masked, manage offset between full and worfklow views of domainSource
         countMasked++;
+      }
+      else {
+        domainDest_->mask_1d(countDest) = 1;
       }
 
       int iIdxDestLocal = countDest%niDest;
@@ -261,7 +262,8 @@ TRY
       countDest++;
     }
     else
-      if ( sourceFullIdx(countSrc)!=sourceWorkflowIdx(countSrc-countMasked) )
+      if ( ( (countSrc-countMasked) >= sourceWorkflowIdx.numElements() )
+         || ( sourceFullIdx(countSrc)!=sourceWorkflowIdx(countSrc-countMasked) ) )
       {
         // manage offset between full and worfklow views of domainSource even if point i is not concerned
         countMasked++;

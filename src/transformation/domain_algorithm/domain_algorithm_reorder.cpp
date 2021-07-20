@@ -109,12 +109,13 @@ TRY
    domainDestination->mask_1d.resize( indexSize );
    int countMasked(0); // countMasked will store the offset index between full and workflow views
    for (size_t i = 0; i < indexSize ; ++i) {
-     if ( sourceFullIdx(i)==sourceWorkflowIdx(i-countMasked) ) {
-       domainDestination->mask_1d(i) = 1;
-     }
-     else {
+       if ( ( (i-countMasked) >= sourceWorkflowIdx.numElements() )
+         || ( sourceFullIdx(i)!=sourceWorkflowIdx(i-countMasked) ) ) {
        domainDestination->mask_1d(i) = 0;
        countMasked++;
+     }
+     else {
+       domainDestination->mask_1d(i) = 1;
      }
    }
 
