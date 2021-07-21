@@ -196,6 +196,8 @@ def main():
             if not mystr in config_name:
                 config_name.append(mystr)
             #print(mystr)
+            if ( os.path.isdir( test_folder+"/CONFIG_"+mystr ) ) :
+                OSinfo("rm -rf "+test_folder+"/CONFIG_"+mystr)
             OSinfo("mkdir -p "+test_folder+"/CONFIG_"+mystr)
             OSinfo("cp build_"+arch+"_"+mode+"/bin/generic_testcase.exe "+test_folder+"/CONFIG_"+mystr)
             OSinfo("cp iodef.xml "+test_folder+"/CONFIG_"+mystr+"/iodef.xml.tmp")
