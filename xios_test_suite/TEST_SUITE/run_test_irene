@@ -6,6 +6,12 @@ export mode=prod
 bash ./run_test
 
 
+export arch=X64_IRENE_GNU
+export mode=debug
+
+bash ./run_test
+
+
 #export arch=X64_IRENE
 #export mode=debug
 
