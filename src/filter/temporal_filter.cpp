@@ -65,6 +65,7 @@ namespace xios
     }
 
   }
+  
   CDataPacketPtr CTemporalFilter::apply(std::vector<CDataPacketPtr> data)
   {
     buildWorkflowGraph(data);
