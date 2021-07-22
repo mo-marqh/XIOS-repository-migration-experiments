@@ -16,6 +16,9 @@ namespace xios
   bool CWorkflowGraph::serverGraphBuilt = false;
   bool CWorkflowGraph::build_begin = false;
 
+  std::unordered_map <size_t, int> *CWorkflowGraph::mapHashFilterID_ = 0;
+  std::unordered_map <size_t, int> *CWorkflowGraph::mapHashFilterID_srv_ = 0;
+
 
   CWorkflowGraph::CWorkflowGraph()
   { }
@@ -28,11 +31,13 @@ namespace xios
     std::cout<<"\n\nbuild workflow graph ..."<<std::endl;
     for(int i=0; i<vectorOfNodes_->size(); i++)
     {
+      std::cout<<"Node["<<i<<"] is "<<(*vectorOfNodes_)[i].filter_name<<std::endl;
       info(100)<<"Node["<<i<<"] is "<<(*vectorOfNodes_)[i].filter_name<<std::endl;
     }
   
     for(int i=0; i<vectorOfEdges_->size(); i++)
     {
+      std::cout<<"Edge["<<i<<"] from "<<(*vectorOfEdges_)[i].from<<" to "<<(*vectorOfEdges_)[i].to<<std::endl;
       info(100)<<"Edge["<<i<<"] from "<<(*vectorOfEdges_)[i].from<<" to "<<(*vectorOfEdges_)[i].to<<std::endl;
     }
     std::cout<<"\nend workflow graph ...\n\n"<<std::endl;
@@ -84,6 +89,8 @@ namespace xios
 
     if(CXios::isClient)
     {
+      // if(vectorOfEdges_&&vectorOfNodes_) outputWorkflowGraph_client_stdout();
+      // std::cout<<"Trying to add an edge from "<<from<<" to "<<to<<std::endl;
       if(!vectorOfEdges_) vectorOfEdges_ = new std::vector<graph_edge_object>;
       std::string currentContextId = CContext::getCurrent()->getId();
       
@@ -157,8 +164,12 @@ namespace xios
   {
     if(CXios::isClient)
     {
+      //if(vectorOfEdges_&&vectorOfNodes_) outputWorkflowGraph_client_stdout();
+      // std::cout<<"Trying to add a node naming "<<filterName<<std::endl;
       if(!vectorOfNodes_) vectorOfNodes_ = new std::vector<graph_node_object>;
       if(!vectorOfContexts_) vectorOfContexts_ = new std::vector<StdString>;
+      if(!mapHashFilterID_) mapHashFilterID_ = new std::unordered_map <size_t, int>;
+
       std::string currentContextId = CContext::getCurrent()->getId();
       if ( std::find(vectorOfContexts_->begin(), vectorOfContexts_->end(), currentContextId) == vectorOfContexts_->end() )
          vectorOfContexts_->push_back(currentContextId);
@@ -171,6 +182,7 @@ namespace xios
       node_obj.expected_entry_nb = entryNb;
       node_obj.date = packet->date;
       node_obj.timestamp = packet->timestamp;
+      
       for(int i=0; i<vectorOfContexts_->size(); i++)
       {
         if(vectorOfContexts_->at(i) == currentContextId)
@@ -180,15 +192,17 @@ namespace xios
           break;
         }
       }    
+      
       node_obj.attributes = packet->graphPackage->currentField->recordXiosAttributes();
-
+      
       vectorOfNodes_->push_back(node_obj);
-      //info(100)<<"****************** Add node "<<filterName<<std::endl;   
     }
     else
     { 
       if(!vectorOfNodes_srv_) vectorOfNodes_srv_ = new std::vector<graph_node_object>;
       if(!vectorOfContexts_srv_) vectorOfContexts_srv_ = new std::vector<StdString>;
+      if(!mapHashFilterID_srv_) mapHashFilterID_srv_ = new std::unordered_map <size_t, int>;
+
       std::string currentContextId = CContext::getCurrent()->getId();
       if ( std::find(vectorOfContexts_srv_->begin(), vectorOfContexts_srv_->end(), currentContextId) == vectorOfContexts_srv_->end() )
          vectorOfContexts_srv_->push_back(currentContextId);
@@ -212,7 +226,6 @@ namespace xios
       node_obj.attributes = packet->graphPackage->currentField->recordXiosAttributes();
 
       vectorOfNodes_srv_->push_back(node_obj);
-      //info(100)<<"******************Server side : Add node "<<filterName<<std::endl; 
     }
 
   }

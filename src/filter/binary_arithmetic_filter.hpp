@@ -34,6 +34,7 @@ namespace xios
        * \return the result of the binary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::pair<int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CScalarFieldArithmeticFilter
 
   /*!
@@ -62,6 +63,7 @@ namespace xios
        * \return the result of the binary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::pair<int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CFieldScalarArithmeticFilter
 
   /*!
@@ -88,6 +90,8 @@ namespace xios
        * \return the result of the binary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::pair<int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
+      
   }; // class CFieldFieldArithmeticFilter
 } // namespace xios
 

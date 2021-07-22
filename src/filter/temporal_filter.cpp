@@ -29,7 +29,13 @@ namespace xios
 //    , nextOperationDate(initDate + opFreq + this->samplingOffset)
     , isFirstOperation(true)
     , graphCycleCompleted(true)
+    , temporalOperation(opId)
   {
+  }
+
+  std::string CTemporalFilter::getTemporalOperation()
+  {
+    return this->temporalOperation;
   }
 
   void CTemporalFilter::buildWorkflowGraph(std::vector<CDataPacketPtr> data)
@@ -44,7 +50,7 @@ namespace xios
       if(graphCycleCompleted)
       {  
         this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
-        CWorkflowGraph::addNode("Temporal filter", 3, false, 0, data[0]);
+        CWorkflowGraph::addNode("Temporal filter \\n("+getTemporalOperation()+")", 3, false, 0, data[0]);
         graphCycleCompleted = false;
       }
       
@@ -53,7 +59,7 @@ namespace xios
       
       CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
       data[0]->graphPackage->fromFilter = this->graphPackage->filterId;
-      this->graphPackage->sourceFilterIds.push_back(data[0]->graphPackage->fromFilter); 
+      // this->graphPackage->sourceFilterIds.push_back(data[0]->graphPackage->fromFilter); 
       data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
       std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
     }

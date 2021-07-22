@@ -40,7 +40,9 @@ namespace xios
                 << "Use the keyword \"this\" if you want to reference the input data sent to this field.");
 
         bool ret=field->buildWorkflowGraph(gc);
+        if(field->build_workflow_graph) thisField.build_workflow_graph.set(field->build_workflow_graph);
         if (ret) outputPin = field->getInstantDataFilter(); // if dependency is complete build the graph other return nullptr
+        
       }
       else ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
                   << "The field " << id << " does not exist.");
@@ -109,6 +111,15 @@ namespace xios
     auto ret=child->reduce(gc, thisField) ;
     if (ret) ret->connectOutput(filter, 0);
     else filter.reset() ;
+    
+    const bool buildGraph_ = !(thisField.build_workflow_graph.isEmpty()) && thisField.build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      filter->graphPackage = new CGraphPackage;
+      filter->graphEnabled = true;
+      filter->graphPackage->inFields.push_back(&thisField);
+    }
+
     return filter;
   }
 
@@ -129,6 +140,15 @@ namespace xios
     auto ret=child2->reduce(gc, thisField) ;
     if (ret) ret->connectOutput(filter, 0);
     else filter.reset() ;
+    
+    const bool buildGraph_ = !(thisField.build_workflow_graph.isEmpty()) && thisField.build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      filter->graphPackage = new CGraphPackage;
+      filter->graphEnabled = true;
+      filter->graphPackage->inFields.push_back(&thisField);
+    }
+
     return filter;
   }
 
@@ -148,6 +168,14 @@ namespace xios
     auto ret=child1->reduce(gc, thisField) ;
     if (ret) ret->connectOutput(filter, 0);
     else filter.reset() ;
+    
+    const bool buildGraph_ = !(thisField.build_workflow_graph.isEmpty()) && thisField.build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      filter->graphPackage = new CGraphPackage;
+      filter->graphEnabled = true;
+      filter->graphPackage->inFields.push_back(&thisField);
+    }
     return filter;
   }
 
@@ -172,6 +200,15 @@ namespace xios
       ret2->connectOutput(filter, 1) ;
     }
     else filter.reset() ;
+
+    const bool buildGraph_ = !(thisField.build_workflow_graph.isEmpty()) && thisField.build_workflow_graph == true ;
+    if(buildGraph_)
+    {
+      filter->graphPackage = new CGraphPackage;
+      filter->graphEnabled = true;
+      filter->graphPackage->inFields.push_back(&thisField);
+    }
+
     return filter;
   }
 

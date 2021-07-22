@@ -54,6 +54,7 @@ namespace xios
        */
       bool virtual isDataExpected(const CDate& date) const;
       bool graphCycleCompleted;
+      std::string getTemporalOperation();
 
     private:
       // Warning the declaration order matters here, double-check the constructor before changing it
@@ -72,6 +73,7 @@ namespace xios
       int nbSamplingDates;
 //      CDate nextOperationDate; //!< The date of the next operation
       bool isFirstOperation; //!< True before the first operation was been computed
+      const std::string temporalOperation;
   }; // class CTemporalFilter
 } // namespace xios
 

@@ -558,18 +558,18 @@ namespace xios
   bool CField::buildWorkflowGraph(CGarbageCollector& gc)
   {
     if (buildWorkflowGraphDone_) return true ;
+
     
     const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
     const double defaultValue = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
     bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
-    info(100)<<"=== Workflow Graph === field id="<<this->getId()<<" build_workflow_graph="<<buildGraph_<<std::endl;
+
     if (!inputFilter) inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc)); 
-     
+    
     if (hasDirectFieldReference())
     {
       CField* fieldRef = getDirectFieldReference();
-      info(100)<<"=== Workflow Graph === fieldRef id="<<fieldRef->getId()<<std::endl;
-
+      
       //------ build_workflow_graph start
       if(buildGraph_)
       {
@@ -579,11 +579,10 @@ namespace xios
       {
         this->build_workflow_graph.set(fieldRef->build_workflow_graph);
         buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
-        info(100)<<"=== Workflow Graph === field id="<<this->getId()<<" updated build_workflow_graph="<<buildGraph_<<std::endl;
       }
 
       
-      if(buildGraph_) this->build_workflow_graph.set(build_workflow_graph);
+      // if(buildGraph_) this->build_workflow_graph.set(build_workflow_graph);
       //------ build_workflow_graph end
 
       bool ret=fieldRef->buildWorkflowGraph(gc); 
@@ -603,6 +602,8 @@ namespace xios
     {
       boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
       filterExpr = expr->reduce(gc, *this);
+      
+      
       if (!filterExpr) return false ; // workflow graph cannot be built at this stage
     }
     
@@ -635,7 +636,6 @@ namespace xios
       getDirectFieldReference()->getInstantDataFilter()->connectOutput(inputFilter,0);
       if(buildGraph_) 
       {
-        info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a transformation filter 2 ============== "<<getDirectFieldReference()->getInstantDataFilter()<<" _ "<<inputFilter<<std::endl;
         inputFilter->graphEnabled=true;
         inputFilter->graphPackage = new CGraphPackage;
         inputFilter->graphPackage->inFields.push_back(this);
@@ -647,7 +647,10 @@ namespace xios
       std::shared_ptr<COutputPin> lastFilter = inputFilter;
       if (hasExpression())
       {
-         if (filterExpr) lastFilter=filterExpr ;
+         if (filterExpr) 
+         {
+           lastFilter=filterExpr ;
+         }
       }
       
       if (hasFileIn()) // input file, attemp to read the grid from file
@@ -715,7 +718,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_) 
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToFileServer  ============== "<<getTemporalDataFilter(gc, fileOut_->output_freq)<<" _ "<<clientToServerStoreFilter_<<std::endl;
       clientToServerStoreFilter_->graphPackage = new CGraphPackage;
       clientToServerStoreFilter_->graphEnabled = true;
       clientToServerStoreFilter_->graphPackage->inFields.push_back(this);
@@ -730,7 +732,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_) 
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToCouplerOut  ============== "<<instantDataFilter<<" _ "<<clientToServerStoreFilter_<<std::endl;
       clientToServerStoreFilter_->graphPackage = new CGraphPackage;
       clientToServerStoreFilter_->graphEnabled = true;
       clientToServerStoreFilter_->graphPackage->inFields.push_back(this);
@@ -752,7 +753,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_ ) 
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToModelInput  ============== "<<modelToClientSourceFilter_<<" _ "<<inputFilter<<" ***** "<<std::endl;
       modelToClientSourceFilter_->graphPackage = new CGraphPackage;
       modelToClientSourceFilter_->graphEnabled = true;
       modelToClientSourceFilter_->graphPackage->inFields.push_back(this);
@@ -769,7 +769,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToClientInput  ============== "<<serverFromClientSourceFilter_ << " _ "<<inputFilter<<" ***** "<<std::endl;
       serverFromClientSourceFilter_->graphPackage = new CGraphPackage;
       serverFromClientSourceFilter_->graphEnabled = true;
       serverFromClientSourceFilter_->graphPackage->inFields.push_back(this);
@@ -788,7 +787,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToServerInput  ============== "<<clientFromServerSourceFilter_ << " _ "<<inputFilter<<std::endl;
       clientFromServerSourceFilter_->graphPackage = new CGraphPackage;
       clientFromServerSourceFilter_->graphEnabled = true;
       clientFromServerSourceFilter_->graphPackage->inFields.push_back(this);
@@ -809,7 +807,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToCouplerIn  ============== "<<clientFromClientSourceFilter_ << " _ "<<inputFilter<<std::endl;
       clientFromClientSourceFilter_->graphPackage = new CGraphPackage;
       clientFromClientSourceFilter_->graphEnabled = true;
       clientFromClientSourceFilter_->graphPackage->inFields.push_back(this);
@@ -826,7 +823,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToFileWriter  ============== "<<instantDataFilter << " _ "<<fileWriterStoreFilter_<<std::endl;
       fileWriterStoreFilter_->graphPackage = new CGraphPackage;
       fileWriterStoreFilter_->graphEnabled = true;
       fileWriterStoreFilter_->graphPackage->inFields.push_back(this);
@@ -843,7 +839,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToFileReader  ============== "<<fileReaderSourceFilter_ << " _ "<<inputFilter<<std::endl;
       fileReaderSourceFilter_->graphPackage = new CGraphPackage;
       fileReaderSourceFilter_->graphEnabled = true;
       fileReaderSourceFilter_->graphPackage->inFields.push_back(this);
@@ -861,7 +856,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToModelOutput  ============== "<<instantDataFilter << " _ "<<clientToModelStoreFilter_<<std::endl;
       clientToModelStoreFilter_->graphPackage = new CGraphPackage;
       clientToModelStoreFilter_->graphEnabled = true;
       clientToModelStoreFilter_->graphPackage->inFields.push_back(this);
@@ -877,7 +871,6 @@ namespace xios
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
     {
-      info(100)<<"=== Workflow Graph === field "<<this->getId()<<" calls a connectToServerToClient  ============== "<<instantDataFilter << " _ "<<serverToClientStoreFilter_<<std::endl;
       serverToClientStoreFilter_->graphPackage = new CGraphPackage;
       serverToClientStoreFilter_->graphEnabled = true;
       serverToClientStoreFilter_->graphPackage->inFields.push_back(this);

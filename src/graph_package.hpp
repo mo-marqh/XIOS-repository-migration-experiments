@@ -11,6 +11,7 @@ namespace xios
     std::vector< CField* > inFields;
     StdString contextId;
     bool show;
+    std::pair< Time, Time > graphInterval;
 
     CGraphPackage(): show(true) {}
   };

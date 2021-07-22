@@ -77,6 +77,9 @@ namespace xios
       static std::vector<graph_edge_object> *vectorOfEdges_srv_;
       static std::vector<StdString> *vectorOfContexts_srv_; 
 
+      static std::unordered_map <size_t, int> *mapHashFilterID_;
+      static std::unordered_map <size_t, int> *mapHashFilterID_srv_;
+
       // these variables are not yet used
       static bool clientGraphBuilt;
       static bool serverGraphBuilt;
