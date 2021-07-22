@@ -40,7 +40,7 @@ namespace xios
                 << "Use the keyword \"this\" if you want to reference the input data sent to this field.");
 
         bool ret=field->buildWorkflowGraph(gc);
-        if(field->build_workflow_graph) thisField.build_workflow_graph.set(field->build_workflow_graph);
+        if(!field->build_workflow_graph.isEmpty()) thisField.build_workflow_graph.set(field->build_workflow_graph);
         if (ret) outputPin = field->getInstantDataFilter(); // if dependency is complete build the graph other return nullptr
         
       }
