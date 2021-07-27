@@ -47,6 +47,7 @@ TRY
 {
   /// descativate for now
   // return CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INTERPOLATE_AXIS, create);
+  return false;
 }
 CATCH
 

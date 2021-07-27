@@ -2195,6 +2195,7 @@ namespace xios {
     m["expand_domain"] = TRANS_EXPAND_DOMAIN;
     m["reorder_domain"] = TRANS_REORDER_DOMAIN;
     m["extract_domain"] = TRANS_EXTRACT_DOMAIN;
+    return true;
   }
   CATCH
 

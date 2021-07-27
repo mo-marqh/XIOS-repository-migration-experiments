@@ -52,7 +52,7 @@ namespace xios {
      m["extract_domain"] = TRANS_EXTRACT_DOMAIN_TO_AXIS;
      m["temporal_splitting"] = TRANS_TEMPORAL_SPLITTING;
      m["duplicate_scalar"] = TRANS_DUPLICATE_SCALAR_TO_AXIS;
-
+     return true;
    }
    CATCH
 

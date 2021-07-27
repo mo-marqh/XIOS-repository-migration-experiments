@@ -27,7 +27,7 @@ namespace xios {
   bool CExpandDomain::_dummyRegistered = CExpandDomain::registerTrans();
   bool CExpandDomain::registerTrans()
   {
-    registerTransformation(TRANS_EXPAND_DOMAIN, {create, getTransformation});
+    return registerTransformation(TRANS_EXPAND_DOMAIN, {create, getTransformation});
   }
 
   //----------------------------------------------------------------
