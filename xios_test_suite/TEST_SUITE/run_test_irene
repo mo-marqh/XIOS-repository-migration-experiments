@@ -7,7 +7,7 @@ bash ./run_test
 
 
 export arch=X64_IRENE_GNU
-export mode=debug
+export mode=prod
 
 bash ./run_test
 
