@@ -145,7 +145,7 @@ void Node::move(const NodePtr node)   // this->leafCount may be 0
 
 void Node::remove(const NodePtr node)
 {
-	if (&node == NULL) return;
+	if (node == NULL) return;
 	double w = double(node->leafCount) / this->leafCount;
 	Coord newCentre = proj(this->centre - node->centre * w);
 	this->leafCount -= node->leafCount;
