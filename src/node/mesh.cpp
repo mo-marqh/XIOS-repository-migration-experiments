@@ -432,6 +432,17 @@ namespace xios {
       node_lon = lonvalue;
       node_lat = latvalue;
 
+      unsigned long nodeCount = nbNodes_;
+      unsigned long nodeStart, nbNodes;
+      MPI_Scan(&nodeCount, &nodeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+      int nNodes = nodeStart;
+      MPI_Bcast(&nNodes, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
+      nbNodesGlo = nNodes;
+
+      nodeStart -= nodeCount;
+      node_start = nodeStart;
+      node_count = nodeCount;
+
       // Global node indexes
       vector<size_t> hashValues(4);
       CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2IdxGlo;
@@ -440,10 +451,11 @@ namespace xios {
         hashValues = CMesh::createHashes(lonvalue(nn), latvalue(nn));
         for (size_t nh = 0; nh < 4; ++nh)
         {
-          nodeHash2IdxGlo[hashValues[nh]].push_back(mpiRank*nbNodes_ + nn);
+          nodeHash2IdxGlo[hashValues[nh]].push_back(nodeStart + nn); 
         }
       }
       pNodeGlobalIndex = new CClientClientDHTSizet (nodeHash2IdxGlo, comm);
+
       nodesAreWritten = true;
     }
 
@@ -459,8 +471,13 @@ namespace xios {
       // For determining the global edge index
       unsigned long nbEdgesOnProc = nbEdges_;
       unsigned long nbEdgesAccum;
+      unsigned long nbEdgesGlo;
       MPI_Scan(&nbEdgesOnProc, &nbEdgesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+      nbEdgesGlo = nbEdgesAccum ;
+      MPI_Bcast(&nbEdgesGlo, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
       nbEdgesAccum -= nbEdges_;
+      edge_start = nbEdgesAccum ;
+      edge_count = nbEdgesOnProc ;
 
       CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2IdxGlo;
       CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2Idx;
@@ -669,7 +686,7 @@ namespace xios {
       edgesAreWritten = true;
     } //nvertex = 2
 
-    else
+    else // nvertex > 2
     {
       nbFaces_ = bounds_lon.shape()[1];
       face_lon.resize(nbFaces_);
@@ -1599,6 +1616,7 @@ namespace xios {
     } // nvertex >= 3
 
   } // createMeshEpsilon
+
 
   ///----------------------------------------------------------------
   /*!

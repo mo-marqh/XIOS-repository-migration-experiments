@@ -866,6 +866,8 @@ namespace xios {
    /*!
    \brief Sorting domains with the same name (= describing the same mesh) in the decreasing order of nvertex for UGRID files.
    This insures that the domain with the highest nvertex is written first and thus all known mesh connectivity is generated at once by this domain.
+   Secondly, we associate the UGRID mesh to the domain in incresing order, i.e. nvertex=1 first, nvertex=2 and then nvertex>2.
+   In this case the connectivity of each component of the mesh (node, edge and face) are fully coherent.
    */
    void CFile::sortEnabledFieldsForUgrid()
    TRY
@@ -873,6 +875,7 @@ namespace xios {
      int size = this->enabledFields.size();
      std::vector<int> domainNvertices;
      std::vector<StdString> domainNames;
+     std::map<string, tuple<CDomain*,CDomain*,CDomain*>> registeredDomains ;
 
      for (int i = 0; i < size; ++i)
      {
@@ -915,6 +918,58 @@ namespace xios {
          domainNames.push_back(domainName);
          domainNvertices.push_back(nvertex);
        }
+
+       if (nvertex==1)  std::get<0>(registeredDomains[domainName])=domain[0] ;
+       else if (nvertex==2) std::get<1>(registeredDomains[domainName])=domain[0] ;
+       else  std::get<2>(registeredDomains[domainName])=domain[0] ;
+     }
+
+     for(auto& it:registeredDomains)
+     {
+       list<CDomain*> domains ;
+       string domainName=it.first ;
+
+       if (std::get<0>(it.second)!=nullptr) domains.push_back(std::get<0>(it.second)) ;
+       if (std::get<1>(it.second)!=nullptr) domains.push_back(std::get<1>(it.second)) ; 
+       if (std::get<2>(it.second)!=nullptr) domains.push_back(std::get<2>(it.second)) ; 
+       
+       // for each component of a given mesh (i.e. domains with same name but different number of vertices)
+       // associate the UGRID mesh in increasing order
+       for(auto& domain : domains )
+       {
+         domain-> computeWrittenIndex();
+         CArray<int, 1>& indexToWrite = domain->localIndexToWriteOnServer;
+         int nbWritten = indexToWrite.numElements();
+         CArray<double,1> writtenLat, writtenLon;
+         CArray<double,2> writtenBndsLat, writtenBndsLon;
+
+         writtenLat.resize(nbWritten);
+         writtenLon.resize(nbWritten);
+         for (int idx = 0; idx < nbWritten; ++idx)
+         {
+           writtenLat(idx) = domain->latvalue(indexToWrite(idx));
+           writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
+         }
+    
+         int nvertex = domain->nvertex, idx;
+        if (nvertex>1)
+         {
+           writtenBndsLat.resize(nvertex, nbWritten);
+           writtenBndsLon.resize(nvertex, nbWritten);
+           CArray<double,2>& boundslat = domain->bounds_latvalue;
+           CArray<double,2>& boundslon = domain->bounds_lonvalue;
+           for (idx = 0; idx < nbWritten; ++idx)
+             for (int nv = 0; nv < nvertex; ++nv)
+             {
+                writtenBndsLat(nv, idx) = boundslat(nv, int(indexToWrite(idx)));
+                writtenBndsLon(nv, idx) = boundslon(nv, int(indexToWrite(idx)));
+             }
+         }
+         domain->assignMesh(domainName, domain->nvertex);
+         CContextServer* server=CContext::getCurrent()->server ;
+         domain->mesh->createMeshEpsilon(server->intraComm, writtenLon, writtenLat, writtenBndsLon, writtenBndsLat);
+       }
+
      }
    }
    CATCH_DUMP_ATTR
