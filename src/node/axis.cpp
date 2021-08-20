@@ -13,6 +13,9 @@
 #include "client_server_mapping_distributed.hpp"
 #include "distribution_client.hpp"
 
+#include <algorithm>
+#include <regex>
+
 namespace xios {
 
    /// ////////////////////// Definitions ////////////////////// ///
@@ -216,6 +219,22 @@ namespace xios {
      return axis;
    }
    CATCH
+
+   CAxis* CAxis::get(const string& id)
+   {
+     const regex r("::");
+     smatch m;
+     if (regex_search(id, m, r))
+     {
+        if (m.size()!=1) ERROR("CAxis* CAxis::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        string fieldId=m.prefix() ;
+        if (fieldId.empty()) ERROR("CAxis* CAxis::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        string suffix=m.suffix() ;
+        CField* field=CField::get(fieldId) ;
+        return field->getAssociatedAxis(suffix) ;
+     }
+     else return CObjectFactory::GetObject<CAxis>(id).get();
+   }
 
    /*!
      Check common attributes of an axis.

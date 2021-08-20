@@ -146,6 +146,9 @@ namespace xios {
          static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);
          static CGrid* cloneGrid(const StdString& idNewGrid, CGrid* gridSrc);
 
+         CDomain* getAssociatedDomain(const string& domainId) ;
+         CAxis*   getAssociatedAxis(const string& axisId) ;
+         CScalar* getAssociatedScalar(const string& scalarId) ;
       public:            
          void solveDomainAxisRef(bool areAttributesChecked);
          void checkElementsAttributes(void) ;

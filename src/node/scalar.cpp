@@ -8,6 +8,9 @@
 #include "type.hpp"
 #include "context.hpp"
 
+#include <algorithm>
+#include <regex>
+
 namespace xios 
 {
 
@@ -47,6 +50,22 @@ namespace xios
   {
     CScalar* scalar = CScalarGroup::get("scalar_definition")->createChild();
     return scalar;
+  }
+
+  CScalar* CScalar::get(const string& id)
+  {
+    const regex r("::");
+    smatch m;
+    if (regex_search(id, m, r))
+    {
+      if (m.size()!=1) ERROR("CScalar* CScalar::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+      string fieldId=m.prefix() ;
+      if (fieldId.empty()) ERROR("CScalar* CScalar::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+      string suffix=m.suffix() ;
+      CField* field=CField::get(fieldId) ;
+      return field->getAssociatedScalar(suffix) ;
+    }
+    else return CObjectFactory::GetObject<CScalar>(id).get();
   }
 
   bool CScalar::IsWritten(const StdString & filename) const

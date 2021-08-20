@@ -47,6 +47,9 @@ namespace xios
    class CGrid;
    class CContext;
    class CGenericFilter;
+   class CDomain ;
+   class CAxis ;
+   class CScalar ;
 
    class CGarbageCollector;
    class COutputPin;
@@ -100,6 +103,9 @@ namespace xios
 
          CGrid* getRelGrid(void) const;
          CFile* getRelFile(void) const;
+         CDomain* getAssociatedDomain(const std::string& domainId) const;
+         CAxis*   getAssociatedAxis(const std::string& axisId) const;
+         CScalar* getAssociatedScalar(const std::string& scalarId) const;
 
          func::CFunctor::ETimeType getOperationTimeType() const;
 

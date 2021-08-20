@@ -29,6 +29,7 @@
 #include "generic_algorithm_transformation.hpp"
 #include "algo_types.hpp"
 
+#include <regex>
 
 namespace xios
 {
@@ -397,6 +398,166 @@ namespace xios
     return scalarListP[scalarIndex];
   }
   CATCH_DUMP_ATTR
+
+  CDomain* CGrid::getAssociatedDomain(const string& domainId)
+  {
+    const regex r("\\[[0-9]*\\]");
+    smatch m;
+    string id=domainId ;
+    int pos=-1 ;
+    if (regex_search(domainId, m, r))
+    {
+        if (m.size()!=1) ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<" domainId = "<<domainId<< "  -> bad format id, separator [] append more than one time");
+        id=m.prefix() ;
+        pos = stoi(m.str(0).substr(1,m.str(0).size()-2)) ;
+    }
+    std::vector<CDomain*> domainList = this->getDomains();
+    if (domainList.empty()) ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain is compsing the grid");
+    if (id.empty())
+    {
+      if (pos==-1)
+      {
+        if (domainList.size()==1) return domainList[0] ;
+        else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the grid contain more than 1 domain, use [#n] to specify which one must be retrieved");
+      }
+      else
+      {
+        if (domainList.size()>pos) return domainList[pos] ;
+        else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the position of the requested domain [ pos = "<<pos
+                   <<" ] is greater than the number of domain composing the grid  [ numDomain = "<<domainList.size()<<" ]");
+      }
+    }
+    else
+    {
+      if (pos==-1) 
+      {
+        int nbDomain=0 ;
+        for(int i=0; i<domainList.size();i++) if (domainList[i]->getTemplateId()==id) nbDomain++ ;
+        if (nbDomain>1) ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain with the id = "<<id
+                              <<" is composing the grid") ;
+        if (nbDomain==0) ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the grid contain more than 1 domain with the id = "
+                               <<id<<" , use [#n] to specify which one must be retrieved") ;
+        for(int i=0; i<domainList.size();i++) if (domainList[i]->getTemplateId()==id) return domainList[i]  ;
+      }
+      else
+      {
+        int currentPos=0 ;
+        for(int i=0; i<domainList.size();i++) 
+        {
+          if (domainList[i]->getTemplateId()==id && pos==currentPos) return domainList[i] ;
+          currentPos++ ;
+        }
+        ERROR("CGrid::getAssociatedDomain(const string& domainId)",<<"Cannot find domain with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
+      }  
+    }
+  } 
+
+  CAxis* CGrid::getAssociatedAxis(const string& axisId)
+  {
+    const regex r("\\[[0-9]*\\]");
+    smatch m;
+    string id=axisId ;
+    int pos=-1 ;
+    if (regex_search(axisId, m, r))
+    {
+        if (m.size()!=1) ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<" axisId = "<<axisId<< "  -> bad format id, separator [] append more than one time");
+        id=m.prefix() ;
+        pos = stoi(m.str(0).substr(1,m.str(0).size()-2)) ;
+    }
+    std::vector<CAxis*> axisList = this->getAxis();
+    if (axisList.empty()) ERROR("CGrid::getAssociatedAxis(const string& AxisId)", <<"no axis is composing the grid");
+    if (id.empty())
+    {
+      if (pos==-1)
+      {
+        if (axisList.size()==1) return axisList[0] ;
+        else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the grid contain more than 1 axis, use [#n] to specify which one must be retrieved");
+      }
+      else
+      {
+        if (axisList.size()>pos) return axisList[pos] ;
+        else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the position of the requested axis [ pos = "<<pos
+                   <<" ] is greater than the number of axis composing the grid  [ numAxis = "<<axisList.size()<<" ]");
+      }
+    }
+    else
+    {
+      if (pos==-1) 
+      {
+        int nbAxis=0 ;
+        for(int i=0; i<axisList.size();i++) if (axisList[i]->getTemplateId()==id) nbAxis++ ;
+        if (nbAxis>1) ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"no axis with the id = "<<id
+                              <<" is composing the grid") ;
+        if (nbAxis==0) ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the grid contain more than 1 axis with the id = "
+                               <<id<<" , use [#n] to specify which one must be retrieved") ;
+        for(int i=0; i<axisList.size();i++) if (axisList[i]->getTemplateId()==id) return axisList[i]  ;
+      }
+      else
+      {
+        int currentPos=0 ;
+        for(int i=0; i<axisList.size();i++) 
+        {
+          if (axisList[i]->getTemplateId()==id && pos==currentPos) return axisList[i] ;
+          currentPos++ ;
+        }
+        ERROR("CGrid::getAssociatedAxis(const string& axisId)",<<"Cannot find axis with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
+      }  
+    }
+  } 
+
+  CScalar* CGrid::getAssociatedScalar(const string& scalarId)
+  {
+    const regex r("\\[[0-9]*\\]");
+    smatch m;
+    string id=scalarId ;
+    int pos=-1 ;
+    if (regex_search(scalarId, m, r))
+    {
+        if (m.size()!=1) ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<" scalarId = "<<scalarId<< "  -> bad format id, separator [] append more than one time");
+        id=m.prefix() ;
+        pos = stoi(m.str(0).substr(1,m.str(0).size()-2)) ;
+    }
+    std::vector<CScalar*> scalarList = this->getScalars();
+    if (scalarList.empty()) ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar is composing the grid");
+    if (id.empty())
+    {
+      if (pos==-1)
+      {
+        if (scalarList.size()==1) return scalarList[0] ;
+        else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the grid contain more than 1 scalar, use [#n] to specify which one must be retrieved");
+      }
+      else
+      {
+        if (scalarList.size()>pos) return scalarList[pos] ;
+        else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the position of the requested scalar [ pos = "<<pos
+                   <<" ] is greater than the number of scalar composing the grid  [ numScalar = "<<scalarList.size()<<" ]");
+      }
+    }
+    else
+    {
+      if (pos==-1) 
+      {
+        int nbScalar=0 ;
+        for(int i=0; i<scalarList.size();i++) if (scalarList[i]->getTemplateId()==id) nbScalar++ ;
+        if (nbScalar>1) ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar with the id = "<<id
+                              <<" is composing the grid") ;
+        if (nbScalar==0) ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the grid contain more than 1 scalar with the id = "
+                               <<id<<" , use [#n] to specify which one must be retrieved") ;
+        for(int i=0; i<scalarList.size();i++) if (scalarList[i]->getTemplateId()==id) return scalarList[i]  ;
+      }
+      else
+      {
+        int currentPos=0 ;
+        for(int i=0; i<scalarList.size();i++) 
+        {
+          if (scalarList[i]->getTemplateId()==id && pos==currentPos) return scalarList[i] ;
+          currentPos++ ;
+        }
+        ERROR("CGrid::getAssociatedScalar(const string& scalarId)",<<"Cannot find scalar with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
+      }  
+    }
+  } 
+
 
   /*!
   \brief Set domain(s) of a grid from a list
@@ -1736,9 +1897,21 @@ namespace xios
               dstDomain->createAlias(dstElementId) ;
               cout<<"Create new domain : "<<dstDomain->getId()<<" with alias : "<<dstElementId<<endl ;
 
-              if (isGenerate) dstDomain->duplicateAttributes(lastDstDomain) ;
-              else if (srcElementId=="" && srcElement.type==TYPE_DOMAIN)  dstDomain->duplicateAttributes(srcElement.domain) ; // make a copy
-              else dstDomain->duplicateAttributes(dstElement.domain) ; // make a copy
+              if (isGenerate) 
+              {
+                dstDomain->duplicateAttributes(lastDstDomain) ;
+                dstDomain->setTemplateId(lastDstDomain) ;
+              }
+              else if (srcElementId=="" && srcElement.type==TYPE_DOMAIN)  
+              {
+                dstDomain->duplicateAttributes(srcElement.domain) ; // make a copy
+                dstDomain->setTemplateId(srcElement.domain) ;
+              }
+              else 
+              {
+                dstDomain->duplicateAttributes(dstElement.domain) ; // make a copy
+                dstDomain->setTemplateId(dstElement.domain) ;
+              }
               CTransformation<CDomain>* transformation = CTransformation<CDomain>::createTransformation(transType,"") ;
               auto srcTransform = CTransformation<CDomain>::getTransformation(transType, transId) ;
               transformation->inheritFrom(srcTransform) ;
@@ -1786,9 +1959,21 @@ namespace xios
               dstAxis->createAlias(dstElementId) ;
               cout<<"Create new axis : "<<dstAxis->getId()<<" with alias : "<<dstElementId<<endl ;
               
-              if (isGenerate) dstAxis->duplicateAttributes(lastDstAxis) ;
-              else if (srcElementId=="" && srcElement.type==TYPE_AXIS)  dstAxis->duplicateAttributes(srcElement.axis) ; // make a copy
-              else dstAxis->duplicateAttributes(dstElement.axis) ; // make a copy
+              if (isGenerate) 
+              {
+                dstAxis->duplicateAttributes(lastDstAxis) ;
+                dstAxis->setTemplateId(lastDstAxis) ;
+              }
+              else if (srcElementId=="" && srcElement.type==TYPE_AXIS)  
+              { 
+                dstAxis->duplicateAttributes(srcElement.axis) ; // make a copy
+                dstAxis->setTemplateId(srcElement.axis) ;
+              }
+              else 
+              {
+                dstAxis->duplicateAttributes(dstElement.axis) ; // make a copy$
+                dstAxis->setTemplateId(dstElement.axis) ;
+              }
               CTransformation<CAxis>* transformation = CTransformation<CAxis>::createTransformation(transType,"") ;
               auto srcTransform = CTransformation<CAxis>::getTransformation(transType, transId) ;
               transformation->inheritFrom(srcTransform) ;
@@ -1835,9 +2020,21 @@ namespace xios
               dstScalar->createAlias(dstElementId) ;
               cout<<"Create new scalar : "<<dstScalar->getId()<<" with alias : "<<dstElementId<<endl ;
               
-              if (isGenerate) dstScalar->duplicateAttributes(lastDstScalar) ;
-              else if (srcElementId=="" && srcElement.type==TYPE_SCALAR)  dstScalar->duplicateAttributes(srcElement.scalar) ; // make a copy
-              else dstScalar->duplicateAttributes(dstElement.scalar) ; // make a copy
+              if (isGenerate) 
+              {
+                dstScalar->duplicateAttributes(lastDstScalar) ;
+                dstScalar->setTemplateId(lastDstScalar) ;
+              }
+              else if (srcElementId=="" && srcElement.type==TYPE_SCALAR)
+              {
+                dstScalar->duplicateAttributes(srcElement.scalar) ; // make a copy
+                dstScalar->setTemplateId(srcElement.scalar) ;
+              }
+              else 
+              {
+                dstScalar->duplicateAttributes(dstElement.scalar) ; // make a copy
+                dstScalar->setTemplateId(dstElement.scalar) ;
+              }
               CTransformation<CScalar>* transformation = CTransformation<CScalar>::createTransformation(transType,"") ;
               auto srcTransform = CTransformation<CScalar>::getTransformation(transType, transId) ;
               transformation->inheritFrom(srcTransform) ;
@@ -1992,6 +2189,7 @@ namespace xios
         {
           CDomain* domain = CDomain::create();
           domain->duplicateAttributes(element.domain) ;
+          domain->setTemplateId(element.domain) ;
           domain->name = element.domain->getId() ;
           newGrid->addDomain(domain->getId()) ;
         }
@@ -1999,6 +2197,7 @@ namespace xios
         {
           CAxis* axis = CAxis::create();
           axis->duplicateAttributes(element.axis) ;
+          axis->setTemplateId(element.axis) ;
           axis->name = element.axis->getId() ;
           newGrid->addAxis(axis->getId()) ;
         }
@@ -2006,6 +2205,7 @@ namespace xios
         {
           CScalar* scalar = CScalar::create();
           scalar->duplicateAttributes(element.scalar) ;
+          scalar->setTemplateId(element.scalar) ;
           scalar->name = element.scalar->getId() ;
           newGrid->addScalar(scalar->getId()) ;
         }

@@ -77,6 +77,7 @@ namespace xios
 
     public:
       static CScalar* createScalar();
+      static CScalar* get(const string& id) ; //<! return scalar pointer using id
 
     public:
       void checkAttributes(void);

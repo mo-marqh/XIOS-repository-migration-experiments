@@ -49,6 +49,7 @@ void C##type::solveRefInheritance(bool apply)                          \
                                                                        \
     refObjects.push_back(refer_ptr);                                   \
     SuperClassAttribute::setAttributes(refer_ptr, apply);              \
+    setInheritedId(refer_ptr) ;                                        \
   }                                                                    \
 }                                                                      \
                                                                        \

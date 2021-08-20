@@ -25,10 +25,9 @@
 #include "grid_gatherer_connector.hpp"
 #include "transformation_path.hpp"
 
-
-
-
 #include <algorithm>
+#include <regex>
+
 
 namespace xios {
 
@@ -78,6 +77,23 @@ namespace xios {
      return domain;
    }
    CATCH
+
+   CDomain* CDomain::get(const string& id)
+   {
+     const regex r("::");
+     smatch m;
+     if (regex_search(id, m, r))
+     {
+        if (m.size()!=1) ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        string fieldId=m.prefix() ;
+        if (fieldId.empty()) ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        string suffix=m.suffix() ;
+        CField* field=CField::get(fieldId) ;
+        return field->getAssociatedDomain(suffix) ;
+     }
+     else return CObjectFactory::GetObject<CDomain>(id).get();
+   }
+
 
    const std::set<StdString> & CDomain::getRelFiles(void) const
    TRY

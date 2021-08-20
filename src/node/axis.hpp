@@ -68,6 +68,7 @@ namespace xios
          CAxis(const CAxis * const axis); // Not implemented yet.
 
          static CAxis* createAxis();
+         static CAxis* get(const string& id) ; //<! return axis pointer using id
 
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;

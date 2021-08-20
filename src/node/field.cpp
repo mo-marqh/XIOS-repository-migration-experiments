@@ -326,6 +326,28 @@ namespace xios
   }
   CATCH
 
+  CDomain* CField::getAssociatedDomain(const string& domainId) const
+  {
+    if (grid_==nullptr) ERROR("CDomain* CField::getAssociatedDomain(const string& domainId)", <<" field with id="<<getId()<<" has no associated grid, "
+                              <<"check if the worklfow is enabled for this field");
+    grid_->getAssociatedDomain(domainId) ;
+  }
+
+  CAxis* CField::getAssociatedAxis(const string& axisId) const
+  {
+    if (grid_==nullptr) ERROR("CAxis* CField::getAssociatedAxis(const string& axisId)", <<" field with id="<<getId()<<" has no associated grid, "
+                              <<"check if the worklfow is enabled for this field");
+    grid_->getAssociatedAxis(axisId) ;
+  }
+
+  CScalar* CField::getAssociatedScalar(const string& scalarId) const
+  {
+    if (grid_==nullptr) ERROR("CScalar* CField::getAssociatedScalar(const string& scalarId)", <<" field with id="<<getId()<<" has no associated grid, "
+                              <<"check if the worklfow is enabled for this field");
+    grid_->getAssociatedScalar(scalarId) ;
+  }
+
+
   func::CFunctor::ETimeType CField::getOperationTimeType() const
   TRY
   {
