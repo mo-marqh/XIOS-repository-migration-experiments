@@ -141,6 +141,7 @@ namespace xios
         {
           timer.resume();
           context->globalEventLoop();
+          context->eventLoop() ; 
           timer.suspend();
         }
       }
