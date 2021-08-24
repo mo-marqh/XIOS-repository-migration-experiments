@@ -28,6 +28,7 @@ namespace xios
   class CScalarGroup;
   class CScalarAttributes;
   class CScalar;
+  class CField;
   ///--------------------------------------------------------------
 
   // Declare/Define CVarAttribute
@@ -77,7 +78,9 @@ namespace xios
 
     public:
       static CScalar* createScalar();
-      static CScalar* get(const string& id) ; //<! return scalar pointer using id
+      static CScalar* get(const string& id, bool noError=false) ; //<! return scalar pointer using id
+      static bool     has(const string& id) ; //<! return domain pointer using id
+      static CField*  getFieldFromId(const string& id) ;
 
     public:
       void checkAttributes(void);
@@ -117,6 +120,10 @@ namespace xios
        void solveInheritanceTransformation();
       private:
         bool solveInheritanceTransformation_done_= false ;
+      public:
+        bool activateFieldWorkflow(CGarbageCollector& gc) ;
+      private:
+        bool activateFieldWorkflow_done_=false ;
       private:
         CGenericAlgorithmTransformation* transformationAlgorithm_ = nullptr ;
       public:

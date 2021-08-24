@@ -326,25 +326,37 @@ namespace xios
   }
   CATCH
 
-  CDomain* CField::getAssociatedDomain(const string& domainId) const
+  CDomain* CField::getAssociatedDomain(const string& domainId, bool noError) const
   {
-    if (grid_==nullptr) ERROR("CDomain* CField::getAssociatedDomain(const string& domainId)", <<" field with id="<<getId()<<" has no associated grid, "
+    if (grid_==nullptr)
+    { 
+      if (noError) return nullptr ;
+      else ERROR("CDomain* CField::getAssociatedDomain(const string& domainId)", <<" field with id="<<getId()<<" has no associated grid, "
                               <<"check if the worklfow is enabled for this field");
-    grid_->getAssociatedDomain(domainId) ;
+    }
+    return grid_->getAssociatedDomain(domainId, noError) ;
   }
 
-  CAxis* CField::getAssociatedAxis(const string& axisId) const
+  CAxis* CField::getAssociatedAxis(const string& axisId, bool noError) const
   {
-    if (grid_==nullptr) ERROR("CAxis* CField::getAssociatedAxis(const string& axisId)", <<" field with id="<<getId()<<" has no associated grid, "
+    if (grid_==nullptr) 
+    {
+      if (noError) return nullptr ;
+      else  ERROR("CAxis* CField::getAssociatedAxis(const string& axisId)", <<" field with id="<<getId()<<" has no associated grid, "
                               <<"check if the worklfow is enabled for this field");
-    grid_->getAssociatedAxis(axisId) ;
+    }
+    return grid_->getAssociatedAxis(axisId, noError) ;
   }
 
-  CScalar* CField::getAssociatedScalar(const string& scalarId) const
+  CScalar* CField::getAssociatedScalar(const string& scalarId, bool noError) const
   {
-    if (grid_==nullptr) ERROR("CScalar* CField::getAssociatedScalar(const string& scalarId)", <<" field with id="<<getId()<<" has no associated grid, "
+    if (grid_==nullptr) 
+    { 
+      if (noError) return nullptr ;
+      else ERROR("CScalar* CField::getAssociatedScalar(const string& scalarId)", <<" field with id="<<getId()<<" has no associated grid, "
                               <<"check if the worklfow is enabled for this field");
-    grid_->getAssociatedScalar(scalarId) ;
+    }
+    return grid_->getAssociatedScalar(scalarId, noError) ;
   }
 
 
@@ -617,6 +629,7 @@ namespace xios
     // now construct grid and check if element are enabled
     solveGridReference() ; // grid_ is now defined
     if (!isGridCompleted()) return false;
+    if (grid_->activateFieldWorkflow(gc)==false) return false; // workflow graph cannot be built at this stage
 
     // Check if we have an expression to parse
     std::shared_ptr<COutputPin> filterExpr ;
@@ -1180,7 +1193,8 @@ namespace xios
         
       if (!domain_ref.isEmpty())
       {
-        StdString tmp = domain_ref.getValue();
+        CField* field=CDomain::getFieldFromId(domain_ref) ;
+        if (field!=nullptr) field->solveGridReference() ;
         if (CDomain::has(domain_ref))
         {
           vecDom.push_back(CDomain::get(domain_ref));
@@ -1194,6 +1208,8 @@ namespace xios
 
       if (!axis_ref.isEmpty())
       {
+        CField* field=CAxis::getFieldFromId(axis_ref) ;
+        if (field!=nullptr) field->solveGridReference() ;
         if (CAxis::has(axis_ref))
         {
           vecAxis.push_back(CAxis::get(axis_ref));
@@ -1207,6 +1223,8 @@ namespace xios
 
       if (!scalar_ref.isEmpty())
       {
+        CField* field=CScalar::getFieldFromId(scalar_ref) ;
+        if (field!=nullptr) field->solveGridReference() ;
         if (CScalar::has(scalar_ref))
         {
           vecScalar.push_back(CScalar::get(scalar_ref));

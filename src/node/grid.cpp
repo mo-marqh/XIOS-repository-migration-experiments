@@ -399,7 +399,7 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  CDomain* CGrid::getAssociatedDomain(const string& domainId)
+  CDomain* CGrid::getAssociatedDomain(const string& domainId, bool noError)
   {
     const regex r("\\[[0-9]*\\]");
     smatch m;
@@ -412,17 +412,22 @@ namespace xios
         pos = stoi(m.str(0).substr(1,m.str(0).size()-2)) ;
     }
     std::vector<CDomain*> domainList = this->getDomains();
-    if (domainList.empty()) ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain is compsing the grid");
+    if (domainList.empty()) 
+      if (noError) return nullptr ;
+      else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain is composing the grid");
     if (id.empty())
     {
       if (pos==-1)
       {
         if (domainList.size()==1) return domainList[0] ;
-        else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the grid contain more than 1 domain, use [#n] to specify which one must be retrieved");
+        else 
+          if (noError) return nullptr ;
+          else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the grid contain more than 1 domain, use [#n] to specify which one must be retrieved");
       }
       else
       {
         if (domainList.size()>pos) return domainList[pos] ;
+        else if (noError) return nullptr ;
         else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the position of the requested domain [ pos = "<<pos
                    <<" ] is greater than the number of domain composing the grid  [ numDomain = "<<domainList.size()<<" ]");
       }
@@ -433,9 +438,13 @@ namespace xios
       {
         int nbDomain=0 ;
         for(int i=0; i<domainList.size();i++) if (domainList[i]->getTemplateId()==id) nbDomain++ ;
-        if (nbDomain>1) ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain with the id = "<<id
+        if (nbDomain>1) 
+          if (noError) return nullptr ;
+          else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain with the id = "<<id
                               <<" is composing the grid") ;
-        if (nbDomain==0) ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the grid contain more than 1 domain with the id = "
+        if (nbDomain==0) 
+          if (noError) return nullptr ;
+          else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the grid contain more than 1 domain with the id = "
                                <<id<<" , use [#n] to specify which one must be retrieved") ;
         for(int i=0; i<domainList.size();i++) if (domainList[i]->getTemplateId()==id) return domainList[i]  ;
       }
@@ -447,12 +456,13 @@ namespace xios
           if (domainList[i]->getTemplateId()==id && pos==currentPos) return domainList[i] ;
           currentPos++ ;
         }
-        ERROR("CGrid::getAssociatedDomain(const string& domainId)",<<"Cannot find domain with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
+        if (noError) return nullptr ; 
+        else ERROR("CGrid::getAssociatedDomain(const string& domainId)",<<"Cannot find domain with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
       }  
     }
   } 
 
-  CAxis* CGrid::getAssociatedAxis(const string& axisId)
+  CAxis* CGrid::getAssociatedAxis(const string& axisId, bool noError)
   {
     const regex r("\\[[0-9]*\\]");
     smatch m;
@@ -465,18 +475,24 @@ namespace xios
         pos = stoi(m.str(0).substr(1,m.str(0).size()-2)) ;
     }
     std::vector<CAxis*> axisList = this->getAxis();
-    if (axisList.empty()) ERROR("CGrid::getAssociatedAxis(const string& AxisId)", <<"no axis is composing the grid");
+    if (axisList.empty())
+      if (noError) return nullptr;
+      else ERROR("CGrid::getAssociatedAxis(const string& AxisId)", <<"no axis is composing the grid");
     if (id.empty())
     {
       if (pos==-1)
       {
         if (axisList.size()==1) return axisList[0] ;
-        else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the grid contain more than 1 axis, use [#n] to specify which one must be retrieved");
+        else 
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the grid contain more than 1 axis, use [#n] to specify which one must be retrieved");
       }
       else
       {
         if (axisList.size()>pos) return axisList[pos] ;
-        else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the position of the requested axis [ pos = "<<pos
+        else
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the position of the requested axis [ pos = "<<pos
                    <<" ] is greater than the number of axis composing the grid  [ numAxis = "<<axisList.size()<<" ]");
       }
     }
@@ -486,9 +502,13 @@ namespace xios
       {
         int nbAxis=0 ;
         for(int i=0; i<axisList.size();i++) if (axisList[i]->getTemplateId()==id) nbAxis++ ;
-        if (nbAxis>1) ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"no axis with the id = "<<id
+        if (nbAxis>1) 
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"no axis with the id = "<<id
                               <<" is composing the grid") ;
-        if (nbAxis==0) ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the grid contain more than 1 axis with the id = "
+        if (nbAxis==0) 
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the grid contain more than 1 axis with the id = "
                                <<id<<" , use [#n] to specify which one must be retrieved") ;
         for(int i=0; i<axisList.size();i++) if (axisList[i]->getTemplateId()==id) return axisList[i]  ;
       }
@@ -500,12 +520,13 @@ namespace xios
           if (axisList[i]->getTemplateId()==id && pos==currentPos) return axisList[i] ;
           currentPos++ ;
         }
-        ERROR("CGrid::getAssociatedAxis(const string& axisId)",<<"Cannot find axis with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
+        if (noError) return nullptr;
+        else ERROR("CGrid::getAssociatedAxis(const string& axisId)",<<"Cannot find axis with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
       }  
     }
   } 
 
-  CScalar* CGrid::getAssociatedScalar(const string& scalarId)
+  CScalar* CGrid::getAssociatedScalar(const string& scalarId, bool noError)
   {
     const regex r("\\[[0-9]*\\]");
     smatch m;
@@ -518,18 +539,24 @@ namespace xios
         pos = stoi(m.str(0).substr(1,m.str(0).size()-2)) ;
     }
     std::vector<CScalar*> scalarList = this->getScalars();
-    if (scalarList.empty()) ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar is composing the grid");
+    if (scalarList.empty()) 
+      if (noError) return nullptr;
+      else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar is composing the grid");
     if (id.empty())
     {
       if (pos==-1)
       {
         if (scalarList.size()==1) return scalarList[0] ;
-        else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the grid contain more than 1 scalar, use [#n] to specify which one must be retrieved");
+        else 
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the grid contain more than 1 scalar, use [#n] to specify which one must be retrieved");
       }
       else
       {
         if (scalarList.size()>pos) return scalarList[pos] ;
-        else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the position of the requested scalar [ pos = "<<pos
+        else 
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the position of the requested scalar [ pos = "<<pos
                    <<" ] is greater than the number of scalar composing the grid  [ numScalar = "<<scalarList.size()<<" ]");
       }
     }
@@ -539,9 +566,13 @@ namespace xios
       {
         int nbScalar=0 ;
         for(int i=0; i<scalarList.size();i++) if (scalarList[i]->getTemplateId()==id) nbScalar++ ;
-        if (nbScalar>1) ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar with the id = "<<id
+        if (nbScalar>1) 
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar with the id = "<<id
                               <<" is composing the grid") ;
-        if (nbScalar==0) ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the grid contain more than 1 scalar with the id = "
+        if (nbScalar==0) 
+          if (noError) return nullptr;
+          else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the grid contain more than 1 scalar with the id = "
                                <<id<<" , use [#n] to specify which one must be retrieved") ;
         for(int i=0; i<scalarList.size();i++) if (scalarList[i]->getTemplateId()==id) return scalarList[i]  ;
       }
@@ -553,7 +584,8 @@ namespace xios
           if (scalarList[i]->getTemplateId()==id && pos==currentPos) return scalarList[i] ;
           currentPos++ ;
         }
-        ERROR("CGrid::getAssociatedScalar(const string& scalarId)",<<"Cannot find scalar with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
+        if (noError) return nullptr;
+        else ERROR("CGrid::getAssociatedScalar(const string& scalarId)",<<"Cannot find scalar with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
       }  
     }
   } 
@@ -1773,6 +1805,36 @@ namespace xios
       pScalar->solveRefInheritance(apply);
       pScalar->solveInheritanceTransformation();
     }
+  }
+  CATCH_DUMP_ATTR
+
+  bool CGrid::activateFieldWorkflow(CGarbageCollector& gc)
+  TRY
+  {
+    setDomainList();
+    for (auto domainId : domList_)
+    {
+      CDomain* pDom = CDomain::get(domainId);
+      bool ret = pDom->activateFieldWorkflow(gc);
+      if (!ret) return false ;
+    }
+
+    setAxisList();
+    for (auto axisId : axisList_)
+    {
+      CAxis* pAxis = CAxis::get(axisId);
+      bool ret = pAxis->activateFieldWorkflow(gc);
+      if (!ret) return false ;
+    }
+
+    setScalarList();
+    for (auto scalarId : scalarList_)
+    {
+      CScalar* pScalar = CScalar::get(scalarId);
+      bool ret = pScalar->activateFieldWorkflow(gc);
+      if (!ret) return false ;
+    }
+    return true ;
   }
   CATCH_DUMP_ATTR
 

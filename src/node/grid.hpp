@@ -146,9 +146,9 @@ namespace xios {
          static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);
          static CGrid* cloneGrid(const StdString& idNewGrid, CGrid* gridSrc);
 
-         CDomain* getAssociatedDomain(const string& domainId) ;
-         CAxis*   getAssociatedAxis(const string& axisId) ;
-         CScalar* getAssociatedScalar(const string& scalarId) ;
+         CDomain* getAssociatedDomain(const string& domainId, bool noError=false) ;
+         CAxis*   getAssociatedAxis(const string& axisId, bool noError=false) ;
+         CScalar* getAssociatedScalar(const string& scalarId, bool noError=false) ;
       public:            
          void solveDomainAxisRef(bool areAttributesChecked);
          void checkElementsAttributes(void) ;
@@ -157,6 +157,7 @@ namespace xios {
          void solveAxisRef(bool checkAtt);
          void solveScalarRef(bool checkAtt);
          void solveElementsRefInheritance(bool apply = true);
+         bool activateFieldWorkflow(CGarbageCollector& gc) ;
         // void solveTransformations();
          void solveDomainAxisBaseRef();
 

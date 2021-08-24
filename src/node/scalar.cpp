@@ -52,7 +52,7 @@ namespace xios
     return scalar;
   }
 
-  CScalar* CScalar::get(const string& id)
+  CScalar* CScalar::get(const string& id, bool noError)
   {
     const regex r("::");
     smatch m;
@@ -62,11 +62,40 @@ namespace xios
       string fieldId=m.prefix() ;
       if (fieldId.empty()) ERROR("CScalar* CScalar::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
       string suffix=m.suffix() ;
+      if (!CField::has(fieldId)) 
+          if (noError)  return nullptr ;
+          else ERROR("CScalar* CScalar::get(const string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
       CField* field=CField::get(fieldId) ;
-      return field->getAssociatedScalar(suffix) ;
+      return field->getAssociatedScalar(suffix, noError) ;
     }
-    else return CObjectFactory::GetObject<CScalar>(id).get();
-  }
+    else
+    {
+       if (noError) if(!CObjectFactory::HasObject<CScalar>(id)) return nullptr ;
+       return CObjectFactory::GetObject<CScalar>(id).get();
+     }
+   }
+
+   bool CScalar::has(const string& id)
+   {
+     if (CScalar::get(id,true)==nullptr) return false ;
+     else return true ;
+   }
+   
+   CField* CScalar::getFieldFromId(const string& id)
+   {
+     const regex r("::");
+     smatch m;
+     if (regex_search(id, m, r))
+     {
+        if (m.size()!=1) ERROR("CField* CScalar::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        string fieldId=m.prefix() ;
+        if (fieldId.empty()) ERROR("CField* CScalar::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        string suffix=m.suffix() ;
+        CField* field=CField::get(fieldId) ;
+        return field ;
+     }
+     else return nullptr;
+   }
 
   bool CScalar::IsWritten(const StdString & filename) const
   {
@@ -209,6 +238,31 @@ namespace xios
 
   }
   CATCH_DUMP_ATTR
+
+  bool CScalar::activateFieldWorkflow(CGarbageCollector& gc)
+  TRY
+  {
+    if (!scalar_ref.isEmpty())
+    {
+      CField* field=getFieldFromId(scalar_ref) ;
+      if (field!=nullptr)
+      {
+        bool ret = field->buildWorkflowGraph(gc) ;
+        if (!ret) return false ; // cannot build workflow graph at this state
+      }
+      else 
+      {
+        CScalar* scalar = get(scalar_ref) ;
+        bool ret = scalar->activateFieldWorkflow(gc) ;
+        if (!ret) return false ; // cannot build workflow graph at this state
+        scalar_ref=scalar->getId() ; // replace domain_ref by solved reference
+      }
+    }
+    activateFieldWorkflow_done_=true ;
+    return true ;
+  }
+  CATCH_DUMP_ATTR
+
 
   /* obsolete, to remove after reimplementing coupling */
   void CScalar::sendScalarToCouplerOut(CContextClient* client, const string& fieldId, int posInGrid)

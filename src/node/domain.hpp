@@ -35,6 +35,7 @@ namespace xios
    class CDomainAttributes;
    class CDomain;
    class CFile;
+   class CField ;
 
    ///--------------------------------------------------------------
 
@@ -71,8 +72,9 @@ namespace xios
          CDomain(const CDomain * const domain); // Not implemented yet.
        
          static CDomain* createDomain();
-         static CDomain* get(const string& id) ; //<! return domain pointer using id
-        // static bool has(const string& id) ;     //<! return true if domain with identifier id exist
+         static CDomain* get(const string& id, bool noError=false) ; //<! return domain pointer using id
+         static bool has(const string& id) ; //<! return domain pointer using id
+         static CField*  getFieldFromId(const string& id) ;
 
          CMesh* mesh;
          void assignMesh(const StdString, const int);
@@ -108,6 +110,11 @@ namespace xios
         void solveInheritanceTransformation();
       private:
         bool solveInheritanceTransformation_done_= false ;
+      public:
+        bool activateFieldWorkflow(CGarbageCollector& gc) ;
+      private:
+        bool activateFieldWorkflow_done_=false ;
+
       private:
         CGenericAlgorithmTransformation* transformationAlgorithm_ = nullptr ;
       public:

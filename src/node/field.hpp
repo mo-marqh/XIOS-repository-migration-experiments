@@ -103,9 +103,9 @@ namespace xios
 
          CGrid* getRelGrid(void) const;
          CFile* getRelFile(void) const;
-         CDomain* getAssociatedDomain(const std::string& domainId) const;
-         CAxis*   getAssociatedAxis(const std::string& axisId) const;
-         CScalar* getAssociatedScalar(const std::string& scalarId) const;
+         CDomain* getAssociatedDomain(const std::string& domainId, bool noError=false) const;
+         CAxis*   getAssociatedAxis(const std::string& axisId, bool noError=false) const;
+         CScalar* getAssociatedScalar(const std::string& scalarId, bool noError=false) const;
 
          func::CFunctor::ETimeType getOperationTimeType() const;
 

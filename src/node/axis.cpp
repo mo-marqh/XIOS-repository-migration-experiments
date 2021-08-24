@@ -220,7 +220,7 @@ namespace xios {
    }
    CATCH
 
-   CAxis* CAxis::get(const string& id)
+   CAxis* CAxis::get(const string& id, bool noError)
    {
      const regex r("::");
      smatch m;
@@ -230,10 +230,38 @@ namespace xios {
         string fieldId=m.prefix() ;
         if (fieldId.empty()) ERROR("CAxis* CAxis::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
+        if (!CField::has(fieldId)) 
+          if (noError)  return nullptr ;
+          else ERROR("CAxis* CAxis::get(string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
         CField* field=CField::get(fieldId) ;
-        return field->getAssociatedAxis(suffix) ;
+        return field->getAssociatedAxis(suffix, noError) ;
      }
-     else return CObjectFactory::GetObject<CAxis>(id).get();
+     {
+       if (noError) if(!CObjectFactory::HasObject<CAxis>(id)) return nullptr ;
+       return CObjectFactory::GetObject<CAxis>(id).get();
+     }
+   }
+   
+   bool CAxis::has(const string& id)
+   {
+     if (CAxis::get(id,true)==nullptr) return false ;
+     else return true ;
+   }
+   
+   CField* CAxis::getFieldFromId(const string& id)
+   {
+     const regex r("::");
+     smatch m;
+     if (regex_search(id, m, r))
+     {
+        if (m.size()!=1) ERROR("CField* CAxis::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        string fieldId=m.prefix() ;
+        if (fieldId.empty()) ERROR("CField* CAxis::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        string suffix=m.suffix() ;
+        CField* field=CField::get(fieldId) ;
+        return field ;
+     }
+     else return nullptr;
    }
 
    /*!
@@ -634,6 +662,31 @@ namespace xios {
 
   }
   CATCH_DUMP_ATTR
+
+  bool CAxis::activateFieldWorkflow(CGarbageCollector& gc)
+  TRY
+  {
+    if (!axis_ref.isEmpty())
+    {
+      CField* field=getFieldFromId(axis_ref) ;
+      if (field!=nullptr)
+      {
+        bool ret = field->buildWorkflowGraph(gc) ;
+        if (!ret) return false ; // cannot build workflow graph at this state
+      }
+      else 
+      {
+        CAxis* axis = get(axis_ref) ;
+        bool ret = axis->activateFieldWorkflow(gc) ;
+        if (!ret) return false ; // cannot build workflow graph at this state
+        axis_ref=axis->getId() ; // replace domain_ref by solved reference
+      }
+    }
+    activateFieldWorkflow_done_=true ;
+    return true ;
+  }
+  CATCH_DUMP_ATTR
+
 
   void CAxis::setContextClient(CContextClient* contextClient)
   TRY

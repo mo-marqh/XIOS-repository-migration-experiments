@@ -31,6 +31,7 @@ namespace xios
    class CAxisGroup;
    class CAxisAttributes;
    class CAxis;
+   class CField;
 
    ///--------------------------------------------------------------
 
@@ -68,7 +69,9 @@ namespace xios
          CAxis(const CAxis * const axis); // Not implemented yet.
 
          static CAxis* createAxis();
-         static CAxis* get(const string& id) ; //<! return axis pointer using id
+         static CAxis* get(const string& id, bool noError=false) ; //<! return axis pointer using id
+         static bool has(const string& id) ; //<! return domain pointer using id
+         static CField*  getFieldFromId(const string& id) ;
 
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
@@ -143,6 +146,10 @@ namespace xios
         void solveInheritanceTransformation();
       private:
         bool solveInheritanceTransformation_done_= false ;
+      public:
+        bool activateFieldWorkflow(CGarbageCollector& gc) ;
+      private:
+        bool activateFieldWorkflow_done_=false ;
       private:
         CGenericAlgorithmTransformation* transformationAlgorithm_ = nullptr ;
       public:

@@ -78,7 +78,7 @@ namespace xios {
    }
    CATCH
 
-   CDomain* CDomain::get(const string& id)
+   CDomain* CDomain::get(const string& id, bool noError)
    {
      const regex r("::");
      smatch m;
@@ -88,12 +88,40 @@ namespace xios {
         string fieldId=m.prefix() ;
         if (fieldId.empty()) ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
+        if (!CField::has(fieldId)) 
+          if (noError)  return nullptr ;
+          else ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
         CField* field=CField::get(fieldId) ;
-        return field->getAssociatedDomain(suffix) ;
+        return field->getAssociatedDomain(suffix, noError) ;
      }
-     else return CObjectFactory::GetObject<CDomain>(id).get();
+     else 
+     {
+       if (noError) if(!CObjectFactory::HasObject<CDomain>(id)) return nullptr ;
+       return CObjectFactory::GetObject<CDomain>(id).get();
+     }
    }
 
+   bool CDomain::has(const string& id)
+   {
+     if (CDomain::get(id,true)==nullptr) return false ;
+     else return true ;
+   }
+   
+   CField* CDomain::getFieldFromId(const string& id)
+   {
+     const regex r("::");
+     smatch m;
+     if (regex_search(id, m, r))
+     {
+        if (m.size()!=1) ERROR("CField* CDomain::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        string fieldId=m.prefix() ;
+        if (fieldId.empty()) ERROR("CField* CDomain::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        string suffix=m.suffix() ;
+        CField* field=CField::get(fieldId) ;
+        return field ;
+     }
+     else return nullptr;
+   }
 
    const std::set<StdString> & CDomain::getRelFiles(void) const
    TRY
@@ -2336,6 +2364,30 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
   
+
+  bool CDomain::activateFieldWorkflow(CGarbageCollector& gc)
+  TRY
+  {
+    if (!domain_ref.isEmpty())
+    {
+      CField* field=getFieldFromId(domain_ref) ;
+      if (field!=nullptr)
+      {
+        bool ret = field->buildWorkflowGraph(gc) ;
+        if (!ret) return false ; // cannot build workflow graph at this state
+      }
+      else 
+      {
+        CDomain* domain = get(domain_ref) ;
+        bool ret = domain->activateFieldWorkflow(gc) ;
+        if (!ret) return false ; // cannot build workflow graph at this state
+        domain_ref=domain->getId() ; // replace domain_ref by solved reference
+      }
+    }
+    activateFieldWorkflow_done_=true ;
+    return true ;
+  }
+  CATCH_DUMP_ATTR
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////// 
 
