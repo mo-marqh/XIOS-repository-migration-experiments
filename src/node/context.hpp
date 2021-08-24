@@ -362,7 +362,7 @@ namespace xios
       bool lockedContext_=false;
     public: 
         void lockContext(void) {lockedContext_=true; }
-        void unlockContext(void) {lockedContext_=true; }
+        void unlockContext(void) {lockedContext_=false; }
         bool isLockedContext(void) { return lockedContext_;}
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;
