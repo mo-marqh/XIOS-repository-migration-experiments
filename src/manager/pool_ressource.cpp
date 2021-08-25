@@ -28,7 +28,7 @@ namespace xios
     winNotify_->lockWindow(commRank,0) ;
     winNotify_->updateToWindow(commRank, this, &CPoolRessource::createServiceDumpOut) ;  
     winNotify_->unlockWindow(commRank,0) ;       
-
+    MPI_Barrier(poolComm_) ;
   }
 
   void CPoolRessource::createService(const std::string& serviceId, int type, int size, int nbPartitions)
