@@ -54,7 +54,6 @@ namespace xios
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
-           EVENT_ID_SEND_REGISTRY,
            EVENT_ID_CONTEXT_FINALIZE_CLIENT,
            EVENT_ID_COUPLER_IN_READY,
            EVENT_ID_COUPLER_IN_CLOSE_DEFINITION,
@@ -169,7 +168,6 @@ namespace xios
          void sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
          void sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles);
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
-         void sendRegistry(void) ;
          void sendFinalizeClient(CContextClient* contextClient, const string& contextClientId);
          
          public:
@@ -188,8 +186,6 @@ namespace xios
          void recvCreateFileHeader(CBufferIn& buffer);
          static void recvSolveInheritanceContext(CEventServer& event);
          void recvSolveInheritanceContext(CBufferIn& buffer);
-         static void recvRegistry(CEventServer& event) ;
-         void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
          static void recvFinalizeClient(CEventServer& event) ;
          void recvFinalizeClient(CBufferIn& buffer);
         

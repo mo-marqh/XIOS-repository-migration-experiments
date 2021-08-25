@@ -50,12 +50,12 @@ namespace xios
     }
   }
 
-  void CRegistry::getKey_(const string& key_, CBaseType& value)
+  void CRegistry::getKey_(const string& key_, CBaseType& value) const
   {
     const string key=path+key_ ;
     size_t size=value.size();
       
-    map<string,pair<size_t,char*> >::iterator it=registry.find(key) ;
+    map<string,pair<size_t,char*> >::const_iterator it=registry.find(key) ;
 
     if (it!=registry.end())
     {
@@ -257,7 +257,16 @@ namespace xios
 
   void CRegistry::hierarchicalGatherRegistry(void)
   {
-    hierarchicalGatherRegistry(communicator) ;
+    int color;
+    if (isEmpty()) color=0 ;
+    else color=1 ;
+    int rank ;
+    MPI_Comm_rank(communicator,&rank);
+    if (rank==0) color=1 ;
+    MPI_Comm newComm ;
+    MPI_Comm_split(communicator,color,rank,&newComm) ;
+    if (color==1) hierarchicalGatherRegistry(newComm) ;
+    MPI_Comm_free(&newComm) ;    
   }
 
   void CRegistry::hierarchicalGatherRegistry(const MPI_Comm& comm)

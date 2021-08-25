@@ -55,6 +55,7 @@ namespace xios
   CServicesManager*   CXios::servicesManager_=nullptr ;
   CContextsManager*   CXios::contextsManager_=nullptr ;
   CCouplerManager*    CXios::couplerManager_=nullptr ;
+  CRegistryManager*   CXios::registryManager_=nullptr ;
 
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
@@ -216,6 +217,11 @@ namespace xios
     usingServer = false;
   }
 
+  void CXios::launchRegistryManager(bool isXiosServer)
+  {
+    registryManager_ = new CRegistryManager(isXiosServer) ;
+  }
+
   void CXios::launchRessourcesManager(bool isXiosServer)
   {
     ressourcesManager_ = new CRessourcesManager(isXiosServer) ;
@@ -242,6 +248,11 @@ namespace xios
   }
 
   
+  void CXios::finalizeRegistryManager()
+  {
+    delete registryManager_;
+  }
+
   void CXios::finalizeRessourcesManager()
   {
     delete ressourcesManager_;

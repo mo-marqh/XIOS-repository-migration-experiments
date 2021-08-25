@@ -427,13 +427,9 @@ namespace xios
 
 
       string contextRegistryId=getId() ;
-      registryIn=new CRegistry(intraComm);
+      registryIn=new CRegistry(CXios::getRegistryManager()->getRegistryIn());
       registryIn->setPath(contextRegistryId) ;
       
-      int commRank ;
-      MPI_Comm_rank(intraComm_,&commRank) ;
-      if (commRank==0) registryIn->fromFile("xios_registry.bin") ;
-      registryIn->bcastRegistry() ;
       registryOut=new CRegistry(intraComm_) ;
       registryOut->setPath(contextRegistryId) ;
      
@@ -464,16 +460,12 @@ namespace xios
 
      CXios::getContextsManager()->getContextId(getId(), contextId_, intraComm) ;
      
-     registryIn=new CRegistry(intraComm);
-     registryIn->setPath(contextId_) ;
-     
-     int commRank ;
-     MPI_Comm_rank(intraComm_,&commRank) ;
-     if (commRank==0) registryIn->fromFile("xios_registry.bin") ;
-    
-     registryIn->bcastRegistry() ;
-     registryOut=new CRegistry(intraComm) ;
-     registryOut->setPath(contextId_) ;
+     string contextRegistryId=getId() ;
+     registryIn=new CRegistry(CXios::getRegistryManager()->getRegistryIn());
+     registryIn->setPath(contextRegistryId) ;
+      
+     registryOut=new CRegistry(intraComm_) ;
+     registryOut->setPath(contextRegistryId) ;
 
    }
    CATCH_DUMP_ATTR
@@ -714,7 +706,7 @@ namespace xios
    TRY
    {
       registryOut->hierarchicalGatherRegistry() ;
-      if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
+      if (server->intraCommRank==0) CXios::getRegistryManager()->merge(*registryOut) ;
 
       if (serviceType_==CServicesManager::CLIENT)
       {
@@ -1573,10 +1565,6 @@ namespace xios
              recvCreateFileHeader(event);
              return true;
              break;
-           case EVENT_ID_SEND_REGISTRY:
-             recvRegistry(event);
-             return true;
-             break;
            case EVENT_ID_COUPLER_IN_READY:
              recvCouplerInReady(event);
              return true;
@@ -2104,58 +2092,6 @@ namespace xios
     return (context);
   }
   CATCH
-
-     //! Server side: Receive a message to do some post processing
-  void CContext::recvRegistry(CEventServer& event)
-  TRY
-  {
-    CBufferIn* buffer=event.subEvents.begin()->buffer;
-    getCurrent()->recvRegistry(*buffer);
-  }
-  CATCH
-
-  void CContext::recvRegistry(CBufferIn& buffer)
-  TRY
-  {
-    if (server->intraCommRank==0)
-    {
-      CRegistry registry(server->intraComm) ;
-      registry.fromBuffer(buffer) ;
-      registryOut->mergeRegistry(registry) ;
-    }
-  }
-  CATCH_DUMP_ATTR
-
-  void CContext::sendRegistry(void)
-  TRY
-  {
-    registryOut->hierarchicalGatherRegistry() ;
-
-    int nbSrvPools ;
-    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
-    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
-    else nbSrvPools = 0 ;
-    CContextClient* contextClientTmp ;
-
-    for (int i = 0; i < nbSrvPools; ++i)
-    {
-      if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
-      else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
-
-      CEventClient event(CContext::GetType(), CContext::EVENT_ID_SEND_REGISTRY);
-      if (contextClientTmp->isServerLeader())
-      {
-        CMessage msg ;
-        if (contextClientTmp->clientRank==0) msg<<*registryOut ;
-        const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             event.push(*itRank,1,msg);
-        contextClientTmp->sendEvent(event);
-      }
-      else contextClientTmp->sendEvent(event);
-    }
-  }
-  CATCH_DUMP_ATTR
 
   
   void CContext::sendFinalizeClient(CContextClient* contextClient, const string& contextClientId)

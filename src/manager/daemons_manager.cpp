@@ -18,12 +18,14 @@ namespace xios
     MPI_Comm splitComm ;
     MPI_Comm_split(xiosComm,isXiosServer,commRank,&splitComm) ;
     
+    CXios::launchRegistryManager(isXiosServer) ;
     CXios::launchRessourcesManager(isXiosServer) ;
     CXios::launchServicesManager(isXiosServer) ;
     CXios::launchContextsManager(isXiosServer) ;
     CXios::launchCouplerManager(isXiosServer) ;
-
+ 
     if (isXiosServer) CServer::launchServersRessource(splitComm) ;
+    MPI_Barrier(xiosComm) ;
     MPI_Comm_free(&splitComm) ;
   }
 
@@ -33,6 +35,7 @@ namespace xios
     CXios::finalizeCouplerManager() ;
     CXios::finalizeServicesManager() ;
     CXios::finalizeRessourcesManager() ;
+    CXios::finalizeRegistryManager() ;
   }
 
   bool CDaemonsManager::eventLoop(void)

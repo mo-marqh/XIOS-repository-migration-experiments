@@ -37,11 +37,11 @@ namespace xios
 
 
 /** retrieve a value from a key */
-      void getKey(const std::string& key, CBaseType& value) { this->getKey_(key,value); }
+      void getKey(const std::string& key, CBaseType& value) const { this->getKey_(key,value); }
 
 /** retrieve a value from a key */
       template<typename T> typename boost::enable_if_c<!boost::is_convertible<T&, CBaseType&>::value>::type
-      getKey(const std::string& key, T& value) { CType_ref<T> valRef(value); this->getKey_(key,valRef); }
+      getKey(const std::string& key, T& value) const { CType_ref<T> valRef(value); this->getKey_(key,valRef); }
 
 
 /** query for an already inserted key */
@@ -102,7 +102,7 @@ namespace xios
       void setKey_(const std::string& key, const CBaseType& value) ;
 
 /** retrieve a value from a key (internal use)*/
-      void getKey_(const std::string& key, CBaseType& value) ;
+      void getKey_(const std::string& key, CBaseType& value) const ;
 
 /** use internally for recursivity */
       void gatherRegistry(const MPI_Comm& comm) ;

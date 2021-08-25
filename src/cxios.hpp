@@ -9,6 +9,7 @@
 #include "contexts_manager.hpp"
 #include "daemons_manager.hpp"
 #include "coupler_manager.hpp"
+#include "registry_manager.hpp"
 
 namespace xios
 {
@@ -67,6 +68,7 @@ namespace xios
      static const string defaultGathererId ;
 
 
+     static CRegistryManager* registryManager_ ;
      static CRessourcesManager* ressourcesManager_ ;
      static CCouplerManager* couplerManager_ ;
      static CServicesManager* servicesManager_ ;
@@ -92,13 +94,16 @@ namespace xios
      static void launchDaemonsManager(bool isXiosServer) ;
      static void launchRessourcesManager(bool isXiosServer) ;
      static void launchCouplerManager(bool isXiosServer) ;
+     static void launchRegistryManager(bool isXiosServer) ;
     
      static void finalizeServicesManager() ;
      static void finalizeContextsManager() ;
      static void finalizeDaemonsManager() ;
      static void finalizeRessourcesManager() ;
      static void finalizeCouplerManager() ;
+     static void finalizeRegistryManager() ;
 
+     static CRegistryManager*   getRegistryManager(void) { return registryManager_ ;}
      static CRessourcesManager* getRessourcesManager(void) { return ressourcesManager_ ;}
      static CCouplerManager*    getCouplerManager(void) { return couplerManager_ ;}
      static CServicesManager*   getServicesManager(void) { return servicesManager_ ;}

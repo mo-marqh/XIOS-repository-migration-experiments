@@ -173,8 +173,6 @@ namespace xios
       if (xiosCommSize==clientsCommSize) CXios::setUsingServer() ;
       else CXios::setNotUsingServer() ;
 
-
-      CXios::setGlobalRegistry(new CRegistry(clientsComm_)) ;
       /////////////////////////////////////////
       ///////////// PART 3 ////////////////////
       /////////////////////////////////////////
@@ -475,16 +473,6 @@ namespace xios
       MPI_Comm_rank(clientsComm_, &commRank) ;
       if (commRank==0) CXios::getRessourcesManager()->finalize() ;
       
-      auto globalRegistry=CXios::getGlobalRegistry() ;
-      globalRegistry->hierarchicalGatherRegistry() ;
-
-      if (commRank==0)
-      {
-        info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
-        globalRegistry->toFile("xios_registry.bin") ;
-      }
-      delete globalRegistry ;
-
       CTimer::get("XIOS init/finalize",false).suspend() ;
       CTimer::get("XIOS").suspend() ;
       
