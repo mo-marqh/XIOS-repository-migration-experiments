@@ -44,17 +44,16 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <string>
 #include <execinfo.h>
-
+#include <cxxabi.h>
+#include <dlfcn.h>
+#include <map>
+#include <fstream>
 #include "memtrack.hpp"
+#include "log.hpp"
+#include "addr2line.hpp"
 #undef new    // IMPORTANT!
 
-extern "C"
-{
-  void addr2line(const char *file_name, char** addr, int naddr) ;
-#ifdef XIOS_MEMTRACK_LIGHT
-  void addr2line(const char *file_name, char** addr, int naddr) {} 
-#endif
-}
+
 /* ------------------------------------------------------------ */
 /* -------------------- namespace MemTrack -------------------- */
 /* ------------------------------------------------------------ */
@@ -97,8 +96,9 @@ namespace MemTrack
             char const *GetTypeName() const { return myTypeName; }
         
             void Stamp(char const *filename, int lineNum, char const *typeName);
-            void backTrace(void) ;
-        
+            void backTrace(std::ofstream& memReport, xios::CAddr2line& addr2line) ;
+            void backTrace(std::ofstream& memReport) ;
+
             static void AddNode(BlockHeader *node);
             static void RemoveNode(BlockHeader *node);
             static size_t CountBlocks();
@@ -138,20 +138,51 @@ namespace MemTrack
         myTypeName = typeName;
     }
 
-    void BlockHeader::backTrace(void)
-    {   
-        
-//        oss<<"addr2line -C -f -i -s -e ../bin/test_client.exe " ;
-        char *addr ;
-        char buffer[20] ;
-        addr=buffer ;
+
+    void BlockHeader::backTrace(std::ofstream& memReport)
+    {
+        char** strings ;
+        strings = backtrace_symbols(stackArray, this->stackSize);
+        int stackSize=this->stackSize-3 ;
+        char* buffer ;
+        char* outputBuffer ;
+        size_t length=10 ;
+        outputBuffer = (char*) malloc(length) ;
+        int status ;
+        Dl_info info;
         for(int i=0;i<stackSize;i++) 
         {
-          std::ostringstream oss ;
-          oss<<stackArray[i] ;
-          strcpy(addr,oss.str().c_str()) ;
-          addr2line("/proc/self/exe",&addr,1) ;
+            if (dladdr(stackArray[i+3], &info))
+            {
+              buffer=abi::__cxa_demangle(info.dli_sname,outputBuffer,&length,&status );
+              if (buffer!=nullptr) 
+              {
+                memReport<<buffer<<std::endl ;
+                outputBuffer=buffer ;
+              }
+              else if (info.dli_sname!=nullptr) memReport<<info.dli_sname<<std::endl ;
+              else memReport<<strings[i+3]<<std::endl ;
+            }
+            else memReport<<strings[i+3]<<std::endl ;
         }
+        free(buffer) ;
+        free(strings) ;
+    }
+
+    void BlockHeader::backTrace(std::ofstream& memReport, xios::CAddr2line& addr2line)
+    {   
+        
+      int stackSize=this->stackSize-3 ;
+      
+      for(int i=0;i<stackSize;i++)
+      {
+        std::ostringstream address;
+        address << stackArray[i+3];
+        addr2line.write(address.str()) ;
+        std::string out ;
+        addr2line.read(out) ;
+        memReport<<out<<std::endl ;
+      }
     }
     /* ---------------------------------------- BlockHeader AddNode */
 
@@ -438,32 +469,50 @@ namespace MemTrack
 
     /* ---------------------------------------- TrackDumpBlocks */
 
-    void TrackDumpBlocks()
+    void TrackDumpBlocks(std::ofstream& memReport, size_t memtrack_blocks, size_t memtrack_size )
     {
         // Get an array of pointers to all extant blocks.
+        std::ostringstream ostr ;
         size_t numBlocks = BlockHeader::CountBlocks();
         BlockHeader **ppBlockHeader =
             (BlockHeader **)calloc(numBlocks, sizeof(*ppBlockHeader));
         BlockHeader::GetBlocks(ppBlockHeader);
-
         // Dump information about the memory blocks.
-        printf("\n");
-        printf("=====================\n");
-        printf("Current Memory Blocks\n");
-        printf("=====================\n");
-        printf("\n");
+        
+        memReport<<std::endl;
+        memReport<<"=====================" <<std::endl ;
+        memReport<<"Current Memory Blocks" <<std::endl ;
+        memReport<<"=====================" <<std::endl ;
+        memReport<<std::endl ;
+        char strbuff[10000] ;
+        std::multimap<size_t,BlockHeader *,std::greater<int>> orderedBlocks ;
         for (size_t i = 0; i < numBlocks; i++)
         {
-            BlockHeader *pBlockHeader = ppBlockHeader[i];
+          BlockHeader *pBlockHeader = ppBlockHeader[i];
+          size_t size = pBlockHeader->GetRequestedSize();
+          orderedBlocks.insert({size,pBlockHeader}) ;
+        }
+        
+        xios::CAddr2line myaddr2line ;
+        size_t i = 0 ;
+        for(auto& it : orderedBlocks)
+        {
+            BlockHeader *pBlockHeader = it.second ;
             char const *typeName = pBlockHeader->GetTypeName();
             size_t size = pBlockHeader->GetRequestedSize();
             char const *fileName = pBlockHeader->GetFilename();
             int lineNum = pBlockHeader->GetLineNum();
-            printf("*** #%-6d %5d bytes %-50s\n", i, size, typeName);
-            printf("... %s:%d\n", fileName, lineNum);
-            pBlockHeader->backTrace();
+            if (memtrack_blocks>0 && i>memtrack_blocks) break ;            
+            if (memtrack_size>0 && size<memtrack_size) break ;            
+            
+            sprintf(strbuff,"*** #%-6d %5d bytes %-50s\n", i, size, typeName);
+            memReport<<strbuff ;
+            sprintf(strbuff,"... %s:%d\n", fileName, lineNum);
+            memReport<<strbuff ;
+            //pBlockHeader->backTrace(memReport, myaddr2line);
+            pBlockHeader->backTrace(memReport);
+            i++ ;
         }
-
         // Clean up.
         free(ppBlockHeader);
     }

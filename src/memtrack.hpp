@@ -37,6 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <typeinfo>
 #include <cstring>
+#include <fstream>
 
 namespace MemTrack
 {
@@ -58,7 +59,7 @@ namespace MemTrack
     void *TrackMalloc(size_t size);
     void TrackFree(void *p);
     void TrackStamp(void *p, const MemStamp &stamp, char const *typeName);
-    void TrackDumpBlocks();
+    void TrackDumpBlocks(std::ofstream& memReport, size_t memtrack_blocks, size_t memtrack_size);
     void TrackListMemoryUsage();
     size_t getCurrentMemorySize(void) ;
     size_t getMaxMemorySize(void) ;

@@ -13,6 +13,7 @@
 #include "ressources_manager.hpp"
 #include "services_manager.hpp"
 #include "servers_ressource.hpp"
+#include "mem_checker.hpp"
 
 namespace xios
 {
@@ -154,8 +155,20 @@ namespace xios
 #endif
 
 #ifdef XIOS_MEMTRACK_FULL
-     MemTrack::TrackListMemoryUsage() ;
-     MemTrack::TrackDumpBlocks();
+      report(0) << " Memory report : current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+      report(0) << " Memory report : maximum memory used by XIOS : "<<  MemTrack::getMaxMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+      
+      ofstream memReport ;
+      std::filebuf* fb = memReport.rdbuf();
+      CClient::openStream(clientFile, ".mem", fb);
+      
+      MemTrack::TrackListMemoryUsage() ;
+      size_t memtrack_blocks=0 ;
+      memtrack_blocks=xios::CXios::getin("memtrack_blocks",memtrack_blocks) ;
+      size_t memtrack_size=0 ;
+      memtrack_size=xios::CXios::getin("memtrack_size",memtrack_size) ;
+      MemTrack::TrackDumpBlocks(memReport, memtrack_blocks,memtrack_size);
+      memReport.close();
 #endif
 
      CClient::closeInfoStream();
@@ -176,6 +189,7 @@ namespace xios
   //! Initialize server then put it into listening state
   void CXios::initServerSide(void)
   {
+    CMemChecker::get("xios").resume() ;
     initServer();
     isClient = false;
     isServer = true;
@@ -192,10 +206,23 @@ namespace xios
 #endif
 
 #ifdef XIOS_MEMTRACK_FULL
-     MemTrack::TrackListMemoryUsage() ;
-     MemTrack::TrackDumpBlocks();
+      report(0) << " Memory report : current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+      report(0) << " Memory report : maximum memory used by XIOS : "<<  MemTrack::getMaxMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+      ofstream memReport ;
+      std::filebuf* fb = memReport.rdbuf();
+      CClient::openStream(serverFile, ".mem", fb);
+      
+      MemTrack::TrackListMemoryUsage() ;
+      size_t memtrack_blocks=0 ;
+      memtrack_blocks=xios::CXios::getin("memtrack_blocks",memtrack_blocks) ;
+      size_t memtrack_size=0 ;
+      memtrack_size=xios::CXios::getin("memtrack_size",memtrack_size) ;
+      MemTrack::TrackDumpBlocks(memReport,memtrack_blocks,memtrack_size);
+      memReport.close() ;
 #endif
 #endif
+    CMemChecker::get("xios").suspend() ;
+    report(0)<<CMemChecker::getAllCumulatedMem() ;
     CServer::closeInfoStream();
   }
 

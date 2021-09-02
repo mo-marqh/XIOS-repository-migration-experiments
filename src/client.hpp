@@ -45,12 +45,12 @@ namespace xios
         static void closeErrorStream();
         static CPoolRessource* getPoolRessource(void) { return poolRessource_ ; }
 
+        static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
       protected:
         static int rank_;                 //!< Rank in model intraComm
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 
-        static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
         static CPoolRessource* poolRessource_ ;
     };
 }

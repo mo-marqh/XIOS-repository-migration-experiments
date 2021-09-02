@@ -66,6 +66,7 @@ namespace xios
 
         static CServersRessource* getServersRessource(void) { return serversRessource_;}
         static void launchServersRessource(MPI_Comm commServer) ;
+        static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
       
       private:
         static vector<int> sndServerGlobalRanks;  //!< Global ranks of pool leaders on the secondary server
@@ -73,7 +74,6 @@ namespace xios
         static int nbContexts;                    //!< Number of contexts registered by server
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
-        static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
         static CServersRessource* serversRessource_ ;
     };
 }
