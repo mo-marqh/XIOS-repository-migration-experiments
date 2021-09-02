@@ -89,7 +89,7 @@ def generate_job(fn, n):
             fh.write("cd ${SLURM_SUBMIT_DIR}\n")
             fh.write("cp ../../build_"+arch+"_"+mode+"/bin/generic_testcase.exe ./\n")
             fh.write("source ../../build_"+arch+"_"+mode+"/arch.env\n")
-            fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt\n")
+            #fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt\n")
             fh.write("srun generic_testcase.exe")
 
 
@@ -150,7 +150,7 @@ def main():
             fh.write("ulimit -c 0\n")
             fh.write("cd ${SLURM_SUBMIT_DIR}\n")
             fh.write("source build_"+arch+"_"+mode+"/arch.env\n")
-            fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt\n")
+            #fh.write("source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt\n")
             fh.write("export location="+os.getcwd()+"\n")
             fh.write("export log_location="+os.getcwd()+"\n")
             fh.write("echo \"parallel launch arch="+arch+" mode="+mode+"\" >> ${log_location}/Log.txt\n")
