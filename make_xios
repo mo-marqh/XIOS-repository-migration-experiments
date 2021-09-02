@@ -1,5 +1,4 @@
 #!/bin/bash
-
 install_dir=$PWD
 compil_full="false"
 use_oasis="false"
@@ -42,7 +41,7 @@ while (($# > 0))
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
-	    echo "       [--memtrack] : tracking memory leak - developper only"
+	    echo "       [--memtrack full/light] : tracking memory leak - developper only"
 	    echo "       [--fcm] : fcm version compatibility : 'new'/'old'"
 	    echo "Example : ./make_xios --prod --arch PW6_VARGAS"
 	    echo "Example : ./make_xios --avail"
@@ -243,9 +242,8 @@ if [[ "$use_memtrack" == "true" ]]
     if [[ "$memtrack" == "light" ]]
     then
 	XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK_LIGHT"
-    elif [[ "$memtrack" == "FULL"  ]]
+    elif [[ "$memtrack" == "full"  ]]
     then
-      XIOS_LIB="$ADDR2LINE_LIBDIR $ADDR2LINE_LIB $XIOS_LIB"
       XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK_FULL"
     else
 	echo "Bad choice for --memtrack argument : choose between 'light','full'"
