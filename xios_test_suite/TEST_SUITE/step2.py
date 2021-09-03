@@ -6,6 +6,9 @@ import json
 import itertools
 import copy
 
+import netCDF4
+from netCDF4 import Dataset
+import numpy as np
 
 mode=os.getenv("mode")
 arch=os.getenv("arch")
@@ -81,11 +84,25 @@ def main():
                 config_name = list(config.split("/"))[1]
                 for checkfile in checkfiles:
                     if os.path.exists(config+"/"+checkfile) and os.path.exists("reference/ref_"+config+"/"+checkfile):
-                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+"  2>&1 |grep -v 'Found more than one time variable'|grep -v 'cdo diffn: Processed'|grep -v 'cdo    diffn: Processed'|grep -v 'Time variable >time_counter< not found!' > diff_"+checkfile+".txt")
-                        if os.stat("diff_"+checkfile+".txt").st_size==0: # if no diff -> set 0
-                            report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(1)+"\n")
-                        else: # if cdo diffn returns diff -> set -1
-                            report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-1)+"\n")
+                        #OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+"  2>&1 |grep -v 'Found more than one time variable'|grep -v 'cdo diffn: Processed'|grep -v 'cdo    diffn: Processed'|grep -v 'Time variable >time_counter< not found!' > diff_"+checkfile+".txt")
+                        #if os.stat("diff_"+checkfile+".txt").st_size==0: # if no diff -> set 0
+                        #    report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(1)+"\n")
+                        #else: # if cdo diffn returns diff -> set -1
+                        #    report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-1)+"\n")
+                        ref = Dataset( "reference/ref_"+config+"/"+checkfile )
+                        res = Dataset( config+"/"+checkfile )
+                        validated = 1
+                        for var in res.variables:
+                            if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))):
+                                ref_interp = ref.variables[var]
+                                ref_array = ref_interp[:]
+                                res_interp = res.variables[var]
+                                res_array = res_interp[:]
+                                diff = (ref_array-res_array)/ref_array
+                                if ( np.max(np.abs(diff)) >  2*10**-3 ):
+                                    print( var,  ", max relative error : ", np.max(diff) )
+                                    validated = -1
+                        report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(validated)+"\n")
 
                     elif os.path.exists(config+"/"+checkfile): # if no ref file -> set 0
                         report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(0)+"\n")
