@@ -6,7 +6,7 @@
   <domain_definition>
     <domain id="domain" />
     <domain id="other_domain" />
-    <domain id="square_domain" ni_glo="36" nj_glo="36" type="rectilinear"/>
+    <domain id="square_domain" ni_glo="34" nj_glo="38" type="rectilinear"/>
   </domain_definition>
 
   <axis_definition>
