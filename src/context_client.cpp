@@ -63,7 +63,9 @@ namespace xios
           MPI_Comm_rank(winComm,&myRank);
           MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[rank][0]);
           MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[rank][1]);
-          MPI_Comm_free(&winComm) ;
+//       ym : Warning : intelMPI doesn't support that communicator of windows be deallocated before the windows deallocation, crash at MPI_Win_lock
+//            Bug or not ?          
+//        MPI_Comm_free(&winComm) ;
         }
       }
 
