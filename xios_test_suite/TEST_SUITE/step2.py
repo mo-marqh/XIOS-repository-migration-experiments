@@ -98,14 +98,17 @@ def main():
                                 ref_array = ref_interp[:]
                                 res_interp = res.variables[var]
                                 res_array = res_interp[:]
-                                diff = np.zeros_like( ref_array )
-                                np.divide(ref_array-res_array,ref_array,diff,where=(ref_array[:]>10**-15))
-                                if ( np.max(np.abs(diff)) >  1*10**-3 ):
-                                    validated = -1
-                                diff = np.zeros_like( ref_array )
-                                np.divide(ref_array-res_array,res_array,diff,where=(ref_array[:]>10**-15))
-                                if ( np.max(np.abs(diff)) >  1*10**-3 ):
-                                    validated = -1
+                                if (res_array.shape == ref_array.shape):
+                                    diff = np.zeros_like( ref_array )
+                                    np.divide(ref_array-res_array,ref_array,diff,where=(ref_array[:]>10**-15))
+                                    if ( np.max(np.abs(diff)) >  1*10**-9 ):
+                                        validated = -1
+                                    diff = np.zeros_like( ref_array )
+                                    np.divide(ref_array-res_array,res_array,diff,where=(ref_array[:]>10**-15))
+                                    if ( np.max(np.abs(diff)) >  1*10**-9 ):
+                                        validated = -1
+                                else:
+                                        validated = -1
                         report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(validated)+"\n")
 
                     elif os.path.exists(config+"/"+checkfile): # if no ref file -> set 0
