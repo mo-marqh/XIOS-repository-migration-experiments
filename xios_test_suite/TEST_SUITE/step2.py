@@ -6,6 +6,9 @@ import json
 import itertools
 import copy
 
+import netCDF4
+from netCDF4 import Dataset
+import numpy as np
 
 mode=os.getenv("mode")
 arch=os.getenv("arch")
@@ -17,11 +20,11 @@ ref_file=os.getenv("ref_file")
 
 def OSinfo(runthis):
     red = lambda text: '\033[0;31m' + text + '\033[0m'
-    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
-    theInfo = osstdout.communicate()[0].strip()
-    if osstdout.returncode!=0:
+    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+    theInfo, theErr = osstdout.communicate()
+    if theErr:
         print(red(runthis+" FAILED"))
-        print(theInfo)
+        print(theErr)
         sys.exit()
 
 
@@ -71,11 +74,38 @@ def main():
                 config_name = list(config.split("/"))[1]
                 for checkfile in checkfiles:
                     if os.path.exists(config+"/"+checkfile) and os.path.exists("reference/ref_"+config+"/"+checkfile):
-                        OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+" | > diff.txt")
-                        if os.stat("diff.txt").st_size==0:
-                            report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(1)+"\n")
-                    elif os.path.exists(config+"/"+checkfile):
+                        #OSinfo("cdo -W diffn "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+"  2>&1 |grep -v 'Found more than one time variable'|grep -v 'cdo diffn: Processed'|grep -v 'cdo    diffn: Processed'|grep -v 'Time variable >time_counter< not found!' > diff_"+checkfile+".txt")
+                        #if os.stat("diff_"+checkfile+".txt").st_size==0: # if no diff -> set 0
+                        #    report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(1)+"\n")
+                        #else: # if cdo diffn returns diff -> set -1
+                        #    report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-1)+"\n")
+                        ref = Dataset( "reference/ref_"+config+"/"+checkfile )
+                        res = Dataset( config+"/"+checkfile )
+                        validated = 1
+                        for var in res.variables:
+                            if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))) and (not (var.startswith('atm__'))):
+                                ref_interp = ref.variables[var]
+                                ref_array = ref_interp[:]
+                                res_interp = res.variables[var]
+                                res_array = res_interp[:]
+                                if (res_array.shape == ref_array.shape):
+                                    diff = np.zeros_like( ref_array )
+                                    np.divide(ref_array-res_array,ref_array,diff,where=(ref_array[:]>10**-15))
+                                    if ( np.max(np.abs(diff)) >  1*10**-9 ):
+                                        validated = -1
+                                    diff = np.zeros_like( ref_array )
+                                    np.divide(ref_array-res_array,res_array,diff,where=(ref_array[:]>10**-15))
+                                    if ( np.max(np.abs(diff)) >  1*10**-9 ):
+                                        validated = -1
+                                else:
+                                        validated = -1
+                        report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(validated)+"\n")
+
+                    elif os.path.exists(config+"/"+checkfile): # if no ref file -> set 0
                         report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(0)+"\n")
+                    elif os.path.exists("reference/ref_"+config+"/"+checkfile): # if no output file -> set -2
+                        report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-2)+"\n")
+
                    
 
 if __name__== "__main__":

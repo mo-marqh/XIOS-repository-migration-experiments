@@ -6,7 +6,7 @@
   <domain_definition>
     <domain id="domain" />
     <domain id="other_domain" />
-    <domain id="square_domain" ni_glo="36" nj_glo="36" type="rectilinear"/>
+    <domain id="square_domain" ni_glo="34" nj_glo="38" type="rectilinear"/>
   </domain_definition>
 
   <axis_definition>
@@ -72,7 +72,7 @@
     <grid id="grid2D_square">
       <domain domain_ref="square_domain">
       <generate_rectilinear_domain lon_start="-175"/>
-      <interpolate_domain />
+      <interpolate_domain order="1" />
       </domain> 
     </grid>
 
