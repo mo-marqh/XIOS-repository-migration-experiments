@@ -152,6 +152,8 @@ namespace xios
     bool okLoop;
 
     traceOff();
+    // WARNING : with intel MPI, probing crash on an intercommunicator with release library but not with release_mt
+    // ==>  source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt    needed
     MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm,&flag,&status);
     traceOn();
 
