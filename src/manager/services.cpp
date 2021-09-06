@@ -25,7 +25,7 @@ namespace xios
     winNotify_->lockWindow(localRank,0) ;
     winNotify_->updateToWindow(localRank, this, &CService::createContextDumpOut) ;
     winNotify_->unlockWindow(localRank,0) ;
-
+    MPI_Barrier(serviceComm_) ;
     if (localRank==localLeader_) 
     {
       globalLeader_=globalRank ;

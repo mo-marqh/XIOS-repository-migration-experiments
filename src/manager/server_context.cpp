@@ -26,6 +26,7 @@ namespace xios
     MPI_Comm_rank(contextComm_,&localRank) ;
  
     winNotify_ = new CWindowManager(contextComm_, maxBufferSize_) ;
+    MPI_Barrier(contextComm_) ;
     
     int type;
     if (localRank==localLeader_) 

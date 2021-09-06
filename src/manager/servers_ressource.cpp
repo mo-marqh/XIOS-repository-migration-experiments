@@ -25,7 +25,7 @@ namespace xios
     MPI_Comm_rank(serverComm_,&localRank) ;
     
     winNotify_ = new CWindowManager(serverComm_, maxBufferSize_) ;
-
+    MPI_Barrier(serverComm_) ;
     if (localRank==localLeader_) 
     {
       int commSize ;
@@ -36,7 +36,8 @@ namespace xios
       for(int i=0;i<commSize;i++) freeRessourcesRank_[i]=i ;
     }
 
-    MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ;    
+    MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ; 
+
   }
 
   void CServersRessource::createPool(const string& poolId, const int size)
