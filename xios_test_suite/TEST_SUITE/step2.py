@@ -93,14 +93,18 @@ def main():
                         res = Dataset( config+"/"+checkfile )
                         validated = 1
                         for var in res.variables:
-                            if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))):
+                            if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))) and (not (var.startswith('atm__'))):
                                 ref_interp = ref.variables[var]
                                 ref_array = ref_interp[:]
                                 res_interp = res.variables[var]
                                 res_array = res_interp[:]
-                                diff = (ref_array-res_array)/ref_array
-                                if ( np.max(np.abs(diff)) >  2*10**-3 ):
-                                    print( var,  ", max relative error : ", np.max(diff) )
+                                diff = np.zeros_like( ref_array )
+                                np.divide(ref_array-res_array,ref_array,diff,where=(ref_array[:]>10**-15))
+                                if ( np.max(np.abs(diff)) >  1*10**-3 ):
+                                    validated = -1
+                                diff = np.zeros_like( ref_array )
+                                np.divide(ref_array-res_array,res_array,diff,where=(ref_array[:]>10**-15))
+                                if ( np.max(np.abs(diff)) >  1*10**-3 ):
                                     validated = -1
                         report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(validated)+"\n")
 
