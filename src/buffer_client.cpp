@@ -56,8 +56,9 @@ namespace xios
     if (hasWindows)
     {  
     
-      MPI_Win_attach(windows_[0], bufferHeader[0], bufferSize+headerSize) ;
-      MPI_Win_attach(windows_[1], bufferHeader[1], bufferSize+headerSize) ;
+      MPI_Aint buffSize=bufferSize+headerSize ;
+      MPI_Win_attach(windows_[0], bufferHeader[0], buffSize) ;
+      MPI_Win_attach(windows_[1], bufferHeader[1], buffSize) ;
     
       MPI_Group group ;
       int groupSize,groupRank ;
@@ -392,7 +393,7 @@ namespace xios
 
     lockBuffer() ;
  
-    int size=sizeof(int)+2*sizeof(size_t)+2*sizeof(MPI_AINT) ;
+    int size=sizeof(int)+2*sizeof(size_t)+2*sizeof(MPI_Aint) ;
     CBufferOut* bufOut = this->getBuffer(timelineEventChangeBufferSize, size);
     bufOut->put(size);
     bufOut->put(timelineEventChangeBufferSize);
