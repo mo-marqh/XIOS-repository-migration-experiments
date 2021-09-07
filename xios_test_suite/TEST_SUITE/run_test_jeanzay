@@ -6,7 +6,7 @@ export mode=prod
 bash ./run_test
 
 
-#export arch=X64_JEANZAY
-#export mode=debug
-#
-#bash ./run_test
+export arch=X64_JEANZAY
+export mode=prod
+
+bash ./run_test

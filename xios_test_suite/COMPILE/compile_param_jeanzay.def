@@ -1,4 +1,4 @@
-arch = X64_JEANZAY_PGI
+arch = X64_JEANZAY_PGI, X64_JEANZAY
 mode = prod
 
 #arch = X64_JEANZAY_Intel, X64_JEANZAY_gcc,  X64_JEANZAY_pgi
