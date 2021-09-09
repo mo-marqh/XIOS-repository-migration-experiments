@@ -93,7 +93,8 @@ TRY
    int indexSize = sourceGlobalIdx.numElements();
    domainDestination->i_index.resize( indexSize );
    domainDestination->j_index.resize( indexSize );
-   for (size_t i = 0; i < indexSize ; ++i) {
+   for (size_t i = 0; i < indexSize ; ++i)
+   {
      domainDestination->i_index(i) = sourceGlobalIdx(i)%domainSource->ni_glo;
      domainDestination->j_index(i) = sourceGlobalIdx(i)/domainSource->ni_glo;
    }
@@ -103,20 +104,16 @@ TRY
    //   - domainDestination->i_index = sourceGlobalIdx;
    //   - domainDestination->j_index = 0;
 
-   // set mask_1d to enable domainMask computing (in checkMask()) 
+   // set data_i_index to enable localMask computing (in computeLocalMask()), used to compute Workflow View
    CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
-   CArray<int,1> sourceFullIdx     = domainSource->getLocalView(CElementView::FULL    )->getIndex();
-   domainDestination->mask_1d.resize( indexSize );
-   int countMasked(0); // countMasked will store the offset index between full and workflow views
-   for (size_t i = 0; i < indexSize ; ++i) {
-       if ( ( (i-countMasked) >= sourceWorkflowIdx.numElements() )
-         || ( sourceFullIdx(i)!=sourceWorkflowIdx(i-countMasked) ) ) {
-       domainDestination->mask_1d(i) = 0;
-       countMasked++;
-     }
-     else {
-       domainDestination->mask_1d(i) = 1;
-     }
+   domainDestination->data_i_index.resize( indexSize );
+   domainDestination->data_i_index = -1; 
+   domainDestination->data_j_index.resize( indexSize );
+   domainDestination->data_j_index = 0; 
+   int srcWorkflowSize = sourceWorkflowIdx.numElements();
+   for (size_t i = 0; i < srcWorkflowSize ; ++i)
+   {
+     domainDestination->data_i_index(sourceWorkflowIdx(i)) = sourceWorkflowIdx(i);
    }
 
    

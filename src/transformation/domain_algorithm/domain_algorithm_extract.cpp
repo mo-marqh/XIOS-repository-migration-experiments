@@ -174,15 +174,31 @@ TRY
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
 
+
   // Set attributes required to define domainDestination->localElement_ and associated views, full and workflow)
   CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
   int indexSize = sourceGlobalIdx.numElements();
-  domainDest_->mask_1d.resize(niDest*njDest);
+  domainDest_->data_i_index.resize(niDest*njDest);
+  domainDestination->data_i_index = -1; 
+  domainDest_->data_j_index.resize(niDest*njDest);
+  domainDestination->data_j_index = 0; 
+
   CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
-  CArray<int,1> sourceFullIdx     = domainSource->getLocalView(CElementView::FULL    )->getIndex();
+  int srcWorkflowSize = sourceWorkflowIdx.numElements();
+  for (size_t i = 0; i < srcWorkflowSize ; ++i)
+  {
+    {
+      int iIdxSrc = sourceWorkflowIdx(i)%domainSource->ni_glo-destIBegin;
+      int jIdxSrc = sourceWorkflowIdx(i)/domainSource->ni_glo-destJBegin;
+      int extractedSrcWFIdx = jIdxSrc * niDest + iIdxSrc;
+      if ((extractedSrcWFIdx>=0)&&(extractedSrcWFIdx<niDest*njDest))
+      {
+        domainDest_->data_i_index(extractedSrcWFIdx) = extractedSrcWFIdx;
+      }
+    }
+  }
   
   int countDest(0); // increment of the position in destination domain 
-  int countMasked(0); // countMasked will store the offset index between full and workflow views
   for (int countSrc = 0; countSrc < indexSize ; ++countSrc) {
     int iIdxSrc = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
     int jIdxSrc = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
@@ -194,16 +210,6 @@ TRY
       domainDest_->i_index(countDest) = iIdxSrc-extractIBegin_;
       domainDest_->j_index(countDest) = jIdxSrc-extractJBegin_;
       transformationMapping_[extractNi_*(jIdxSrc-extractJBegin_)+iIdxSrc-extractIBegin_]=sourceGlobalIdx(countSrc);
-      if ( ( (countSrc-countMasked) >= sourceWorkflowIdx.numElements() )
-         || ( sourceFullIdx(countSrc)!=sourceWorkflowIdx(countSrc-countMasked) ) )
-      {
-        domainDest_->mask_1d(countDest) = 0;
-        // if point masked, manage offset between full and worfklow views of domainSource
-        countMasked++;
-      }
-      else {
-        domainDest_->mask_1d(countDest) = 1;
-      }
 
       int iIdxDestLocal = countDest%niDest;
       int jIdxDestLocal = countDest/niDest;
@@ -261,13 +267,6 @@ TRY
       // if point i has been identified as extracted, increment position in destination domain for the next point
       countDest++;
     }
-    else
-      if ( ( (countSrc-countMasked) >= sourceWorkflowIdx.numElements() )
-         || ( sourceFullIdx(countSrc)!=sourceWorkflowIdx(countSrc-countMasked) ) )
-      {
-        // manage offset between full and worfklow views of domainSource even if point i is not concerned
-        countMasked++;
-      }
 
   }
   
