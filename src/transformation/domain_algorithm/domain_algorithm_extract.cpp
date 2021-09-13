@@ -209,7 +209,20 @@ TRY
       // if concerned, convert source the global indexation in the extracted frame
       domainDest_->i_index(countDest) = iIdxSrc-extractIBegin_;
       domainDest_->j_index(countDest) = jIdxSrc-extractJBegin_;
-      transformationMapping_[extractNi_*(jIdxSrc-extractJBegin_)+iIdxSrc-extractIBegin_]=sourceGlobalIdx(countSrc);
+
+      bool concerned_by_WF(false);
+      for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
+      {
+        if (sourceWorkflowIdx(i)==countSrc)
+        {      
+          concerned_by_WF = true;
+          break;
+        }
+      }
+      if (concerned_by_WF)
+      {
+        transformationMapping_[extractNi_*(jIdxSrc-extractJBegin_)+iIdxSrc-extractIBegin_]=sourceGlobalIdx(countSrc);
+      }
 
       int iIdxDestLocal = countDest%niDest;
       int jIdxDestLocal = countDest/niDest;
