@@ -188,8 +188,8 @@ TRY
   for (size_t i = 0; i < srcWorkflowSize ; ++i)
   {
     {
-      int iIdxSrc = sourceWorkflowIdx(i)%domainSource->ni_glo-destIBegin;
-      int jIdxSrc = sourceWorkflowIdx(i)/domainSource->ni_glo-destJBegin;
+      int iIdxSrc = sourceWorkflowIdx(i)%domainSource->ni-destIBegin;
+      int jIdxSrc = sourceWorkflowIdx(i)/domainSource->ni-destJBegin;
       int extractedSrcWFIdx = jIdxSrc * niDest + iIdxSrc;
       if ((extractedSrcWFIdx>=0)&&(extractedSrcWFIdx<niDest*njDest))
       {
@@ -197,9 +197,20 @@ TRY
       }
     }
   }
+
+  int iIdxSrcMin = INT_MAX;
+  int jIdxSrcMin = INT_MAX;
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
+  {
+      if ( sourceGlobalIdx(countSrc)%domainSource->ni_glo < iIdxSrcMin )
+          iIdxSrcMin = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
+      if ( sourceGlobalIdx(countSrc)/domainSource->ni_glo < jIdxSrcMin )
+          jIdxSrcMin = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
+  }
   
   int countDest(0); // increment of the position in destination domain 
-  for (int countSrc = 0; countSrc < indexSize ; ++countSrc) {
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
+  {
     int iIdxSrc = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
     int jIdxSrc = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
     // check that point countSrc concerned by extract
@@ -210,10 +221,12 @@ TRY
       domainDest_->i_index(countDest) = iIdxSrc-extractIBegin_;
       domainDest_->j_index(countDest) = jIdxSrc-extractJBegin_;
 
+      // ------------------ define transformation only if in the WF ------------------ 
+      int convert_locally_global_idx = (jIdxSrc-jIdxSrcMin)*domainSource->ni + (iIdxSrc-iIdxSrcMin) ;
       bool concerned_by_WF(false);
       for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
       {
-        if (sourceWorkflowIdx(i)==countSrc)
+        if (sourceWorkflowIdx(i)==convert_locally_global_idx)
         {      
           concerned_by_WF = true;
           break;
@@ -223,6 +236,7 @@ TRY
       {
         transformationMapping_[extractNi_*(jIdxSrc-extractJBegin_)+iIdxSrc-extractIBegin_]=sourceGlobalIdx(countSrc);
       }
+      // -----------------------------------------------------------------------------
 
       int iIdxDestLocal = countDest%niDest;
       int jIdxDestLocal = countDest/niDest;
