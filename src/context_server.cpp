@@ -55,8 +55,8 @@ namespace xios
   //  if (contextInfo.serviceType != CServicesManager::CLIENT) // we must have an event scheduler => to be retrieve from the associated services
   //  {
       //if (!isAttachedModeEnabled()) eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
-      eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
-
+    eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
+    MPI_Comm_dup(intraComm, &processEventBarrier_) ;
   //  }
 
 
@@ -91,7 +91,9 @@ namespace xios
           MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[1]);      
         }
         else MPI_Comm_split(interCommMerged, interCommMergedRank, rank, &winComm);
-        MPI_Comm_free(&winComm) ;
+//       ym : Warning : intelMPI doesn't support that communicator of windows be deallocated before the windows deallocation, crash at MPI_Win_lock
+//            Bug or not ?          
+        // MPI_Comm_free(&winComm) ;
       }
     }
     else 
@@ -345,17 +347,23 @@ namespace xios
         }
         else if (isAttachedModeEnabled() || eventScheduler_->queryEvent(currentTimeLine,hashId) )
         {
-          MPI_Request req ;
-          MPI_Status status ;
 
-          MPI_Ibarrier(intraComm,&req) ;
-          int flag=false ;
-          do  
+          if (!eventScheduled_) 
           {
-            eventScheduler_->checkEvent()  ;
-            MPI_Test(&req,&flag,&status) ;
-          } while (!flag) ;
+            MPI_Ibarrier(processEventBarrier_,&processEventRequest_) ;
+            eventScheduled_=true ;
+            return ;
+          }
+          else 
+          {
+            MPI_Status status ;
+            int flag ;
+            MPI_Test(&processEventRequest_, &flag, &status) ;
+            if (!flag) return ;
+            eventScheduled_=false ;
+          }
 
+          if (!isAttachedModeEnabled()) eventScheduler_->popEvent() ;
           //MPI_Barrier(intraComm) ;
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
@@ -467,5 +475,11 @@ namespace xios
     {
       ERROR("void CContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl);
     }
+  }
+
+  bool CContextServer::isCollectiveEvent(CEventServer& event)
+  {
+    if (event.classId==CField::GetType()) return CField::isCollectiveEvent(event);
+    else return true ;
   }
 }

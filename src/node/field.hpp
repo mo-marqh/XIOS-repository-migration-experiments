@@ -178,6 +178,7 @@ namespace xios
 
         template <int N> void setData(const CArray<double, N>& _data);
         static bool dispatchEvent(CEventServer& event);
+        static bool isCollectiveEvent(CEventServer& event);
         void sendAllAttributesToServer(CContextClient* client) ; 
         
         static void recvUpdateData(CEventServer& event);

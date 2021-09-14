@@ -51,6 +51,7 @@ namespace xios
         *  If the event is scheduled next, it is remove from the `eventStack` queue list  
         */    
        bool queryEvent(const size_t timeLine, const size_t contextHashId) ;
+       void popEvent() { eventStack.pop() ; }
 
 
        //! Public interface to give the hand to the instance to check pending or incoming message.

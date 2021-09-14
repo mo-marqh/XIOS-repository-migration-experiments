@@ -25,6 +25,7 @@ namespace xios
     void processEvents(void) ;
     bool hasFinished(void);
     void dispatchEvent(CEventServer& event) ;
+    bool isCollectiveEvent(CEventServer& event) ;
     void setPendingEvent(void) ;
     bool hasPendingEvent(void) ;
     bool isAttachedModeEnabled() const;
@@ -66,12 +67,17 @@ namespace xios
     ~CContextServer() ;
 
     private:
+
       std::map<int, StdSize> mapBufferSize_;
       vector<MPI_Win> windows ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
       CEventScheduler* eventScheduler_ ;
       bool isProcessingEvent_ ;
       CContextClient* associatedClient_ ;
       size_t remoteHashId_; //!< the hash is of the calling context client
+      
+      MPI_Comm processEventBarrier_ ;
+      bool eventScheduled_=false;
+      MPI_Request processEventRequest_ ;
   } ;
 
 }

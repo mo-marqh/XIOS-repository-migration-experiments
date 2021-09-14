@@ -215,6 +215,7 @@ namespace xios
       size_t currentTimeLine=0 ;
       if (eventScheduler->queryEvent(currentTimeLine,hashId))
       {
+        eventScheduler->popEvent() ;
         if (notifyInType_==NOTIFY_CREATE_INTERCOMM) createIntercomm() ;
         hasNotification_=false ;
       }

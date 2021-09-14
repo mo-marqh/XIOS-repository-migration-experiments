@@ -611,7 +611,12 @@ namespace xios
     do
     { 
       finished=eventLoop(enableEventsProcessing) ;
-      if (serviceType_==CServicesManager::CLIENT) out = eventScheduler_->queryEvent(timeLine,hashId_) ;
+      if (serviceType_==CServicesManager::CLIENT) 
+      {  
+        out = eventScheduler_->queryEvent(timeLine,hashId_) ;
+        if (out) eventScheduler_->popEvent() ;
+      }
+
       else out=true ;
     }  while(!out) ;
     

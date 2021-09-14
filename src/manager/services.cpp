@@ -180,6 +180,7 @@ namespace xios
       size_t currentTimeLine=0 ;
       if (eventScheduler_->queryEvent(currentTimeLine,hashId))
       {
+        eventScheduler_->popEvent() ;
         if (notifyInType_==NOTIFY_CREATE_CONTEXT) createContext() ;
         hasNotification_=false ;
       }

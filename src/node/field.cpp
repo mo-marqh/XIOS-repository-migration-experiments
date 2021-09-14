@@ -134,7 +134,47 @@ namespace xios
     }
   }
   CATCH
+  
+  bool CField::isCollectiveEvent(CEventServer& event)
+  TRY
+  {
+    switch(event.type)
+    {
+      case EVENT_ID_UPDATE_DATA :
+        recvUpdateData(event);
+        return true;
+        break;
 
+      case EVENT_ID_READ_DATA :
+        recvReadDataRequest(event);
+        return true;
+        break;
+
+      case EVENT_ID_READ_DATA_READY :
+        recvReadDataReady(event);
+        return false;
+        break;
+
+      case EVENT_ID_ADD_VARIABLE :
+        recvAddVariable(event);
+        return false;
+        break;
+
+      case EVENT_ID_ADD_VARIABLE_GROUP :
+        recvAddVariableGroup(event);
+        return false;
+        break;
+     
+      case EVENT_ID_GRID_COMPLETED :
+        recvGridCompleted(event);
+        return true;
+        break;
+      default :
+        ERROR("bool CField::dispatchEvent(CEventServer& event)", << "Unknown Event");
+        return false;
+    }
+  }
+  CATCH
 
   void CField::recvUpdateData(CEventServer& event)
   TRY

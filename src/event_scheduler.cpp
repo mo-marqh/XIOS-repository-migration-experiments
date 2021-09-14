@@ -97,12 +97,12 @@ namespace xios
     checkEvent() ;
     if (! eventStack.empty() && eventStack.front().first==timeLine && eventStack.front().second==contextHashId)
     {
-      eventStack.pop() ;
+      //eventStack.pop() ;
       return true ;
     }
     else return false ; 
   } 
-  
+ 
   void CEventScheduler::checkEvent(void)
   {
     traceOff() ;
