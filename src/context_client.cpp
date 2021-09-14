@@ -49,7 +49,14 @@ namespace xios
 
       computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
 
-      if (flag) MPI_Intercomm_merge(interComm_,false,&interCommMerged) ;
+      if (flag) 
+      {
+        MPI_Intercomm_merge(interComm_,false, &interCommMerged) ;
+        int interCommMergedRank;
+        MPI_Comm_rank(interComm_, &interCommMergedRank);
+        MPI_Comm_rank(interCommMerged, &interCommMergedRank);
+        MPI_Comm_rank(intraComm, &interCommMergedRank);
+      }
       
       if (!isAttachedModeEnabled())
       {  
@@ -150,8 +157,23 @@ namespace xios
         if (typeId/clientSize!=event.getTypeId() || classId/clientSize!=event.getClassId() || timeLine_out/clientSize!=timeLine)
         {
            ERROR("void CContextClient::sendEvent(CEventClient& event)",
-               << "Event are not coherent between client.");
+               << "Event are not coherent between client for timeline = "<<timeLine);
         }
+        
+        vector<int> servers(serverSize,0) ;
+        auto ranks=event.getRanks() ;
+        for(auto& rank : ranks) servers[rank]=1 ;
+        MPI_Allreduce(MPI_IN_PLACE, servers.data(), serverSize,MPI_INT,MPI_SUM,intraComm) ;
+        ostringstream osstr ;
+        for(int i=0;i<serverSize;i++)  if (servers[i]==0) osstr<<i<<" , " ;
+        if (!osstr.str().empty())
+        {
+          ERROR("void CContextClient::sendEvent(CEventClient& event)",
+                 <<" Some servers will not receive the message for timeline = "<<timeLine<<endl
+                 <<"Servers are : "<<osstr.str()) ;
+        }
+
+
       }
 
       if (!event.isEmpty())
