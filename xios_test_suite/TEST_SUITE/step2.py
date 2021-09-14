@@ -92,6 +92,7 @@ def main():
                         ref = Dataset( "reference/ref_"+config+"/"+checkfile )
                         res = Dataset( config+"/"+checkfile )
                         validated = 1
+                        np.seterr(divide='ignore', invalid='ignore')
                         for var in res.variables:
                             if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))) and (not (var.startswith('atm__'))):
                                 ref_interp = ref.variables[var]
