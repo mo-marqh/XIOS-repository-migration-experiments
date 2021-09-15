@@ -174,7 +174,6 @@ TRY
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
 
-
   // Set attributes required to define domainDestination->localElement_ and associated views, full and workflow)
   CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
   int indexSize = sourceGlobalIdx.numElements();
@@ -185,27 +184,18 @@ TRY
 
   CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
   int srcWorkflowSize = sourceWorkflowIdx.numElements();
-  for (size_t i = 0; i < srcWorkflowSize ; ++i)
-  {
-    {
-      int iIdxSrc = sourceWorkflowIdx(i)%domainSource->ni-destIBegin;
-      int jIdxSrc = sourceWorkflowIdx(i)/domainSource->ni-destJBegin;
-      int extractedSrcWFIdx = jIdxSrc * niDest + iIdxSrc;
-      if ((extractedSrcWFIdx>=0)&&(extractedSrcWFIdx<niDest*njDest))
-      {
-        domainDest_->data_i_index(extractedSrcWFIdx) = extractedSrcWFIdx;
-      }
-    }
-  }
 
   int iIdxSrcMin = INT_MAX;
   int jIdxSrcMin = INT_MAX;
+  int IdxMin = INT_MAX;
   for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
   {
-      if ( sourceGlobalIdx(countSrc)%domainSource->ni_glo < iIdxSrcMin )
-          iIdxSrcMin = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
-      if ( sourceGlobalIdx(countSrc)/domainSource->ni_glo < jIdxSrcMin )
-          jIdxSrcMin = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
+    if ( sourceGlobalIdx(countSrc)%domainSource->ni_glo < iIdxSrcMin )
+      iIdxSrcMin = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
+    if ( sourceGlobalIdx(countSrc)/domainSource->ni_glo < jIdxSrcMin )
+      jIdxSrcMin = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
+    if ( sourceGlobalIdx(countSrc) < IdxMin )
+      IdxMin = sourceGlobalIdx(countSrc);
   }
   
   int countDest(0); // increment of the position in destination domain 
@@ -222,7 +212,11 @@ TRY
       domainDest_->j_index(countDest) = jIdxSrc-extractJBegin_;
 
       // ------------------ define transformation only if in the WF ------------------ 
-      int convert_locally_global_idx = (jIdxSrc-jIdxSrcMin)*domainSource->ni + (iIdxSrc-iIdxSrcMin) ;
+      // countSrc+IdxMin is the global position (not index) considering the distributed memory
+      //     - can be compared to the workflow view
+      int iIdxSrc2 = (countSrc+IdxMin)%domainSource->ni_glo;
+      int jIdxSrc2 = (countSrc+IdxMin)/domainSource->ni_glo;
+      int convert_locally_global_idx = (jIdxSrc2-jIdxSrcMin)*domainSource->ni + (iIdxSrc2-iIdxSrcMin) ;
       bool concerned_by_WF(false);
       for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
       {
@@ -235,6 +229,7 @@ TRY
       if (concerned_by_WF)
       {
         transformationMapping_[extractNi_*(jIdxSrc-extractJBegin_)+iIdxSrc-extractIBegin_]=sourceGlobalIdx(countSrc);
+        domainDest_->data_i_index( countDest ) = countDest;
       }
       // -----------------------------------------------------------------------------
 
