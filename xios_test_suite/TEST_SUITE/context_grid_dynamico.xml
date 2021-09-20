@@ -4,8 +4,8 @@
    
    
   <file_definition>   
-     <file id="dynamico_grid" name="Ai" mode="read" output_freq="1ts" type="one_file">
-       <field id="Ai" domain_ref="domain_dynamico" operation="instant"/>
+     <file id="dynamico_grid" name="dynamico_grid" mode="read" output_freq="1ts" type="one_file">
+       <field id="Ai" domain_ref="domain_dynamico" operation="instant" read_access="true"/>
      </file>
   </file_definition>
   

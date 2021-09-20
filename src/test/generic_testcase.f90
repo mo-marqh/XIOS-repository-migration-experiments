@@ -1285,9 +1285,9 @@ CONTAINS
     
     CALL xios_context_initialize("grid_dynamico",comm)
     CALL xios_close_context_definition()
-    CALL xios_get_domain_attr("domain_dynamico",ni_glo=ni_glo,nj_glo=nj_glo,ni=ni,nj=nj, ibegin=ibegin, jbegin=jbegin ,nvertex=nvertex)
+    CALL xios_get_domain_attr("Ai::",ni_glo=ni_glo,nj_glo=nj_glo,ni=ni,nj=nj, ibegin=ibegin, jbegin=jbegin ,nvertex=nvertex)
     ALLOCATE(lon(ni),lat(ni),bounds_lon(nvertex,ni),bounds_lat(nvertex,ni))
-    CALL xios_get_domain_attr("domain_dynamico", lonvalue_1d=lon, latvalue_1d=lat, bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
+    CALL xios_get_domain_attr("Ai::", lonvalue_1d=lon, latvalue_1d=lat, bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
     CALL xios_context_finalize
 
     CALL xios_set_current_context(ctx_hdl)
