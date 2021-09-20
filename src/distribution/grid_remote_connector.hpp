@@ -21,14 +21,18 @@ namespace xios
       CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CLocalView*>& dstView, MPI_Comm localComm, int remoteSize) ;
       void computeViewDistribution(void) ;
       void computeConnector(void) ;
+      void computeConnectorMethods(void) ;
       void computeGenericMethod(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, vector<int>& indElements) ;
       void computeSrcDstNonDistributed(int i, map<int,bool>& ranks) ;
       void computeDstNonDistributed(int i, map<int,bool>& ranks) ;
       void computeSrcNonDistributed(int i) ;
-      void removeRedondantRanks(void) ;
+      void computeRedondantRanks(void) ;
       std::map<int, CArray<size_t,1>>& getDistributedGlobalIndex(int pos) { return elements_[pos] ;} 
-
-    private:
+      const vector<bool>& getIsSrcViewDistributed(void) { return isSrcViewDistributed_ ;}
+      const vector<bool>& getIsDstViewDistributed(void) { return isDstViewDistributed_ ;}
+      const set<int>& getRankToRemove(void) {return rankToRemove_;} 
+    
+    protected:
   
     /** 
      * Source views composing the source grid. The vector store an internal copy of pointer elements composing the grid. 
@@ -75,6 +79,11 @@ namespace xios
        * \b computeViewDistribution method. 
        */
       vector<bool> isDstViewDistributed_ ;
+
+      /**
+      /* Redondant ranks of the \b elements_ are stored there by calling computeRedondantRanks(), to be removed latter or to be retrieve from elsewhere. 
+       */
+      set<int> rankToRemove_ ;
       
     
   } ;

@@ -110,6 +110,19 @@ namespace xios
 
 /**
   * \brief Compute the connector, i.e. compute the \b elements_ attribute. 
+  * \detail Depending of the distributions of the view computed in the computeViewDistribution() call, the connector is computed in computeConnectorMethods(), and to achieve better optimisation
+  *         some redondant ranks can be removed from the elements_ map.
+  */
+  void CGridRemoteConnector::computeConnector(void)
+  {
+    computeViewDistribution() ;
+    computeConnectorMethods() ;
+    computeRedondantRanks() ; 
+    for(auto& rank : rankToRemove_)
+      for(auto& element : elements_) element.erase(rank) ;
+  }
+/**
+  * \brief Compute the connector, i.e. compute the \b elements_ attribute. 
   * \detail In order to achive better optimisation,
   *         we distingute the case when the grid is not distributed on source grid (\bcomputeSrcNonDistributed), 
   *         or the remote grid (\b computeDstNonDistributed), or the both (\b computeSrcDstNonDistributed). 
@@ -119,19 +132,18 @@ namespace xios
   *         After that, we call the \b removeRedondantRanks method to supress blocks of data that can be sent 
   *         redondantly the the remote servers
   */
-  void CGridRemoteConnector::computeConnector(void)
+  void CGridRemoteConnector::computeConnectorMethods(void)
   {
-    computeViewDistribution() ;
     vector<CLocalView*> srcView ;
     vector<CDistributedView*> dstView ;
     vector<int> indElements ;
     elements_.resize(srcView_.size()) ;
     
     bool srcViewsNonDistributed=true ;
-    for(int i=0;i<srcView_.size();i++) srcViewsNonDistributed &= !isSrcViewDistributed_[i]  ;
+    for(int i=0;i<srcView_.size();i++) srcViewsNonDistributed = srcViewsNonDistributed && !isSrcViewDistributed_[i]  ;
     
     bool dstViewsNonDistributed=true ;
-    for(int i=0;i<dstView_.size();i++) dstViewsNonDistributed &= !isDstViewDistributed_[i] ;
+    for(int i=0;i<dstView_.size();i++) dstViewsNonDistributed = dstViewsNonDistributed && !isDstViewDistributed_[i] ;
     
     if (srcViewsNonDistributed) 
     {
@@ -183,7 +195,6 @@ namespace xios
         if (!isSrcViewDistributed_[i] && !isDstViewDistributed_[i]) computeSrcDstNonDistributed(i, ranks) ;
     }
 
-    removeRedondantRanks() ;
   }
 
   
@@ -569,12 +580,13 @@ namespace xios
   }
 
  /**
-  * \brief Once the connector is computed (compute \b elements_), redondant data can be send to the server. 
+  * \brief Once the connector is computed (compute \b elements_), redondant data can be avoid to be sent to the server. 
+  *        This call compute the redondant rank and store them in \b rankToRemove_ attribute.
   *        The goal of this method is to make a hash of each block of indice that determine wich data to send to a 
   *        of a specific server rank using a hash method. So data to send to a rank is associated to a hash.
   *        After we compare hash between local rank and remove redondant data corresponding to the same hash.
   */
-  void CGridRemoteConnector::removeRedondantRanks(void)
+  void CGridRemoteConnector::computeRedondantRanks(void)
   {
     int commRank ;
     MPI_Comm_rank(localComm_,&commRank) ;
@@ -634,13 +646,8 @@ namespace xios
       bool first=true ;
       // only the process with the lowest rank get in charge of sendinf data to remote server
       for(int rank : ranks) if (commRank>rank) first=false ;
-      if (!first)
-      {
-        int rankToRemove=hashRank[hash] ;
-        for(auto& element : elements_) element.erase(rankToRemove) ;
-      }
+      if (!first) rankToRemove_.insert(hashRank[hash]) ;
     }
-
-
   }
+
 }

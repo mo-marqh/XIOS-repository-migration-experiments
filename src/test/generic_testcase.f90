@@ -203,6 +203,8 @@ CONTAINS
     LOGICAL :: ok_other_field_X, ok_other_field_Y, ok_other_field_XY, ok_other_field_Z, ok_other_field_XYZ, ok_other_field_XZ, ok_other_field_YZ
     LOGICAL :: ok_other_field0D_W, ok_other_field2D_W, ok_other_field3D_W, ok_other_pressure_W, ok_other_field2D_sub_W, ok_other_field3D_sub_W,ok_other_field3D_recv_W, ok_other_field3D_send_W
     LOGICAL :: ok_other_field_XW, ok_other_field_YW, ok_other_field_XYW, ok_other_field_ZW, ok_other_field_XYZW, ok_other_field_XZW, ok_other_field_YZW
+
+    TYPE(xios_domain)  :: domain_handle
     
       !! XIOS Initialization (get the local communicator)
     CALL xios_initialize(trim(model_id),return_comm=comm)
@@ -634,7 +636,7 @@ CONTAINS
     cdate=cdate+dtime
     CALL xios_close_context_definition()
     CALL xios_set_current_context(trim(model_id))
-
+!    CALL xios_get_handle("field3D::domain",domain_handle) 
     
     DO while ( cdate <= edate )
  

@@ -17,7 +17,7 @@
 #include "distribution_client.hpp"
 #include "server.hpp"
 #include "distribution_type.hpp"
-#include "grid_remote_connector.hpp"
+#include "grid_client_server_remote_connector.hpp"
 #include "grid_elements.hpp"
 #include "grid_local_view.hpp"
 #include "grid_mask_connector.hpp"
@@ -1428,6 +1428,7 @@ namespace xios
     }
     
     vector<CLocalView*> localViews ;
+    vector<CLocalView*> workflowView ;
     vector<CDistributedView*> remoteViews ;
 
     for(int i=0 ; i<elements.size() ; i++)
@@ -1438,6 +1439,7 @@ namespace xios
          domain->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
          remoteViews.push_back(domain->getRemoteElement(client)->getView(CElementView::FULL)) ;
          localViews.push_back(domain->getLocalView(CElementView::FULL)) ;
+         workflowView.push_back(domain->getLocalView(CElementView::WORKFLOW)) ;
       }
       else if (elements[i].type==TYPE_AXIS)
       {
@@ -1445,6 +1447,7 @@ namespace xios
         axis->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
         remoteViews.push_back(axis->getRemoteElement(client)->getView(CElementView::FULL)) ;
         localViews.push_back(axis->getLocalView(CElementView::FULL)) ;
+        workflowView.push_back(axis->getLocalView(CElementView::WORKFLOW)) ;
       }
       else if (elements[i].type==TYPE_SCALAR)
       {
@@ -1452,9 +1455,12 @@ namespace xios
         scalar->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
         remoteViews.push_back(scalar->getRemoteElement(client)->getView(CElementView::FULL)) ;
         localViews.push_back(scalar->getLocalView(CElementView::FULL)) ;
+        workflowView.push_back(scalar->getLocalView(CElementView::WORKFLOW)) ;
       }
     }
-    CGridRemoteConnector gridRemoteConnector(localViews, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
+    
+    // CGridClientServerRemoteConnector : workflowView is added to avoid spurious optimisation with only the fullview
+    CGridClientServerRemoteConnector gridRemoteConnector(localViews, workflowView, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
     gridRemoteConnector.computeConnector() ;
     
     vector<CScattererConnector*> scattererConnectors ;
