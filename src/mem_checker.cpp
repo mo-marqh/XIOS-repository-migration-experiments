@@ -89,7 +89,7 @@ namespace xios
     const double Kb=1024 ;
     const double Mb=Kb*1024 ;
     const double Gb=Mb*1024 ;
-    const double Tb=Mb*1024 ;
+    const double Tb=Gb*1024 ;
     for(std::map<std::string,CMemChecker>::iterator it=allMemChecker_.begin();it!=allMemChecker_.end();++it)
     {  
       strOut<<"MemChecker : "<<it->first<<"    -->   consumed memory : " ;
