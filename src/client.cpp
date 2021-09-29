@@ -89,16 +89,17 @@ namespace xios
           size_t hashClient=hashString(codeId) ;
           
           size_t* hashAll = new size_t[commSize] ;
-          MPI_Allgather(&hashClient,1,MPI_UNSIGNED_LONG,hashAll,1,MPI_LONG,globalComm) ;
+          MPI_Allgather(&hashClient,1,MPI_SIZE_T,hashAll,1,MPI_SIZE_T,globalComm) ;
           
           int color=0 ;
-          set<size_t> listHash ;
-          for(int i=0 ; i<=commRank ; i++) 
-            if (listHash.count(hashAll[i])==0)
+          map<size_t,int> listHash ;
+          for(int i=0 ; i<=commSize ; i++) 
+            if (listHash.count(hashAll[i])==0) 
             {
-              listHash.insert(hashAll[i]) ;
+              listHash[hashAll[i]]=color ;
               color=color+1 ;
             }
+            color=listHash[hashClient] ;
           delete[] hashAll ;
 
           MPI_Comm_split(globalComm, color, commRank, &clientComm) ;
@@ -427,9 +428,19 @@ namespace xios
       if (commRank==0) CXios::getContextsManager()->createServerContext(getPoolRessource()->getId(), id, 0, id) ;
       int type=CServicesManager::CLIENT ;
       string name = CXios::getContextsManager()->getServerContextName(getPoolRessource()->getId(), id, 0, type, id) ;
-      while (!CXios::getContextsManager()->hasContext(name, contextComm) )
+      double time ;
+      double lastTime=0 ;
+      double latency=1e-2 ;
+      bool out=false ;
+      while (!out)
       {
-        CXios::getDaemonsManager()->eventLoop() ;
+        time=MPI_Wtime() ;
+        if (time-lastTime > latency) 
+        {
+          out=CXios::getContextsManager()->hasContext(name, contextComm);
+          lastTime=time ;
+        }
+        if (!out) CXios::getDaemonsManager()->eventLoop() ;
       }
 
     }
