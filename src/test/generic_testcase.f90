@@ -10,6 +10,7 @@ PROGRAM generic_testcase
   INTEGER :: nb_proc_atm
   INTEGER :: nb_proc_oce
   INTEGER :: nb_proc_surf
+  INTEGER :: nb_proc_server
   CHARACTER(LEN=len_str)  :: proc_distribution
   CHARACTER(LEN=len_str)  :: start_date
   CHARACTER(LEN=len_str)  :: duration
@@ -55,7 +56,8 @@ PROGRAM generic_testcase
  
   LOGICAL :: i_am_atm, i_am_oce, i_am_surf, i_am_server
   INTEGER :: rank, size_loc
-  
+  INTEGER :: nb_procs(4)
+  LOGICAL :: who_i_am(4)
    
   OPEN(unit=unit, file='param.def',status='old',iostat=ierr)
   nb_proc_atm=1
@@ -79,6 +81,7 @@ PROGRAM generic_testcase
      CALL MPI_ABORT()
   endif
 
+  nb_proc_server=size_loc-(nb_proc_atm + nb_proc_oce + nb_proc_surf)
   i_am_atm=.FALSE. ; i_am_oce=.FALSE. ; i_am_surf=.FALSE. ; i_am_server=.FALSE. 
 
   IF (proc_distribution=="contiguous") THEN
@@ -94,7 +97,14 @@ PROGRAM generic_testcase
     ELSE
       i_am_server=.TRUE. 
     ENDIF ;
-
+  ELSE IF (proc_distribution=="cyclic") THEN
+   ! server ranks are dispatched all along the partition
+    nb_procs(1)=nb_proc_atm ; nb_procs(2)=nb_proc_oce ; nb_procs(3)=nb_proc_surf ; nb_procs(4)=nb_proc_server
+    CALL compute_cyclic_distribution(rank, nb_procs, who_i_am )
+    i_am_atm=who_i_am(1)
+    i_am_oce=who_i_am(2)
+    i_am_surf=who_i_am(3)
+    i_am_server=who_i_am(4)
   ENDIF
   
   
@@ -2425,6 +2435,87 @@ CONTAINS
 
 
   END SUBROUTINE get_decomposition
+
+  SUBROUTINE compute_cyclic_distribution(rank, nb_procs, who_i_am)
+  IMPLICIT NONE
+    INTEGER,INTENT(IN)  :: rank
+    INTEGER,INTENT(IN)  :: nb_procs(:)
+    LOGICAL,INTENT(OUT) :: who_i_am(:)
+    INTEGER             :: start(SIZE(nb_procs))
+    INTEGER :: nb_comp 
+    INTEGER :: nb_client
+    INTEGER :: nb_server
+    INTEGER :: current
+    INTEGER :: current_client
+    INTEGER :: i,j,k,nq,q,r
+
+    who_i_am=.FALSE.
+    nb_comp = SIZE(nb_procs)
+    nb_client = SUM(nb_procs(1:nb_comp-1))
+    nb_server = nb_procs(nb_comp)
+    
+    start(1)=0
+    DO k=2,nb_comp
+     start(k)=start(k-1)+nb_procs(k-1)
+    ENDDO
+
+    current=0
+    current_client=0
+
+    IF (nb_client >= nb_server) THEN
+      q=nb_client/nb_server
+      r=MOD(nb_client,nb_server)
+        
+      DO i=1,nb_server
+        IF (i<=r) THEN ; nq=q+1 ; ELSE ; nq=q ; ENDIF
+        DO j=1,nq
+          IF (current==rank) THEN
+            DO k=1,nb_comp-1
+              IF (current_client >= start(k) .AND. current_client<start(k+1)) THEN
+                who_i_am(k)=.TRUE.
+                RETURN
+              ENDIF  
+            ENDDO
+          ENDIF
+          current=current+1
+          current_client=current_client+1
+        ENDDO
+
+        IF (current==rank) THEN
+          who_i_am(nb_comp)=.TRUE.
+          RETURN
+        ENDIF
+        current=current+1
+      ENDDO
+  
+    ELSE
+      q=nb_server/nb_client
+      r=MOD(nb_server,nb_client)
+
+      DO i=1,nb_client
+        IF (i<=r) THEN ; nq=q+1 ; ELSE ; nq=q ; ENDIF
+        DO j=1,nq
+          IF (current==rank) THEN
+            who_i_am(nb_comp)=.TRUE.
+            RETURN
+          ENDIF
+          current=current+1
+        ENDDO
+          
+        IF (current==rank) THEN
+          DO k=1,nb_comp-1
+            IF (current_client >= start(k) .AND. current_client<start(k+1)) THEN
+              who_i_am(k)=.TRUE.
+              RETURN
+            ENDIF  
+          ENDDO
+        ENDIF
+        current=current+1
+        current_client=current_client+1
+      ENDDO
+    ENDIF
+
+  END SUBROUTINE compute_cyclic_distribution    
 
 END PROGRAM generic_testcase
 
