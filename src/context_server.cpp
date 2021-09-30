@@ -411,6 +411,8 @@ namespace xios
 
       }
     } while (! out) ; 
+      MPI_Win_free(&windows[0]) ;
+      MPI_Win_free(&windows[1]) ;
   }
 
   void CContextServer::notifyClientsFinalize(void)
@@ -440,10 +442,10 @@ namespace xios
       notifyClientsFinalize() ;
       context->finalize();
 
-/* don't know where release windows
+// don't know where release windows
       MPI_Win_free(&windows[0]) ;
       MPI_Win_free(&windows[1]) ;
-*/     
+     
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;
       for (itMap = itbMap; itMap != iteMap; ++itMap)

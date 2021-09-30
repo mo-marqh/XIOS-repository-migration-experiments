@@ -741,6 +741,7 @@ namespace xios
         {
           notifiedFinalized=client->isNotifiedFinalized() ;
         } while (!notifiedFinalized) ;
+        server->releaseBuffers();
         client->releaseBuffers();
         info(100)<<"DEBUG: context "<<getId()<<" release client ok"<<endl ;
       }
@@ -769,6 +770,7 @@ namespace xios
       else if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)
       {
         closeAllFile();
+        client->releaseBuffers();
       }
 
       freeComms() ;

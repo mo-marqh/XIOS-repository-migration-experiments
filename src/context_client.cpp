@@ -372,7 +372,7 @@ namespace xios
       }
       buffers.clear();
 
-/* don't know when release windows
+// don't know when release windows
 
       if (!isAttachedModeEnabled())
       {  
@@ -382,7 +382,7 @@ namespace xios
           MPI_Win_free(&windows[rank][1]);
         }
       } 
-*/
+
    }
 
       
