@@ -57,7 +57,8 @@ namespace xios
       /////////////////////////////////////////
       ///////////// PART 1 ////////////////////
       /////////////////////////////////////////
-
+      CTimer::get("XIOS").resume() ;
+      CTimer::get("XIOS initialize").resume() ;
       // don't use OASIS
       if (!CXios::usingOasis)
       {
@@ -75,16 +76,17 @@ namespace xios
         size_t hashServer=hashString(CXios::xiosCodeId) ;
           
         size_t* hashAll = new size_t[commSize] ;
-        MPI_Allgather(&hashServer,1,MPI_UNSIGNED_LONG,hashAll,1,MPI_LONG,globalComm) ;
+        MPI_Allgather(&hashServer,1,MPI_SIZE_T,hashAll,1,MPI_SIZE_T,globalComm) ;
           
         int color=0 ;
-        set<size_t> listHash ;
-        for(int i=0 ; i<=commRank ; i++) 
-          if (listHash.count(hashAll[i])==1)
+        map<size_t,int> listHash ;
+        for(int i=0 ; i<=commSize ; i++) 
+          if (listHash.count(hashAll[i])==0) 
           {
-            listHash.insert(hashAll[i]) ;
+            listHash[hashAll[i]]=color ;
             color=color+1 ;
           }
+        color=listHash[hashServer] ;
         delete[] hashAll ;
 
         MPI_Comm_split(globalComm, color, commRank, &serverComm) ;
@@ -93,7 +95,6 @@ namespace xios
       {
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
 
-        CTimer::get("XIOS").resume() ;
         oasis_get_localcomm(serverComm);
       }
  
@@ -188,6 +189,7 @@ namespace xios
           servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServerId, CServicesManager::OUT_SERVER, nprocsServer, nbPoolsServer2) ;
         }
       }
+      CTimer::get("XIOS initialize").suspend() ;
 
       /////////////////////////////////////////
       ///////////// PART 5 ////////////////////
@@ -195,11 +197,13 @@ namespace xios
       // loop on event loop
 
       bool finished=false ;
+      CTimer::get("XIOS event loop").resume() ;
+
       while (!finished)
       {
         finished=daemonsManager->eventLoop() ;
       }
-
+      CTimer::get("XIOS event loop").suspend() ;
     }
 
 
