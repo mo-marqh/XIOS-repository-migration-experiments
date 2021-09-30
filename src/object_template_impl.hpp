@@ -67,6 +67,19 @@ namespace xios
    {
       return (CObjectTemplate<T>::AllVectObj[contextId]);
    }
+   template <class T>
+      std::vector<std::shared_ptr<T> > *
+         CObjectTemplate<T>::GetAllVectobjectPtr(const StdString & contextId)
+   {
+      return &(CObjectTemplate<T>::AllVectObj[contextId]);
+   }
+
+  template <class T>
+      xios_map<StdString, xios_map<StdString, std::shared_ptr<T> > >*
+         CObjectTemplate<T>::GetAllMapobject()
+   {
+      return &(CObjectTemplate<T>::AllMapObj);
+   }
 
    //---------------------------------------------------------------
 

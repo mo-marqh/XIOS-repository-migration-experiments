@@ -174,6 +174,28 @@ namespace xios
      CClient::closeInfoStream();
 
 #endif
+     
+     // Delete CContext
+     xios_map<StdString, xios_map<StdString, std::shared_ptr<CContext> > >* contextMap = CObjectTemplate<CContext>::GetAllMapobject();
+     for(auto it = contextMap->begin(); it != contextMap->end(); ++it)
+     {
+       for(auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+       {
+           std::shared_ptr<CContext> todel = it2->second;
+           todel.reset();
+       }
+       it->second.clear();
+
+       std::vector<std::shared_ptr<CContext> >*  contextVect = CObjectTemplate<CContext>::GetAllVectobjectPtr(it->first);
+       for(auto it = contextVect->begin(); it != contextVect->end(); ++it)
+       {
+           it->reset();
+       }
+       contextVect->clear();
+       
+     }
+     contextMap->clear();
+     
   }
 
   //! Init server by parsing only xios part of config file
@@ -224,6 +246,27 @@ namespace xios
     CMemChecker::get("xios").suspend() ;
     report(0)<<CMemChecker::getAllCumulatedMem() ;
     CServer::closeInfoStream();
+    
+    // Delete CContext
+    xios_map<StdString, xios_map<StdString, std::shared_ptr<CContext> > >* contextMap = CObjectTemplate<CContext>::GetAllMapobject();
+    for(auto it = contextMap->begin(); it != contextMap->end(); ++it)
+    {
+      for(auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+      {
+          std::shared_ptr<CContext> todel = it2->second;
+          todel.reset();
+      }
+      it->second.clear();
+
+      std::vector<std::shared_ptr<CContext> >*  contextVect = CObjectTemplate<CContext>::GetAllVectobjectPtr(it->first);
+      for(auto it = contextVect->begin(); it != contextVect->end(); ++it)
+      {
+          it->reset();
+      }
+      contextVect->clear();
+      
+    }
+    contextMap->clear();
   }
 
   //! Parse configuration file
