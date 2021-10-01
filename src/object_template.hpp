@@ -68,15 +68,11 @@ namespace xios
          /// Accesseur statique ///
          static std::vector<std::shared_ptr<DerivedType> > &
             GetAllVectobject(const StdString & contextId);
-         static std::vector<std::shared_ptr<DerivedType> > *
-            GetAllVectobjectPtr(const StdString & contextId);
-
-         static xios_map<StdString, xios_map<StdString, std::shared_ptr<DerivedType> > >*
-            GetAllMapobject();
-
 
          /// Destructeur ///
          virtual ~CObjectTemplate(void);
+         
+         static void cleanStaticDataStructure(void);     
 
          static bool has(const string& id) ;
          static bool has(const string& contextId, const string& id) ;

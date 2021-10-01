@@ -204,6 +204,9 @@ namespace xios
         finished=daemonsManager->eventLoop() ;
       }
       CTimer::get("XIOS event loop").suspend() ;
+
+      // Delete CContext
+      CObjectTemplate<CContext>::cleanStaticDataStructure();
     }
 
 

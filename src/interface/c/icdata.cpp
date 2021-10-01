@@ -145,6 +145,8 @@ extern "C"
      CTimer::get("XIOS").resume();
      CTimer::get("XIOS finalize").resume();
      CXios::clientFinalize();
+     // Delete CContext
+     CObjectTemplate<CContext>::cleanStaticDataStructure();
    }
    CATCH_DUMP_STACK
 

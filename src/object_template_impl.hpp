@@ -67,18 +67,28 @@ namespace xios
    {
       return (CObjectTemplate<T>::AllVectObj[contextId]);
    }
+  
    template <class T>
-      std::vector<std::shared_ptr<T> > *
-         CObjectTemplate<T>::GetAllVectobjectPtr(const StdString & contextId)
+      void CObjectTemplate<T>::cleanStaticDataStructure(void)
    {
-      return &(CObjectTemplate<T>::AllVectObj[contextId]);
-   }
+     xios_map<StdString, xios_map<StdString, std::shared_ptr<T> > >* allMap = &(CObjectTemplate<T>::AllMapObj);
+      for(auto it = allMap->begin(); it != allMap->end(); ++it)
+      {
+	for(auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+	{
+	  std::shared_ptr<T> todel = it2->second;
+	  todel.reset();
+	}
+	it->second.clear();
 
-  template <class T>
-      xios_map<StdString, xios_map<StdString, std::shared_ptr<T> > >*
-         CObjectTemplate<T>::GetAllMapobject()
-   {
-      return &(CObjectTemplate<T>::AllMapObj);
+	std::vector<std::shared_ptr<T> >* allVect = &(CObjectTemplate<T>::AllVectObj[it->first]);
+        for(auto it = allVect->begin(); it != allVect->end(); ++it)
+        {
+          it->reset();
+        }
+        allVect->clear();
+      }
+      allMap->clear();
    }
 
    //---------------------------------------------------------------
