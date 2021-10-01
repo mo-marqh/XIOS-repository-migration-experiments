@@ -1,0 +1,7 @@
+#all
+
+atm_output_domain_dynamico.nc
+atm_output_domain_transformation_interpolate.nc
+atm_output_domain_transformation_reorder.nc
+atm_output_domain_transformation_extract.nc
+
