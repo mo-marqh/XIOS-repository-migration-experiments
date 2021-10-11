@@ -1869,12 +1869,12 @@ namespace xios {
   }
 
 
-  void CDomain::computeRemoteElement(CContextClient* client, EDistributionType type)
+  void CDomain::computeRemoteElement(CContextClient* client, EDistributionType distType)
   TRY
   {
     CContext* context = CContext::getCurrent();
     map<int, CArray<size_t,1>> globalIndex ;
-
+/* old method
     if (type==EDistributionType::BANDS) // Bands distribution to send to file server
     {
       int nbServer = client->serverSize;
@@ -1908,7 +1908,79 @@ namespace xios {
       if (context->getIntraCommRank()==0) 
         for(auto& rank : zeroIndex) globalIndex[rank] = CArray<size_t,1>() ; 
     }
-    else if (type==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
+*/    
+    if (distType==EDistributionType::BANDS && isUnstructed_) distType==EDistributionType::COLUMNS ;
+
+    if (distType==EDistributionType::BANDS) // Bands distribution to send to file server
+    {
+      int nbServer = client->serverSize;
+      int nbClient = client->clientSize ;
+      int rankClient = client->clientRank ;
+      int size = nbServer / nbClient ;
+      int start ;
+      if (nbServer%nbClient > rankClient)
+      {
+       start = (size+1) * rankClient ;
+       size++ ;
+      }
+      else start = size*rankClient + nbServer%nbClient ;
+     
+      for(int i=0; i<size; i++)
+      { 
+        int rank=start+i ; 
+        size_t indSize = nj_glo/nbServer ;
+        size_t indStart ;
+        if (nj_glo % nbServer > rank)
+        {
+          indStart = (indSize+1) * rank ;
+          indSize++ ;
+        }
+        else indStart = indSize*rank + nj_glo%nbServer ;
+       
+        indStart=indStart*ni_glo ;
+        indSize=indSize*ni_glo ;
+        auto& globalInd =  globalIndex[rank] ;
+        globalInd.resize(indSize) ;
+        for(size_t n = 0 ; n<indSize; n++) globalInd(n)=indStart+n ;
+      }
+    }
+    else if (distType==EDistributionType::COLUMNS) // Bands distribution to send to file server
+    {
+      int nbServer = client->serverSize;
+      int nbClient = client->clientSize ;
+      int rankClient = client->clientRank ;
+      int size = nbServer / nbClient ;
+      int start ;
+      if (nbServer%nbClient > rankClient)
+      {
+       start = (size+1) * rankClient ;
+       size++ ;
+      }
+      else start = size*rankClient + nbServer%nbClient ;
+     
+      for(int i=0; i<size; i++)
+      { 
+        int rank=start+i ; 
+        size_t indSize = ni_glo/nbServer ;
+        size_t indStart ;
+        if (ni_glo % nbServer > rank)
+        {
+          indStart = (indSize+1) * rank ;
+          indSize++ ;
+        }
+        else indStart = indSize*rank + ni_glo%nbServer ;
+       
+        auto& globalInd =  globalIndex[rank] ;
+        globalInd.resize(indSize*nj_glo) ;
+        size_t n=0 ;
+        for(int j=0; j<nj_glo;j++)
+        {
+          for(int i=0; i<indSize; i++, n++)  globalInd(n)=indStart+i ;
+          indStart=indStart+ni_glo ;  
+        }
+      }
+    }
+    else if (distType==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
     {
       int nbServer = client->serverSize;
       int nglo=ni_glo*nj_glo ;
