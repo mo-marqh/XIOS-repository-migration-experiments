@@ -3,7 +3,7 @@
 
 namespace xios
 {
-  enum class EDistributionType  { NONE=0, ROOT, BANDS, BLOCKS} ;
+  enum class EDistributionType  { NONE=0, ROOT, BANDS, BLOCKS, COLUMNS} ;
 }
 
 #endif

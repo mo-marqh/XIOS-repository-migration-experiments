@@ -1,6 +1,7 @@
 #ifndef __BUFFER_SERVER_HPP__
 #define __BUFFER_SERVER_HPP__
 
+#include "buffer_cs_base.hpp"
 #include "xios_spl.hpp"
 #include "buffer.hpp"
 #include "mpi.hpp"
@@ -8,7 +9,7 @@
 
 namespace xios
 {
-  class CServerBuffer
+  class CServerBuffer : public CBufferClientServerBase
   {
     public:
       CServerBuffer(vector<MPI_Win>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize bufSize) ;
@@ -25,7 +26,7 @@ namespace xios
       void lockBuffer(void) ;
       void unlockBuffer(void) ;
       void notifyClientFinalize(void) ;
-      void notifyBufferResizing(void) { resizingBuffer_=true ;}
+      void notifyBufferResizing(void) ;
     private:
       char* buffer;
       size_t first;   // first occupied element
@@ -39,6 +40,9 @@ namespace xios
       int currentWindows ;
       bool hasWindows ;
       int windowsRank_ ;
+      double bufferFromClientLatency_=1e-1 ;
+      double bufferFromClientTime_ = 0;
+
   };
 }
 

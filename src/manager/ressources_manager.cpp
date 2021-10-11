@@ -1,6 +1,7 @@
 #include "ressources_manager.hpp"
 #include "server.hpp"
 #include "servers_ressource.hpp"
+#include "timer.hpp"
 
 
 
@@ -42,12 +43,15 @@ namespace xios
 
   void CRessourcesManager::createPool(const string& poolId, int size)
   {
+    info(40)<<"CRessourcesManager::createPool : calling createPool : "<<poolId<<"  of size"<<size<<endl ;
+    info(40)<<"send notification to leader : "<<serverLeader_<<endl ;
     winRessources_->lockWindow(managerGlobalLeader_,0) ;
     winRessources_->updateFromWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpIn) ;
     winRessources_->unlockWindow(managerGlobalLeader_,0) ;    
    
     notifyType_=NOTIFY_CREATE_POOL ;
     notifyCreatePool_=make_tuple(poolId, size) ;
+    info(40)<<"CRessourcesManager::createPool : send notification creating pool to server leader "<<serverLeader_<<endl ;
     sendNotification(serverLeader_) ; 
   }
   
@@ -60,6 +64,7 @@ namespace xios
     if (serverLeader_!=-1)
     {
       notifyType_=NOTIFY_FINALIZE ;
+      info(40)<<"CRessourcesManager::finalize : send notification finalize to server leader "<<serverLeader_<<endl ;
       sendNotification(serverLeader_) ;
     } 
   }
@@ -106,30 +111,47 @@ namespace xios
 
   void CRessourcesManager::eventLoop(void)
   {
-    checkNotifications() ;
+    CTimer::get("CRessourcesManager::eventLoop").resume();
+    double time=MPI_Wtime() ;
+    if (time-lastEventLoop_ > eventLoopLatency_) 
+    {
+      checkNotifications() ;
+      lastEventLoop_=time ;
+    }
+
+    CTimer::get("CRessourcesManager::eventLoop").suspend();
   }
   
   void CRessourcesManager::checkNotifications(void)
   {
     int commRank ;
     MPI_Comm_rank(xiosComm_, &commRank) ;
+    CTimer::get("CRessourcesManager::checkNotifications lock").resume();
     winNotify_->lockWindow(commRank,0) ;
+    CTimer::get("CRessourcesManager::checkNotifications lock").suspend();
+    CTimer::get("CRessourcesManager::checkNotifications pop").resume();
     winNotify_->popFromWindow(commRank, this, &CRessourcesManager::notificationsDumpIn) ;
+    CTimer::get("CRessourcesManager::checkNotifications pop").suspend();
+    CTimer::get("CRessourcesManager::checkNotifications unlock").resume();
     winNotify_->unlockWindow(commRank,0) ;
+    CTimer::get("CRessourcesManager::checkNotifications unlock").suspend();
     if (notifyType_==NOTIFY_CREATE_POOL) createPool() ;
     else if (notifyType_==NOTIFY_FINALIZE) finalizeSignal() ;
   }
 
   void CRessourcesManager::createPool(void)
   {
+    
     auto& arg=notifyCreatePool_ ;
     string poolId=get<0>(arg) ;
     int size=get<1>(arg) ;
+    info(40)<<"CRessourcesManager::createPool : receive create pool notification : "<< poolId<<"  of size "<<size<<endl ;
     CServer::getServersRessource()->createPool(poolId,size) ;
   } 
 
   void CRessourcesManager::finalizeSignal(void)
   {
+    info(40)<<"CRessourcesManager::createPool : receive finalize notification"<<endl ;
     CServer::getServersRessource()->finalize() ;
   }
 

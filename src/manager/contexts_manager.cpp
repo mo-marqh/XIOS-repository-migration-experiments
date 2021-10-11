@@ -6,6 +6,7 @@
 #include "server_context.hpp"
 #include "servers_ressource.hpp"
 #include "server.hpp"
+#include "timer.hpp"
 #include <functional>
 
 
@@ -47,9 +48,10 @@ namespace xios
   {
     int serviceLeader ;
     auto servicesManager = CXios::getServicesManager() ;
-    
+   
     bool ok=servicesManager->getServiceLeader(poolId, serviceId, partitionId, serviceLeader) ;
 
+    info(40)<<"CContextsManager::createServerContext : waiting for service leader ;  serviceId : "<<serviceId<<endl ;
     if (wait)
     {
       while (!ok) 
@@ -63,6 +65,7 @@ namespace xios
     {
       notifyType_=NOTIFY_CREATE_CONTEXT ;
       notifyCreateContext_=make_tuple(poolId, serviceId, partitionId, contextId) ;
+      info(40)<<"CContextsManager::createServerContext : notification create_context to service leader "<<serviceLeader<<", serviceId : "<<serviceId<<", contextId "<<contextId<<endl ;
       sendNotification(serviceLeader) ;
       return true ;
     }
@@ -79,6 +82,7 @@ namespace xios
     MPI_Comm_rank(xiosComm_, &remoteLeader) ;
     
     int type ;
+    info(40)<<"CContextsManager::createServerContextIntercomm : waiting for context leader ;  contextId : "<<contextId<<endl ;
     ok=CXios::getServicesManager()->getServiceType(poolId,serviceId, 0, type) ;
     if (ok) ok=getContextLeader(getServerContextName(poolId, serviceId, partitionId, type, contextId), contextLeader) ;
     if (wait)
@@ -95,6 +99,7 @@ namespace xios
     {
       notifyType_=NOTIFY_CREATE_INTERCOMM ;
       notifyCreateIntercomm_=make_tuple(poolId, serviceId, partitionId, contextId, remoteLeader, sourceContext) ;
+      info(40)<<"CContextsManager::createServerContextIntercomm : notification create_intercomm to context leader : "<<contextLeader<<", contextId :"<<contextId<<endl ;
       sendNotification(contextLeader) ;
       return true ;
     }
@@ -148,7 +153,14 @@ namespace xios
 
   void CContextsManager::eventLoop(void)
   {
-    checkNotifications() ;
+    CTimer::get("CContextsManager::eventLoop").resume();
+    double time=MPI_Wtime() ;
+    if (time-lastEventLoop_ > eventLoopLatency_) 
+    {
+      checkNotifications() ;
+      lastEventLoop_=time ;
+    }
+    CTimer::get("CContextsManager::eventLoop").suspend();
   }
   
   void CContextsManager::checkNotifications(void)
@@ -165,6 +177,7 @@ namespace xios
 
   void CContextsManager::createServerContext(void)
   {
+    info(40)<<"CContextsManager::createServerContext : receive create server context notification"<<endl ;
     auto arg=notifyCreateContext_ ;
     CXios::getPoolRessource()->getService(get<1>(arg), get<2>(arg))
                              ->createContext(get<0>(arg), get<1>(arg), get<2>(arg), get<3>(arg)) ;
@@ -173,6 +186,7 @@ namespace xios
 
   void CContextsManager::createServerContextIntercomm(void)
   {
+    info(40)<<"CContextsManager::createServerContext : receive create intercomm context notification"<<endl ;
     auto arg=notifyCreateIntercomm_ ;
     CXios::getPoolRessource()->getService(get<1>(arg), get<2>(arg))
                              ->getServerContext(get<3>(arg))
@@ -193,11 +207,12 @@ namespace xios
 
   void CContextsManager::registerContext(const string& fullContextId, const SRegisterContextInfo& contextInfo)
   {
-    winContexts_->lockWindow(managerGlobalLeader_,0) ;
-    winContexts_->updateFromWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
+    winContexts_->lockWindowExclusive(managerGlobalLeader_) ;
+    winContexts_->updateFromLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
+    winContexts_->flushWindow(managerGlobalLeader_) ;
     contexts_[fullContextId] = contextInfo ;
-    winContexts_->updateToWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpOut) ;
-    winContexts_->unlockWindow(managerGlobalLeader_,0) ;    
+    winContexts_->updateToLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpOut) ;
+    winContexts_->unlockWindow(managerGlobalLeader_) ;
   }
 
   bool CContextsManager::getContextInfo(const string& fullContextId, SRegisterContextInfo& contextInfo, MPI_Comm comm)
@@ -209,9 +224,9 @@ namespace xios
     if (commRank==0)
     {
 
-      winContexts_->lockWindow(managerGlobalLeader_,0) ;
-      winContexts_->updateFromWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
-      winContexts_->unlockWindow(managerGlobalLeader_,0) ;
+      winContexts_->lockWindowShared(managerGlobalLeader_) ;
+      winContexts_->updateFromLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
+      winContexts_->unlockWindow(managerGlobalLeader_) ;
 
       auto it=contexts_.find(fullContextId) ;
       if ( it == contexts_.end()) ret=false ;

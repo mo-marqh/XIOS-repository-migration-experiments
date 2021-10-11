@@ -4,6 +4,7 @@
 #include "pool_ressource.hpp"
 #include "cxios.hpp"
 #include "mpi.hpp"
+#include "timer.hpp"
 #include <vector>
 #include <string>
 
@@ -114,7 +115,14 @@ namespace xios
 
   bool CServersRessource::eventLoop(bool serviceOnly)
   {
-    checkNotifications() ;
+    CTimer::get("CServersRessource::eventLoop").resume();
+    double time=MPI_Wtime() ;
+    if (time-lastEventLoop_ > eventLoopLatency_) 
+    {
+      checkNotifications() ;
+      lastEventLoop_=time ;
+    }
+
     if (poolRessource_!=nullptr) 
     {
       if (poolRessource_->eventLoop(serviceOnly))
@@ -123,7 +131,7 @@ namespace xios
         // don't forget to free pool ressource later
       } 
     }
-
+    CTimer::get("CServersRessource::eventLoop").suspend();
     if (poolRessource_==nullptr && finalizeSignal_) return true ;
     else return false ;
   }

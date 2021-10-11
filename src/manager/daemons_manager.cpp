@@ -40,6 +40,7 @@ namespace xios
 
   bool CDaemonsManager::eventLoop(void)
   {
+    
     CXios::getRessourcesManager()->eventLoop() ;
     CXios::getServicesManager()->eventLoop() ;
     CXios::getContextsManager()->eventLoop() ;

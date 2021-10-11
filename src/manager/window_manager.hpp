@@ -24,6 +24,8 @@ namespace xios
 
     MPI_Win window_ ;
     void * winBuffer_ ;
+    map<int,double> lastTimeLock_ ;
+    const double latency_=0e-2 ; 
 
     public :
 
@@ -45,17 +47,70 @@ namespace xios
     void lockWindow(int rank, int state )
     {
       int lock=state ;
-          
+      double time ;
+      auto it=lastTimeLock_.find(rank) ;
+      if (it == lastTimeLock_.end()) 
+      { 
+        lastTimeLock_[rank] = 0. ; 
+        it=lastTimeLock_.find(rank) ;
+      }
+      double& lastTime = it->second ;
+
       do 
       {
+        time=MPI_Wtime() ;
+        while(time-lastTime < latency_) time=MPI_Wtime() ;
         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
         MPI_Compare_and_swap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK, window_) ;
         MPI_Win_unlock(rank, window_) ;
+        lastTime=MPI_Wtime() ;
       } while (lock!=state) ;
-
+      
       
     }
 
+    void lockWindowExclusive(int rank, int state )
+    {
+      int lock=state ;
+      double time ;
+      auto it=lastTimeLock_.find(rank) ;
+      if (it == lastTimeLock_.end()) 
+      { 
+        lastTimeLock_[rank] = 0. ; 
+        it=lastTimeLock_.find(rank) ;
+      }
+      double& lastTime = it->second ;
+
+      do 
+      {
+        time=MPI_Wtime() ;
+        while(time-lastTime < latency_) time=MPI_Wtime() ;
+        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
+        MPI_Compare_and_swap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK, window_) ;
+        MPI_Win_unlock(rank, window_) ;
+        lastTime=MPI_Wtime() ;
+      } while (lock!=state) ;
+    }
+
+    void lockWindowExclusive(int rank)
+    {
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
+    }
+
+    void lockWindowShared(int rank)
+    {
+      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
+    }
+
+    void unlockWindow(int rank)
+    {
+      MPI_Win_unlock(rank, window_) ;
+    }
+
+    void flushWindow(int rank)
+    {
+      MPI_Win_flush(rank, window_) ;
+    }
 
     void unlockWindow(int rank, int state )
     {
@@ -76,7 +131,19 @@ namespace xios
       MPI_Put(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
       MPI_Win_unlock(rank, window_) ;
     }
-    
+
+    template< class T >
+    void updateToLockedWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
+    {
+      CBufferOut buffer ;
+      (object->*dumpOut)(buffer) ;
+      size_t size=buffer.count() ;
+//      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
+      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
+      MPI_Put(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
+//      MPI_Win_unlock(rank, window_) ;
+    }
+
     template< typename T >
     void updateFromWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
@@ -89,6 +156,21 @@ namespace xios
       MPI_Win_unlock(rank, window_) ;
       (object->*dumpIn)(buffer) ;
     }
+
+    template< typename T >
+    void updateFromLockedWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
+    {
+      size_t size ;
+//      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
+      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
+      MPI_Win_flush(rank,window_) ;
+      CBufferIn buffer(size) ;
+      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
+//      MPI_Win_unlock(rank, window_) ;
+      MPI_Win_flush(rank, window_) ;
+      (object->*dumpIn)(buffer) ;
+    }
+
 
     template< class T >
     void pushToWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )

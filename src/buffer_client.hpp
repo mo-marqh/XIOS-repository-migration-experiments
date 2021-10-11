@@ -1,6 +1,7 @@
 #ifndef __BUFFER_CLIENT_HPP__
 #define __BUFFER_CLIENT_HPP__
 
+#include "buffer_cs_base.hpp"
 #include "xios_spl.hpp"
 #include "buffer_out.hpp"
 #include "mpi.hpp"
@@ -8,7 +9,7 @@
 
 namespace xios
 {
-  class CClientBuffer
+  class CClientBuffer : public CBufferClientServerBase
   {
     public:
       static size_t maxRequestSize;
@@ -34,6 +35,7 @@ namespace xios
     private:
        void resizeBuffer(size_t newSize) ;
        void resizeBufferNotify(void) ;
+       bool isNotifiedChangeBufferSize(void) ;
 
 
       char* buffer[2];
@@ -41,7 +43,7 @@ namespace xios
       size_t* firstTimeLine[2] ;
       size_t* bufferCount[2] ;
       size_t* control[2] ;
-      size_t* finalize[2] ;
+      size_t* notify[2] ;
       bool winState[2] ;
       int current;
       
@@ -66,7 +68,9 @@ namespace xios
       const MPI_Comm interComm;
       std::vector<MPI_Win> windows_ ;
       bool hasWindows ;
-      static const int headerSize=4*sizeof(size_t);
+
+      double latency_=1e-2 ;
+      double lastCheckedWithNothing_=0 ;
   };
 }
 #endif

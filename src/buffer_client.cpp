@@ -7,6 +7,7 @@
 #include "mpi.hpp"
 #include "tracer.hpp"
 #include "timeline_events.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
@@ -28,18 +29,18 @@ namespace xios
     if (windows[0]==MPI_WIN_NULL && windows[1]==MPI_WIN_NULL) hasWindows=false ;
     else hasWindows=true ;
 
-      MPI_Alloc_mem(bufferSize+headerSize, MPI_INFO_NULL, &bufferHeader[0]) ;
-      MPI_Alloc_mem(bufferSize+headerSize, MPI_INFO_NULL, &bufferHeader[1]) ;
-      buffer[0] = bufferHeader[0]+headerSize ;
-      buffer[1] = bufferHeader[1]+headerSize ;
-      firstTimeLine[0]=(size_t*)bufferHeader[0] ;
-      firstTimeLine[1]=(size_t*)bufferHeader[1] ;
-      bufferCount[0]=(size_t*)bufferHeader[0] +1 ;
-      bufferCount[1]=(size_t*)bufferHeader[1] +1 ;
-      control[0]=(size_t*)bufferHeader[0] +2 ;
-      control[1]=(size_t*)bufferHeader[1] +2 ;
-      finalize[0]=(size_t*)bufferHeader[0] +3 ;
-      finalize[1]=(size_t*)bufferHeader[1] +3 ;
+      MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[0]) ;
+      MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[1]) ;
+      buffer[0] = bufferHeader[0]+headerSize_ ;
+      buffer[1] = bufferHeader[1]+headerSize_ ;
+      firstTimeLine[0]=(size_t*)bufferHeader[0] + timeLineOffset_ ;
+      firstTimeLine[1]=(size_t*)bufferHeader[1] + timeLineOffset_ ;
+      bufferCount[0]=(size_t*)bufferHeader[0] + countOffset_ ;
+      bufferCount[1]=(size_t*)bufferHeader[1] + countOffset_ ;
+      control[0]=(size_t*)bufferHeader[0] + controlOffset_ ;
+      control[1]=(size_t*)bufferHeader[1] + controlOffset_ ;
+      notify[0]=(size_t*)bufferHeader[0] + notifyOffset_ ;
+      notify[1]=(size_t*)bufferHeader[1] + notifyOffset_ ;
 
       *firstTimeLine[0]=0 ;
       *firstTimeLine[1]=0 ;
@@ -47,8 +48,8 @@ namespace xios
       *bufferCount[1]=0 ;
       *control[0]=0 ;
       *control[1]=0 ;
-      *finalize[0]=0 ;
-      *finalize[1]=0 ;
+      *notify[0]=notifyNothing_ ;
+      *notify[1]=notifyNothing_ ;
       winState[0]=false ;
       winState[1]=false ;
 
@@ -56,7 +57,7 @@ namespace xios
     if (hasWindows)
     {  
     
-      MPI_Aint buffSize=bufferSize+headerSize ;
+      MPI_Aint buffSize=bufferSize+headerSize_ ;
       MPI_Win_attach(windows_[0], bufferHeader[0], buffSize) ;
       MPI_Win_attach(windows_[1], bufferHeader[1], buffSize) ;
     
@@ -105,84 +106,26 @@ namespace xios
      delete retBuffer;
   }
 
-/*  void CClientBuffer::createWindows(MPI_Comm oneSidedComm)
-  {
-    MPI_Barrier(oneSidedComm) ;
-    MPI_Win_create(bufferHeader[0], bufferSize+headerSize, 1, MPI_INFO_NULL, oneSidedComm, &(windows[0])) ;
-    MPI_Win_create(bufferHeader[1], bufferSize+headerSize, 1, MPI_INFO_NULL, oneSidedComm, &(windows[1])) ;
-
-    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, windows[0]) ;
-    *firstTimeLine[0]=0 ;
-    *bufferCount[0]=0 ;
-    *control[0]=0 ;
-    MPI_Win_unlock(0, windows[0]) ;
-
-    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, windows[1]) ;
-    *firstTimeLine[1]=0 ;
-    *bufferCount[1]=0 ;
-    *control[1]=0 ;
-    MPI_Win_unlock(0, windows[1]) ;
-    winState[0]=false ;
-    winState[1]=false ;
-    MPI_Barrier(oneSidedComm) ;
-    hasWindows=true ;
-  }
-*/
-
-/*  
-  void CClientBuffer::freeWindows()
-  {
-    if (hasWindows)
-    {
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, windows_[0]) ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, windows_[1]) ;
-      *control[0]=2 ;
-      *control[1]=2 ;
-      MPI_Win_unlock(0, windows_[1]) ;
-      MPI_Win_unlock(0, windows_[0]) ;
-      
-      MPI_Win_free(&windows_[0]) ;
-      MPI_Win_free(&windows_[1]) ;
-      hasWindows=false ;
-    }
-  }
-*/ 
   void CClientBuffer::lockBuffer(void)
   {
+    CTimer::get("lock buffer").resume();
     if (hasWindows)
     {
-   //   MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[current]) ;
-      long long int lock=1 ;
-      long long int zero=0, one=1 ;
-     
       MPI_Win_lock(MPI_LOCK_EXCLUSIVE,clientRank_, 0, windows_[current]) ;
-     
-      while(lock!=0)
-      {
-        MPI_Compare_and_swap(&one, &zero, &lock, MPI_LONG_LONG_INT, clientRank_, MPI_Aint_add(getWinAddress(current),2*sizeof(size_t)),
-                             windows_[current]) ;
-        MPI_Win_flush(clientRank_, windows_[current]) ;
-      }
-
-//      info(100)<<"Buffer locked "<<&windows_<<"  "<<current<<endl ;
       winState[current]=true ;
     }
+    CTimer::get("lock buffer").suspend();
   }
 
   void CClientBuffer::unlockBuffer(void)
   {
+    CTimer::get("unlock buffer").resume();
     if (hasWindows)
     {
-      long long int lock=1 ;
-      long long int zero=0, one=1 ;
-
-      MPI_Compare_and_swap(&zero, &one, &lock, MPI_LONG_LONG_INT, clientRank_, MPI_Aint_add(getWinAddress(current),2*sizeof(size_t)),
-                             windows_[current]) ;
       MPI_Win_unlock(clientRank_, windows_[current]) ;
-
- //     info(100)<<"Buffer unlocked "<<&windows_<<"  "<<current<<endl ;
       winState[current]=false ;
     }
+    CTimer::get("unlock buffer").suspend();
   }
 
   StdSize CClientBuffer::remain(void)
@@ -192,13 +135,6 @@ namespace xios
 
   bool CClientBuffer::isBufferFree(StdSize size)
   {
-//    bool loop=true ;
-//    while (loop) 
-//    {
-//      lockBuffer();
-//      if (*control[current]==0) loop=false ; // attemp to read from server ?
-//      else unlockBuffer() ;
-//    }
   
     lockBuffer();
     count=*bufferCount[current] ;
@@ -207,9 +143,8 @@ namespace xios
 
     if (size > bufferSize)
     {
-      // ERROR("bool CClientBuffer::isBufferFree(StdSize size)",
-      //      << "The requested size (" << size << " bytes) is too big to fit the buffer (" << bufferSize << " bytes), please increase the client buffer size." << endl);
       resizingBufferStep_=1 ;
+      *firstTimeLine[current]=0 ;
       newBufferSize_=size ;
       return false ;
     }
@@ -230,6 +165,7 @@ namespace xios
       if (isGrowableBuffer_)
       {
         resizingBufferStep_ = 1 ;
+        *firstTimeLine[current]=0 ;
         newBufferSize_ = (count+size)*growFactor_ ;
       }  
       return false ;
@@ -246,10 +182,6 @@ namespace xios
       count += size;
       if (*firstTimeLine[current]==0) *firstTimeLine[current]=timeLine ;
       *bufferCount[current]=count ;
-/*      info(50)<<"CClientBuffer::getBuffer "<<" clientRank_ "<<clientRank_<<" serverRank "<<serverRank <<" current "<<current
-              <<" size "<<size<<" timeLine "<< timeLine <<" firstTimeLine "<<*firstTimeLine[current]<<" count "<<*bufferCount[current]<<endl ;
-      if (!winState[current]) info(40)<<"CClientBuffer::getBuffer "<<" Windows Not Locked... "<<" clientRank_ "<<clientRank_<<" serverRank "<<serverRank <<" current "<<current
-              <<" size "<<size<<" timeLine "<< timeLine <<" firstTimeLine "<<*firstTimeLine[current]<<" count "<<*bufferCount[current]<<endl ;*/
       return retBuffer;
     }
     else
@@ -283,6 +215,12 @@ namespace xios
   {
     MPI_Status status;
     int flag;
+    
+    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
+    MPI_Win_unlock(clientRank_, windows_[0]) ;
+
+    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
+    MPI_Win_unlock(clientRank_, windows_[1]) ;
 
     if (pending)
     {
@@ -298,32 +236,36 @@ namespace xios
 
       if (count > 0)
       {
-        lockBuffer() ;
- //       if (*control[current]==0 && bufferCount[current] > 0)
-        if (*bufferCount[current] > 0)
+        double time=MPI_Wtime() ;
+        if (time - lastCheckedWithNothing_ > latency_)
         {
-          MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
-          if (resizingBufferStep_==3) resizingBufferStep_=0 ;
-          pending = true;
-//          *control[current]=0 ;
-          *firstTimeLine[current]=0 ;
-          *bufferCount[current]=0 ;
+          lockBuffer() ;
+          if (*bufferCount[current] > 0)
+          {
+            MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
+            if (resizingBufferStep_==4) resizingBufferStep_=0 ;
+            pending = true;
+            *firstTimeLine[current]=0 ;
+            *bufferCount[current]=0 ;
 
-           unlockBuffer() ;
+             unlockBuffer() ;
 
-          if (current == 1) current = 0;
-          else current = 1;
-          count = 0;
-        }
-        else 
-        {
-          unlockBuffer() ;
+            if (current == 1) current = 0;
+            else current = 1;
+            count = 0;
+          }
+          else 
+          {
+            unlockBuffer() ;
+            lastCheckedWithNothing_ = time ;
+          }
         }
       }
       else
       {
-        if (resizingBufferStep_==2) resizeBuffer(newBufferSize_) ;
         if (resizingBufferStep_==1) resizeBufferNotify() ;
+        else if (resizingBufferStep_==2) isNotifiedChangeBufferSize() ;
+        else if (resizingBufferStep_==3) resizeBuffer(newBufferSize_) ;
       }
     }
 
@@ -344,6 +286,7 @@ namespace xios
 
   void CClientBuffer::resizeBuffer(size_t newSize)
   {
+
     if (hasWindows)
     { 
       MPI_Win_detach(windows_[0], bufferHeader[0]) ;
@@ -353,18 +296,18 @@ namespace xios
     MPI_Free_mem(bufferHeader[1]) ;
 
     bufferSize=newSize ;
-    MPI_Alloc_mem(bufferSize+headerSize, MPI_INFO_NULL, &bufferHeader[0]) ;
-    MPI_Alloc_mem(bufferSize+headerSize, MPI_INFO_NULL, &bufferHeader[1]) ;
-    buffer[0] = bufferHeader[0]+headerSize ;
-    buffer[1] = bufferHeader[1]+headerSize ;
-    firstTimeLine[0]=(size_t*)bufferHeader[0] ;
-    firstTimeLine[1]=(size_t*)bufferHeader[1] ;
-    bufferCount[0]=(size_t*)bufferHeader[0] +1 ;
-    bufferCount[1]=(size_t*)bufferHeader[1] +1 ;
-    control[0]=(size_t*)bufferHeader[0] +2 ;
-    control[1]=(size_t*)bufferHeader[1] +2 ;
-    finalize[0]=(size_t*)bufferHeader[0] +3 ;
-    finalize[1]=(size_t*)bufferHeader[1] +3 ;
+    MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[0]) ;
+    MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[1]) ;
+    buffer[0] = bufferHeader[0]+headerSize_ ;
+    buffer[1] = bufferHeader[1]+headerSize_ ;
+    firstTimeLine[0]=(size_t*)bufferHeader[0] + timeLineOffset_;
+    firstTimeLine[1]=(size_t*)bufferHeader[1] + timeLineOffset_;
+    bufferCount[0]=(size_t*)bufferHeader[0] + countOffset_ ;
+    bufferCount[1]=(size_t*)bufferHeader[1] + countOffset_ ;
+    control[0]=(size_t*)bufferHeader[0] + controlOffset_ ;  // control=0 => nothing ; control=1 => changeBufferSize
+    control[1]=(size_t*)bufferHeader[1] + controlOffset_ ;
+    notify[0]=(size_t*)bufferHeader[0] + notifyOffset_ ;
+    notify[1]=(size_t*)bufferHeader[1] + notifyOffset_ ;
 
     *firstTimeLine[0]=0 ;
     *firstTimeLine[1]=0 ;
@@ -372,8 +315,8 @@ namespace xios
     *bufferCount[1]=0 ;
     *control[0]=0 ;
     *control[1]=0 ;
-    *finalize[0]=0 ;
-    *finalize[1]=0 ;
+    *notify[0] = notifyNothing_ ;
+    *notify[1] = notifyNothing_ ;
     winState[0]=false ;
     winState[1]=false ;
     current=0 ;
@@ -381,8 +324,8 @@ namespace xios
     if (hasWindows)
     {  
     
-      MPI_Win_attach(windows_[0], bufferHeader[0], bufferSize+headerSize) ;
-      MPI_Win_attach(windows_[1], bufferHeader[1], bufferSize+headerSize) ;
+      MPI_Win_attach(windows_[0], bufferHeader[0], bufferSize+headerSize_) ;
+      MPI_Win_attach(windows_[1], bufferHeader[1], bufferSize+headerSize_) ;
           
       MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
       MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
@@ -401,8 +344,9 @@ namespace xios
     bufOut->put(this->getWinAddress(0));
     bufOut->put(this->getWinAddress(1));
 
-    resizingBufferStep_=3;
+    resizingBufferStep_=4;
     unlockBuffer() ;
+    info(100)<<"CClientBuffer::resizeBuffer(size_t newSize) : resizing buffer of server "<<serverRank<<" ; new size : "<<newSize<<" ; winAdress[0] "<<this->getWinAddress(0)<<" winAdress[1] "<<this->getWinAddress(1)<<endl;
   }
 
   bool CClientBuffer::hasPendingRequest(void)
@@ -415,12 +359,28 @@ namespace xios
     return (pending || count > 0);
   }
 
+  bool CClientBuffer::isNotifiedChangeBufferSize(void)
+  {
+   
+    bool ret ;
+    lockBuffer() ;
+    ret=*notify[current] == notifyResizeBuffer_ ? true : false ;
+    if (ret) 
+    {
+      *notify[current] = notifyNothing_ ;
+      resizingBufferStep_=3;  
+    }
+    unlockBuffer() ;
+
+    return ret;
+  }
+
   bool CClientBuffer::isNotifiedFinalized(void)
   {
    
     bool ret ;
     lockBuffer() ;
-    ret=*finalize[current] == 1 ? true : false ;
+    ret=*notify[current] == notifyFinalize_ ? true : false ;
     unlockBuffer() ;
 
     return ret;

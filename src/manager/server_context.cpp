@@ -5,6 +5,7 @@
 #include "context.hpp"
 #include "register_context_info.hpp"
 #include "services.hpp"
+#include "timer.hpp"
 
 
 namespace xios
@@ -17,6 +18,7 @@ namespace xios
                                  const int& partitionId, const std::string& contextId) : finalizeSignal_(false), parentService_(parentService),
                                  hasNotification_(false)
   {
+   info(40)<<"CCServerContext::CServerContext  : new context creation ; contextId : "<<contextId<<endl ;
    int localRank, globalRank, commSize ;
 
     MPI_Comm_dup(contextComm, &contextComm_) ;
@@ -57,6 +59,7 @@ namespace xios
   bool CServerContext::createIntercomm(const string& poolId, const string& serviceId, const int& partitionId, const string& contextId, 
                                        const MPI_Comm& intraComm, MPI_Comm& interCommClient, MPI_Comm& interCommServer, bool wait)
   {
+    info(40)<<"CServerContext::createIntercomm  : context intercomm creation ; contextId : "<<contextId<<endl ;
     int intraCommRank ;
     MPI_Comm_rank(intraComm, &intraCommRank) ;
     int contextLeader ;
@@ -144,6 +147,8 @@ namespace xios
   {
      int commSize ;
      MPI_Comm_size(contextComm_,&commSize) ;
+     info(40)<<"CServerContext::createIntercomm  : notify createContextIntercomm to all context members ; sourceContext : "<<sourceContext<<endl ;
+    
      for(int rank=0; rank<commSize; rank++)
      {
        notifyOutType_=NOTIFY_CREATE_INTERCOMM ;
@@ -190,20 +195,25 @@ namespace xios
   {
     if (!hasNotification_)
     {
-      int commRank ;
-      MPI_Comm_rank(contextComm_, &commRank) ;
-      winNotify_->lockWindow(commRank,0) ;
-      winNotify_->popFromWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
-      winNotify_->unlockWindow(commRank,0) ;
-      
-      if (notifyInType_!= NOTIFY_NOTHING)
+      double time=MPI_Wtime() ;
+      if (time-lastEventLoop_ > eventLoopLatency_) 
       {
-        hasNotification_=true ;
-        auto eventScheduler=parentService_->getEventScheduler() ;
-        std::hash<string> hashString ;
-        size_t hashId = hashString(name_) ;
-        size_t currentTimeLine=0 ;
-        eventScheduler->registerEvent(currentTimeLine,hashId); 
+        int commRank ;
+        MPI_Comm_rank(contextComm_, &commRank) ;
+        winNotify_->lockWindow(commRank,0) ;
+        winNotify_->popFromWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
+        winNotify_->unlockWindow(commRank,0) ;
+      
+        if (notifyInType_!= NOTIFY_NOTHING)
+        {
+          hasNotification_=true ;
+          auto eventScheduler=parentService_->getEventScheduler() ;
+          std::hash<string> hashString ;
+          size_t hashId = hashString(name_) ;
+          size_t currentTimeLine=0 ;
+          eventScheduler->registerEvent(currentTimeLine,hashId); 
+        }
+        lastEventLoop_=time ;
       }
     }
     
@@ -224,8 +234,17 @@ namespace xios
 
   bool CServerContext::eventLoop(bool serviceOnly)
   {
+    CTimer::get("CServerContext::eventLoop").resume();
     bool finished=false ;
-    if (winNotify_!=nullptr) checkNotifications() ;
+    
+//    double time=MPI_Wtime() ;
+//    if (time-lastEventLoop_ > eventLoopLatency_) 
+//    {
+      if (winNotify_!=nullptr) checkNotifications() ;
+//      lastEventLoop_=time ;
+//    }
+
+
     if (!serviceOnly && context_!=nullptr)  
     {
       if (context_->eventLoop())
@@ -234,13 +253,15 @@ namespace xios
         // destroy context ??? --> later
       }
     }
-
+    CTimer::get("CServerContext::eventLoop").suspend();
     if (context_==nullptr && finalizeSignal_) finished=true ;
     return finished ;
   }
 
   void CServerContext::createIntercomm(void)
   {
+    info(40)<<"CServerContext::createIntercomm  : received createIntercomm notification"<<endl ;
+
      MPI_Comm interCommServer, interCommClient ;
      auto& arg=notifyInCreateIntercomm_ ;
      int remoteLeader=get<0>(arg) ;

@@ -49,34 +49,42 @@ namespace xios
 
       computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
 
-      if (flag) 
-      {
-        MPI_Intercomm_merge(interComm_,false, &interCommMerged) ;
-        int interCommMergedRank;
-        MPI_Comm_rank(interComm_, &interCommMergedRank);
-        MPI_Comm_rank(interCommMerged, &interCommMergedRank);
-        MPI_Comm_rank(intraComm, &interCommMergedRank);
-      }
+      if (flag) MPI_Intercomm_merge(interComm_,false, &interCommMerged) ;
       
       if (!isAttachedModeEnabled())
       {  
+
+        CTimer::get("create Windows").resume() ;
+
+        // We create dummy pair of intercommunicator between clients and server
+        // Why ? Just because on openMPI, it reduce the creation time of windows otherwhise which increase quadratically
+        // We don't know the reason
+      
+        MPI_Comm commSelf ;
+        MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf) ;
+        vector<MPI_Comm> dummyComm(serverSize) ;
+        for(int rank=0; rank<serverSize; rank++) MPI_Intercomm_create(commSelf, 0, interCommMerged, clientSize+rank, 0, &dummyComm[rank]) ;
+
+        // create windows for one-sided
         windows.resize(serverSize) ;
         MPI_Comm winComm ;
         for(int rank=0; rank<serverSize; rank++)
         {
           windows[rank].resize(2) ;
           MPI_Comm_split(interCommMerged, rank, clientRank, &winComm);
-          int myRank ;
-          MPI_Comm_rank(winComm,&myRank);
           MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[rank][0]);
           MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[rank][1]);
 //       ym : Warning : intelMPI doesn't support that communicator of windows be deallocated before the windows deallocation, crash at MPI_Win_lock
 //            Bug or not ?          
-//        MPI_Comm_free(&winComm) ;
+//          MPI_Comm_free(&winComm) ;
         }
-      }
+        
+        // free dummy intercommunicator => take times ?
+        for(int rank=0; rank<serverSize; rank++)  MPI_Comm_free(&dummyComm[rank]) ;
+        MPI_Comm_free(&commSelf) ;
 
-      MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf) ;
+        CTimer::get("create Windows").resume() ;
+     }
 
       auto time=chrono::system_clock::now().time_since_epoch().count() ;
       std::default_random_engine rd(time); // not reproducible from a run to another
@@ -280,30 +288,35 @@ namespace xios
         bufferList.push_back(it->second);
       }
 
+      double lastTimeBuffersNotFree=0. ;
+      double time ;
+      bool doUnlockBuffers ;
       CTimer::get("Blocking time").resume();
       do
       {
         areBuffersFree = true;
-        for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
+        doUnlockBuffers=false ;
+        time=MPI_Wtime() ;
+        if (time-lastTimeBuffersNotFree > latency_)
         {
-          areBuffersFree &= (*itBuffer)->isBufferFree(*itSize);
+          for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
+          {
+            areBuffersFree &= (*itBuffer)->isBufferFree(*itSize);
+          }
+          if (!areBuffersFree)
+          {
+            lastTimeBuffersNotFree = time ;
+            doUnlockBuffers=true ;
+          }          
         }
+        else areBuffersFree = false ;
 
         if (!areBuffersFree)
         {
-          for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
+          if (doUnlockBuffers) for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
           checkBuffers();
-/*          
-          context->server->listen();
 
-          if (context->serverPrimServer.size()>0)
-          {
-            for (int i = 0; i < context->serverPrimServer.size(); ++i)  context->serverPrimServer[i]->listen();
- //ym           CServer::contextEventLoop(false) ; // avoid dead-lock at finalize...
-            context->globalEventLoop() ;
-          }
-*/
-           context_->globalEventLoop() ;
+          context_->globalEventLoop() ;
         }
 
       } while (!areBuffersFree && !nonBlocking);
@@ -382,7 +395,6 @@ namespace xios
           MPI_Win_free(&windows[rank][1]);
         }
       } 
-
    }
 
       

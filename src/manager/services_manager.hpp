@@ -58,6 +58,9 @@ namespace xios
     std::map<tuple<std::string, std::string, int>, std::tuple<int, int, int, int> > services_ ;
 
     int managerGlobalLeader_ ;
+
+    const double eventLoopLatency_=1e-2; 
+    double lastEventLoop_=0. ;
     
     friend class CWindowManager ;
   } ;

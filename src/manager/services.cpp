@@ -4,6 +4,7 @@
 #include "cxios.hpp"
 #include "server_context.hpp"
 #include "event_scheduler.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
@@ -13,6 +14,8 @@ namespace xios
 
 
   {
+    info(40)<<"CService::CService  : new service created ; serviceId : "<<serviceId<<endl ;
+   
     int localRank, globalRank, commSize ;
 
     MPI_Comm_dup(serviceComm, &serviceComm_) ;
@@ -43,13 +46,15 @@ namespace xios
   {
     int commSize ;
     MPI_Comm_size(serviceComm_, &commSize) ;
-    
+    info(40)<<"CService::createContext  : notify CreateContext to all services members ; serviceId : "<<serviceId<<" ; contextId : "<<contextId<<endl ;
+
     for(int rank=0; rank<commSize; rank++) 
     {
       notifyOutType_=NOTIFY_CREATE_CONTEXT ;
       notifyOutCreateContext_ = make_tuple(poolId, serviceId, partitionId, contextId) ;
       sendNotification(rank) ;
     }
+    info(40)<<"CService::createContext  : notify CreateContext to all services members : DONE "<<endl ;
   }
 /*
   void CService::createContext(const std::string& contextId)
@@ -98,7 +103,15 @@ namespace xios
   bool CService::eventLoop(bool serviceOnly)
   {
     //checkCreateContextNotification() ;
-    checkNotifications() ;
+    CTimer::get("CService::eventLoop").resume();
+    
+//    double time=MPI_Wtime() ;
+//    if (time-lastEventLoop_ > eventLoopLatency_) 
+//    {
+      checkNotifications() ;
+//      lastEventLoop_=time ;
+//    }
+
 
     eventScheduler_->checkEvent() ;
     for(auto it=contexts_.begin();it!=contexts_.end();++it) 
@@ -110,7 +123,7 @@ namespace xios
         break ;
       } ;
     }
-
+    CTimer::get("CService::eventLoop").suspend();
     if (contexts_.empty() && finalizeSignal_) return true ;
     else return false ;
   }
@@ -143,7 +156,6 @@ namespace xios
       buffer>>notifyInType_;
       if (notifyInType_==NOTIFY_CREATE_CONTEXT)
       {
-        info(10)<<"NotifyDumpOut"<<endl ;
         auto& arg=notifyInCreateContext_ ;
         buffer >> std::get<0>(arg)>> std::get<1>(arg) >> std::get<2>(arg)>> std::get<3>(arg);
       }
@@ -157,19 +169,25 @@ namespace xios
   {
     if (!hasNotification_)
     {
-      int commRank ;
-      MPI_Comm_rank(serviceComm_, &commRank) ;
-      winNotify_->lockWindow(commRank,0) ;
-      winNotify_->popFromWindow(commRank, this, &CService::notificationsDumpIn) ;
-      winNotify_->unlockWindow(commRank,0) ;
-      
-      if (notifyInType_!= NOTIFY_NOTHING)
+      double time=MPI_Wtime() ;
+      if (time-lastEventLoop_ > eventLoopLatency_) 
       {
-        hasNotification_=true ;
-        std::hash<string> hashString ;
-        size_t hashId = hashString(name_) ;
-        size_t currentTimeLine=0 ;
-        eventScheduler_->registerEvent(currentTimeLine,hashId); 
+        int commRank ;
+        MPI_Comm_rank(serviceComm_, &commRank) ;
+        winNotify_->lockWindow(commRank,0) ;
+        winNotify_->popFromWindow(commRank, this, &CService::notificationsDumpIn) ;
+        winNotify_->unlockWindow(commRank,0) ;
+      
+        if (notifyInType_!= NOTIFY_NOTHING)
+        {
+          hasNotification_=true ;
+          std::hash<string> hashString ;
+          size_t hashId = hashString(name_) ;
+          size_t currentTimeLine=0 ;
+          info(40)<<"CService::checkNotifications(void) : receive notification => event scheduler"<<endl ;
+          eventScheduler_->registerEvent(currentTimeLine,hashId); 
+        }
+        lastEventLoop_=time ;
       }
     }
     
@@ -178,9 +196,11 @@ namespace xios
       std::hash<string> hashString ;
       size_t hashId = hashString(name_) ;
       size_t currentTimeLine=0 ;
+      info(40)<<"CService::checkNotifications(void) : receive notification => event scheduler : eventIsReceived ?"<<endl ;
       if (eventScheduler_->queryEvent(currentTimeLine,hashId))
       {
         eventScheduler_->popEvent() ;
+        info(40)<<"CService::checkNotifications(void) : receive notification => event scheduler : RECEIVED"<<endl ;
         if (notifyInType_==NOTIFY_CREATE_CONTEXT) createContext() ;
         hasNotification_=false ;
       }
@@ -189,7 +209,7 @@ namespace xios
 
 
 
-
+//ym not use any more
   void CService::checkCreateContextNotification(void)
   {
     int commRank ;
@@ -209,6 +229,7 @@ namespace xios
 
   void CService::createContext(void)
    {
+     info(40)<<"CService::createContext(void)  : receive createContext notification"<<endl ;
      auto& arg=notifyInCreateContext_ ;
      string poolId = get<0>(arg) ;
      string& serviceId = get<1>(arg) ;
@@ -217,7 +238,7 @@ namespace xios
      contexts_[contextId] = new CServerContext(this, serviceComm_, poolId, serviceId, partitionId, contextId) ; 
    }
 
-   //to remove
+   //to remove, not used anymore
    void CService::createNewContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId)
    {
      contexts_[contextId] = new CServerContext(this, serviceComm_, poolId, serviceId, partitionId, contextId) ; 

@@ -5,6 +5,7 @@
 #include "message.hpp"
 #include "type.hpp"
 #include "cxios.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
@@ -15,8 +16,7 @@ namespace xios
     winNotify_ = new CWindowManager(poolComm_, maxBufferSize_) ;
     MPI_Comm_rank(poolComm, &commRank) ;
     MPI_Comm_size(poolComm, &commSize) ;
-
-
+    info(40)<<"CPoolRessource::CPoolRessource  : creating new pool : "<<Id<<endl ;
     if (commRank==localLeader_)
     {
       for(int i=0; i<commSize;i++) occupancy_.insert(std::pair<char,int>(0,i)) ; 
@@ -50,7 +50,8 @@ namespace xios
     
     occupancy_.erase(occupancy_.begin(),it) ;
     occupancy_.insert(procs_update.begin(),procs_update.end()) ;
-
+    
+    info(40)<<"CPoolRessource::createService  : notify createService to all pool members ; serviceId : "<<serviceId<<endl ;
     for(int rank=0; rank<commSize; rank++)
     {
       if (procs_in[rank]) createServiceNotify(rank, serviceId, type, size, nbPartitions, true) ;
@@ -101,7 +102,15 @@ namespace xios
 
   bool CPoolRessource::eventLoop(bool serviceOnly)
   {
-    checkCreateServiceNotification() ;
+    CTimer::get("CPoolRessource::eventLoop").resume();
+   
+    double time=MPI_Wtime() ;
+    if (time-lastEventLoop_ > eventLoopLatency_) 
+    {
+      checkCreateServiceNotification() ;
+      lastEventLoop_=time ;
+    }
+    
     for (auto it=services_.begin(); it!=services_.end() ; ++it) 
     {
       if (it->second->eventLoop(serviceOnly))
@@ -111,7 +120,7 @@ namespace xios
         break ;
       }
     }
-
+    CTimer::get("CPoolRessource::eventLoop").suspend();
     if (services_.empty() && finalizeSignal_) return true ;
     else return false ;
   }
@@ -136,6 +145,8 @@ namespace xios
 
   void CPoolRessource::createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in)
   {
+     
+     info(40)<<"CPoolRessource::createNewService  : receive createService notification ; serviceId : "<<serviceId<<endl ;
      MPI_Comm serviceComm, newServiceComm ;
      int commRank ;
      MPI_Comm_rank(poolComm_,&commRank) ;

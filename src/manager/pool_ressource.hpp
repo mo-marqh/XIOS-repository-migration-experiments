@@ -43,7 +43,9 @@ namespace xios
     std::map< std::tuple<std::string, int>, CService*> services_ ;
     std::string Id_ ;
     bool finalizeSignal_ ;
-
+    
+    const double eventLoopLatency_=1e-2; 
+    double lastEventLoop_=0. ;
   };
 
 }

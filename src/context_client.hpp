@@ -93,8 +93,6 @@ namespace xios
 
       MPI_Comm intraComm; //!< Communicator of client group
 
-      MPI_Comm commSelf; //!< Communicator of the client alone. Needed to create a new communicator between 1 proc client and 1 proc server for one sided communication
-
       map<int,CClientBuffer*> buffers; //!< Buffers for connection to servers
 
       bool pureOneSided ; //!< if true, client will communicated with servers only trough one sided communication. Otherwise the hybrid mode P2P /One sided is used.
@@ -125,6 +123,8 @@ namespace xios
       bool isAttached_ ;
       CContextServer* associatedServer_ ; //!< The server associated to the pair client/server
       bool isGrowableBuffer_ = true ;
+
+      double latency_=1e-2 ;
   };
 }
 
