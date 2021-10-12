@@ -1909,7 +1909,7 @@ namespace xios {
         for(auto& rank : zeroIndex) globalIndex[rank] = CArray<size_t,1>() ; 
     }
 */    
-    if (distType==EDistributionType::BANDS && isUnstructed_) distType==EDistributionType::COLUMNS ;
+    if (distType==EDistributionType::BANDS && isUnstructed_) distType=EDistributionType::COLUMNS ;
 
     if (distType==EDistributionType::BANDS) // Bands distribution to send to file server
     {
