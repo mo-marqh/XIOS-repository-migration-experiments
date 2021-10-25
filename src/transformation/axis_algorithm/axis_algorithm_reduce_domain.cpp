@@ -51,6 +51,7 @@ CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(bool isSource, CAxis* axi
 TRY
 {
   algo->checkValid(axisDestination, domainSource);
+  axisDestination->checkAttributes() ;
   switch (algo->operation)
   {
     case CReduceDomainToAxis::operation_attr::sum:
