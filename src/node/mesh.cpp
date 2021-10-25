@@ -426,6 +426,8 @@ namespace xios {
 
     if (nvertex == 1)
     {
+      if (nodesAreWritten) return ;
+
       nbNodes_ = lonvalue.numElements();
       node_lon.resize(nbNodes_);
       node_lat.resize(nbNodes_);
@@ -448,11 +450,14 @@ namespace xios {
       CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2IdxGlo;
       for (size_t nn = 0; nn < nbNodes_; ++nn)
       {
+        cout<<"MESH : "<<"node inserted : ("<< lonvalue(nn)<<","<< latvalue(nn)<<") index glo "<<nodeStart + nn<<" : hash =>   " ;
         hashValues = CMesh::createHashes(lonvalue(nn), latvalue(nn));
         for (size_t nh = 0; nh < 4; ++nh)
         {
-          nodeHash2IdxGlo[hashValues[nh]].push_back(nodeStart + nn); 
+          nodeHash2IdxGlo[hashValues[nh]].push_back(nodeStart + nn);
+          cout<<hashValues[nh]<<"    ";
         }
+        cout<<endl ;
       }
       pNodeGlobalIndex = new CClientClientDHTSizet (nodeHash2IdxGlo, comm);
 
@@ -461,6 +466,8 @@ namespace xios {
 
     else if (nvertex == 2)
     {
+      if (edgesAreWritten) return ;
+
       nbEdges_ = bounds_lon.shape()[1];
       edge_lon.resize(nbEdges_);
       edge_lat.resize(nbEdges_);
@@ -507,6 +514,7 @@ namespace xios {
         size_t nodeIdxGlo1, nodeIdxGlo2;
         for (int ne = 0; ne < nbEdges_; ++ne)
         {
+          cout<<"MESH : "<<"insert edge " ;
           for (int nv = 0; nv < nvertex; ++nv)
           {
             int nh = 0;
@@ -523,9 +531,12 @@ namespace xios {
               nodeIdxGlo1 = it->second[0];
             else
               nodeIdxGlo2 = it->second[0];
+           
+            cout<<"("<<bounds_lon(nv, ne)<<","<<bounds_lat(nv, ne)<<")" ;
           }
           size_t edgeIdxGlo = nbEdgesAccum + ne;
           edgeHash2IdxGlo[ hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2) ].push_back(edgeIdxGlo);
+          cout<<"  nodes Id : "<<nodeIdxGlo1<<"&"<<nodeIdxGlo2<<" ; edge Id : "<<edgeIdxGlo<<" with hash : "<<hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2)<<endl ;
         }
       } // nodesAreWritten
 
@@ -688,6 +699,8 @@ namespace xios {
 
     else // nvertex > 2
     {
+      if (facesAreWritten) return ;
+
       nbFaces_ = bounds_lon.shape()[1];
       face_lon.resize(nbFaces_);
       face_lat.resize(nbFaces_);
@@ -701,6 +714,8 @@ namespace xios {
       unsigned long nbFacesAccum;
       MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
       nbFacesAccum -= nbFaces_;
+      cout<<bounds_lon<<endl ;
+      cout<<bounds_lat<<endl ;
 
       // Case (1): edges have been previously generated
       if (edgesAreWritten)
@@ -721,6 +736,7 @@ namespace xios {
         CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeHash2IdxGlo = pNodeGlobalIndex->getInfoIndexMap();
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it1, it2;
         CArray<size_t,1> edgeHashList(nbFaces_*nvertex);
+
         size_t nEdge = 0;
         for (int nf = 0; nf < nbFaces_; ++nf)
         {
@@ -783,6 +799,8 @@ namespace xios {
             {
               size_t faceIdxGlo = nbFacesAccum + nf;
               size_t edgeHash = hashPairOrdered(it1->second[0], it2->second[0]);
+              cout<<"MESH : "<<"find edge : ("<<bounds_lon(nv1,nf)<<","<<bounds_lat(nv1,nf)<<")&("<<bounds_lon(nv2,nf)<<","<<bounds_lat(nv2,nf)
+                  <<") ;  edgeHash "<<edgeHash<<" with node index : "<<it1->second[0]<<" & "<<it2->second[0]<<endl ;
               itEdgeHash = edgeHash2IdxGlo.find(edgeHash);
               size_t edgeIdxGlo = itEdgeHash->second[0];
               face_edges(nv1,nf) = edgeIdxGlo;
@@ -1307,7 +1325,7 @@ namespace xios {
           }
         }
 
-//        CDHTAutoIndexing dhtNodeIdxGlo = CDHTAutoIndexing(nodeIdx2Idx, comm);
+        //        CDHTAutoIndexing dhtNodeIdxGlo = CDHTAutoIndexing(nodeIdx2Idx, comm);
         // CDHTAutoIndexing will not give consistent node numbering for varying number of procs. =>
         // Solution: global node indexing by hand.
         // Maps modified in this step:
@@ -1350,9 +1368,10 @@ namespace xios {
 
         // (3.3) Saving node data: node_lon, node_lat, and face_nodes
         // Generating edgeHash2Info = <hash, <idx, rank>> and edgeHashList
-//        nbNodesGlo = dhtNodeIdxGlo.getNbIndexesGlobal();
-//        node_count = dhtNodeIdxGlo.getIndexCount();
-//        node_start = dhtNodeIdxGlo.getIndexStart();
+        
+        //        nbNodesGlo = dhtNodeIdxGlo.getNbIndexesGlobal();
+        //        node_count = dhtNodeIdxGlo.getIndexCount();
+        //        node_start = dhtNodeIdxGlo.getIndexStart();
         node_lon.resize(node_count);
         node_lat.resize(node_count);
         size_t nodeIdxGlo1 = 0;
@@ -1481,9 +1500,9 @@ namespace xios {
 
         // (3.5) Saving variables: edge_lon, edge_lat, face_edges
         // Creating map edgeIdxGlo2Face <idxGlo, face>
-//        nbEdgesGlo = dhtEdgeIdxGlo.getNbIndexesGlobal();
-//        edge_count = dhtEdgeIdxGlo.getIndexCount();
-//        edge_start = dhtEdgeIdxGlo.getIndexStart();
+        //        nbEdgesGlo = dhtEdgeIdxGlo.getNbIndexesGlobal();
+        //        edge_count = dhtEdgeIdxGlo.getIndexCount();
+        //        edge_start = dhtEdgeIdxGlo.getIndexStart();
 
         edge_lon.resize(edge_count);
         edge_lat.resize(edge_count);

@@ -875,7 +875,7 @@ namespace xios {
      int size = this->enabledFields.size();
      std::vector<int> domainNvertices;
      std::vector<StdString> domainNames;
-     std::map<string, tuple<CDomain*,CDomain*,CDomain*>> registeredDomains ;
+     std::map<string, tuple<set<CDomain*>,set<CDomain*>,set<CDomain*>>> registeredDomains ;
 
      for (int i = 0; i < size; ++i)
      {
@@ -919,9 +919,9 @@ namespace xios {
          domainNvertices.push_back(nvertex);
        }
 
-       if (nvertex==1)  std::get<0>(registeredDomains[domainName])=domain[0] ;
-       else if (nvertex==2) std::get<1>(registeredDomains[domainName])=domain[0] ;
-       else  std::get<2>(registeredDomains[domainName])=domain[0] ;
+       if (nvertex==1)  std::get<0>(registeredDomains[domainName]).insert(domain[0]) ;
+       else if (nvertex==2) std::get<1>(registeredDomains[domainName]).insert(domain[0]) ;
+       else  std::get<2>(registeredDomains[domainName]).insert(domain[0]) ;
      }
 
      for(auto& it:registeredDomains)
@@ -929,9 +929,9 @@ namespace xios {
        list<CDomain*> domains ;
        string domainName=it.first ;
 
-       if (std::get<0>(it.second)!=nullptr) domains.push_back(std::get<0>(it.second)) ;
-       if (std::get<1>(it.second)!=nullptr) domains.push_back(std::get<1>(it.second)) ; 
-       if (std::get<2>(it.second)!=nullptr) domains.push_back(std::get<2>(it.second)) ; 
+       for(auto& domain : std::get<0>(it.second) ) domains.push_back(domain) ;
+       for(auto& domain : std::get<1>(it.second) ) domains.push_back(domain) ;
+       for(auto& domain : std::get<2>(it.second) ) domains.push_back(domain) ;
        
        // for each component of a given mesh (i.e. domains with same name but different number of vertices)
        // associate the UGRID mesh in increasing order
