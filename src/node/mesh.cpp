@@ -450,14 +450,14 @@ namespace xios {
       CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2IdxGlo;
       for (size_t nn = 0; nn < nbNodes_; ++nn)
       {
-        cout<<"MESH : "<<"node inserted : ("<< lonvalue(nn)<<","<< latvalue(nn)<<") index glo "<<nodeStart + nn<<" : hash =>   " ;
+//        cout<<"MESH : "<<"node inserted : ("<< lonvalue(nn)<<","<< latvalue(nn)<<") index glo "<<nodeStart + nn<<" : hash =>   " ;
         hashValues = CMesh::createHashes(lonvalue(nn), latvalue(nn));
         for (size_t nh = 0; nh < 4; ++nh)
         {
           nodeHash2IdxGlo[hashValues[nh]].push_back(nodeStart + nn);
-          cout<<hashValues[nh]<<"    ";
+//          cout<<hashValues[nh]<<"    ";
         }
-        cout<<endl ;
+//        cout<<endl ;
       }
       pNodeGlobalIndex = new CClientClientDHTSizet (nodeHash2IdxGlo, comm);
 
@@ -514,7 +514,7 @@ namespace xios {
         size_t nodeIdxGlo1, nodeIdxGlo2;
         for (int ne = 0; ne < nbEdges_; ++ne)
         {
-          cout<<"MESH : "<<"insert edge " ;
+//          cout<<"MESH : "<<"insert edge " ;
           for (int nv = 0; nv < nvertex; ++nv)
           {
             int nh = 0;
@@ -532,11 +532,11 @@ namespace xios {
             else
               nodeIdxGlo2 = it->second[0];
            
-            cout<<"("<<bounds_lon(nv, ne)<<","<<bounds_lat(nv, ne)<<")" ;
+//            cout<<"("<<bounds_lon(nv, ne)<<","<<bounds_lat(nv, ne)<<")" ;
           }
           size_t edgeIdxGlo = nbEdgesAccum + ne;
           edgeHash2IdxGlo[ hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2) ].push_back(edgeIdxGlo);
-          cout<<"  nodes Id : "<<nodeIdxGlo1<<"&"<<nodeIdxGlo2<<" ; edge Id : "<<edgeIdxGlo<<" with hash : "<<hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2)<<endl ;
+//          cout<<"  nodes Id : "<<nodeIdxGlo1<<"&"<<nodeIdxGlo2<<" ; edge Id : "<<edgeIdxGlo<<" with hash : "<<hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2)<<endl ;
         }
       } // nodesAreWritten
 
@@ -714,8 +714,8 @@ namespace xios {
       unsigned long nbFacesAccum;
       MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
       nbFacesAccum -= nbFaces_;
-      cout<<bounds_lon<<endl ;
-      cout<<bounds_lat<<endl ;
+//      cout<<bounds_lon<<endl ;
+//      cout<<bounds_lat<<endl ;
 
       // Case (1): edges have been previously generated
       if (edgesAreWritten)
@@ -799,8 +799,8 @@ namespace xios {
             {
               size_t faceIdxGlo = nbFacesAccum + nf;
               size_t edgeHash = hashPairOrdered(it1->second[0], it2->second[0]);
-              cout<<"MESH : "<<"find edge : ("<<bounds_lon(nv1,nf)<<","<<bounds_lat(nv1,nf)<<")&("<<bounds_lon(nv2,nf)<<","<<bounds_lat(nv2,nf)
-                  <<") ;  edgeHash "<<edgeHash<<" with node index : "<<it1->second[0]<<" & "<<it2->second[0]<<endl ;
+//              cout<<"MESH : "<<"find edge : ("<<bounds_lon(nv1,nf)<<","<<bounds_lat(nv1,nf)<<")&("<<bounds_lon(nv2,nf)<<","<<bounds_lat(nv2,nf)
+//                  <<") ;  edgeHash "<<edgeHash<<" with node index : "<<it1->second[0]<<" & "<<it2->second[0]<<endl ;
               itEdgeHash = edgeHash2IdxGlo.find(edgeHash);
               size_t edgeIdxGlo = itEdgeHash->second[0];
               face_edges(nv1,nf) = edgeIdxGlo;
