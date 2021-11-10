@@ -1423,8 +1423,7 @@ namespace xios {
    void CContext::recvCreateFileHeader(CBufferIn& buffer)
    TRY
    {
-      if (!hasClient && hasServer) 
-        createFileHeader();
+      createFileHeader();
    }
    CATCH_DUMP_ATTR
 
@@ -2002,12 +2001,10 @@ namespace xios {
    TRY
    {
       vector<CFile*>::const_iterator it;
-
-      for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
-      // for (it=enabledWriteModeFiles.begin(); it != enabledWriteModeFiles.end(); it++)
-      {
-         (*it)->initWrite();
-      }
+      if (!hasClient && hasServer) 
+        for (it=enabledFiles.begin(); it != enabledFiles.end(); it++) (*it)->initWrite();
+      else if (hasClient && hasServer)
+        for (it=enabledReadModeFiles.begin(); it != enabledReadModeFiles.end(); it++)  (*it)->initWrite();
    }
    CATCH_DUMP_ATTR
 
