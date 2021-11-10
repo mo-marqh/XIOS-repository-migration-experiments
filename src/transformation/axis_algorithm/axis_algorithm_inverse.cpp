@@ -48,10 +48,26 @@ TRY
 CATCH
 
 CAxisAlgorithmInverse::CAxisAlgorithmInverse(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis)
- : CAlgorithmTransformationTransfer(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
+ : CAlgorithmTransformationNoDataModification(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
-  axisDestination->checkAttributes() ;
+  
+  axisDestination->axis_type.reset();
+  axisDestination->n_glo.reset();
+  axisDestination->index.reset();
+  axisDestination->n.reset();
+  axisDestination->begin.reset();
+
+  axisDestination->mask.reset();
+  axisDestination->data_index.reset();
+  axisDestination->data_n.reset();
+  axisDestination->data_begin.reset();
+
+  axisDestination->value.reset();
+  axisDestination->bounds.reset();
+
+  axisDestination->n_glo.setValue( axisSource->n_glo.getValue() );
+
   if (axisDestination->n_glo.getValue() != axisSource->n_glo.getValue())
   {
     ERROR("CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource)",
@@ -60,229 +76,72 @@ TRY
            << "Size of axis destination " <<axisDestination->getId() << " is " << axisDestination->n_glo.getValue());
   }
 
-  auto& transMap = this->transformationMapping_;
-
-  int globalIndexSize = axisDestination->n_glo.getValue();
-  for (int idx = 0; idx < axisDestination->index.numElements(); ++idx)
+  int n_glo =axisDestination->n_glo.getValue() ;
+  
+  CArray<size_t,1> sourceGlobalIdx = axisSource->getLocalElement()->getGlobalIndex();
+  int indexSize = sourceGlobalIdx.numElements();
+  
+  axisDestination->index.resize( indexSize );
+  axisDestination->data_index.resize( indexSize );
+  axisDestination->data_index = -1;
+  for (size_t i = 0; i < indexSize ; ++i)
   {
-    transMap[axisDestination->index(idx)] = globalIndexSize-axisDestination->index(idx)-1;
+    axisDestination->index(i) = (n_glo-1)-sourceGlobalIdx(i);
   }
 
-  int niSrc   = axisSrc_->n.getValue();
-  int sizeSrc = axisSrc_->n_glo.getValue();
-  if (niSrc != sizeSrc) updateAxisValue();
-  else
+  int idxMin = INT_MAX;
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
   {
-    for (int idx = 0; idx < sizeSrc; ++idx)
+    if ( sourceGlobalIdx(countSrc) < idxMin )
+      idxMin = sourceGlobalIdx(countSrc);
+  }
+
+  CArray<int,1> sourceWorkflowIdx = axisSource->getLocalView(CElementView::WORKFLOW)->getIndex();
+  int srcWorkflowSize = sourceWorkflowIdx.numElements();
+  for (size_t i = 0; i < indexSize ; ++i)
+  {
+    // ------------------ define transformation only if in the WF ------------------ 
+    int iIdxSrc2 = (i+idxMin)%axisSource->n_glo;
+    int convert_locally_global_idx = (iIdxSrc2-idxMin) ;
+    bool concerned_by_WF(false);
+    int i2;
+    for ( i2 = 0 ; i2<sourceWorkflowIdx.numElements() ; ++i2 )
     {
-      axisDest_->value(idx) = axisSrc_->value(sizeSrc-idx-1);
+      if (sourceWorkflowIdx(i2)==convert_locally_global_idx)
+      {
+	concerned_by_WF = true;
+	break;
+      }
+    }
+
+    if (concerned_by_WF)
+      {
+	axisDestination->data_index(sourceWorkflowIdx(i2)) = sourceWorkflowIdx(i2);
+      }
+    // -----------------------------------------------------------------------------
+
+  }
+
+  if (axisSrc_->hasValue)
+  {
+    axisDestination->value.resize(indexSize);
+    for (size_t i = 0; i < indexSize ; ++i)
+    {
+      axisDestination->value(i) = axisSource->value(i);
+    }
+  }
+
+  if (axisSrc_->hasBounds)
+  {
+    axisDestination->bounds.resize(indexSize);
+    for (size_t i = 0; i < indexSize ; ++i)
+    {
+      axisDestination->bounds(i) = axisSource->bounds(i);
     }
   }
 
   axisDestination->checkAttributes() ;
-  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
 
-}
-CATCH
-
-
-/*!
-  Update value on axis after inversing
-  After an axis is inversed, not only the data on it must be inversed but also the value
-*/
-void CAxisAlgorithmInverse::updateAxisValue()
-TRY
-{
-  CContext* context = CContext::getCurrent();
-  int clientRank = context->intraCommRank_;
-  int nbClient = context->intraCommSize_;
-
-  int niSrc     = axisSrc_->n.getValue();
-  int ibeginSrc = axisSrc_->begin.getValue();
-  int nSrc = axisSrc_->index.numElements();
-
-  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
-  for (int idx = 0; idx < nSrc; ++idx)
-  {
-    if ((axisSrc_->mask)(idx))
-    {
-      globalIndex2ProcRank[(axisSrc_->index)(idx)].resize(1);
-      globalIndex2ProcRank[(axisSrc_->index)(idx)][0] = clientRank;
-    }
-  }
-
-  typedef std::unordered_map<size_t, std::vector<double> > GlobalIndexMapFromSrcToDest;
-  GlobalIndexMapFromSrcToDest globalIndexMapFromSrcToDest;
-  auto& transMap = this->transformationMapping_;
-  CArray<size_t,1> globalSrcIndex(transMap.size());
-  int localIndex = 0;
-  for (auto it = transMap.begin(); it != transMap.end(); ++it)
-  {
-    size_t srcIndex = it->second;
-    globalIndexMapFromSrcToDest[srcIndex].resize(1);
-    globalIndexMapFromSrcToDest[srcIndex][0] = it->first;
-    globalSrcIndex(localIndex) = srcIndex;
-    ++localIndex;
-  }
-
-  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, context->intraComm_);
-  dhtIndexProcRank.computeIndexInfoMapping(globalSrcIndex);
-  CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
-  std::unordered_map<int, std::vector<size_t> > globalSrcIndexSendToProc;
-  for (int idx = 0; idx < localIndex; ++idx)
-  {
-    size_t tmpIndex = globalSrcIndex(idx);
-    if (1 == computedGlobalIndexOnProc.count(tmpIndex))
-    {
-      std::vector<int>& tmpVec = computedGlobalIndexOnProc[tmpIndex];
-      globalSrcIndexSendToProc[tmpVec[0]].push_back(tmpIndex);
-    }
-  }
-
-  std::unordered_map<int, std::vector<size_t> >::const_iterator itbIndex = globalSrcIndexSendToProc.begin(), itIndex,
-                                                                  iteIndex = globalSrcIndexSendToProc.end();
-  std::map<int,int> sendRankSizeMap,recvRankSizeMap;
-  int connectedClient = globalSrcIndexSendToProc.size();
-  int* recvCount=new int[nbClient];
-  int* displ=new int[nbClient];
-  int* sendRankBuff=new int[connectedClient];
-  int* sendSizeBuff=new int[connectedClient];
-  int n = 0;
-  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex, ++n)
-  {
-    sendRankBuff[n] = itIndex->first;
-    int sendSize = itIndex->second.size();
-    sendSizeBuff[n] = sendSize;
-    sendRankSizeMap[itIndex->first] = sendSize;
-  }
-  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT,context->intraComm_);
-
-  displ[0]=0 ;
-  for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
-  int recvSize=displ[nbClient-1]+recvCount[nbClient-1];
-  int* recvRankBuff=new int[recvSize];
-  int* recvSizeBuff=new int[recvSize];
-  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,context->intraComm_);
-  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,context->intraComm_);
-  for (int i = 0; i < nbClient; ++i)
-  {
-    int currentPos = displ[i];
-    for (int j = 0; j < recvCount[i]; ++j)
-      if (recvRankBuff[currentPos+j] == clientRank)
-      {
-        recvRankSizeMap[i] = recvSizeBuff[currentPos+j];
-      }
-  }
-
-  // Sending global index of grid source to corresponding process as well as the corresponding mask
-  std::vector<MPI_Request> requests;
-  std::vector<MPI_Status> status;
-  std::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
-  std::unordered_map<int, double* > sendValueToDest;
-  for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
-  {
-    int recvRank = itRecv->first;
-    int recvSize = itRecv->second;
-    recvGlobalIndexSrc[recvRank] = new unsigned long [recvSize];
-    sendValueToDest[recvRank] = new double [recvSize];
-
-    requests.push_back(MPI_Request());
-    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, context->intraComm_, &requests.back());
-  }
-
-  std::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
-  std::unordered_map<int, double* > recvValueFromSrc;
-  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
-  {
-    int sendRank = itIndex->first;
-    int sendSize = sendRankSizeMap[sendRank];
-    const std::vector<size_t>& sendIndexMap = itIndex->second;
-    std::vector<size_t>::const_iterator itbSend = sendIndexMap.begin(), iteSend = sendIndexMap.end(), itSend;
-    sendGlobalIndexSrc[sendRank] = new unsigned long [sendSize];
-    recvValueFromSrc[sendRank] = new double [sendSize];
-    int countIndex = 0;
-    for (itSend = itbSend; itSend != iteSend; ++itSend)
-    {
-      sendGlobalIndexSrc[sendRank][countIndex] = *itSend;
-      ++countIndex;
-    }
-
-    // Send global index source and mask
-    requests.push_back(MPI_Request());
-    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, context->intraComm_, &requests.back());
-  }
-
-  status.resize(requests.size());
-  MPI_Waitall(requests.size(), &requests[0], &status[0]);
-
-
-  std::vector<MPI_Request>().swap(requests);
-  std::vector<MPI_Status>().swap(status);
-
-  // Okie, on destination side, we will wait for information of masked index of source
-  for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
-  {
-    int recvRank = itSend->first;
-    int recvSize = itSend->second;
-
-    requests.push_back(MPI_Request());
-    MPI_Irecv(recvValueFromSrc[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, context->intraComm_, &requests.back());
-  }
-
-  for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
-  {
-    int recvRank = itRecv->first;
-    int recvSize = itRecv->second;
-    double* sendValue = sendValueToDest[recvRank];
-    unsigned long* recvIndexSrc = recvGlobalIndexSrc[recvRank];
-    int realSendSize = 0;
-    for (int idx = 0; idx < recvSize; ++idx)
-    {
-      size_t globalIndex = *(recvIndexSrc+idx);
-      int localIndex = globalIndex - ibeginSrc;
-      *(sendValue + idx) = axisSrc_->value(localIndex);
-    }
-    // Okie, now inform the destination which source index are masked
-    requests.push_back(MPI_Request());
-    MPI_Isend(sendValueToDest[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, context->intraComm_, &requests.back());
-  }
-  status.resize(requests.size());
-  MPI_Waitall(requests.size(), &requests[0], &status[0]);
-
-
-  size_t nGloAxisDest = axisDest_->n_glo.getValue() - 1;
-  for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
-  {
-    int recvRank = itSend->first;
-    int recvSize = itSend->second;
-
-    double* recvValue = recvValueFromSrc[recvRank];
-    unsigned long* recvIndex = sendGlobalIndexSrc[recvRank];
-    for (int idx = 0; idx < recvSize; ++idx)
-    {
-      size_t globalIndex = *(recvIndex+idx);
-      int localIndex = ((nGloAxisDest-globalIndex) - axisDest_->begin);
-      axisDest_->value(localIndex) = *(recvValue + idx);
-    }
-  }
-
-  delete [] recvCount;
-  delete [] displ;
-  delete [] sendRankBuff;
-  delete [] recvRankBuff;
-  delete [] sendSizeBuff;
-  delete [] recvSizeBuff;
-
-  std::unordered_map<int, double* >::const_iterator itChar;
-  for (itChar = sendValueToDest.begin(); itChar != sendValueToDest.end(); ++itChar)
-    delete [] itChar->second;
-  for (itChar = recvValueFromSrc.begin(); itChar != recvValueFromSrc.end(); ++itChar)
-    delete [] itChar->second;
-  std::unordered_map<int, unsigned long* >::const_iterator itLong;
-  for (itLong = sendGlobalIndexSrc.begin(); itLong != sendGlobalIndexSrc.end(); ++itLong)
-    delete [] itLong->second;
-  for (itLong = recvGlobalIndexSrc.begin(); itLong != recvGlobalIndexSrc.end(); ++itLong)
-    delete [] itLong->second;
 }
 CATCH
 

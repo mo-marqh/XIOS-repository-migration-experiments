@@ -9,7 +9,7 @@
 #ifndef __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
 #define __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
 
-#include "algorithm_transformation_transfer.hpp"
+#include "algorithm_transformation_no_data_modification.hpp"
 #include "transformation.hpp"
 
 namespace xios {
@@ -21,7 +21,7 @@ class CInverseAxis;
   \class CAxisAlgorithmInverse
   Inversing an axis
 */
-class CAxisAlgorithmInverse : public CAlgorithmTransformationTransfer
+class CAxisAlgorithmInverse : public CAlgorithmTransformationNoDataModification
 {
 public:
   CAxisAlgorithmInverse(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis);
@@ -35,7 +35,6 @@ public:
 private:
   CAxis* axisSrc_;
   CAxis* axisDest_;
-  void updateAxisValue();
 
 public:
  static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
