@@ -133,10 +133,11 @@ TRY
 
   if (axisSrc_->hasBounds)
   {
-    axisDestination->bounds.resize(indexSize);
-    for (size_t i = 0; i < indexSize ; ++i)
+    axisDestination->bounds.resize(2,indexSize);
+    for (int i = 0; i < indexSize ; ++i)
     {
-      axisDestination->bounds(i) = axisSource->bounds(i);
+      axisDestination->bounds(0,i) = axisSource->bounds(0,i);
+      axisDestination->bounds(1,i) = axisSource->bounds(1,i);
     }
   }
 
