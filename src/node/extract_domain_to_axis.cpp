@@ -47,7 +47,6 @@ namespace xios {
        << "Domain source " <<domainSrc->getId() << std::endl
        << "Axis destination " << axisDst->getId());
 
-    int axis_n_glo = axisDst->n_glo;
     int domain_ni_glo = domainSrc->ni_glo;
     int domain_nj_glo = domainSrc->nj_glo;
 
@@ -66,11 +65,6 @@ namespace xios {
     switch (direction)
     {
       case direction_attr::jDir:
-        if (axis_n_glo != domain_nj_glo)
-          ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-            << "Extract domain along j, axis destination should have n_glo equal to nj_glo of domain source"
-            << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_nj_glo << std::endl
-            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
         if ((position < 0) || (position >= domain_ni_glo))
         ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
           << "Extract domain along j, position should be inside 0 and ni_glo-1 of domain source"
@@ -80,11 +74,6 @@ namespace xios {
          break;
 
       case direction_attr::iDir:
-        if (axis_n_glo != domain_ni_glo)
-          ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-            << "Extract domain along i, axis destination should have n_glo equal to ni_glo of domain source"
-            << "Domain source " <<domainSrc->getId() << " has ni_glo " << domain_ni_glo << std::endl
-            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
         if ((position < 0) || (position >= domain_nj_glo))
         ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
           << "Extract domain along i, position should be inside 0 and nj_glo-1 of domain source"

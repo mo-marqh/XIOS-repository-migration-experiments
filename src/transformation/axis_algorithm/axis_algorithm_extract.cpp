@@ -43,6 +43,21 @@ CAxisAlgorithmExtract::CAxisAlgorithmExtract(bool isSource, CAxis* axisDestinati
 : CAlgorithmTransformationTransfer(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
+  axisDestination->axis_type.reset();
+  axisDestination->n_glo.reset();
+  axisDestination->index.reset();
+  axisDestination->n.reset();
+  axisDestination->begin.reset();
+
+  axisDestination->mask.reset();
+  axisDestination->data_index.reset();
+  axisDestination->data_n.reset();
+  axisDestination->data_begin.reset();
+
+  axisDestination->value.reset();
+  axisDestination->label.reset();
+  axisDestination->bounds.reset();
+
   extractAxis->checkValid(axisSource);
   extractBegin_ = extractAxis->begin.getValue();
   extractN_  = extractAxis->n.getValue();
@@ -67,46 +82,84 @@ TRY
       ++nDest;
     }
   }
-  beginDestGlo = beginDestLoc + axisSrc_->begin - extractBegin_;
+  
   axisDest_->n_glo.setValue(extractN_);
-  axisDest_->n.setValue(nDest);
-  axisDest_->begin.setValue(beginDestGlo);
   axisDest_->index.resize(nDest);
+  if (nDest==0)
+  {
+    axisDest_->n.setValue( 0 );
+    axisDest_->begin.setValue( 0 );
+  }
 
-  axisDest_->data_n.setValue(nDest);
-  axisDest_->data_begin.setValue(0);
-  axisDest_->data_index.resize(nDest);
-
-  axisDest_->mask.resize(nDest);
   if (axisSrc_->hasValue) axisDest_->value.resize(nDest);
   if (axisSrc_->hasLabel) axisDest_->label.resize(nDest);
   if (axisSrc_->hasBounds) axisDest_->bounds.resize(2,nDest);
 
   auto& transMap = this->transformationMapping_;
 
-  for (int iDest = 0; iDest < nDest; iDest++)
+  // Set attributes required to define domainDestination->localElement_ and associated views, full and workflow)
+  CArray<size_t,1> sourceGlobalIdx = axisSource->getLocalElement()->getGlobalIndex();
+  int indexSize = sourceGlobalIdx.numElements();
+
+  CArray<int,1> sourceWorkflowIdx = axisSource->getLocalView(CElementView::WORKFLOW)->getIndex();
+  int srcWorkflowSize = sourceWorkflowIdx.numElements();
+  axisDest_->data_index.resize(nDest);
+  axisDest_->data_index = -1;
+
+  int idxMin = INT_MAX;
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
   {
-    iSrc = iDest + beginDestLoc;
-    axisDest_->index(iDest) = iDest + beginDestGlo;
-    axisDest_->data_index(iDest) = axisSrc_->data_index(iSrc) - beginDestLoc;
-    axisDest_->mask(iDest) = axisSrc_->mask(iSrc);
-
-    if (axisSrc_->hasValue)
-      axisDest_->value(iDest) = axisSrc_->value(iSrc);
-    if (axisSrc_->hasLabel)
-      axisDest_->label(iDest) = axisSrc_->label(iSrc);
-    if (axisSrc_->hasBounds)
-    {
-      axisDest_->bounds(0,iDest) = axisSrc_->bounds(0,iSrc);
-      axisDest_->bounds(1,iDest) = axisSrc_->bounds(1,iSrc);
-    }
-    indGloDest = axisDest_->index(iDest);
-    indGloSrc = axisSrc_->index(iSrc);
-    
-    transMap[indGloDest]=indGloSrc;
-
+    if ( sourceGlobalIdx(countSrc) < idxMin )
+      idxMin = sourceGlobalIdx(countSrc);
   }
 
+  int countDest(0); // increment of the position in destination domain 
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
+  {
+    int idxSrc = sourceGlobalIdx(countSrc);
+    if ( (idxSrc >= extractBegin_) && (idxSrc <= extractEnd_) )
+    {
+      axisDest_->index(countDest) = idxSrc-extractBegin_;
+
+      // ------------------ define transformation only if in the WF ------------------ 
+      int iIdxSrc2 = (countSrc+idxMin)%axisSource->n_glo;
+      int convert_locally_global_idx = (iIdxSrc2-idxMin) ;
+      bool concerned_by_WF(false);
+      for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
+      {
+        if (sourceWorkflowIdx(i)==convert_locally_global_idx)
+        {      
+          concerned_by_WF = true;
+          break;
+        }
+      }
+
+      if (concerned_by_WF)
+      {
+        transformationMapping_[idxSrc-extractBegin_]=sourceGlobalIdx(countSrc);
+        axisDest_->data_index( countDest ) = countDest;
+      }
+      // -----------------------------------------------------------------------------
+
+      if (axisSrc_->hasValue)
+      {
+        axisDest_->value(countDest) = axisSrc_->value(countSrc);
+      }
+      if (axisSrc_->hasLabel)
+      {
+        axisDest_->label(countDest) = axisSrc_->label(countSrc);
+      }
+      if (axisSrc_->hasBounds)
+      {
+        axisDest_->bounds(0,countDest) = axisSrc_->bounds(0,countSrc);
+        axisDest_->bounds(1,countDest) = axisSrc_->bounds(1,countSrc);
+      }
+      
+      // if point i has been identified as extracted, increment position in destination domain for the next point
+      countDest++;
+    }
+  }
+  
   axisDestination->checkAttributes() ;
 
   this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;

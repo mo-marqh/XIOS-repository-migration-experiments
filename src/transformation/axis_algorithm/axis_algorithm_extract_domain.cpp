@@ -50,44 +50,131 @@ CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(bool isSource, CAxis* a
  : CAlgorithmTransformationTransfer(isSource), pos_(-1), axisDest_(axisDestination), domainSrc_(domainSource)
 TRY
 {
-  axisDestination->checkAttributes() ;
+  axisDestination->axis_type.reset();
+  axisDestination->n_glo.reset();
+  axisDestination->index.reset();
+  axisDestination->n.reset();
+  axisDestination->begin.reset();
+
+  axisDestination->mask.reset();
+  axisDestination->data_index.reset();
+  axisDestination->data_n.reset();
+  axisDestination->data_begin.reset();
+
+  axisDestination->value.reset();
+  axisDestination->label.reset();
+  axisDestination->bounds.reset();
+
   algo->checkValid(axisDestination, domainSource);
   StdString op = "extract";
 
+  int nglo,nloc;
   switch (algo->direction)
   {
     case CExtractDomainToAxis::direction_attr::jDir:
       dir_ = jDir;
+      nglo = domainSource->nj_glo.getValue();
+      nloc = domainSource->nj.getValue();
       break;
     case CExtractDomainToAxis::direction_attr::iDir:
       dir_ = iDir;
+      nglo = domainSource->ni_glo.getValue();
+      nloc = domainSource->ni.getValue();
       break;
     default:
       break;
+  }
+  
+  axisDestination->n_glo.setValue( nglo );
+  axisDestination->index.resize( nloc );
+  axisDestination->data_index.resize( nloc );
+  axisDestination->data_index = -1;
+
+  if ( axisDestination->index.isEmpty() )
+  {
+    axisDestination->n.setValue( 0 );
+    axisDestination->begin.setValue( 0 );
   }
 
   pos_ = algo->position;
 
   auto& transMap = this->transformationMapping_;
+  
+  CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
+  int indexSize = sourceGlobalIdx.numElements();
 
-  CArray<int,1>& axisDstIndex = axisDest_->index;
-  int ni_glo = domainSrc_->ni_glo, nj_glo = domainSrc_->nj_glo;
+  CArray<int,1> sourceWorkflowIdx = domainSource->getLocalView(CElementView::WORKFLOW)->getIndex();
+  int srcWorkflowSize = sourceWorkflowIdx.numElements();
+  
+  int iIdxSrcMin = INT_MAX;
+  int jIdxSrcMin = INT_MAX;
+  int IdxMin = INT_MAX;
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
+  {
+    if ( sourceGlobalIdx(countSrc)%domainSource->ni_glo < iIdxSrcMin )
+      iIdxSrcMin = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
+    if ( sourceGlobalIdx(countSrc)/domainSource->ni_glo < jIdxSrcMin )
+      jIdxSrcMin = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
+    if ( sourceGlobalIdx(countSrc) < IdxMin )
+      IdxMin = sourceGlobalIdx(countSrc);
+  }
+  
   if (jDir == dir_)
   {
-    int nbAxisIdx = axisDstIndex.numElements();
-    for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+    int countDest(0);
+    for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
     {
-      int globalAxisIdx = axisDstIndex(idxAxis);
-      transMap[globalAxisIdx] = globalAxisIdx * ni_glo + pos_;
+      if ( sourceGlobalIdx(countSrc)%domainSource->ni_glo == pos_ )
+      {
+	axisDest_->index(countDest) = sourceGlobalIdx(countSrc)/domainSource->ni_glo;
+	int iIdxSrc2 = (countSrc+IdxMin)%domainSource->ni_glo;
+	int jIdxSrc2 = (countSrc+IdxMin)/domainSource->ni_glo;
+	int convert_locally_global_idx = (jIdxSrc2-jIdxSrcMin)*domainSource->ni + (iIdxSrc2-iIdxSrcMin) ;
+	bool concerned_by_WF(false);
+	for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
+	{
+	  if (sourceWorkflowIdx(i)==convert_locally_global_idx)
+	  {      
+	  	concerned_by_WF = true;
+	  	break;
+	  }
+	}
+	if (concerned_by_WF)
+	{
+	  axisDest_->data_index(countDest) = countDest;
+	  transMap[axisDest_->index(countDest)] = sourceGlobalIdx(countSrc);
+	}
+        countDest++;
+      }
     }
   }
   else if (iDir == dir_)
   {
-    int nbAxisIdx = axisDstIndex.numElements();
-    for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+    int countDest(0);
+    for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
     {
-      int globalAxisIdx = axisDstIndex(idxAxis);
-      transMap[globalAxisIdx] = globalAxisIdx + ni_glo * pos_;
+      if ( sourceGlobalIdx(countSrc)/domainSource->ni_glo == pos_ )
+      {
+        axisDest_->index(countDest) = sourceGlobalIdx(countSrc)%domainSource->ni_glo;
+	int iIdxSrc2 = (countSrc+IdxMin)%domainSource->ni_glo;
+	int jIdxSrc2 = (countSrc+IdxMin)/domainSource->ni_glo;
+	int convert_locally_global_idx = (jIdxSrc2-jIdxSrcMin)*domainSource->ni + (iIdxSrc2-iIdxSrcMin) ;
+	bool concerned_by_WF(false);
+	for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
+	{
+	  if (sourceWorkflowIdx(i)==convert_locally_global_idx)
+	  {      
+	  	concerned_by_WF = true;
+	  	break;
+	  }
+	}
+	if (concerned_by_WF)
+	{
+	  axisDest_->data_index(countDest) = countDest;
+	  transMap[axisDest_->index(countDest)] = sourceGlobalIdx(countSrc);
+	}
+        countDest++;
+      }
     }
   }
   else
