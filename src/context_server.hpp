@@ -33,6 +33,7 @@ namespace xios
     bool isAttachedModeEnabled() const;
     void releaseBuffers(void) ;
     void notifyClientsFinalize(void) ;
+    void freeWindows(void) ; // !<< free Windows for one sided communication
     
     MPI_Comm intraComm ;
     int intraCommSize ;
@@ -40,6 +41,7 @@ namespace xios
 
     MPI_Comm interComm ;
     int commSize ;
+    int clientSize_ ;
 
     MPI_Comm interCommMerged; //!< Communicator of the client group + server group (intraCommunicator) needed for one sided communication.
 
@@ -70,7 +72,8 @@ namespace xios
     private:
 
       std::map<int, StdSize> mapBufferSize_;
-      vector<MPI_Win> windows ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
+      std::vector<MPI_Comm>winComm_ ; //! Window communicators
+      std::vector<std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
       CEventScheduler* eventScheduler_ ;
       bool isProcessingEvent_ ;
       CContextClient* associatedClient_ ;

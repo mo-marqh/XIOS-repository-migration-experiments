@@ -741,6 +741,7 @@ namespace xios
         {
           notifiedFinalized=client->isNotifiedFinalized() ;
         } while (!notifiedFinalized) ;
+
         server->releaseBuffers();
         client->releaseBuffers();
         info(100)<<"DEBUG: context "<<getId()<<" release client ok"<<endl ;

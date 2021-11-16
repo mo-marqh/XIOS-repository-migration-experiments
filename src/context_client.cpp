@@ -59,30 +59,24 @@ namespace xios
         // We create dummy pair of intercommunicator between clients and server
         // Why ? Just because on openMPI, it reduce the creation time of windows otherwhise which increase quadratically
         // We don't know the reason
-      
+        double time ;
         MPI_Comm commSelf ;
         MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf) ;
-        vector<MPI_Comm> dummyComm(serverSize) ;
-        for(int rank=0; rank<serverSize; rank++) MPI_Intercomm_create(commSelf, 0, interCommMerged, clientSize+rank, 0, &dummyComm[rank]) ;
-
-        // create windows for one-sided
-        windows.resize(serverSize) ;
-        MPI_Comm winComm ;
-        for(int rank=0; rank<serverSize; rank++)
+        MPI_Comm interComm ;
+        winComm_.resize(serverSize) ;
+        windows_.resize(serverSize) ;
+        for(int rank=0; rank<serverSize; rank++) 
         {
-          windows[rank].resize(2) ;
-          MPI_Comm_split(interCommMerged, rank, clientRank, &winComm);
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[rank][0]);
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[rank][1]);
-//       ym : Warning : intelMPI doesn't support that communicator of windows be deallocated before the windows deallocation, crash at MPI_Win_lock
-//            Bug or not ?          
-//          MPI_Comm_free(&winComm) ;
+          time=MPI_Wtime() ;
+          MPI_Intercomm_create(commSelf, 0, interCommMerged, clientSize+rank, 0, &interComm) ;
+          MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+          windows_[rank].resize(2) ;
+          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
+          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);  
+          time=MPI_Wtime()-time ;
+          info(100)<< "MPI_Win_create_dynamic : client to server rank "<<rank<<" => "<<time/1e-6<<" us"<<endl ;
         }
-        
-        // free dummy intercommunicator => take times ?
-        for(int rank=0; rank<serverSize; rank++)  MPI_Comm_free(&dummyComm[rank]) ;
         MPI_Comm_free(&commSelf) ;
-
         CTimer::get("create Windows").resume() ;
      }
 
@@ -344,7 +338,7 @@ namespace xios
       }
       
       vector<MPI_Win> Wins(2,MPI_WIN_NULL) ;
-      if (!isAttachedModeEnabled()) Wins=windows[rank] ;
+      if (!isAttachedModeEnabled()) Wins=windows_[rank] ;
   
       CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, Wins, clientRank, rank, mapBufferSize_[rank], maxEventSizes[rank]);
       if (isGrowableBuffer_) buffer->setGrowableBuffer(1.2) ;
@@ -391,8 +385,9 @@ namespace xios
       {  
         for(int rank=0; rank<serverSize; rank++)
         {
-          MPI_Win_free(&windows[rank][0]);
-          MPI_Win_free(&windows[rank][1]);
+          MPI_Win_free(&windows_[rank][0]);
+          MPI_Win_free(&windows_[rank][1]);
+          MPI_Comm_free(&winComm_[rank]) ;
         }
       } 
    }

@@ -119,7 +119,8 @@ namespace xios
       //! List of server ranks for which the client is not leader
       std::list<int> ranksServerNotLeader;
 
-      std::vector<std::vector<MPI_Win> >windows ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
+      std::vector<MPI_Comm> winComm_ ; //! Window communicators
+      std::vector<std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
       bool isAttached_ ;
       CContextServer* associatedServer_ ; //!< The server associated to the pair client/server
       bool isGrowableBuffer_ = true ;

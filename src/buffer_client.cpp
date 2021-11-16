@@ -15,7 +15,7 @@ namespace xios
 
   CClientBuffer::CClientBuffer(MPI_Comm interComm, vector<MPI_Win>& windows, int clientRank, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize)
     : interComm(interComm)
-    , clientRank_(clientRank)
+    , clientRank_(0)
     , serverRank(serverRank)
     , bufferSize(bufferSize)
     , estimatedMaxEventSize(estimatedMaxEventSize)
@@ -377,13 +377,20 @@ namespace xios
 
   bool CClientBuffer::isNotifiedFinalized(void)
   {
-   
-    bool ret ;
-    lockBuffer() ;
-    ret=*notify[current] == notifyFinalize_ ? true : false ;
-    unlockBuffer() ;
-
-    return ret;
+    if (!isFinalized_)
+    {
+      double time=MPI_Wtime() ;
+//      if (time - lastCheckedNotify_ > latency_)
+      {
+        int flag ;
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+        lockBuffer() ;
+        isFinalized_=*notify[current] == notifyFinalize_ ? true : false ;
+        unlockBuffer() ;
+        lastCheckedNotify_=time ;
+      }
+    }
+    return isFinalized_ ;
   }
 
 }

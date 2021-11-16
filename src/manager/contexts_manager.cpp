@@ -108,9 +108,9 @@ namespace xios
 
   void CContextsManager::sendNotification(int rank)
   {
-    winNotify_->lockWindow(rank,0) ;
-    winNotify_->pushToWindow(rank, this, &CContextsManager::notificationsDumpOut) ;
-    winNotify_->unlockWindow(rank,0) ;
+    winNotify_->lockWindowExclusive(rank) ;
+    winNotify_->pushToLockedWindow(rank, this, &CContextsManager::notificationsDumpOut) ;
+    winNotify_->unlockWindow(rank) ;
   }
 
   
@@ -167,9 +167,9 @@ namespace xios
   {
     int commRank ;
     MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_->lockWindow(commRank,0) ;
-    winNotify_->popFromWindow(commRank, this, &CContextsManager::notificationsDumpIn) ;
-    winNotify_->unlockWindow(commRank,0) ;
+    winNotify_->lockWindowExclusive(commRank) ;
+    winNotify_->popFromLockedWindow(commRank, this, &CContextsManager::notificationsDumpIn) ;
+    winNotify_->unlockWindow(commRank) ;
     if (notifyType_==NOTIFY_CREATE_CONTEXT) createServerContext() ;
     else if (notifyType_==NOTIFY_CREATE_INTERCOMM) createServerContextIntercomm() ;
 

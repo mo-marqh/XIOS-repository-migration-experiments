@@ -56,7 +56,7 @@ namespace xios
       StdSize maxEventSize;
       StdSize bufferSize;
       const StdSize estimatedMaxEventSize;
-
+      bool isFinalized_=false ;
 
       const int serverRank;
       const int clientRank_;
@@ -71,6 +71,7 @@ namespace xios
 
       double latency_=1e-2 ;
       double lastCheckedWithNothing_=0 ;
+      double lastCheckedNotify_=0 ;
   };
 }
 #endif

@@ -45,9 +45,8 @@ namespace xios
     if (flag) attachedMode=false ;
     else  attachedMode=true ;
     
-    int clientSize ;
-    if (flag) MPI_Comm_remote_size(interComm,&clientSize);
-    else  MPI_Comm_size(interComm,&clientSize);
+    if (flag) MPI_Comm_remote_size(interComm,&clientSize_);
+    else  MPI_Comm_size(interComm,&clientSize_);
 
    
     SRegisterContextInfo contextInfo ;
@@ -79,41 +78,37 @@ namespace xios
 
       MPI_Intercomm_merge(interComm_,true,&interCommMerged) ;
 
-      // We create dummy pair of intercommunicator between clients and server
-      // Why ? Just because on openMPI, it reduce the creation time of windows otherwhise which increase quadratically
-      // We don't know the reason
+      double time ;
+      windows_.resize(clientSize_) ;
       MPI_Comm commSelf ;
       MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf) ;
-      vector<MPI_Comm> dummyComm(clientSize) ;
-      for(int rank=0; rank<clientSize ; rank++) MPI_Intercomm_create(commSelf, 0, interCommMerged, rank, 0 , &dummyComm[rank]) ;
-
-      // create windows for one sided comm
-      MPI_Comm winComm ;
-      windows.resize(2) ;
-      for(int rank=clientSize; rank<clientSize+intraCommSize; rank++)
+      MPI_Comm interComm ;
+      winComm_.resize(clientSize_) ;
+      for(int rank=0; rank<clientSize_ ; rank++) 
       {
-        if (rank==clientSize+intraCommRank) 
-        {
-          MPI_Comm_split(interCommMerged, intraCommRank, rank, &winComm);
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[0]);
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &windows[1]);   
-        }
-        else MPI_Comm_split(interCommMerged, intraCommRank, rank, &winComm);
-        //       ym : Warning : intelMPI doesn't support that communicator of windows be deallocated before the windows deallocation, crash at MPI_Win_lock
-        //            Bug or not ?          
-        //         MPI_Comm_free(&winComm) ;
+        time=MPI_Wtime() ;
+        MPI_Intercomm_create(commSelf, 0, interCommMerged, rank, 0 , &interComm) ;
+        MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
+        windows_[rank].resize(2) ;
+        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
+        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);  
+        time=MPI_Wtime()-time ;
+        info(100)<< "MPI_Win_create_dynamic : server to client rank "<<rank<<" => "<<time/1e-6<<" us"<<endl ;
       }
-      
-      // free dummy intercommunicator
-      for(int rank=0; rank<clientSize ; rank++)  MPI_Comm_free(&dummyComm[rank]) ;
       MPI_Comm_free(&commSelf) ;
       CTimer::get("create Windows").suspend() ;
     }
     else 
     {
-      windows.resize(2) ;
-      windows[0]=MPI_WIN_NULL ;
-      windows[1]=MPI_WIN_NULL ;
+      winComm_.resize(clientSize_) ;
+      windows_.resize(clientSize_) ;
+      for(int rank=0; rank<clientSize_ ; rank++) 
+      {
+        winComm_[rank] = MPI_COMM_NULL ;
+        windows_[rank].resize(2) ;
+        windows_[rank][0]=MPI_WIN_NULL ;
+        windows_[rank][1]=MPI_WIN_NULL ;
+      }
     }
     
     itLastTimeLine=lastTimeLine.begin() ;
@@ -159,85 +154,6 @@ namespace xios
     CTimer::get("check event process").suspend();
     return finished;
   }
-/*
-  void CContextServer::listen(void)
-  {
-    int rank;
-    int flag;
-    int count;
-    char * addr;
-    MPI_Status status;
-    map<int,CServerBuffer*>::iterator it;
-    bool okLoop;
-
-    traceOff();
-    // WARNING : with intel MPI, probing crash on an intercommunicator with release library but not with release_mt
-    // ==>  source $I_MPI_ROOT/intel64/bin/mpivars.sh release_mt    needed
-    MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm,&flag,&status);
-    traceOn();
-
-    if (flag==true)
-    {
-      rank=status.MPI_SOURCE ;
-      okLoop = true;
-      if (pendingRequest.find(rank)==pendingRequest.end())
-        okLoop = !listenPendingRequest(status) ;
-      if (okLoop)
-      {
-        for(rank=0;rank<commSize;rank++)
-        {
-          if (pendingRequest.find(rank)==pendingRequest.end())
-          {
-
-            traceOff();
-            MPI_Iprobe(rank, 20,interComm,&flag,&status);
-            traceOn();
-            if (flag==true) listenPendingRequest(status) ;
-          }
-        }
-      }
-    }
-  }
-
-  bool CContextServer::listenPendingRequest(MPI_Status& status)
-  {
-    int count;
-    char * addr;
-    map<int,CServerBuffer*>::iterator it;
-    int rank=status.MPI_SOURCE ;
-
-    it=buffers.find(rank);
-    if (it==buffers.end()) // Receive the buffer size and allocate the buffer
-    {
-       MPI_Aint recvBuff[4] ;
-       MPI_Recv(recvBuff, 4, MPI_AINT, rank, 20, interComm, &status);
-       remoteHashId_ = recvBuff[0] ;
-       StdSize buffSize = recvBuff[1];
-       vector<MPI_Aint> winAdress(2) ;
-       winAdress[0]=recvBuff[2] ; winAdress[1]=recvBuff[3] ;
-       mapBufferSize_.insert(std::make_pair(rank, buffSize));
-       it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows, winAdress, rank, buffSize)))).first;
-     
-       lastTimeLine[rank]=0 ;
-       itLastTimeLine=lastTimeLine.begin() ;
-
-       return true;
-    }
-    else
-    {
-      MPI_Get_count(&status,MPI_CHAR,&count);
-      if (it->second->isBufferFree(count))
-      {
-         addr=(char*)it->second->getBuffer(count);
-         MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]);
-         bufferRequest[rank]=addr;
-         return true;
-       }
-      else
-        return false;
-    }
-  }
-*/
 
  void CContextServer::listen(void)
   {
@@ -273,7 +189,7 @@ namespace xios
        vector<MPI_Aint> winAdress(2) ;
        winAdress[0]=recvBuff[2] ; winAdress[1]=recvBuff[3] ;
        mapBufferSize_.insert(std::make_pair(rank, buffSize));
-       it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows, winAdress, rank, buffSize)))).first;
+       it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winAdress, 0, buffSize)))).first;
        lastTimeLine[rank]=0 ;
        itLastTimeLine=lastTimeLine.begin() ;
        return true;
@@ -406,7 +322,7 @@ namespace xios
         vector<MPI_Aint> winAdress(2) ;
         newBuffer>>newSize>>winAdress[0]>>winAdress[1] ;
         buffers.erase(rank) ;
-        buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows, winAdress, rank, newSize)));
+        buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winAdress, 0, newSize)));
       }
       else
       {
@@ -499,19 +415,22 @@ namespace xios
 
   void CContextServer::releaseBuffers()
   {
-    map<int,CServerBuffer*>::iterator it;
-    bool out ;
-    do
-    {
-      out=true ;
-      for(it=buffers.begin();it!=buffers.end();++it)
-      {
-//        out = out && it->second->freeWindows() ;
+    for(auto it=buffers.begin();it!=buffers.end();++it) delete it->second ;
+    buffers.clear() ; 
+    freeWindows() ;
+  }
 
+  void CContextServer::freeWindows()
+  {
+    if (!isAttachedModeEnabled())
+    {
+      for(int rank=0; rank<clientSize_; rank++)
+      {
+        MPI_Win_free(&windows_[rank][0]);
+        MPI_Win_free(&windows_[rank][1]);
+        MPI_Comm_free(&winComm_[rank]) ;
       }
-    } while (! out) ; 
-      MPI_Win_free(&windows[0]) ;
-      MPI_Win_free(&windows[1]) ;
+    }
   }
 
   void CContextServer::notifyClientsFinalize(void)
@@ -537,14 +456,10 @@ namespace xios
     {
       finished=true;
       info(20)<<" CContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
-//      releaseBuffers() ;
       notifyClientsFinalize() ;
       CTimer::get("receiving requests").suspend();
       context->finalize();
-
-// don't know where release windows
-      MPI_Win_free(&windows[0]) ;
-      MPI_Win_free(&windows[1]) ;
+      freeWindows() ;
 
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;

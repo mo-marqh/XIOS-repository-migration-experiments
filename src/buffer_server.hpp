@@ -19,7 +19,6 @@ namespace xios
       void* getBuffer(size_t count) ;
       void freeBuffer(size_t count) ;
       void createWindows(MPI_Comm oneSidedComm) ;
-      bool freeWindows(void) ;
       bool getBufferFromClient(size_t timeLine, char* & buffer, size_t& count) ;
       bool isBufferEmpty(void) ;
       void updateCurrentWindows(void) ;

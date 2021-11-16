@@ -130,9 +130,9 @@ namespace xios
 
   void CService::sendNotification(int rank)
   {
-    winNotify_->lockWindow(rank,0) ;
-    winNotify_->pushToWindow(rank, this, &CService::notificationsDumpOut) ;
-    winNotify_->unlockWindow(rank,0) ;
+    winNotify_->lockWindowExclusive(rank) ;
+    winNotify_->pushToLockedWindow(rank, this, &CService::notificationsDumpOut) ;
+    winNotify_->unlockWindow(rank) ;
   }
 
   
@@ -174,9 +174,9 @@ namespace xios
       {
         int commRank ;
         MPI_Comm_rank(serviceComm_, &commRank) ;
-        winNotify_->lockWindow(commRank,0) ;
-        winNotify_->popFromWindow(commRank, this, &CService::notificationsDumpIn) ;
-        winNotify_->unlockWindow(commRank,0) ;
+        winNotify_->lockWindowExclusive(commRank) ;
+        winNotify_->popFromLockedWindow(commRank, this, &CService::notificationsDumpIn) ;
+        winNotify_->unlockWindow(commRank) ;
       
         if (notifyInType_!= NOTIFY_NOTHING)
         {

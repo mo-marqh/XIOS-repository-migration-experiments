@@ -71,9 +71,9 @@ namespace xios
 
   void CRessourcesManager::sendNotification(int rank)
   {
-    winNotify_->lockWindow(rank,0) ;
-    winNotify_->pushToWindow(rank, this, &CRessourcesManager::notificationsDumpOut) ;
-    winNotify_->unlockWindow(rank,0) ;
+    winNotify_->lockWindowExclusive(rank) ;
+    winNotify_->pushToLockedWindow(rank, this, &CRessourcesManager::notificationsDumpOut) ;
+    winNotify_->unlockWindow(rank) ;
   }
 
   
@@ -127,13 +127,13 @@ namespace xios
     int commRank ;
     MPI_Comm_rank(xiosComm_, &commRank) ;
     CTimer::get("CRessourcesManager::checkNotifications lock").resume();
-    winNotify_->lockWindow(commRank,0) ;
+    winNotify_->lockWindowExclusive(commRank) ;
     CTimer::get("CRessourcesManager::checkNotifications lock").suspend();
     CTimer::get("CRessourcesManager::checkNotifications pop").resume();
-    winNotify_->popFromWindow(commRank, this, &CRessourcesManager::notificationsDumpIn) ;
+    winNotify_->popFromLockedWindow(commRank, this, &CRessourcesManager::notificationsDumpIn) ;
     CTimer::get("CRessourcesManager::checkNotifications pop").suspend();
     CTimer::get("CRessourcesManager::checkNotifications unlock").resume();
-    winNotify_->unlockWindow(commRank,0) ;
+    winNotify_->unlockWindow(commRank) ;
     CTimer::get("CRessourcesManager::checkNotifications unlock").suspend();
     if (notifyType_==NOTIFY_CREATE_POOL) createPool() ;
     else if (notifyType_==NOTIFY_FINALIZE) finalizeSignal() ;
