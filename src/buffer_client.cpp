@@ -13,7 +13,7 @@ namespace xios
 {
   size_t CClientBuffer::maxRequestSize = 0;
 
-  CClientBuffer::CClientBuffer(MPI_Comm interComm, vector<MPI_Win>& windows, int clientRank, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize)
+  CClientBuffer::CClientBuffer(MPI_Comm interComm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize)
     : interComm(interComm)
     , clientRank_(0)
     , serverRank(serverRank)
@@ -24,10 +24,11 @@ namespace xios
     , count(0)
     , pending(false)
     , hasWindows(false) 
-    , windows_(windows)
   {
-    if (windows[0]==MPI_WIN_NULL && windows[1]==MPI_WIN_NULL) hasWindows=false ;
-    else hasWindows=true ;
+     /*
+      if (windows[0]==MPI_WIN_NULL && windows[1]==MPI_WIN_NULL) hasWindows=false ;
+      else hasWindows=true ;
+     */
 
       MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[0]) ;
       MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[1]) ;
@@ -85,13 +86,44 @@ namespace xios
 
   MPI_Aint CClientBuffer::getWinAddress(int i)
   {
-     MPI_Aint address ;
-     
-     if (hasWindows) MPI_Get_address(bufferHeader[i], &address) ;
-     else address=0 ;
-
-     return address ;
+    MPI_Aint address ;
+    MPI_Get_address(bufferHeader[i], &address) ;
+    return address ;
   }
+
+  void CClientBuffer::attachWindows(vector<MPI_Win>& windows)
+  {
+    windows_=windows ;
+    if (windows_[0]==MPI_WIN_NULL && windows_[1]==MPI_WIN_NULL) hasWindows=false ;
+    else hasWindows=true ;
+
+    if (hasWindows)
+    {  
+      MPI_Aint buffSize=bufferSize+headerSize_ ;
+      MPI_Win_attach(windows_[0], bufferHeader[0], buffSize) ;
+      MPI_Win_attach(windows_[1], bufferHeader[1], buffSize) ;
+    
+      MPI_Group group ;
+      int groupSize,groupRank ;
+      MPI_Win_get_group(windows_[0], &group) ;
+      MPI_Group_size(group, &groupSize) ;
+      MPI_Group_rank(group, &groupRank) ;
+      if (groupRank!=clientRank_) ERROR("CClientBuffer::CClientBuffer",<< " ClientRank != groupRank "<<clientRank_<<" "<<groupRank);
+
+      MPI_Win_get_group(windows_[1], &group) ;
+      MPI_Group_size(group, &groupSize) ;
+      MPI_Group_rank(group, &groupRank) ;
+      if (groupRank!=clientRank_) ERROR("CClientBuffer::CClientBuffer",<< " ClientRank != groupRank "<<clientRank_<<" "<<groupRank);
+
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
+
+      MPI_Win_unlock(clientRank_, windows_[1]) ;
+      MPI_Win_unlock(clientRank_, windows_[0]) ;
+    } 
+
+  }
+
 
   CClientBuffer::~CClientBuffer()
   {
@@ -216,12 +248,15 @@ namespace xios
     MPI_Status status;
     int flag;
     
-    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
-    MPI_Win_unlock(clientRank_, windows_[0]) ;
+    if (hasWindows)
+    { 
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
+      MPI_Win_unlock(clientRank_, windows_[0]) ;
 
-    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
-    MPI_Win_unlock(clientRank_, windows_[1]) ;
-
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
+      MPI_Win_unlock(clientRank_, windows_[1]) ;
+    }
+    
     if (pending)
     {
       traceOff();

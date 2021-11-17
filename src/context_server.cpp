@@ -72,44 +72,8 @@ namespace xios
     MPI_Bcast(&hashId,1,MPI_SIZE_T,0,intraComm) ; // Bcast to all server of the context
 
 
-    if (!isAttachedModeEnabled())
-    {
-      CTimer::get("create Windows").resume() ;
-
-      MPI_Intercomm_merge(interComm_,true,&interCommMerged) ;
-
-      double time ;
-      windows_.resize(clientSize_) ;
-      MPI_Comm commSelf ;
-      MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf) ;
-      MPI_Comm interComm ;
-      winComm_.resize(clientSize_) ;
-      for(int rank=0; rank<clientSize_ ; rank++) 
-      {
-        time=MPI_Wtime() ;
-        MPI_Intercomm_create(commSelf, 0, interCommMerged, rank, 0 , &interComm) ;
-        MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
-        windows_[rank].resize(2) ;
-        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
-        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);  
-        time=MPI_Wtime()-time ;
-        info(100)<< "MPI_Win_create_dynamic : server to client rank "<<rank<<" => "<<time/1e-6<<" us"<<endl ;
-      }
-      MPI_Comm_free(&commSelf) ;
-      CTimer::get("create Windows").suspend() ;
-    }
-    else 
-    {
-      winComm_.resize(clientSize_) ;
-      windows_.resize(clientSize_) ;
-      for(int rank=0; rank<clientSize_ ; rank++) 
-      {
-        winComm_[rank] = MPI_COMM_NULL ;
-        windows_[rank].resize(2) ;
-        windows_[rank][0]=MPI_WIN_NULL ;
-        windows_[rank][1]=MPI_WIN_NULL ;
-      }
-    }
+    if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
+    MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
     
     itLastTimeLine=lastTimeLine.begin() ;
 
@@ -182,17 +146,39 @@ namespace xios
     it=buffers.find(rank);
     if (it==buffers.end()) // Receive the buffer size and allocate the buffer
     {
-       MPI_Aint recvBuff[4] ;
-       MPI_Mrecv(recvBuff, 4, MPI_AINT,  &message, &status);
-       remoteHashId_ = recvBuff[0] ;
-       StdSize buffSize = recvBuff[1];
-       vector<MPI_Aint> winAdress(2) ;
-       winAdress[0]=recvBuff[2] ; winAdress[1]=recvBuff[3] ;
-       mapBufferSize_.insert(std::make_pair(rank, buffSize));
-       it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winAdress, 0, buffSize)))).first;
-       lastTimeLine[rank]=0 ;
-       itLastTimeLine=lastTimeLine.begin() ;
-       return true;
+      MPI_Aint recvBuff[4] ;
+      MPI_Mrecv(recvBuff, 4, MPI_AINT,  &message, &status);
+      remoteHashId_ = recvBuff[0] ;
+      StdSize buffSize = recvBuff[1];
+      vector<MPI_Aint> winAdress(2) ;
+      winAdress[0]=recvBuff[2] ; winAdress[1]=recvBuff[3] ;
+      mapBufferSize_.insert(std::make_pair(rank, buffSize));
+
+      // create windows dynamically for one-sided
+      if (!isAttachedModeEnabled())
+      { 
+        CTimer::get("create Windows").resume() ;
+        MPI_Comm interComm ;
+        MPI_Intercomm_create(commSelf_, 0, interCommMerged_, rank, 0 , &interComm) ;
+        MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
+        windows_[rank].resize(2) ;
+        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
+        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);
+        CTimer::get("create Windows").suspend() ;
+      }
+      else
+      {
+        winComm_[rank] = MPI_COMM_NULL ;
+        windows_[rank].resize(2) ;
+        windows_[rank][0] = MPI_WIN_NULL ;
+        windows_[rank][1] = MPI_WIN_NULL ;
+      }   
+
+      it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winAdress, 0, buffSize)))).first;
+      lastTimeLine[rank]=0 ;
+      itLastTimeLine=lastTimeLine.begin() ;
+
+      return true;
     }
     else
     {
@@ -424,8 +410,9 @@ namespace xios
   {
     if (!isAttachedModeEnabled())
     {
-      for(int rank=0; rank<clientSize_; rank++)
+      for(auto& it : winComm_)
       {
+        int rank = it.first ;
         MPI_Win_free(&windows_[rank][0]);
         MPI_Win_free(&windows_[rank][1]);
         MPI_Comm_free(&winComm_[rank]) ;

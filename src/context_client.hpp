@@ -89,7 +89,8 @@ namespace xios
 
       MPI_Comm interComm; //!< Communicator of server group (interCommunicator)
 
-      MPI_Comm interCommMerged; //!< Communicator of the client group + server group (intraCommunicator) needed for one sided communication.
+      MPI_Comm interCommMerged_; //!< Communicator of the client group + server group (intraCommunicator) needed for one sided communication.
+      MPI_Comm commSelf_ ; //!< Communicator for proc alone from interCommMerged 
 
       MPI_Comm intraComm; //!< Communicator of client group
 
@@ -119,8 +120,8 @@ namespace xios
       //! List of server ranks for which the client is not leader
       std::list<int> ranksServerNotLeader;
 
-      std::vector<MPI_Comm> winComm_ ; //! Window communicators
-      std::vector<std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
+      std::map<int, MPI_Comm> winComm_ ; //! Window communicators
+      std::map<int, std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
       bool isAttached_ ;
       CContextServer* associatedServer_ ; //!< The server associated to the pair client/server
       bool isGrowableBuffer_ = true ;

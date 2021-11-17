@@ -14,7 +14,7 @@ namespace xios
     public:
       static size_t maxRequestSize;
 
-      CClientBuffer(MPI_Comm intercomm, vector<MPI_Win>& windows, int clientRank, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize);
+      CClientBuffer(MPI_Comm intercomm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize);
       ~CClientBuffer();
 //      void createWindows(MPI_Comm oneSidedComm) ;
       void freeWindows(void) ;
@@ -32,6 +32,7 @@ namespace xios
       void setGrowableBuffer(double growFactor) { growFactor_=growFactor ; isGrowableBuffer_=true ;}
       void fixBufferSize(size_t bufferSize) { newBufferSize_=bufferSize ; isGrowableBuffer_=false ; resizingBufferStep_=1 ;}
       void fixBuffer(void) { isGrowableBuffer_=false ;}
+      void attachWindows(vector<MPI_Win>& windows) ;
     private:
        void resizeBuffer(size_t newSize) ;
        void resizeBufferNotify(void) ;

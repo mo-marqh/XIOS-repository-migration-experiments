@@ -49,36 +49,9 @@ namespace xios
 
       computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
 
-      if (flag) MPI_Intercomm_merge(interComm_,false, &interCommMerged) ;
+      if (flag) MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
       
-      if (!isAttachedModeEnabled())
-      {  
-
-        CTimer::get("create Windows").resume() ;
-
-        // We create dummy pair of intercommunicator between clients and server
-        // Why ? Just because on openMPI, it reduce the creation time of windows otherwhise which increase quadratically
-        // We don't know the reason
-        double time ;
-        MPI_Comm commSelf ;
-        MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf) ;
-        MPI_Comm interComm ;
-        winComm_.resize(serverSize) ;
-        windows_.resize(serverSize) ;
-        for(int rank=0; rank<serverSize; rank++) 
-        {
-          time=MPI_Wtime() ;
-          MPI_Intercomm_create(commSelf, 0, interCommMerged, clientSize+rank, 0, &interComm) ;
-          MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
-          windows_[rank].resize(2) ;
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);  
-          time=MPI_Wtime()-time ;
-          info(100)<< "MPI_Win_create_dynamic : client to server rank "<<rank<<" => "<<time/1e-6<<" us"<<endl ;
-        }
-        MPI_Comm_free(&commSelf) ;
-        CTimer::get("create Windows").resume() ;
-     }
+      MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
 
       auto time=chrono::system_clock::now().time_since_epoch().count() ;
       std::default_random_engine rd(time); // not reproducible from a run to another
@@ -337,10 +310,7 @@ namespace xios
         maxEventSizes[rank] = CXios::minBufferSize;
       }
       
-      vector<MPI_Win> Wins(2,MPI_WIN_NULL) ;
-      if (!isAttachedModeEnabled()) Wins=windows_[rank] ;
-  
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, Wins, clientRank, rank, mapBufferSize_[rank], maxEventSizes[rank]);
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxEventSizes[rank]);
       if (isGrowableBuffer_) buffer->setGrowableBuffer(1.2) ;
       else buffer->fixBuffer() ;
       // Notify the server
@@ -353,7 +323,28 @@ namespace xios
       info(100)<<"CContextClient::newBuffer : rank "<<rank<<" winAdress[0] "<<buffers[rank]->getWinAddress(0)<<" winAdress[1] "<<buffers[rank]->getWinAddress(1)<<endl;
       bufOut->put(sendBuff, 4); 
       buffer->checkBuffer(true);
-
+      
+       // create windows dynamically for one-sided
+      if (!isAttachedModeEnabled())
+      { 
+        CTimer::get("create Windows").resume() ;
+        MPI_Comm interComm ;
+        MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, 0, &interComm) ;
+        MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+        MPI_Comm_free(&interComm) ;
+        windows_[rank].resize(2) ;
+        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
+        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);   
+        CTimer::get("create Windows").suspend() ;
+      }
+      else
+      {
+        winComm_[rank] = MPI_COMM_NULL ;
+        windows_[rank].resize(2) ;
+        windows_[rank][0] = MPI_WIN_NULL ;
+        windows_[rank][1] = MPI_WIN_NULL ;
+      }
+      buffer->attachWindows(windows_[rank]) ;
    }
 
    /*!
@@ -383,8 +374,9 @@ namespace xios
 
       if (!isAttachedModeEnabled())
       {  
-        for(int rank=0; rank<serverSize; rank++)
+        for(auto& it : winComm_)
         {
+          int rank = it.first ;
           MPI_Win_free(&windows_[rank][0]);
           MPI_Win_free(&windows_[rank][1]);
           MPI_Comm_free(&winComm_[rank]) ;

@@ -43,7 +43,8 @@ namespace xios
     int commSize ;
     int clientSize_ ;
 
-    MPI_Comm interCommMerged; //!< Communicator of the client group + server group (intraCommunicator) needed for one sided communication.
+    MPI_Comm interCommMerged_; //!< Communicator of the client group + server group (intraCommunicator) needed for one sided communication.
+    MPI_Comm commSelf_ ; //!< Communicator for proc alone from interCommMerged 
 
     map<int,CServerBuffer*> buffers ;
     map<int,size_t> lastTimeLine ; //!< last event time line for a processed request
@@ -70,10 +71,10 @@ namespace xios
     ~CContextServer() ;
 
     private:
-
+  
       std::map<int, StdSize> mapBufferSize_;
-      std::vector<MPI_Comm>winComm_ ; //! Window communicators
-      std::vector<std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
+      std::map<int,MPI_Comm> winComm_ ; //! Window communicators
+      std::map<int,std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
       CEventScheduler* eventScheduler_ ;
       bool isProcessingEvent_ ;
       CContextClient* associatedClient_ ;
