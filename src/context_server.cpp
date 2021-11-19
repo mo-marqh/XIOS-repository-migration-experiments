@@ -273,7 +273,8 @@ namespace xios
         if (itLastTimeLine->second < timeLine &&  pendingRequest.count(rank)==0 && buffers[rank]->isBufferEmpty())
         {
           if (buffers[rank]->getBufferFromClient(timeLine, buffer, count)) processRequest(rank, buffer, count);
-          if (count >= 0) break ;
+          if (count >= 0) ++itLastTimeLine ;
+          break ;
         }
       }
     }
