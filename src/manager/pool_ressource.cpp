@@ -105,6 +105,8 @@ namespace xios
     CTimer::get("CPoolRessource::eventLoop").resume();
    
     double time=MPI_Wtime() ;
+    int flag ;
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
     if (time-lastEventLoop_ > eventLoopLatency_) 
     {
       checkCreateServiceNotification() ;

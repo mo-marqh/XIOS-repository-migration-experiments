@@ -165,6 +165,7 @@ namespace xios
         MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
         MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);
         CTimer::get("create Windows").suspend() ;
+        MPI_Barrier(winComm_[rank]) ;
       }
       else
       {
@@ -301,6 +302,7 @@ namespace xios
       {
         buffers[rank]->notifyBufferResizing() ;
         buffers[rank]->updateCurrentWindows() ;
+        info(100)<<"Receive NotifyChangeBufferSize from client rank "<<rank<<endl ;
       } 
       else if (timeLine==timelineEventChangeBufferSize)
       {
@@ -309,9 +311,11 @@ namespace xios
         newBuffer>>newSize>>winAdress[0]>>winAdress[1] ;
         buffers.erase(rank) ;
         buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winAdress, 0, newSize)));
+        info(100)<<"Receive ChangeBufferSize from client rank "<<rank<<"  newSize : "<<newSize<<" Address : "<<winAdress[0]<<" & "<<winAdress[1]<<endl ;
       }
       else
       {
+        info(100)<<"Receive standard event from client rank "<<rank<<"  with timeLine : "<<timeLine<<endl ;
         it=events.find(timeLine);
         if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
         it->second->push(rank,buffers[rank],startBuffer,size);
@@ -390,7 +394,7 @@ namespace xios
       }
       else if (pendingRequest.empty()) getBufferFromClient(currentTimeLine) ;
     }
-    else if (pureOneSided) getBufferFromClient(currentTimeLine) ; // if pure one sided check buffer even if no event recorded at current time line
+    else if (pendingRequest.empty()) getBufferFromClient(currentTimeLine) ; // if pure one sided check buffer even if no event recorded at current time line
   }
 
   CContextServer::~CContextServer()

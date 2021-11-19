@@ -39,7 +39,7 @@ namespace xios
       int currentWindows ;
       bool hasWindows ;
       int windowsRank_ ;
-      double bufferFromClientLatency_=1e-1 ;
+      double bufferFromClientLatency_=0e-1 ;
       double bufferFromClientTime_ = 0;
 
   };

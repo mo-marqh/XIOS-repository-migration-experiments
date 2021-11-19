@@ -117,7 +117,11 @@ namespace xios
     void CContextClient::sendEvent(CEventClient& event)
     {
       list<int> ranks = event.getRanks();
-      info(100)<<"Event "<<timeLine<<" of context "<<context_->getId()<<endl ;
+ 
+//      ostringstream str ;
+//      for(auto& rank : ranks) str<<rank<<" ; " ;
+//      info(100)<<"Event "<<timeLine<<" of context "<<context_->getId()<<"  for ranks : "<<str.str()<<endl ;
+
       if (CXios::checkEventSync)
       {
         int typeId, classId, typeId_in, classId_in;
@@ -164,9 +168,8 @@ namespace xios
         //for (auto itRank = ranks.begin(); itRank != ranks.end(); itRank++) buffers[*itRank]->infoBuffer() ;
 
         unlockBuffers(ranks) ;
-        info(100)<<"Event "<<timeLine<<" of context "<<context_->getId()<<"  sent"<<endl ;
-          
         checkBuffers(ranks);
+        
       }
       
       if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
@@ -345,6 +348,8 @@ namespace xios
         windows_[rank][1] = MPI_WIN_NULL ;
       }
       buffer->attachWindows(windows_[rank]) ;
+      if (!isAttachedModeEnabled()) MPI_Barrier(winComm_[rank]) ;
+       
    }
 
    /*!
@@ -524,6 +529,14 @@ namespace xios
     return pending;
   }
   
+  bool CContextClient::havePendingRequests(list<int>& ranks)
+  {
+      list<int>::iterator it;
+      bool pending = false;
+      for (it = ranks.begin(); it != ranks.end(); it++) pending |= buffers[*it]->hasPendingRequest();
+      return pending;
+  }
+
   bool CContextClient::isNotifiedFinalized(void)
   {
     if (isAttachedModeEnabled()) return true ;

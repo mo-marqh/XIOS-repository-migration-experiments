@@ -430,7 +430,7 @@ namespace xios
       string name = CXios::getContextsManager()->getServerContextName(getPoolRessource()->getId(), id, 0, type, id) ;
       double time ;
       double lastTime=0 ;
-      double latency=1e-2 ;
+      double latency=0 ;
       bool out=false ;
       while (!out)
       {

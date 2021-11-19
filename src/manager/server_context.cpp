@@ -236,7 +236,9 @@ namespace xios
   {
     CTimer::get("CServerContext::eventLoop").resume();
     bool finished=false ;
-    
+    int flag ;
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+
 //    double time=MPI_Wtime() ;
 //    if (time-lastEventLoop_ > eventLoopLatency_) 
 //    {

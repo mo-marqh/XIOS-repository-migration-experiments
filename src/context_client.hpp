@@ -40,6 +40,7 @@ namespace xios
       bool checkBuffers(void);
       void releaseBuffers(void);
       bool havePendingRequests(void);
+      bool havePendingRequests(list<int>& ranks) ;
 
       bool isServerLeader(void) const;
       bool isServerNotLeader(void) const;
@@ -126,7 +127,7 @@ namespace xios
       CContextServer* associatedServer_ ; //!< The server associated to the pair client/server
       bool isGrowableBuffer_ = true ;
 
-      double latency_=1e-2 ;
+      double latency_=0e-2 ;
   };
 }
 

@@ -70,7 +70,7 @@ namespace xios
     int type_ ;
     int nbPartitions_ ;
 
-    const double eventLoopLatency_=1e-2; 
+    const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;
 
   };

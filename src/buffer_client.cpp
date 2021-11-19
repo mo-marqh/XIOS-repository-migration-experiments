@@ -247,16 +247,8 @@ namespace xios
   {
     MPI_Status status;
     int flag;
-    
-    if (hasWindows)
-    { 
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
-      MPI_Win_unlock(clientRank_, windows_[0]) ;
-
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
-      MPI_Win_unlock(clientRank_, windows_[1]) ;
-    }
-    
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+ 
     if (pending)
     {
       traceOff();

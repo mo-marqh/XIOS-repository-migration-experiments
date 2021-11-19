@@ -70,7 +70,7 @@ namespace xios
       std::vector<MPI_Win> windows_ ;
       bool hasWindows ;
 
-      double latency_=1e-2 ;
+      double latency_=0 ;
       double lastCheckedWithNothing_=0 ;
       double lastCheckedNotify_=0 ;
   };

@@ -44,7 +44,7 @@ namespace xios
     std::string Id_ ;
     bool finalizeSignal_ ;
     
-    const double eventLoopLatency_=1e-2; 
+    const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;
   };
 

@@ -71,7 +71,7 @@ namespace xios
     int ressourcesSize_ ;
     int freeRessourcesSize_ ;
 
-    const double eventLoopLatency_=1e-2; 
+    const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;
 
     friend class CWindowManager ;

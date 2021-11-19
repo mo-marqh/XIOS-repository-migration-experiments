@@ -60,6 +60,8 @@ namespace xios
       {
         time=MPI_Wtime() ;
         while(time-lastTime < latency_) time=MPI_Wtime() ;
+        int flag ;
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
         MPI_Compare_and_swap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK, window_) ;
         MPI_Win_unlock(rank, window_) ;
@@ -85,6 +87,8 @@ namespace xios
       {
         time=MPI_Wtime() ;
         while(time-lastTime < latency_) time=MPI_Wtime() ;
+        int flag ;
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
         MPI_Compare_and_swap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK, window_) ;
         MPI_Win_unlock(rank, window_) ;
