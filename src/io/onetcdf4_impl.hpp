@@ -18,16 +18,13 @@ namespace xios
     StdSize array_size = 1;
     std::vector<StdSize> sstart, scount;
 
-    if (this->wmpi && collective)
-    CNetCdfInterface::varParAccess(grpid, varid, NC_COLLECTIVE);
-    if (this->wmpi && !collective)
-    CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
+    if (this->wmpi && collective) CNetCdfInterface::varParAccess(grpid, varid, NC_COLLECTIVE);
+    if (this->wmpi && !collective) CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
 
     CTimer::get("Files : get data infos").resume();
-    this->getWriteDataInfos
-    (name, record, array_size,  sstart, scount, start, count);
+    this->getWriteDataInfos(name, record, array_size,  sstart, scount, start, count);
     CTimer::get("Files : get data infos").suspend();
-
+   
     if (data.numElements() != array_size)
     {
       ERROR("CONetCDF4::writeData(...)",
@@ -35,8 +32,10 @@ namespace xios
       << ", intern array size = " << array_size
       << " ] Invalid input data !" );
     }
-
-    this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
+    
+    if (this->wmpi && sstart.size()==0) CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT); // pure scalar case
+    if (data.numElements()==0 && sstart.size()==0) {}// pure scalar case if nothing to write, write nothing (independent access) 
+    else this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
   }
 
   template <>

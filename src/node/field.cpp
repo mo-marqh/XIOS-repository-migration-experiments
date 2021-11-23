@@ -99,6 +99,7 @@ namespace xios
       switch(event.type)
       {
         case EVENT_ID_UPDATE_DATA :
+          // return true; // temporary
           recvUpdateData(event);
           return true;
           break;

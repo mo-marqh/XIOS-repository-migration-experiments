@@ -2281,6 +2281,7 @@ namespace xios
                   CArray<int,1> axisDomainOrder = grid->axis_domain_order;
                   std::vector<StdString> domainList = grid->getDomainList();
                   std::vector<StdString> axisList   = grid->getAxisList();
+                  std::vector<StdString> scalarList  = grid->getScalarList() ;
                   int numElement = axisDomainOrder.numElements();
                   int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
                   int idx = domainList.size() * 2 + axisList.size() - 1;
@@ -2317,8 +2318,9 @@ namespace xios
                     {
                       if (1 == axisDomainOrder.numElements())
                       {
+                        CScalar* scalar = CScalar::get(scalarList[scalarList.size()-1]);
                         start.push_back(0);
-                        count.push_back(1);
+                        count.push_back(scalar->n);
                       }
                       --idx;
                     }

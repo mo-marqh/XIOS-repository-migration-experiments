@@ -1426,6 +1426,7 @@ namespace xios
       else if (element.type==TYPE_AXIS) break ;
       else if (element.type==TYPE_SCALAR) posDistributed++ ;
     }
+    if (posDistributed==elements.size()) posDistributed=0 ; // grid composed only of scalar
     
     vector<CLocalView*> localViews ;
     vector<CLocalView*> workflowView ;
@@ -1452,7 +1453,7 @@ namespace xios
       else if (elements[i].type==TYPE_SCALAR)
       {
         CScalar* scalar = (CScalar*) elements[i].ptr ;
-        scalar->computeRemoteElement(client, posDistributed==i ? EDistributionType::BANDS : EDistributionType::NONE) ;
+        scalar->computeRemoteElement(client, posDistributed==i ? EDistributionType::ROOT : EDistributionType::NONE) ;
         remoteViews.push_back(scalar->getRemoteElement(client)->getView(CElementView::FULL)) ;
         localViews.push_back(scalar->getLocalView(CElementView::FULL)) ;
         workflowView.push_back(scalar->getLocalView(CElementView::WORKFLOW)) ;

@@ -111,7 +111,8 @@ namespace xios
   {
     if (checkAttributes_done_) return ;
     checkAttributes_done_ = true ; 
-
+    
+    if (n.isEmpty()) n=1 ;
     if (mask.isEmpty()) mask=true ;
 
     initializeLocalElement() ;
@@ -341,22 +342,23 @@ namespace xios
       // after checkAttribute index of size n
       int rank = CContext::getCurrent()->getIntraCommRank() ;
       
-      CArray<size_t,1> ind(1) ;
-      ind(0)=0 ;
-      localElement_ = new CLocalElement(rank, 1, ind) ;
+      
+      CArray<size_t,1> index(n) ;
+      if (n==1) index(0)=0 ;
+      localElement_ = new CLocalElement(rank, 1, index) ;
    }
 
    void CScalar::addFullView(void)
    {
-      CArray<int,1> index(1) ;
-      for(int i=0; i<1 ; i++) index(0)=0 ;
+      CArray<int,1> index(n) ;
+      if (n==1) index(0)=0 ;
       localElement_ -> addView(CElementView::FULL, index) ;
    }
 
    void CScalar::addWorkflowView(void)
    {
       CArray<int,1> index ;
-      if (mask) 
+      if (mask && n==1)
       {
         index.resize(1) ;
         index(0)=0 ;
@@ -385,13 +387,27 @@ namespace xios
   {
     CContext* context = CContext::getCurrent();
     map<int, CArray<size_t,1>> globalIndex ;
-
-    int nbServer = client->serverSize;
     size_t nglo=1 ;
-    CArray<size_t,1> indGlo(nglo) ;
-    for(size_t i=0;i<nglo;i++) indGlo(i) = i ;
-    for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer].reference(indGlo.copy()) ; 
 
+    if (type==EDistributionType::ROOT) // Bands distribution to send to file server
+    {
+      for (auto& rankServer : client->getRanksServerLeader())
+      {
+        auto& globalInd =  globalIndex[rankServer] ;
+        if (rankServer==0) 
+        {
+          globalInd.resize(1) ;
+          globalInd(0)=0 ;
+        }
+      }
+    }
+    else if (type==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
+    {
+      int nbServer = client->serverSize;
+      CArray<size_t,1> indGlo(nglo) ;
+      for(size_t i=0;i<nglo;i++) indGlo(i) = i ;
+      for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer].reference(indGlo.copy()) ; 
+    }
     remoteElement_[client] = new CDistributedElement(nglo, globalIndex) ;
     remoteElement_[client]->addFullView() ;
   }
@@ -476,7 +492,7 @@ namespace xios
       localElement_->addFullView() ;
       // construct the local dimension and indexes
       auto& globalIndex=localElement_->getGlobalIndex() ;
-      int nk=globalIndex.numElements() ;
+      n=globalIndex.numElements() ;
       // no distribution for scalar => nk ==1 or maybe 0 ?
     }
     else if (phasis==1) // receive the sent view from client to construct the full distributed full view on server
@@ -503,7 +519,7 @@ namespace xios
   {
     CContext* context = CContext::getCurrent();
     localElement_->addView(CElementView::WORKFLOW, serverMask) ;
-    mask = serverMask(0) ;
+    if (serverMask.numElements()==1) mask = serverMask(0) ;
  
     serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
     serverFromClientConnector_->computeConnector() ;

@@ -476,9 +476,10 @@ namespace xios
          std::vector<std::size_t> sizes  = this->getDimensions(name);
          if (sizes.size()==0) 
          {
-            array_size=1 ;
-            sstart.push_back(0);
-            scount.push_back(1);
+            
+            if ((start != NULL) && (count != NULL) && start->size()==1 && count->size()==1) // pur scalar case
+              array_size*=(*count)[0] ;
+            else array_size=1 ;
          }
          else
          {
@@ -491,11 +492,18 @@ namespace xios
            {
              sstart.push_back(record);
              scount.push_back(1);
-              if ((start == NULL) &&
-                  (count == NULL)) i++;
-              it++;
+             if ((start == NULL) && (count == NULL)) i++;
+             it++;
+             if (it==end)
+             {
+               if ((start != NULL) && (count != NULL) && start->size()==1 && count->size()==1) // pur scalar case
+               {
+                 scount[0]=(*count)[0] ;
+                 array_size *= (*count)[0];
+               }
+             }
            }
-
+           
            for (;it != end; it++)
            {
               if ((start != NULL) && (count != NULL))
@@ -568,6 +576,7 @@ namespace xios
       {
          int grpid = this->getCurrentGroup();
          int varid = this->getVariable(name);
+         
          StdSize array_size = 1;
          std::vector<StdSize> sstart, scount;
 
