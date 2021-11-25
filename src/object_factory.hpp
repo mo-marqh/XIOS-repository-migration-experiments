@@ -53,10 +53,12 @@ namespace xios
          template <typename U>
              static std::shared_ptr<U> CreateAlias(const StdString& id, const StdString& alias) ;
          
-         template <typename U> static const StdString& GetUIdBase(void);
+         template <typename U> static const StdString GetUIdBase(void);
          template <typename U> static StdString GenUId(void);
          template <typename U> static bool IsGenUId(const StdString& id);
-
+         template <typename U> static void deleteContext(const StdString & context) ;
+         template <typename U> static void deleteAllContexts(void) ;
+         template <typename U> static void dumpObjects(void) ;
       private :
 
          /// Propriétés statiques ///

@@ -146,9 +146,9 @@ namespace xios
    }
 
    template <typename U>
-   const StdString& CObjectFactory::GetUIdBase(void)
+   const StdString CObjectFactory::GetUIdBase(void)
    {
-      static StdString base ; 
+      StdString base ; 
 //      base = "__"+CObjectFactory::CurrContext + "::" + U::GetName() + "_undef_id_";
       base = CObjectFactory::CurrContext + "__" + U::GetName() + "_undef_id_";
       return base;
@@ -165,10 +165,42 @@ namespace xios
    template <typename U>
    bool CObjectFactory::IsGenUId(const StdString& id)
    {
-      const StdString& base = GetUIdBase<U>();
+      const StdString base = GetUIdBase<U>();
       return (id.size() > base.size() && id.compare(0, base.size(), base) == 0);
    }
 
+   template <typename U> 
+   void CObjectFactory::deleteContext(const StdString & context)
+   {
+     for (auto& v : U::AllVectObj[context]) v.reset() ;
+     U::AllVectObj[context].clear() ;
+     U::AllVectObj.erase(context) ; 
+     for (auto& m : U::AllMapObj[context])  m.second.reset() ;
+     U::AllMapObj[context].clear() ;
+     U::AllMapObj.erase(context) ;
+
+     U::GenId.erase(context) ;
+   }
+
+   template <typename U> 
+   void CObjectFactory::deleteAllContexts(void)
+   {
+     list<StdString> contextList ;
+     for(auto& context : U::AllMapObj) contextList.push_back(context.first) ;
+     for(auto& context : contextList) deleteContext<U>(context) ;
+   }
+
+   
+   template <typename U> 
+   void CObjectFactory::dumpObjects(void)
+   {
+     for (auto& context : U::AllMapObj) 
+      for(auto& m : context.second)
+      {
+        info(100)<<"Dump All Object"<<endl ;
+        info(100)<<"Object from context "<<context.first<<" with id "<<m.first<<endl ; 
+      }
+   }
 } // namespace xios
 
 #endif // __XIOS_CObjectFactory_impl__

@@ -486,7 +486,7 @@ namespace xios
       
       CTimer::get("XIOS init/finalize",false).suspend() ;
       CTimer::get("XIOS").suspend() ;
-      
+      CContext::removeAllContexts() ; // free memory for related context 
       CXios::finalizeDaemonsManager() ;
 
       if (!is_MPI_Initialized)

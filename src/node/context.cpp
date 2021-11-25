@@ -288,6 +288,44 @@ namespace xios
    }
    CATCH
 
+void CContext::removeContext(const string& contextId)
+{
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::deleteContext< C##Name_ >(contextId);
+  #define DECLARE_NODE_PAR(Name_, name_) CObjectFactory::deleteContext< C##Name_ >(contextId);
+  #include "node_type.conf"
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::deleteContext< C##Name_##Group >(contextId);
+  #define DECLARE_NODE_PAR(Name_, name_) 
+  #include "node_type.conf"
+
+/*
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::dumpObjects< C##Name_##Group >();
+  #define DECLARE_NODE_PAR(Name_, name_) 
+  #include "node_type.conf"
+
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::dumpObjects< C##Name_>();
+  #define DECLARE_NODE_PAR(Name_, name_) 
+  #include "node_type.conf"
+*/
+}
+
+void CContext::removeAllContexts(void)
+{
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::deleteAllContexts< C##Name_ >();
+  #define DECLARE_NODE_PAR(Name_, name_) CObjectFactory::deleteAllContexts< C##Name_ >();
+  #include "node_type.conf"
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::deleteAllContexts< C##Name_##Group >();
+  #define DECLARE_NODE_PAR(Name_, name_) 
+  #include "node_type.conf"
+/*
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::dumpObjects< C##Name_##Group >();
+  #define DECLARE_NODE_PAR(Name_, name_) 
+  #include "node_type.conf"
+
+  #define DECLARE_NODE(Name_, name_)     CObjectFactory::dumpObjects< C##Name_>();
+  #define DECLARE_NODE_PAR(Name_, name_) 
+  #include "node_type.conf"
+*/
+}
    ///---------------------------------------------------------------
 
 

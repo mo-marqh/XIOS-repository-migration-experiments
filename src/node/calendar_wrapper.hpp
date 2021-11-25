@@ -81,6 +81,7 @@ namespace xios {
 
   }; // class CCalendarWrapper
 
+  typedef CCalendarWrapper CCalendarWrapperGroup;
   typedef CCalendarWrapper CCalendarWrapperDefinition;
 } // namespace xios
 

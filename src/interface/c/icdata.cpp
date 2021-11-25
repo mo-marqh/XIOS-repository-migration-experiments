@@ -134,6 +134,7 @@ extern "C"
      CTimer::get("XIOS context finalize").resume();
      CContext* context = CContext::getCurrent();
      context->finalize();
+     CContext::removeContext(context->getId()) ;
      CTimer::get("XIOS context finalize").suspend();
      CTimer::get("XIOS").suspend();
    }

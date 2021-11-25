@@ -312,7 +312,7 @@ namespace xios
           MPI_Comm_free(&(*it));
 
 //      MPI_Comm_free(&intraComm);
-
+      CContext::removeAllContexts() ; // free memory for related context 
       CXios::finalizeDaemonsManager();
       
       if (!is_MPI_Initialized)

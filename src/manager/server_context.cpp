@@ -251,6 +251,8 @@ namespace xios
     {
       if (context_->eventLoop())
       {
+        info(100)<<"Remove context server with id "<<context_->getId()<<endl ;
+        CContext::removeContext(context_->getId()) ;
         context_=nullptr ;
         // destroy context ??? --> later
       }

@@ -123,18 +123,14 @@ namespace xios
          /// Constructeurs ///
          CObjectTemplate(void);
          explicit CObjectTemplate(const StdString & id);
-         CObjectTemplate(const CObjectTemplate<T> & object,
-                         bool withAttrList = true, bool withId = true);
+         CObjectTemplate(const CObjectTemplate<T> & object, bool withAttrList = true, bool withId = true);
          CObjectTemplate(const CObjectTemplate<T> * const object); // Not implemented.
 
       private :
 
          /// Propriétés statiques ///
-         static xios_map<StdString,
-                xios_map<StdString,
-                std::shared_ptr<DerivedType> > > AllMapObj;
-         static xios_map<StdString,
-                std::vector<std::shared_ptr<DerivedType> > > AllVectObj;
+         static xios_map<StdString, xios_map<StdString, std::shared_ptr<DerivedType> > > AllMapObj;
+         static xios_map<StdString, std::vector<std::shared_ptr<DerivedType> > > AllVectObj;
 
          static xios_map< StdString, long int > GenId ;
 

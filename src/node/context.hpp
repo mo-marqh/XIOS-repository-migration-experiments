@@ -245,6 +245,8 @@ namespace xios
         // Some functions to visualize structure of current context
         static void ShowTree(StdOStream & out = std::clog);
         static void CleanTree(void);
+        static void removeContext(const std::string& contextId);
+        static void removeAllContexts(void) ;
         int getServiceType(void) {return serviceType_;}
 
       public :
