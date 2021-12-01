@@ -14,8 +14,8 @@ namespace xios
   {
     
     private:
-      CLocalView* srcView_;
-      CLocalView* dstView_;
+      shared_ptr<CLocalView> srcView_;
+      shared_ptr<CLocalView> dstView_;
       int srcSize_ ;
       int dstSize_ ;
       vector<int> connector_ ;
@@ -23,7 +23,7 @@ namespace xios
 
     public:
     
-      CLocalConnector(CLocalView* srcView, CLocalView* dstView) : srcView_(srcView), dstView_(dstView), 
+      CLocalConnector(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) : srcView_(srcView), dstView_(dstView), 
                                                                   srcSize_(srcView->getSize()), dstSize_(dstView->getSize()) {}
       void computeConnector(void);
       int getSrcSize(void) {return srcSize_ ;}
@@ -58,7 +58,7 @@ namespace xios
         }
       }
 
-      template<typename T> void transfer(CLocalConnector** connectors, int nConnectors, const T* input, T* output)
+      template<typename T> void transfer(shared_ptr<CLocalConnector>* connectors, int nConnectors, const T* input, T* output)
       {
 
         int size=mask_.size() ;
@@ -90,7 +90,7 @@ namespace xios
         }
       }
 
-      template<typename T> void transfer(CLocalConnector** connectors, int nConnectors, const T* input, T* output, T missingValue)
+      template<typename T> void transfer(shared_ptr<CLocalConnector>* connectors, int nConnectors, const T* input, T* output, T missingValue)
       {
         int size=mask_.size() ;
         if (nConnectors==0)
@@ -122,10 +122,10 @@ namespace xios
         }
       }
 
-      int getSrcSliceSize(CLocalConnector** connectors, int nConnectors) 
+      int getSrcSliceSize(shared_ptr<CLocalConnector>* connectors, int nConnectors) 
       { if (nConnectors==0) return srcSize_ ; else return srcSize_ * (*(connectors-1))->getSrcSliceSize(connectors-1,nConnectors-1) ; }
 
-      int getDstSliceSize(CLocalConnector** connectors, int nConnectors) 
+      int getDstSliceSize(shared_ptr<CLocalConnector>* connectors, int nConnectors) 
       { if (nConnectors==0) return dstSize_ ; else return dstSize_ * (*(connectors-1))->getDstSliceSize(connectors-1,nConnectors-1) ; }
 
   };

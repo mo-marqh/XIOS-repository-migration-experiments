@@ -30,7 +30,7 @@ class CGridAlgorithmGeneric : public CGridAlgorithm
     virtual void apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) ;
     
   protected:
-    CGridTransformConnector* gridTransformConnector_=nullptr ;
+    shared_ptr<CGridTransformConnector> gridTransformConnector_=nullptr ;
     CGrid* gridSrc_ = nullptr ;
     CGrid* gridDst_ = nullptr ;
     int pos_ ;

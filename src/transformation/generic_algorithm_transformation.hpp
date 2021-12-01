@@ -47,11 +47,11 @@ class CGenericAlgorithmTransformation
     typedef std::unordered_map<int, std::vector<int> > TransformationIndexMap;
     typedef std::unordered_map<int, std::vector<double> > TransformationWeightMap;
  
-    CLocalElement* recvElement_=nullptr ;
+    shared_ptr<CLocalElement> recvElement_ ;
     bool isSource_ ;
 
   public:
-    CLocalElement* getRecvElement(void) { return recvElement_ ;}
+    shared_ptr<CLocalElement> getRecvElement(void) { return recvElement_ ;}
   
 };
 

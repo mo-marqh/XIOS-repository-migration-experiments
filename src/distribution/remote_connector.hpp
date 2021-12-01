@@ -16,8 +16,8 @@ namespace xios
   class CRemoteConnector
   {
     private:
-      CLocalView* srcView_;
-      CDistributedView* dstView_;
+      shared_ptr<CLocalView> srcView_;
+      shared_ptr<CDistributedView> dstView_;
       map<int, vector<int>> connector_ ; // connector[rank][srcIndex]
 
       MPI_Comm localComm_ ;
@@ -25,7 +25,7 @@ namespace xios
       map<int, CArray<size_t,1>> element_ ; // global index of elements to send
     
     public:
-      CRemoteConnector(CLocalView* srcView, CDistributedView* dstView, MPI_Comm localComm) : srcView_(srcView), dstView_(dstView), localComm_(localComm){} ;
+      CRemoteConnector(shared_ptr<CLocalView> srcView, shared_ptr<CDistributedView> dstView, MPI_Comm localComm) : srcView_(srcView), dstView_(dstView), localComm_(localComm){} ;
       void computeConnector(void) ;
       map<int, CArray<size_t,1>>& getDistributedGlobalIndex() { return element_ ;} 
       

@@ -17,15 +17,15 @@ namespace xios
       CAlgorithmTransformationReduce(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
       virtual ~CAlgorithmTransformationReduce() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-      virtual void computeRecvElement(CLocalView* srcView, CLocalView* dstView) ;
+      virtual void computeRecvElement(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;
       
     protected:
-      virtual void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;
+      virtual void computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;
        
       //! Map between global index of destination element and source element
       EReduction operator_ ;
       TransformationIndexMap transformationMapping_;
-      CReduceTransformConnector* reduceTransformConnector_ ;
+      shared_ptr<CReduceTransformConnector> reduceTransformConnector_ ;
       bool detectMissingValue_=true ;
       bool eliminateRedondantSrc_ = true ; 
   };

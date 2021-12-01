@@ -70,7 +70,7 @@ namespace xios
 
   void CFileReaderSourceFilter::readData(CArray<double,1>& data)
   {
-    CGridLocalConnector*  connector = grid_->getFullToWorkflowConnector() ;
+    shared_ptr<CGridLocalConnector> connector = grid_->getFullToWorkflowConnector() ;
     CArray<double,1> dataIn(connector->getSrcSize()) ;
     file_->getDataInput()->readFieldData(field_, nStep_%nStepMax_, dataIn);
     data.resize(connector->getDstSize()) ;

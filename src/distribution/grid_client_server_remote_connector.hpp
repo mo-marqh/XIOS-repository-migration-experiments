@@ -11,9 +11,9 @@ namespace xios
 
     public:
 
-      CGridClientServerRemoteConnector(vector<CLocalView*>& srcView, vector<CLocalView*>& worflowSrcView, vector<CDistributedView*>& dstView, MPI_Comm localComm, int remoteSize) ;
+      CGridClientServerRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CLocalView>>& worflowSrcView, vector<shared_ptr<CDistributedView>>& dstView, MPI_Comm localComm, int remoteSize) ;
       void computeConnector(void) ;
-      vector<CLocalView*> srcWorkflowView_ ;   
+      vector<shared_ptr<CLocalView>> srcWorkflowView_ ;   
   } ;
 
 }

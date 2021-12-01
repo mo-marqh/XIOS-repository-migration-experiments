@@ -4,7 +4,7 @@
 namespace xios
 {
 
-  CReduceTransformConnector::CReduceTransformConnector(CLocalView* srcView, CLocalView* dstView, EReduction op, 
+  CReduceTransformConnector::CReduceTransformConnector(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView, EReduction op, 
                                                        unordered_map<int, std::vector<int>>& indexMap, bool detectMissingValue)
    : srcView_(srcView), dstView_(dstView), detectMissingValue_(detectMissingValue)
   {

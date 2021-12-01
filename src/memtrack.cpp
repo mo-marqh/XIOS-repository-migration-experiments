@@ -493,7 +493,7 @@ namespace MemTrack
           orderedBlocks.insert({size,pBlockHeader}) ;
         }
         
-        xios::CAddr2line myaddr2line ;
+        //xios::CAddr2line myaddr2line ;
         size_t i = 0 ;
         for(auto& it : orderedBlocks)
         {

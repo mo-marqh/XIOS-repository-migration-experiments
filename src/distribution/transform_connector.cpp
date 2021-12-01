@@ -55,13 +55,13 @@ namespace xios
     }
 
     // distributed element : where to send data
-    CDistributedElement dstElement(srcView_->getGlobalSize(), dstArrayIndex) ;
-    dstElement.addFullView() ;
+    auto dstElement = make_shared<CDistributedElement>(srcView_->getGlobalSize(), dstArrayIndex) ;
+    dstElement->addFullView() ;
     
     // create scatterer connector
     int commSize ;
     MPI_Comm_size(localComm_, &commSize) ;
-    scattererConnector_ = new CScattererConnector(srcView_, dstElement.getView(CElementView::FULL), localComm_, commSize ) ;
+    scattererConnector_ = make_shared<CScattererConnector>(srcView_, dstElement->getView(CElementView::FULL), localComm_, commSize ) ;
     scattererConnector_->computeConnector() ;
 
     // how much sender ?
@@ -97,9 +97,9 @@ namespace xios
     vector<MPI_Status> sendStatus(sendReq.size()) ;
     MPI_Waitall(sendReq.size(),sendReq.data(),sendStatus.data()) ;
 
-    CDistributedElement remoteElement(dstView_->getGlobalSize(), remoteArrayIndex) ;
-    remoteElement.addFullView() ;
-    gathererConnector_=new CGathererConnector(remoteElement.getView(CElementView::FULL),dstView_) ;
+    auto remoteElement = make_shared<CDistributedElement>(dstView_->getGlobalSize(), remoteArrayIndex) ;
+    remoteElement->addFullView() ;
+    gathererConnector_= make_shared<CGathererConnector>(remoteElement->getView(CElementView::FULL),dstView_) ;
     gathererConnector_->computeConnector() ;
 
   }

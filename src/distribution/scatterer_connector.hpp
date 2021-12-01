@@ -22,15 +22,15 @@ namespace xios
       MPI_Comm localComm_ ;
       int remoteCommSize_ ;
 
-      CLocalView* srcView_ ;
-      CDistributedView* dstView_ ;
+      shared_ptr<CLocalView> srcView_ ;
+      shared_ptr<CDistributedView> dstView_ ;
       map<int,int> nbSenders_ ; // number of participant when sending remote buffer
       int srcSize_ ;
       map<int,int> dstSize_ ;
 
     public:
 
-    CScattererConnector(CLocalView* srcView, CDistributedView* dstView, MPI_Comm localComm, int remoteCommSize) 
+    CScattererConnector(shared_ptr<CLocalView> srcView, shared_ptr<CDistributedView> dstView, MPI_Comm localComm, int remoteCommSize) 
                        : srcView_(srcView), dstView_(dstView), localComm_(localComm), remoteCommSize_(remoteCommSize) {}
     void computeConnector(void) ;
     
@@ -146,7 +146,7 @@ namespace xios
     }
 
     template<typename T> 
-    void transfer(int rank, CScattererConnector** connectors, int nConnectors, const T* input, T* output)
+    void transfer(int rank, shared_ptr<CScattererConnector>* connectors, int nConnectors, const T* input, T* output)
     {
       auto& connector = connector_[rank] ; // probably costly, find a better way to avoid the map
       auto& mask = mask_[rank] ; 
@@ -196,10 +196,10 @@ namespace xios
       client->sendEvent(event) ;
     }
 
-    int getSrcSliceSize(CScattererConnector** connectors, int nConnectors) 
+    int getSrcSliceSize(shared_ptr<CScattererConnector>* connectors, int nConnectors) 
     { if (nConnectors==0) return srcSize_ ; else return srcSize_ * (*(connectors-1))->getSrcSliceSize(connectors-1,nConnectors-1) ; }
 
-    int getDstSliceSize(int rank, CScattererConnector** connectors, int nConnectors) 
+    int getDstSliceSize(int rank, shared_ptr<CScattererConnector>* connectors, int nConnectors) 
     { if (nConnectors==0) return dstSize_[rank] ; else return dstSize_[rank] * (*(connectors-1))->getDstSliceSize(rank, connectors-1,nConnectors-1) ; }
 
     const map<int,int>& getNbSenders(void) {return nbSenders_ ;} 

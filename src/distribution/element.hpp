@@ -14,14 +14,14 @@ namespace xios
   class CLocalView;
   class CLocalConnector ;
 
-  class CDistributedElement
+  class CDistributedElement : public std::enable_shared_from_this<CDistributedElement>
   {
 
   protected:
     std::map<int, CArray<size_t,1>> globalIndex_ ;
     std::map<int, int> localSize_ ;
     size_t globalSize_ ;
-    std::vector<CDistributedView*> views_= std::vector<CDistributedView*>(CElementView::numViewType_) ;
+    std::vector<shared_ptr<CDistributedView>> views_= std::vector<shared_ptr<CDistributedView>>(CElementView::numViewType_) ;
     CDistributedElement(void) {} ;
     
   public:
@@ -33,7 +33,7 @@ namespace xios
     size_t getGlobalSize(void) { return globalSize_;}
     std::map<int, CArray<size_t,1>>& getGlobalIndex(void) { return globalIndex_;}
     
-    CDistributedView* getView(CElementView::type type) 
+    shared_ptr<CDistributedView> getView(CElementView::type type) 
     { 
       if (views_[(size_t)type]==nullptr) { ERROR("CDistributedElement::getView(CElementView::type type)",<<"View is not initialized");} 
       else return views_[(size_t)type] ; 
@@ -50,7 +50,7 @@ namespace xios
   class CLocalElement : public CDistributedElement
   {
     // keep local connector inside    
-      std::map<pair<CElementView::type,CElementView::type>, CLocalConnector*> connectors_  ;
+      std::map<pair<CElementView::type,CElementView::type>, shared_ptr<CLocalConnector>> connectors_  ;
  
     public: 
       CLocalElement(int localRank, size_t globalSize, CArray<size_t,1>& globalIndex) ;
@@ -60,13 +60,14 @@ namespace xios
       void addView(CElementView::type type, CArray<int,1>& indexView) ;
       void addView(CElementView::type type, CArray<bool,1>& maskView) ;
       void addFullView(void) ;
-      CLocalView* getView(CElementView::type type) 
-      { 
-        if (views_[(size_t)type]==nullptr) { ERROR("CLocalElement::getView(CElementView::type type)",<<"View is not initialized");} 
-        else return (CLocalView*) views_[(size_t)type] ; 
-      }
       
-      CLocalConnector* getConnector(CElementView::type srcType, CElementView::type dstType) ;
+      shared_ptr<CLocalView> getView(CElementView::type type) ;
+ /*     { 
+        if (views_[(size_t)type]==nullptr) { ERROR("CLocalElement::getView(CElementView::type type)",<<"View is not initialized");} 
+        else return static_pointer_cast<CLocalView>(views_[(size_t)type]) ;
+      }
+*/      
+      shared_ptr<CLocalConnector> getConnector(CElementView::type srcType, CElementView::type dstType) ;
 
     private :
       int localRank_;

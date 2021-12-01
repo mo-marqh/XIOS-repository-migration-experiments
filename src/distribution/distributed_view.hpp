@@ -13,8 +13,8 @@ namespace xios
   {
     public:
 
-      CDistributedView(CDistributedElement* parent, CElementView::type type, const std::map<int,CArray<int,1>>& indexView) ;
-      CDistributedView(CDistributedElement* parent, CElementView::type type, const std::map<int,CArray<bool,1>>& maskView) ;
+      CDistributedView(shared_ptr<CDistributedElement> parent, CElementView::type type, const std::map<int,CArray<int,1>>& indexView) ;
+      CDistributedView(shared_ptr<CDistributedElement> parent, CElementView::type type, const std::map<int,CArray<bool,1>>& maskView) ;
       
       std::map<int,CArray<int,1>>&  getIndex(void) { return index_ ;}
       std::map<int,CArray<size_t,1>>&  getGlobalIndex(void) { return globalIndex_ ;}
@@ -47,7 +47,7 @@ namespace xios
       }
     }   
 
-    void getGlobalIndex(int rank, vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, CDistributedView** view, int pos)
+    void getGlobalIndex(int rank, vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, shared_ptr<CDistributedView>* view, int pos)
     {
       // using map can be expensive, find an otherway later
       auto& globalInd=globalIndex_[rank] ;

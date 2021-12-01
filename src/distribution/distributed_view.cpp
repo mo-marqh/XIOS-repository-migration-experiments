@@ -5,7 +5,7 @@
 namespace xios
 {
 
-  CDistributedView::CDistributedView(CDistributedElement* parent, CElementView::type, const std::map<int,CArray<int,1>>& indexView) 
+  CDistributedView::CDistributedView(shared_ptr<CDistributedElement> parent, CElementView::type, const std::map<int,CArray<int,1>>& indexView) 
                                     : globalIndex_(parent->globalIndex_), globalSize_(parent->globalSize_), localSize_(parent->localSize_) 
   {
     for(auto& index : indexView) 
@@ -15,7 +15,7 @@ namespace xios
     }
   }
 
-  CDistributedView::CDistributedView(CDistributedElement* parent, CElementView::type, const std::map<int,CArray<bool,1>>& maskView) 
+  CDistributedView::CDistributedView(shared_ptr<CDistributedElement> parent, CElementView::type, const std::map<int,CArray<bool,1>>& maskView) 
                                     : globalIndex_(parent->globalIndex_), globalSize_(parent->globalSize_), localSize_(parent->localSize_) 
   {
     for(auto& it : maskView) 

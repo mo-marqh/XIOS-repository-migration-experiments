@@ -14,7 +14,7 @@ namespace xios
    * \param localComm Local MPI communicator
    * \param remoteSize Size of the remote communicator
    */ 
-  CGridRemoteConnector::CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, MPI_Comm localComm, int remoteSize) 
+  CGridRemoteConnector::CGridRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CDistributedView>>& dstView, MPI_Comm localComm, int remoteSize) 
                        : srcView_(srcView), dstView_(dstView), localComm_(localComm), remoteSize_(remoteSize) 
   {}
 
@@ -25,10 +25,10 @@ namespace xios
    * \param localComm Local MPI communicator
    * \param remoteSize Size of the remote communicator
    */ 
-  CGridRemoteConnector::CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CLocalView*>& dstView, MPI_Comm localComm, int remoteSize) 
+  CGridRemoteConnector::CGridRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector< shared_ptr<CLocalView> >& dstView, MPI_Comm localComm, int remoteSize) 
                        : srcView_(srcView), localComm_(localComm), remoteSize_(remoteSize) 
   {
-    for(auto& it : dstView) dstView_.push_back((CDistributedView*) it) ; 
+    for(auto& it : dstView) dstView_.push_back((shared_ptr<CDistributedView>) it) ; 
   }
 
 
@@ -134,8 +134,8 @@ namespace xios
   */
   void CGridRemoteConnector::computeConnectorMethods(void)
   {
-    vector<CLocalView*> srcView ;
-    vector<CDistributedView*> dstView ;
+    vector<shared_ptr<CLocalView>> srcView ;
+    vector<shared_ptr<CDistributedView>> dstView ;
     vector<int> indElements ;
     elements_.resize(srcView_.size()) ;
     
@@ -434,7 +434,7 @@ namespace xios
   *  \param dstView List of the remote views composing the grid, without non distributed views
   *  \param indElements Index of the view making the correspondance between all views and views distributed (that are in input)
   */
-  void CGridRemoteConnector::computeGenericMethod(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, vector<int>& indElements)
+  void CGridRemoteConnector::computeGenericMethod(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CDistributedView>>& dstView, vector<int>& indElements)
   {
     // generic method, every element can be distributed
     int nDst = dstView.size() ;

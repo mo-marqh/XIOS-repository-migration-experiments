@@ -3,7 +3,7 @@
 namespace xios
 {
 
-  CTransferTransformConnector::CTransferTransformConnector(CLocalView* srcView, CLocalView* dstView, unordered_map<int, int>& indexMap) 
+  CTransferTransformConnector::CTransferTransformConnector(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView, unordered_map<int, int>& indexMap) 
     : srcView_(srcView), dstView_(dstView)
   {
     computeConnector(indexMap) ;

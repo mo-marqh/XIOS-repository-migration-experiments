@@ -16,15 +16,15 @@ namespace xios
   {
 
     private:  
-      std::vector<CLocalConnector*> elementsConnector_ ;
+      std::vector<shared_ptr<CLocalConnector>> elementsConnector_ ;
       int srcSize_ ;
       int dstSize_ ;
       vector<bool> mask_ ;
 
     public:
       
-      CGridLocalConnector(const std::vector<CLocalConnector*>& elementsConnector)  ;
-      CGridLocalConnector(CGridLocalElements* parent, CElementView::type srcType, CElementView::type dstType, bool withMask=false) ;
+      CGridLocalConnector(const std::vector<shared_ptr<CLocalConnector>>& elementsConnector)  ;
+      CGridLocalConnector(shared_ptr<CGridLocalElements> parent, CElementView::type srcType, CElementView::type dstType, bool withMask=false) ;
       int getSrcSize(void) { return srcSize_ ;}
       int getDstSize(void) { return dstSize_ ;}
 
@@ -36,7 +36,7 @@ namespace xios
       void transfer(const CArray<T,Nin>& input, CArray<T,Nout>& output)
       {
         int n = elementsConnector_.size()-1 ;
-        CLocalConnector** connector = elementsConnector_.data() + n ;
+        shared_ptr<CLocalConnector>* connector = elementsConnector_.data() + n ;
         elementsConnector_[n]->transfer(connector, n, input.dataFirst(), output.dataFirst()) ;
       }
       
@@ -44,7 +44,7 @@ namespace xios
       void transfer(const CArray<T,Nin>& input, CArray<T,Nout>& output, T missingValue)
       {
         int n = elementsConnector_.size()-1 ;
-        CLocalConnector** connector = elementsConnector_.data() + n ;
+        shared_ptr<CLocalConnector>* connector = elementsConnector_.data() + n ;
         elementsConnector_[n]->transfer(connector, n, input.dataFirst(), output.dataFirst(), missingValue) ;
         if (!computeMask_done_) computeMask() ;
         if (!mask_.empty()) 

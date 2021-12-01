@@ -15,8 +15,8 @@ namespace xios
   class CLocalView : public CDistributedView
   {
     public:
-    CLocalView(CLocalElement* parent, CElementView::type type, const CArray<int,1>& indexView) ;
-    CLocalView(CLocalElement* parent, CElementView::type type, const CArray<bool,1>& maskView) ;
+    CLocalView(shared_ptr<CLocalElement> parent, CElementView::type type, const CArray<int,1>& indexView) ;
+    CLocalView(shared_ptr<CLocalElement> parent, CElementView::type type, const CArray<bool,1>& maskView) ;
 
     const CArray<int,1>& getIndex(void) { return index_ ;}
     const CArray<size_t,1>& getGlobalIndex(void) { return globalIndex_ ;}
@@ -37,7 +37,7 @@ namespace xios
       else globalIndexView.resizeAndPreserve(pos) ;
     }    
 
-    void getGlobalIndex(vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, CLocalView** localView, int pos)
+    void getGlobalIndex(vector<size_t>& globalIndex, size_t sliceIndex, size_t* sliceSize, shared_ptr<CLocalView>* localView, int pos)
     {
       if (pos==0)
       {
@@ -55,7 +55,7 @@ namespace xios
 
     int getLocalSize(void) {return localSize_ ;}
     int getSize(void) {return size_;} 
-    void sendRemoteElement(CRemoteConnector& connector, CContextClient* client, CEventClient& event, const CMessage& messageHeader) ;
+    void sendRemoteElement(shared_ptr<CRemoteConnector> connector, CContextClient* client, CEventClient& event, const CMessage& messageHeader) ;
    
     CArray<size_t,1>& globalIndex_ ;
     CArray<int,1>& index_ ;

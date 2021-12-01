@@ -27,12 +27,12 @@ namespace xios
   
   void CDistributedElement::addView(CElementView::type type, std::map<int, CArray<int,1>>& indexView)
   {
-    views_[type] = new CDistributedView(this, type, indexView) ;
+    views_[type] = make_shared<CDistributedView>(shared_from_this(), type, indexView) ;
   } 
 
   void CDistributedElement::addView(CElementView::type type, std::map<int, CArray<bool,1>>& maskView)
   {
-    views_[type] = new CDistributedView(this, type, maskView) ;
+    views_[type] = make_shared<CDistributedView>(shared_from_this(), type, maskView) ;
   } 
 
   void CDistributedElement::addFullView(void)
@@ -119,12 +119,12 @@ namespace xios
 
   void CLocalElement::addView(CElementView::type type, CArray<int,1>& indexView)
   {
-    views_[type] = new CLocalView(this, type, indexView) ;
+    views_[type] = make_shared<CLocalView>(static_pointer_cast<CLocalElement>(shared_from_this()), type, indexView) ;
   } 
 
   void CLocalElement::addView(CElementView::type type, CArray<bool,1>& maskView)
   {
-    views_[type] = new CLocalView(this, type, maskView) ;
+    views_[type] = make_shared<CLocalView>(static_pointer_cast<CLocalElement>(shared_from_this()), type, maskView) ;
   } 
 
   void CLocalElement::addFullView(void)
@@ -136,13 +136,19 @@ namespace xios
     addView(CElementView::FULL, indexView) ;
   } 
 
-  CLocalConnector* CLocalElement::getConnector(CElementView::type srcType, CElementView::type dstType) 
+  shared_ptr<CLocalView> CLocalElement::getView(CElementView::type type) 
+  { 
+    if (views_[(size_t)type]==nullptr) { ERROR("CLocalElement::getView(CElementView::type type)",<<"View is not initialized");} 
+    else return static_pointer_cast<CLocalView>(views_[(size_t)type]) ;
+  }
+
+  shared_ptr<CLocalConnector> CLocalElement::getConnector(CElementView::type srcType, CElementView::type dstType) 
   { 
     auto newPair = pair<CElementView::type,CElementView::type>(srcType,dstType);
     auto it = connectors_.find(newPair) ;
     if (it==connectors_.end()) 
     {
-      auto insertPair=pair<pair<CElementView::type,CElementView::type>, CLocalConnector*>(newPair,new CLocalConnector(getView(srcType),getView(dstType))) ;
+      auto insertPair=pair<pair<CElementView::type,CElementView::type>, shared_ptr<CLocalConnector>>(newPair,make_shared<CLocalConnector>(getView(srcType),getView(dstType))) ;
       it=connectors_.insert(insertPair).first ;
       it->second->computeConnector() ;
     }

@@ -3,7 +3,7 @@
 
 namespace xios
 {
-  CGridLocalView::CGridLocalView(CGridLocalElements* parent, CElementView::type type) : localMask_(parent->getLocalMask())
+  CGridLocalView::CGridLocalView(shared_ptr<CGridLocalElements> parent, CElementView::type type) : localMask_(parent->getLocalMask())
   {
     size_ = 1 ;
     for(auto element : parent->getElements()) 

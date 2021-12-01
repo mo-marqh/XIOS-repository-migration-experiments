@@ -5,7 +5,7 @@
 
 namespace xios
 {
-  CLocalView::CLocalView(CLocalElement* parent, CElementView::type type, const CArray<int,1>& indexView) 
+  CLocalView::CLocalView(shared_ptr<CLocalElement> parent, CElementView::type type, const CArray<int,1>& indexView) 
                         : CDistributedView( parent, type, {{  parent->localRank_,  indexView }} ),
                           localRank_(parent->localRank_),
                           globalIndex_(parent->globalIndex_), size_(CDistributedView::size_[parent->localRank_]),
@@ -14,7 +14,7 @@ namespace xios
 
   }
 
-  CLocalView::CLocalView(CLocalElement* parent, CElementView::type type, const CArray<bool,1>& maskView) 
+  CLocalView::CLocalView(shared_ptr<CLocalElement> parent, CElementView::type type, const CArray<bool,1>& maskView) 
                         : CDistributedView( parent, type, {{  parent->localRank_,  maskView }} ),
                           localRank_(parent->localRank_),
                           globalIndex_(parent->globalIndex_), size_(CDistributedView::size_[parent->localRank_]),
@@ -23,7 +23,7 @@ namespace xios
 
   }
 
-  void CLocalView::sendRemoteElement(CRemoteConnector& connector, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
+  void CLocalView::sendRemoteElement(shared_ptr<CRemoteConnector> connector, CContextClient* client, CEventClient& event, const CMessage& messageHeader)
   {
     int n = index_.numElements() ;
     int nglo=globalIndex_.numElements() ;
@@ -35,7 +35,7 @@ namespace xios
     }
     CMessage message(messageHeader) ;
     message<<globalSize_ ;
-    connector.transferToServer(ind, client, event, message) ;
+    connector->transferToServer(ind, client, event, message) ;
   }
 
 

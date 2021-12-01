@@ -17,19 +17,19 @@ namespace xios
 
   void CGridAlgorithmGeneric::computeAlgorithm(void)
   {
-    CGridLocalElements* gridSrcElements = gridSrc_->getGridLocalElements() ;
-    CGridLocalElements* gridDstElements = gridDst_->getGridLocalElements() ;
+    shared_ptr<CGridLocalElements> gridSrcElements = gridSrc_->getGridLocalElements() ;
+    shared_ptr<CGridLocalElements> gridDstElements = gridDst_->getGridLocalElements() ;
     
-    CGridLocalView* srcView = gridSrcElements->getView(CElementView::WORKFLOW) ;
-    CGridLocalView* dstView = gridDstElements->getView(CElementView::WORKFLOW) ;
+    shared_ptr<CGridLocalView> srcView = gridSrcElements->getView(CElementView::WORKFLOW) ;
+    shared_ptr<CGridLocalView> dstView = gridDstElements->getView(CElementView::WORKFLOW) ;
     MPI_Comm comm = CContext::getCurrent()->getIntraComm() ;
     int commSize = CContext::getCurrent()->getIntraCommSize() ;
     int commRank = CContext::getCurrent()->getIntraCommRank() ;
     
     auto& elements =  gridSrcElements->getElements() ;
     int nElements = elements.size() ;
-    vector<CLocalElement*> remoteElements(nElements) ;
-    vector<CLocalView*> remoteViews(nElements) ;
+    vector<shared_ptr<CLocalElement>> remoteElements(nElements) ;
+    vector<shared_ptr<CLocalView>> remoteViews(nElements) ;
     for(int i=0;i<nElements;i++)
     {
       if (i==pos_) remoteElements[i] = algorithm_->getRecvElement() ;
@@ -37,7 +37,7 @@ namespace xios
       { 
         CArray<size_t,1> globalIndexView ;
         srcView->getView(i)->getGlobalIndexView(globalIndexView) ;
-        remoteElements[i] = new CLocalElement(commRank, srcView->getView(i)->getGlobalSize(),globalIndexView) ;
+        remoteElements[i] = make_shared<CLocalElement>(commRank, srcView->getView(i)->getGlobalSize(),globalIndexView) ;
         remoteElements[i]->addFullView() ;
         if (i>pos_) dimBefore_ *= srcView->getView(i)->getSize() ;
         else dimAfter_ *= srcView->getView(i)->getSize() ;
@@ -46,7 +46,7 @@ namespace xios
       remoteViews[i] = remoteElements[i] -> getView(CElementView::FULL);
     }
 
-    gridTransformConnector_ = new CGridTransformConnector(srcView->getViews(), remoteViews, comm ) ;
+    gridTransformConnector_ = make_shared<CGridTransformConnector>(srcView->getViews(), remoteViews, comm ) ;
  
   }
 

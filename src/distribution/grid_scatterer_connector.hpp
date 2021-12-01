@@ -17,14 +17,14 @@ namespace xios
   class CGridScattererConnector
   {
     private:
-     vector<CScattererConnector*> elementsConnector_ ;
+     vector<shared_ptr<CScattererConnector>> elementsConnector_ ;
      map<int,int> nbSenders_ ;
      vector<int> ranks_ ;
      map<int,int> dstSize_ ;
      
 
     public:
-      CGridScattererConnector(vector<CScattererConnector*> elementsConnector) : elementsConnector_(elementsConnector) 
+      CGridScattererConnector(vector<shared_ptr<CScattererConnector>> elementsConnector) : elementsConnector_(elementsConnector) 
       {
         nbSenders_ = elementsConnector[0]->getNbSenders() ;
         for(auto& rank : nbSenders_) 
@@ -47,7 +47,7 @@ namespace xios
       void transfer(const CArray<T,N>& input, map<int, CArray<T,1>>& output)
       {
         int n = elementsConnector_.size()-1 ;
-        CScattererConnector** connector = elementsConnector_.data() + n ;
+        shared_ptr<CScattererConnector>* connector = elementsConnector_.data() + n ;
         for(int rank : ranks_) 
         {
           auto& out = output[rank] ;

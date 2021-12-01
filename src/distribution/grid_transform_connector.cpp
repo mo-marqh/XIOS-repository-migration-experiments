@@ -15,18 +15,18 @@ namespace xios
     MPI_Comm_rank(localComm_, &commRank) ;
     int nElements = srcViews_.size() ;
 
-    CGridRemoteConnector remoteConnector(srcViews_, remoteViews_, localComm_, commSize) ;  
-    remoteConnector.computeConnector() ;
+    auto remoteConnector = make_shared<CGridRemoteConnector>(srcViews_, remoteViews_, localComm_, commSize) ;  
+    remoteConnector->computeConnector() ;
     
-    vector<CDistributedElement*> sendElements(nElements) ;
+    vector<shared_ptr<CDistributedElement>> sendElements(nElements) ;
     scattererConnector_.resize(nElements) ;
     gathererConnector_.resize(nElements) ;
 
     for(int i=0;i<nElements;i++)
     {
-      sendElements[i] = new CDistributedElement(srcViews_[i]->getGlobalSize(), remoteConnector.getDistributedGlobalIndex(i)) ;
+      sendElements[i] = make_shared<CDistributedElement>(srcViews_[i]->getGlobalSize(), remoteConnector->getDistributedGlobalIndex(i)) ;
       sendElements[i]->addFullView() ;
-      scattererConnector_[i] = new CScattererConnector(srcViews_[i], sendElements[i]->getView(CElementView::FULL), localComm_, commSize) ;
+      scattererConnector_[i] = make_shared<CScattererConnector>(srcViews_[i], sendElements[i]->getView(CElementView::FULL), localComm_, commSize) ;
       scattererConnector_[i]->computeConnector() ;
       std::map<int, CArray<size_t,1>>& sendIndex = sendElements[i]->getGlobalIndex() ;
 
@@ -74,14 +74,14 @@ namespace xios
       
       // create gatherer connector
 
-      CDistributedElement recvElement(remoteViews_[i]->getGlobalSize(), recvIndex) ;
-      recvElement.addFullView() ;
-      gathererConnector_[i] = new CGathererConnector(recvElement.getView(CElementView::FULL), remoteViews_[i]) ;
+      auto recvElement = make_shared<CDistributedElement>(remoteViews_[i]->getGlobalSize(), recvIndex) ;
+      recvElement->addFullView() ;
+      gathererConnector_[i] = make_shared<CGathererConnector>(recvElement->getView(CElementView::FULL), remoteViews_[i]) ;
       gathererConnector_[i]->computeConnector() ;
     }
 
-    gridScattererConnector_ = new CGridScattererConnector(scattererConnector_) ;
-    gridGathererConnector_  = new CGridGathererConnector(gathererConnector_) ;
+    gridScattererConnector_ = make_shared<CGridScattererConnector>(scattererConnector_) ;
+    gridGathererConnector_  = make_shared<CGridGathererConnector>(gathererConnector_) ;
   }
 
 }

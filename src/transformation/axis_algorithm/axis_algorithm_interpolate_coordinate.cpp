@@ -105,9 +105,9 @@ namespace xios
     if (!hasCoordinateDest_)
     {
       CArray<double,1> coord ;
-      CLocalConnector destConnector(axisDest_->getLocalView(CElementView::FULL), axisDest_->getLocalView(CElementView::WORKFLOW)) ;
-      destConnector.computeConnector() ;
-      destConnector.transfer(axisDest_->value, coord) ;
+      auto destConnector = make_shared<CLocalConnector>(axisDest_->getLocalView(CElementView::FULL), axisDest_->getLocalView(CElementView::WORKFLOW)) ;
+      destConnector->computeConnector() ;
+      destConnector->transfer(axisDest_->value, coord) ;
       destCoordinate_ = vector<double>(coord.dataFirst(), coord.dataFirst()+nDest_) ;
     }
 
@@ -128,9 +128,9 @@ namespace xios
     {
       CArray<double,1> coord ;
       CArray<double,1> coordGlo ;
-      CLocalConnector srcConnector(axisSrc_->getLocalView(CElementView::FULL), axisSrc_->getLocalView(CElementView::WORKFLOW)) ;
-      srcConnector.computeConnector() ;
-      srcConnector.transfer(axisSrc_->value, coord) ; // full view value -> workflow value
+      auto srcConnector = make_shared<CLocalConnector>(axisSrc_->getLocalView(CElementView::FULL), axisSrc_->getLocalView(CElementView::WORKFLOW)) ;
+      srcConnector->computeConnector() ;
+      srcConnector->transfer(axisSrc_->value, coord) ; // full view value -> workflow value
       transferTransformConnector_ -> transfer(coord, coordGlo) ; // workflow view -> full global view
       srcCoordinate_ = vector<double>(coordGlo.dataFirst(), coordGlo.dataFirst()+ngloSrc_) ;
     }

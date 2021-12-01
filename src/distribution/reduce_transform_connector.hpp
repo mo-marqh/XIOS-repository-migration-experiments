@@ -16,8 +16,8 @@ namespace xios
   {
     
     private:
-      CLocalView* srcView_;
-      CLocalView* dstView_;
+      shared_ptr<CLocalView> srcView_;
+      shared_ptr<CLocalView> dstView_;
 
       vector<int> connector_;  //  sizeof sum(nWeights_)  
       vector<int> nSrc_ ;  //  sizeof dstSize_ 
@@ -33,7 +33,7 @@ namespace xios
       
     public:
 
-    CReduceTransformConnector(CLocalView* srcView, CLocalView* dstView, EReduction op, unordered_map<int, std::vector<int>>& indexMap, 
+    CReduceTransformConnector(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView, EReduction op, unordered_map<int, std::vector<int>>& indexMap, 
                               bool detectMissingValue=true) ;
  
     void transfer(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)

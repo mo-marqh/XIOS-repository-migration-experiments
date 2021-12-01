@@ -1739,8 +1739,8 @@ namespace xios {
       this->addModelView() ; // probably do not automatically add View, but only if requested
       // testing ?
      /*
-      CLocalView* local = localElement_->getView(CElementView::WORKFLOW) ;
-      CLocalView* model = localElement_->getView(CElementView::MODEL) ;
+      shared_ptr<CLocalView> local = localElement_->getView(CElementView::WORKFLOW) ;
+      shared_ptr<CLocalView> model = localElement_->getView(CElementView::MODEL) ;
 
       CLocalConnector test1(model, local) ;
       test1.computeConnector() ;
@@ -1772,7 +1772,7 @@ namespace xios {
       CArray<size_t, 1> ij_index(ni*nj) ;
       for(int ij=0; ij<nij ; ij++) ij_index(ij) = i_index(ij)+j_index(ij)*ni_glo ;
       int rank = CContext::getCurrent()->getIntraCommRank() ;
-      localElement_ = new CLocalElement(rank, ni_glo*nj_glo, ij_index) ;
+      localElement_ = make_shared<CLocalElement>(rank, ni_glo*nj_glo, ij_index) ;
    }
 
    void CDomain::addFullView(void)
@@ -1829,9 +1829,9 @@ namespace xios {
         
    void CDomain::computeModelToWorkflowConnector(void)
    { 
-     CLocalView* srcView=getLocalView(CElementView::MODEL) ;
-     CLocalView* dstView=getLocalView(CElementView::WORKFLOW) ;
-     modelToWorkflowConnector_ = new CLocalConnector(srcView, dstView); 
+     shared_ptr<CLocalView> srcView=getLocalView(CElementView::MODEL) ;
+     shared_ptr<CLocalView> dstView=getLocalView(CElementView::WORKFLOW) ;
+     modelToWorkflowConnector_ = make_shared<CLocalConnector>(srcView, dstView); 
      modelToWorkflowConnector_->computeConnector() ;
    }
 
@@ -1988,7 +1988,7 @@ namespace xios {
       for(size_t i=0;i<nglo;i++) indGlo(i) = i ;
       for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer] = indGlo ; 
     }
-    remoteElement_[client] = new CDistributedElement(ni_glo*nj_glo, globalIndex) ;
+    remoteElement_[client] = make_shared<CDistributedElement>(ni_glo*nj_glo, globalIndex) ;
     remoteElement_[client]->addFullView() ;
   }
   CATCH
@@ -1996,7 +1996,7 @@ namespace xios {
  
 
   void CDomain::distributeToServer(CContextClient* client, map<int, CArray<size_t,1>>& globalIndex,
-                                   CScattererConnector* &scattererConnector, const string& domainId)
+                                   shared_ptr<CScattererConnector> &scattererConnector, const string& domainId)
   TRY
   {
     string serverDomainId = domainId.empty() ? this->getId() : domainId ;
@@ -2004,10 +2004,10 @@ namespace xios {
 
     this->sendAllAttributesToServer(client, serverDomainId)  ;
 
-    CDistributedElement scatteredElement(ni_glo*nj_glo, globalIndex) ;
-    scatteredElement.addFullView() ;
-    scattererConnector = new CScattererConnector(localElement_->getView(CElementView::FULL), scatteredElement.getView(CElementView::FULL), 
-                                           context->getIntraComm(), client->getRemoteSize()) ;
+    auto scatteredElement = make_shared<CDistributedElement>(ni_glo*nj_glo, globalIndex) ;
+    scatteredElement->addFullView() ;
+    scattererConnector = make_shared<CScattererConnector>(localElement_->getView(CElementView::FULL), scatteredElement->getView(CElementView::FULL), 
+                                                          context->getIntraComm(), client->getRemoteSize()) ;
     scattererConnector->computeConnector() ;
 
     // phase 0
@@ -2024,36 +2024,36 @@ namespace xios {
     message1<<serverDomainId<<1<<localElement_->getView(CElementView::FULL)->getGlobalSize() ; 
     scattererConnector->transfer(localElement_->getView(CElementView::FULL)->getGlobalIndex(),client,event1,message1) ;
     
-    sendDistributedAttributes(client, *scattererConnector, domainId) ;
+    sendDistributedAttributes(client, scattererConnector, domainId) ;
 
   
     // phase 2 send the mask : data index + mask2D
     CArray<bool,1> maskIn(localElement_->getView(CElementView::WORKFLOW)->getSize());
     CArray<bool,1> maskOut ;
-    CLocalConnector workflowToFull(localElement_->getView(CElementView::WORKFLOW), localElement_->getView(CElementView::FULL)) ;
-    workflowToFull.computeConnector() ;
+    auto workflowToFull = make_shared<CLocalConnector>(localElement_->getView(CElementView::WORKFLOW), localElement_->getView(CElementView::FULL)) ;
+    workflowToFull->computeConnector() ;
     maskIn=true ;
-    workflowToFull.transfer(maskIn,maskOut,false) ;
+    workflowToFull->transfer(maskIn,maskOut,false) ;
 
 
     // phase 3 : prepare grid scatterer connector to send data from client to server
     map<int,CArray<size_t,1>> workflowGlobalIndex ;
     map<int,CArray<bool,1>> maskOut2 ; 
     scattererConnector->transfer(maskOut, maskOut2, false) ;
-    scatteredElement.addView(CElementView::WORKFLOW, maskOut2) ;
-    scatteredElement.getView(CElementView::WORKFLOW)->getGlobalIndexView(workflowGlobalIndex) ;
+    scatteredElement->addView(CElementView::WORKFLOW, maskOut2) ;
+    scatteredElement->getView(CElementView::WORKFLOW)->getGlobalIndexView(workflowGlobalIndex) ;
     // create new workflow view for scattered element
-    CDistributedElement clientToServerElement(scatteredElement.getGlobalSize(), workflowGlobalIndex) ;
-    clientToServerElement.addFullView() ;
+    auto clientToServerElement = make_shared<CDistributedElement>(scatteredElement->getGlobalSize(), workflowGlobalIndex) ;
+    clientToServerElement->addFullView() ;
     CEventClient event2(getType(), EVENT_ID_DOMAIN_DISTRIBUTION);
     CMessage message2 ;
     message2<<serverDomainId<<2 ; 
-    clientToServerElement.sendToServer(client, event2, message2) ; 
-    clientToServerConnector_[client] = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), clientToServerElement.getView(CElementView::FULL),
-                                                               context->getIntraComm(), client->getRemoteSize()) ;
+    clientToServerElement->sendToServer(client, event2, message2) ; 
+    clientToServerConnector_[client] = make_shared<CScattererConnector>(localElement_->getView(CElementView::WORKFLOW), clientToServerElement->getView(CElementView::FULL),
+                                                                        context->getIntraComm(), client->getRemoteSize()) ;
     clientToServerConnector_[client]->computeConnector() ;
 
-    clientFromServerConnector_[client] = new CGathererConnector(clientToServerElement.getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW));
+    clientFromServerConnector_[client] = make_shared<CGathererConnector>(clientToServerElement->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW));
     clientFromServerConnector_[client]->computeConnector() ;
 
   }
@@ -2075,7 +2075,7 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     if (phasis==0) // receive the remote element to construct the full view
     {
-      localElement_ = new  CLocalElement(context->getIntraCommRank(),event) ;
+      localElement_ = make_shared<CLocalElement>(context->getIntraCommRank(),event) ;
       localElement_->addFullView() ;
       // construct the local dimension and indexes
       auto& globalIndex=localElement_->getGlobalIndex() ;
@@ -2101,17 +2101,17 @@ namespace xios {
     else if (phasis==1) // receive the sent view from client to construct the full distributed full view on server
     {
       CContext* context = CContext::getCurrent();
-      CDistributedElement* elementFrom = new  CDistributedElement(event) ;
+      shared_ptr<CDistributedElement> elementFrom = make_shared<CDistributedElement>(event) ;
       elementFrom->addFullView() ;
-      gathererConnector_ = new CGathererConnector(elementFrom->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
+      gathererConnector_ = make_shared<CGathererConnector>(elementFrom->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
       gathererConnector_->computeConnector() ; 
     }
     else if (phasis==2)
     {
 //      delete gathererConnector_ ;
-      elementFrom_ = new  CDistributedElement(event) ;
+      elementFrom_ = make_shared<CDistributedElement>(event) ;
       elementFrom_->addFullView() ;
-//      gathererConnector_ =  new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
+//      gathererConnector_ =  make_shared<CGathererConnector>(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
 //      gathererConnector_ -> computeConnector() ;
     }
   }
@@ -2126,17 +2126,17 @@ namespace xios {
     localElement_->addView(CElementView::WORKFLOW, serverMask) ;
     mask_1d.reference(serverMask.copy()) ;
  
-    serverFromClientConnector_ = new CGathererConnector(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
+    serverFromClientConnector_ = make_shared<CGathererConnector>(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
     serverFromClientConnector_->computeConnector() ;
       
-    serverToClientConnector_ = new CScattererConnector(localElement_->getView(CElementView::WORKFLOW), elementFrom_->getView(CElementView::FULL),
-                                                       context->getIntraComm(), client->getRemoteSize()) ;
+    serverToClientConnector_ = make_shared<CScattererConnector>(localElement_->getView(CElementView::WORKFLOW), elementFrom_->getView(CElementView::FULL),
+                                                                context->getIntraComm(), client->getRemoteSize()) ;
     serverToClientConnector_->computeConnector() ;
   }
   CATCH_DUMP_ATTR
 
 
-  void CDomain::sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector,  const string& domainId)
+  void CDomain::sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scattererConnector,  const string& domainId)
   {
     string serverDomainId = domainId.empty() ? this->getId() : domainId ;
     CContext* context = CContext::getCurrent();
@@ -2147,14 +2147,14 @@ namespace xios {
         CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
         CMessage message ;
         message<<serverDomainId<<string("lon") ; 
-        scattererConnector.transfer(lonvalue, client, event,message) ;
+        scattererConnector->transfer(lonvalue, client, event,message) ;
       }
       
       { // send latitude
         CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
         CMessage message ;
         message<<serverDomainId<<string("lat") ; 
-        scattererConnector.transfer(latvalue, client, event, message) ;
+        scattererConnector->transfer(latvalue, client, event, message) ;
       }
     }
 
@@ -2164,14 +2164,14 @@ namespace xios {
         CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
         CMessage message ;
         message<<serverDomainId<<string("boundslon") ; 
-        scattererConnector.transfer(nvertex, bounds_lonvalue, client, event, message ) ;
+        scattererConnector->transfer(nvertex, bounds_lonvalue, client, event, message ) ;
       }
 
       { // send latitude boudaries
         CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
         CMessage message ;
         message<<serverDomainId<<string("boundslat") ; 
-        scattererConnector.transfer(nvertex, bounds_latvalue, client, event, message ) ;
+        scattererConnector->transfer(nvertex, bounds_latvalue, client, event, message ) ;
       }
     }
 
@@ -2180,7 +2180,7 @@ namespace xios {
       CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
       CMessage message ;
       message<<serverDomainId<<string("area") ; 
-      scattererConnector.transfer(areavalue, client, event,message) ;
+      scattererConnector->transfer(areavalue, client, event,message) ;
     }
   }
 

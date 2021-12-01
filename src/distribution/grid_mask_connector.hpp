@@ -14,14 +14,14 @@ namespace xios
 
     public:
 
-      CGridMaskConnector(vector<CLocalView*>& views) : views_(views) {}
+      CGridMaskConnector(vector<shared_ptr<CLocalView>>& views) : views_(views) {}
       void computeConnector(CArray<bool,1>& mask) ;
      
       CArray<bool,1>& getElementMask(int pos) { return elementsMask_[pos] ;} 
       vector<CArray<bool,1>>& getElementsMask(void) ;
     
     private:
-      vector<CLocalView*> views_ ;
+      vector<shared_ptr<CLocalView>> views_ ;
       vector<CArray<bool,1>> elementsMask_ ; 
 
       vector<int> size_ ;

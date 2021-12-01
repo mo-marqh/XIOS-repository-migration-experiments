@@ -17,21 +17,21 @@ namespace xios
   {
      
     public:
-      CGridTransformConnector(vector<CLocalView*> srcViews, vector<CLocalView*> remoteViews, MPI_Comm localComm) 
+      CGridTransformConnector(vector<shared_ptr<CLocalView>> srcViews, vector<shared_ptr<CLocalView>> remoteViews, MPI_Comm localComm) 
                           : srcViews_(srcViews), remoteViews_(remoteViews), localComm_(localComm) 
                           { computeConnector();}
     
       void computeConnector(void) ; 
     protected:
      MPI_Comm localComm_ ;
-     vector<CLocalView*> srcViews_ ;
-     vector<CLocalView*> remoteViews_ ;
+     vector<shared_ptr<CLocalView>> srcViews_ ;
+     vector<shared_ptr<CLocalView>> remoteViews_ ;
      map<int,int> recvRankSize_ ;
 
-     vector<CScattererConnector*> scattererConnector_ ;
-     vector<CGathererConnector*>  gathererConnector_ ;
-     CGridScattererConnector* gridScattererConnector_ ;
-     CGridGathererConnector* gridGathererConnector_ ;
+     vector<shared_ptr<CScattererConnector>> scattererConnector_ ;
+     vector<shared_ptr<CGathererConnector>>  gathererConnector_ ;
+     shared_ptr<CGridScattererConnector> gridScattererConnector_ ;
+     shared_ptr<CGridGathererConnector> gridGathererConnector_ ;
   
     public:
       template<typename T> 

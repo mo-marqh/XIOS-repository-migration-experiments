@@ -221,60 +221,60 @@ namespace xios
        //////////////////////////////////////////////////////////////////////////////////////
          
         private:
-         CLocalElement* localElement_ = nullptr ;
+         shared_ptr<CLocalElement> localElement_ ;
          void initializeLocalElement(void) ;
         public: 
-         CLocalElement* getLocalElement(void) { if (localElement_==nullptr) initializeLocalElement() ; return localElement_ ; }
-         CLocalView* getLocalView(CElementView::type type) { return getLocalElement()->getView(type) ;}
+         shared_ptr<CLocalElement> getLocalElement(void) { if (localElement_==nullptr) initializeLocalElement() ; return localElement_ ; }
+         shared_ptr<CLocalView> getLocalView(CElementView::type type) { return getLocalElement()->getView(type) ;}
         private:
          void addFullView(void) ;
          void addWorkflowView(void) ;
          void addModelView(void) ;
 
         private:
-         CLocalConnector* modelToWorkflowConnector_ ;
+         shared_ptr<CLocalConnector> modelToWorkflowConnector_ ;
          void computeModelToWorkflowConnector(void)  ;
         public:
-         CLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_ ;}
+         shared_ptr<CLocalConnector> getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_ ;}
        
        public:
          void computeRemoteElement(CContextClient* client, EDistributionType) ;
-         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, CScattererConnector* &scattererConnector,
+         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, shared_ptr<CScattererConnector>& scattererConnector,
                                  const string& axisId="") ;
 
          static void recvAxisDistribution(CEventServer& event) ;
          void receivedAxisDistribution(CEventServer& event, int phasis) ;
          void setServerMask(CArray<bool,1>& serverMask, CContextClient* client ) ;
-         void sendDistributedAttributes(CContextClient* client, CScattererConnector& scattererConnector, const string& axisId) ;
+         void sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scattererConnector, const string& axisId) ;
          static void recvDistributedAttributes(CEventServer& event) ;
          void recvDistributedAttributes(CEventServer& event, const string& type) ;
        private:
-         map<CContextClient*, CDistributedElement*> remoteElement_ ;
+         map<CContextClient*, shared_ptr<CDistributedElement>> remoteElement_ ;
        public: 
-         CDistributedElement* getRemoteElement(CContextClient* client) {return remoteElement_[client] ;}
+         shared_ptr<CDistributedElement> getRemoteElement(CContextClient* client) {return remoteElement_[client] ;}
        private:
-         map<CContextClient*, CScattererConnector*> clientToServerConnector_ ;
+         map<CContextClient*, shared_ptr<CScattererConnector>> clientToServerConnector_ ;
        public: 
-         CScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;}
+         shared_ptr<CScattererConnector> getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;}
        private:
-         CGathererConnector*  gathererConnector_ ;
+         shared_ptr<CGathererConnector>  gathererConnector_ ;
        public:
-         CGathererConnector* getGathererConnector(void) { return gathererConnector_ ;}
+         shared_ptr<CGathererConnector> getGathererConnector(void) { return gathererConnector_ ;}
        private:
-         CGathererConnector* serverFromClientConnector_ ;
-         CDistributedElement* elementFrom_ ;
+         shared_ptr<CGathererConnector> serverFromClientConnector_ ;
+         shared_ptr<CDistributedElement> elementFrom_ ;
        public:
-        CGathererConnector* getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
+        shared_ptr<CGathererConnector> getServerFromClientConnector(void) { return serverFromClientConnector_ ;}
 
        private:
-         CScattererConnector*  serverToClientConnector_ = nullptr ;
+         shared_ptr<CScattererConnector> serverToClientConnector_ = nullptr ;
        public: 
-         CScattererConnector* getServerToClientConnector(void) { return serverToClientConnector_ ;} 
+         shared_ptr<CScattererConnector> getServerToClientConnector(void) { return serverToClientConnector_ ;} 
 
        private:
-          map<CContextClient*,CGathererConnector*>  clientFromServerConnector_  ;
+          map<CContextClient*,shared_ptr<CGathererConnector>>  clientFromServerConnector_  ;
        public: 
-         CGathererConnector* getClientFromServerConnector(CContextClient* client) { return clientFromServerConnector_[client] ;} 
+        shared_ptr<CGathererConnector> getClientFromServerConnector(CContextClient* client) { return clientFromServerConnector_[client] ;} 
 
          DECLARE_REF_FUNC(Axis,axis)
    }; // class CAxis

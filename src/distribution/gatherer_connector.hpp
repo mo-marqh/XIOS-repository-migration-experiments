@@ -16,15 +16,15 @@ namespace xios
   class CGathererConnector
   {
     private:
-      CDistributedView* srcView_;
-      CLocalView* dstView_;
+      shared_ptr<CDistributedView> srcView_;
+      shared_ptr<CLocalView> dstView_;
       map<int, vector<int>> connector_ ;
       map<int, vector<bool>> mask_ ;  // mask is on src view
       int dstSize_ ; 
       map<int,int> srcSize_ ;
 
     public:
-      CGathererConnector(CDistributedView* srcView, CLocalView* dstView) : srcView_(srcView), dstView_(dstView) {} ;
+      CGathererConnector(shared_ptr<CDistributedView> srcView, shared_ptr<CLocalView> dstView) : srcView_(srcView), dstView_(dstView) {} ;
       void computeConnector(void) ;
       
       template<typename T>
@@ -74,7 +74,7 @@ namespace xios
       }
 
       template<typename T>
-      void transfer(int rank,  CGathererConnector** connectors, int nConnectors, const T* input, T* output)
+      void transfer(int rank,  shared_ptr<CGathererConnector>* connectors, int nConnectors, const T* input, T* output)
       {
         auto& connector = connector_[rank] ; // probably costly, find a better way to avoid the map
         auto& mask = mask_[rank] ; 
@@ -110,7 +110,7 @@ namespace xios
       }
 
       // hook for transfering mask in grid connector, maybe find an other way to doing that...
-      void transfer_or(int rank,  CGathererConnector** connectors, int nConnectors, const bool* input, bool* output)
+      void transfer_or(int rank,  shared_ptr<CGathererConnector>* connectors, int nConnectors, const bool* input, bool* output)
       {
         auto& connector = connector_[rank] ; // probably costly, find a better way to avoid the map
         auto& mask = mask_[rank] ; 
@@ -209,10 +209,10 @@ namespace xios
         transfer(1, 1, dataIn, dataOut, missingValue) ;
       }
 
-    int getSrcSliceSize(int rank, CGathererConnector** connectors, int nConnectors) 
+    int getSrcSliceSize(int rank, shared_ptr<CGathererConnector>* connectors, int nConnectors) 
     { if (nConnectors==0) return srcSize_[rank] ; else return srcSize_[rank] * (*(connectors-1))->getSrcSliceSize(rank, connectors-1,nConnectors-1) ; }
 
-    int getDstSliceSize(CGathererConnector** connectors, int nConnectors) 
+    int getDstSliceSize(shared_ptr<CGathererConnector>* connectors, int nConnectors) 
     { if (nConnectors==0) return dstSize_ ; else return dstSize_ * (*(connectors-1))->getDstSliceSize(connectors-1,nConnectors-1) ; }
   
     int getDstSize(void) {return dstSize_ ;}

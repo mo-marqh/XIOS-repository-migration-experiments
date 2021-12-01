@@ -17,15 +17,15 @@ namespace xios
       CAlgorithmTransformationWeight(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
       virtual ~CAlgorithmTransformationWeight() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-      virtual void computeRecvElement(CLocalView* srcView, CLocalView* dstView);
+      virtual void computeRecvElement(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView);
     protected:
-      virtual void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;
+      virtual void computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;
 
       //! Map between global index of destination element and source element
       TransformationIndexMap transformationMapping_;
       //! Weight corresponding of source to destination
       TransformationWeightMap transformationWeight_;
-      CWeightTransformConnector* weightTransformConnector_ ;
+      shared_ptr<CWeightTransformConnector> weightTransformConnector_ ;
       
   };
 

@@ -5,10 +5,10 @@ namespace xios
 {
 
 
-  void CAlgorithmTransformationWeight::computeAlgorithm(CLocalView* srcView, CLocalView* dstView)
+  void CAlgorithmTransformationWeight::computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView)
   {
     this->computeRecvElement(srcView, dstView) ;
-    weightTransformConnector_ = new  CWeightTransformConnector( recvElement_->getView(CElementView::FULL), dstView, transformationMapping_, transformationWeight_) ; 
+    weightTransformConnector_ = make_shared<CWeightTransformConnector>(recvElement_->getView(CElementView::FULL), dstView, transformationMapping_, transformationWeight_) ; 
   }
  
 
@@ -17,7 +17,7 @@ namespace xios
     weightTransformConnector_ -> transfer(dimBefore, dimAfter, dataIn, dataOut) ;
   }
 
-  void CAlgorithmTransformationWeight::computeRecvElement(CLocalView* srcView, CLocalView* dstView)
+  void CAlgorithmTransformationWeight::computeRecvElement(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView)
   {
     auto& srcMap = transformationMapping_ ;
     set<size_t> srcIndex ;
@@ -27,7 +27,7 @@ namespace xios
     CArray<size_t,1> srcArrayIndex(srcIndex.size()) ;
     int i=0 ;
     for(size_t index : srcIndex) { srcArrayIndex(i) = index ; i++ ;}
-    recvElement_ = new CLocalElement(CContext::getCurrent()->getIntraCommRank(), srcView->getGlobalSize(), srcArrayIndex) ;
+    recvElement_ = make_shared<CLocalElement>(CContext::getCurrent()->getIntraCommRank(), srcView->getGlobalSize(), srcArrayIndex) ;
     recvElement_->addFullView() ;
   }
 }

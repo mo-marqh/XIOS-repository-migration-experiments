@@ -1399,7 +1399,7 @@ namespace xios
               varId = domId + "_points";
               compress = latName + appendDomId + " " + lonName + appendDomId;
      
-              CLocalView* workflowView = domain->getLocalView(CElementView::WORKFLOW) ;
+              shared_ptr<CLocalView> workflowView = domain->getLocalView(CElementView::WORKFLOW) ;
               workflowView->getGlobalIndexView(indexes) ;
               nbIndexes = workflowView->getSize() ;
               isDistributed = domain->isDistributed();
@@ -1434,7 +1434,7 @@ namespace xios
               varId = axisId + "_points";
               compress = axisId;
 
-              CLocalView* workflowView = axis->getLocalView(CElementView::WORKFLOW) ;
+              shared_ptr<CLocalView> workflowView = axis->getLocalView(CElementView::WORKFLOW) ;
               workflowView->getGlobalIndexView(indexes) ;
               nbIndexes = workflowView->getSize() ;
               isDistributed = axis->isDistributed();

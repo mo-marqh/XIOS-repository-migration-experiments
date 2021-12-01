@@ -17,12 +17,12 @@ namespace xios
 
     public:
 
-      CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, MPI_Comm localComm, int remoteSize) ;
-      CGridRemoteConnector(vector<CLocalView*>& srcView, vector<CLocalView*>& dstView, MPI_Comm localComm, int remoteSize) ;
+      CGridRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CDistributedView>>& dstView, MPI_Comm localComm, int remoteSize) ;
+      CGridRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CLocalView>>& dstView, MPI_Comm localComm, int remoteSize) ;
       void computeViewDistribution(void) ;
       void computeConnector(void) ;
       void computeConnectorMethods(void) ;
-      void computeGenericMethod(vector<CLocalView*>& srcView, vector<CDistributedView*>& dstView, vector<int>& indElements) ;
+      void computeGenericMethod(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CDistributedView>>& dstView, vector<int>& indElements) ;
       void computeSrcDstNonDistributed(int i, map<int,bool>& ranks) ;
       void computeDstNonDistributed(int i, map<int,bool>& ranks) ;
       void computeSrcNonDistributed(int i) ;
@@ -38,13 +38,13 @@ namespace xios
      * Source views composing the source grid. The vector store an internal copy of pointer elements composing the grid. 
      * It is feed at construction time
      */
-      vector<CLocalView*> srcView_ ;
+      vector<shared_ptr<CLocalView>> srcView_ ;
 
     /** 
      * Destination views composing the source grid. The vector store an internal copy of pointer elements composing the grid
      * It is feed at construction time
      */
-      vector<CDistributedView*> dstView_ ;
+      vector<shared_ptr<CDistributedView>> dstView_ ;
 
     /**  
      * The list of global indices to send to each rank of the remote view (servers). The vector store the information for each element, and the map 

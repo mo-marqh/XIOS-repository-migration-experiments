@@ -327,73 +327,73 @@ namespace xios {
        void receiveMask(CEventServer& event) ;
 
       private:  
-        CGridLocalElements* gridLocalElements_= nullptr ;
+       shared_ptr<CGridLocalElements> gridLocalElements_= nullptr ;
         void computeGridLocalElements(void) ;
       public:
-        CGridLocalElements* getGridLocalElements(void) { if (gridLocalElements_==nullptr) computeGridLocalElements() ; return gridLocalElements_ ;}
+        shared_ptr<CGridLocalElements> getGridLocalElements(void) { if (gridLocalElements_==nullptr) computeGridLocalElements() ; return gridLocalElements_ ;}
 
       private:
-        CGridLocalConnector* modelToWorkflowConnector_ = nullptr ;
+        shared_ptr<CGridLocalConnector> modelToWorkflowConnector_ = nullptr ;
       public:
         void computeModelToWorkflowConnector(void) ;
-        CGridLocalConnector* getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_;}
+        shared_ptr<CGridLocalConnector> getModelToWorkflowConnector(void) { if (modelToWorkflowConnector_==nullptr) computeModelToWorkflowConnector() ; return modelToWorkflowConnector_;}
 
       private:
-        CGridLocalConnector* workflowToModelConnector_ = nullptr;
+        shared_ptr<CGridLocalConnector> workflowToModelConnector_ = nullptr;
       public:
         void computeWorkflowToModelConnector(void) ;
-        CGridLocalConnector* getWorkflowToModelConnector(void) { if (workflowToModelConnector_==nullptr) computeWorkflowToModelConnector() ; return workflowToModelConnector_;}
+        shared_ptr<CGridLocalConnector> getWorkflowToModelConnector(void) { if (workflowToModelConnector_==nullptr) computeWorkflowToModelConnector() ; return workflowToModelConnector_;}
 
       public: //? 
         void distributeGridToServer(CContextClient* client, const string& fieldId="");
       
             
       private:
-        CGridLocalConnector* workflowToFullConnector_ = nullptr;
+        shared_ptr<CGridLocalConnector> workflowToFullConnector_ = nullptr;
       public:
         void computeWorkflowToFullConnector(void) ;
-        CGridLocalConnector* getWorkflowToFullConnector(void) { if (workflowToFullConnector_==nullptr) computeWorkflowToFullConnector() ; return workflowToFullConnector_;}
+        shared_ptr<CGridLocalConnector> getWorkflowToFullConnector(void) { if (workflowToFullConnector_==nullptr) computeWorkflowToFullConnector() ; return workflowToFullConnector_;}
 
       private:
-        CGridLocalConnector* fullToWorkflowConnector_ = nullptr;
+        shared_ptr<CGridLocalConnector> fullToWorkflowConnector_ = nullptr;
       public:
         void computeFullToWorkflowConnector(void) ;
-        CGridLocalConnector* getFullToWorkflowConnector(void) { if (fullToWorkflowConnector_==nullptr) computeFullToWorkflowConnector() ; return fullToWorkflowConnector_;}
+        shared_ptr<CGridLocalConnector> getFullToWorkflowConnector(void) { if (fullToWorkflowConnector_==nullptr) computeFullToWorkflowConnector() ; return fullToWorkflowConnector_;}
 
     
 
       private:
-         CGridGathererConnector* clientFromClientConnector_ = nullptr ;
+         shared_ptr<CGridGathererConnector> clientFromClientConnector_ = nullptr ;
       public:
-         CGridGathererConnector* getClientFromClientConnector(void) { if (clientFromClientConnector_==nullptr) computeClientFromClientConnector() ; return clientFromClientConnector_;}
+         shared_ptr<CGridGathererConnector> getClientFromClientConnector(void) { if (clientFromClientConnector_==nullptr) computeClientFromClientConnector() ; return clientFromClientConnector_;}
          void computeClientFromClientConnector(void) ;
 
       private:
-         map<CContextClient*, CGridScattererConnector*> clientToClientConnector_ ;
+         map<CContextClient*, shared_ptr<CGridScattererConnector>> clientToClientConnector_ ;
       public:
-         CGridScattererConnector* getClientToClientConnector(CContextClient* client) { return clientToClientConnector_[client] ;} // make some test to see if connector exits for the given client
+         shared_ptr<CGridScattererConnector> getClientToClientConnector(CContextClient* client) { return clientToClientConnector_[client] ;} // make some test to see if connector exits for the given client
   
 
       private:
-         map<CContextClient*,CGridGathererConnector*> clientFromServerConnector_  ;
+         map<CContextClient*,shared_ptr<CGridGathererConnector>> clientFromServerConnector_  ;
       public:
-         CGridGathererConnector* getClientFromServerConnector(CContextClient* client) { return clientFromServerConnector_[client];}
+         shared_ptr<CGridGathererConnector> getClientFromServerConnector(CContextClient* client) { return clientFromServerConnector_[client];}
          void computeClientFromServerConnector(void) ;
 
       private:
-         CGridScattererConnector* serverToClientConnector_=nullptr ;
+         shared_ptr<CGridScattererConnector> serverToClientConnector_=nullptr ;
       public:
-         CGridScattererConnector* getServerToClientConnector(void) { if (serverToClientConnector_==nullptr) computeServerToClientConnector() ; return serverToClientConnector_;}
+         shared_ptr<CGridScattererConnector> getServerToClientConnector(void) { if (serverToClientConnector_==nullptr) computeServerToClientConnector() ; return serverToClientConnector_;}
          void computeServerToClientConnector(void) ;
       private:
-         map<CContextClient*, CGridScattererConnector*> clientToServerConnector_ ;
+         map<CContextClient*, shared_ptr<CGridScattererConnector>> clientToServerConnector_ ;
       public:
-         CGridScattererConnector* getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;} // make some test to see if connector exits for the given client
+         shared_ptr<CGridScattererConnector> getClientToServerConnector(CContextClient* client) { return clientToServerConnector_[client] ;} // make some test to see if connector exits for the given client
          
       private:
-         CGridGathererConnector* serverFromClientConnector_ = nullptr ;
+         shared_ptr<CGridGathererConnector> serverFromClientConnector_ = nullptr ;
       public:
-         CGridGathererConnector* getServerFromClientConnector(void) { if (serverFromClientConnector_==nullptr) computeServerFromClientConnector() ; return serverFromClientConnector_;}
+         shared_ptr<CGridGathererConnector> getServerFromClientConnector(void) { if (serverFromClientConnector_==nullptr) computeServerFromClientConnector() ; return serverFromClientConnector_;}
          void computeServerFromClientConnector(void) ;
 
    }; // class CGrid

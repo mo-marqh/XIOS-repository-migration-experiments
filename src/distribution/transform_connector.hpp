@@ -17,18 +17,18 @@ namespace xios
   {
      
     public:
-      CTransformConnector(CLocalView* srcView, CLocalView* dstView, MPI_Comm localComm) 
+      CTransformConnector(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView, MPI_Comm localComm) 
                           : srcView_(srcView), dstView_(dstView), localComm_(localComm) {}
     
       void computeConnector(void) ; 
     private:
 
       MPI_Comm localComm_ ;
-      CLocalView* srcView_ ;
-      CLocalView* dstView_ ;
+      shared_ptr<CLocalView> srcView_ ;
+      shared_ptr<CLocalView> dstView_ ;
       map<int,int> recvRankSize_ ;
-      CScattererConnector* scattererConnector_=nullptr ;
-      CGathererConnector*  gathererConnector_=nullptr ;
+      shared_ptr<CScattererConnector> scattererConnector_ ;
+      shared_ptr<CGathererConnector>  gathererConnector_ ;
    
     public:
       template<typename T> 

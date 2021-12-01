@@ -18,11 +18,11 @@ namespace xios
   {
     private:
     
-      vector<CGathererConnector*> elementsConnector_ ;
+      vector<shared_ptr<CGathererConnector>> elementsConnector_ ;
       int dstSize_ ;
 
     public:
-      CGridGathererConnector(vector<CGathererConnector*> elementsConnector) : elementsConnector_(elementsConnector)
+      CGridGathererConnector(vector<shared_ptr<CGathererConnector>> elementsConnector) : elementsConnector_(elementsConnector)
       {
         dstSize_ = 1 ;
         for(auto& connector : elementsConnector_) dstSize_=dstSize_*connector->getDstSize() ;
@@ -32,7 +32,7 @@ namespace xios
       void transfer(const map<int, CArray<T,1>>& input, CArray<T,1>& output)
       {
         int n = elementsConnector_.size()-1 ;
-        CGathererConnector** connector = elementsConnector_.data() + n ;
+       shared_ptr<CGathererConnector>* connector = elementsConnector_.data() + n ;
         output.resize(dstSize_) ;
         for(auto& rankDataIn : input) 
         {
@@ -44,7 +44,7 @@ namespace xios
       void transfer(const map<int, CArray<T,1>>& input, CArray<T,1>& output, T missingValue)
       {
         int n = elementsConnector_.size()-1 ;
-        CGathererConnector** connector = elementsConnector_.data() + n ;
+        shared_ptr<CGathererConnector>* connector = elementsConnector_.data() + n ;
         output.resize(dstSize_) ;
         output = missingValue ;
         for(auto& rankDataIn : input) 
@@ -92,7 +92,7 @@ namespace xios
       void transfer_or(const map<int, CArray<bool,1>>& input, CArray<bool,1>& output)
       {
         int n = elementsConnector_.size()-1 ;
-        CGathererConnector** connector = elementsConnector_.data() + n ;
+        shared_ptr<CGathererConnector>* connector = elementsConnector_.data() + n ;
         output.resize(dstSize_) ;
         output = false ;
         for(auto& rankDataIn : input) 

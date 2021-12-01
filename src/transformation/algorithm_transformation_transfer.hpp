@@ -15,15 +15,15 @@ namespace xios
       CAlgorithmTransformationTransfer(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
       virtual ~CAlgorithmTransformationTransfer() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-      virtual void computeRecvElement(CLocalView* srcView, CLocalView* dstView) ;
+      virtual void computeRecvElement(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;
       virtual StdString getAlgoName() {return "\\nCAlgorithm transformation Transfer";}
    
     protected:
-      virtual void computeAlgorithm(CLocalView* srcView, CLocalView* dstView) ;
+      virtual void computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;
 
       //! Map between global index of destination element and source element
       unordered_map<int,int> transformationMapping_;
-      CTransferTransformConnector* transferTransformConnector_ ;
+      shared_ptr<CTransferTransformConnector> transferTransformConnector_ ;
   };
 
 }
