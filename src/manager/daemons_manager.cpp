@@ -31,11 +31,7 @@ namespace xios
 
   CDaemonsManager::~CDaemonsManager()
   {
-    CXios::finalizeContextsManager() ;
-    CXios::finalizeCouplerManager() ;
-    CXios::finalizeServicesManager() ;
-    CXios::finalizeRessourcesManager() ;
-    CXios::finalizeRegistryManager() ;
+    finalize() ;
   }
 
   bool CDaemonsManager::eventLoop(void)
@@ -56,5 +52,22 @@ namespace xios
     if (isServer_) return CServer::getServersRessource()->eventLoop(true) ;
     else  return CXios::getPoolRessource()->eventLoop(true) ;
   } 
+
+  bool CDaemonsManager::finalize(void)
+  {
+    if (!isFinalized_)
+    {
+      if (isServer_) CServer::getServersRessource()->finalizeSignal() ;
+      else CXios::getPoolRessource()->finalizeSignal() ;
+      while(!eventLoop()) ;
+      MPI_Barrier( CXios::getXiosComm()) ;
+      CXios::finalizeContextsManager() ;
+      CXios::finalizeCouplerManager() ;
+      CXios::finalizeServicesManager() ;
+      CXios::finalizeRessourcesManager() ;
+      CXios::finalizeRegistryManager() ;
+      isFinalized_=true ;
+    }
+  }
 
 }
