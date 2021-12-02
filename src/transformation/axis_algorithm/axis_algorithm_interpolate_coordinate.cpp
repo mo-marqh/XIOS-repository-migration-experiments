@@ -119,10 +119,10 @@ namespace xios
     }
     
 
-    CLocalElement axisSourceGlo(CContext::getCurrent()->getIntraCommRank(), ngloSrc_, globalIndex) ;
-    axisSourceGlo.addFullView() ; 
+    shared_ptr<CLocalElement> axisSourceGlo = make_shared<CLocalElement>(CContext::getCurrent()->getIntraCommRank(), ngloSrc_, globalIndex) ;
+    axisSourceGlo->addFullView() ; 
 
-    this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisSourceGlo.getView(CElementView::FULL)) ;
+    this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisSourceGlo->getView(CElementView::FULL)) ;
 
     if (!hasCoordinateSrc_)
     {
