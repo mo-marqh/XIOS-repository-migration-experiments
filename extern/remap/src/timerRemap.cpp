@@ -59,4 +59,11 @@ CTimer& CTimer::get(const string name)
 	if (it==allTimer.end()) it=allTimer.insert(pair<string,CTimer*>(name,new CTimer(name))).first;
 	return *(it->second);
 }
+
+void CTimer::release(void)
+{
+  for(auto & it : allTimer) delete it.second ;
+  allTimer.clear() ;	
+}
+
 }

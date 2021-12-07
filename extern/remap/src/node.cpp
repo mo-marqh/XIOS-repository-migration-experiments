@@ -78,7 +78,7 @@ int compareDist(NodePtr n1, NodePtr n2)
 
 /* On level `level` find the node in our subtree that is closest to `src` and return through argument `closest`.
    The return value is just for recursive calling */
-void Node::findClosest(int level, NodePtr src, double& minDist2, NodePtr &closest)
+void Node::findClosest(int level, NodePtr src, double& minDist2, NodePtr& closest)
 {
 	double r2;
 
@@ -88,7 +88,7 @@ void Node::findClosest(int level, NodePtr src, double& minDist2, NodePtr &closes
 		if (r2 < minDist2 || closest == NULL)
 		{
 			minDist2 = r2;
-			closest = this;
+			closest = shared_from_this();
 		}
 	}
 	else if (r2 < radius*radius)
@@ -220,15 +220,15 @@ void Node::output(ostream& flux, int level, int color)
 	}
 }*/
 
-bool find_in_tree1(Node* node)
+bool find_in_tree1(NodePtr node)
 {
 	if (node == node->tree->root) return true;
-	if (node->parent == NULL)
+	if (node->parent.lock() == NULL)
 	{
 		cerr << "Cannot find!" << endl;
 		return false;
 	}
-	return find_in_tree1(node->parent);
+	return find_in_tree1(node->parent.lock());
 }
 
 bool find_in_tree2(NodePtr node, NodePtr ref)
@@ -263,9 +263,9 @@ NodePtr insert(NodePtr thIs, NodePtr node)
 	if (la == lb - 1)
 	{
     node->child.push_back(thIs);
-		thIs->parent = node;
+		thIs->parent = node ;
 		if (node->child.size() > MAX_NODE_SZ &&  node->tree->canSplit() ) // with us as additional child `node` is now too large :(
-			return (node->reinserted || node->parent == NULL) ? split(node) : reinsert(node);
+			return (node->reinserted || node->parent.lock() == NULL) ? split(node) : reinsert(node);
 	}
 	else // la < lb - 1
 	{
@@ -298,7 +298,7 @@ NodePtr reinsert(NodePtr thIs)
 
   
 	/* transfere out children from us to a new node q which will be returned */
-	NodePtr q = new Node;
+	NodePtr q = make_shared<Node>();
 	q->tree = thIs->tree;
 	q->child.resize(out);
 	for (int i = thIs->child.size() - out; i < thIs->child.size(); i++)
@@ -461,11 +461,12 @@ bool transferNode(NodePtr thIs, NodePtr parent, NodePtr node)
 NodePtr split(NodePtr thIs)
 {
 	thIs->tree->increaseLevelSize(thIs->level);
-	NodePtr p = new Node;
-	NodePtr q = new Node;
+	NodePtr p = make_shared<Node>();
+	NodePtr q = make_shared<Node>();
 	p->level = q->level = thIs->level;
 	p->reinserted = q->reinserted = false;
-	p->parent = q->parent = thIs->parent;
+	p->parent = thIs->parent;
+	q->parent = thIs->parent;
 	p->tree = q->tree = thIs->tree;
 
 
@@ -475,7 +476,7 @@ NodePtr split(NodePtr thIs)
 	thIs->tree->ref = thIs->closest(thIs->child, FARTHEST); // farthest from centre
 	std::sort(thIs->child.begin(), thIs->child.end(), compareDist);
 	for (int i = 0; i < MAX_NODE_SZ+1; i++)
-		assert(thIs->child[i]->parent == thIs);
+		assert(thIs->child[i]->parent.lock() == thIs);
 	for (int i = 0; i < MAX_NODE_SZ/2 + 1; i++)
 		q->child[i] = thIs->child[i];
 	for (int i = MAX_NODE_SZ/2+1; i<MAX_NODE_SZ+1; i++)
@@ -495,7 +496,7 @@ NodePtr split(NodePtr thIs)
 		thIs->child[i]->parent = thIs;
 	thIs->reinserted = p->reinserted;
 	thIs->update();
-	delete p;
+	p.reset();
 
 	if (thIs == thIs->tree->root) // root split
 	{
@@ -592,7 +593,7 @@ void Node::checkParent(void)
   int childSize = child.size() ;
   
   for (int i = 0; i < childSize; i++)
-		assert(child[i]->parent == this);
+		assert(child[i]->parent.lock() == shared_from_this());
 
   if (level>0) for (int i = 0; i < childSize; i++) child[i]->checkParent() ;
 }
@@ -601,7 +602,7 @@ void Node::printChildren()
 {
 	cout << "level " << this->level << ", centre ";
 	cout << "level " << this->level << ", centre " << this->centre << "\t r = " << this->radius << endl;
-	cout << this << " p: " << this->parent << endl;
+	cout << this << " p: " << this->parent.lock() << endl;
 	int n = this->child.size();
 	for (int i=0; i<n; i++)
 	{
@@ -655,10 +656,10 @@ void Node::routeNode(NodePtr node, int level)
 
 	double distMin2 = 0; // squared distance
 	closest = NULL;
-	if (tree->root == this)
+	if (tree->root == shared_from_this())
 		findClosest(level, node, distMin2, closest);
 
-	if (closest != NULL && tree->root == this)
+	if (closest != NULL && tree->root == shared_from_this())
 		/* When is this point reached?
 		   if the preceeding findClosest was called and succesed to set closest
 		   findClosest sets closest if we are `level` or src is in our circle (=> belongs to child of ours)
@@ -689,12 +690,12 @@ void Node::routeIntersection(vector<int>& routes, NodePtr node)
 	}
 }
 
-void Node::routingIntersecting(vector<Node> *routingList, NodePtr node)
+void Node::routingIntersecting(vector<NodePtr> *routingList, NodePtr node)
 {
 	if (level==0)
 	{
 		int rank = route;
-		routingList[rank].push_back(*node);
+		routingList[rank].push_back(node);
 	}
 	else
 	{
@@ -711,13 +712,13 @@ void Node::free_descendants()
 	{
 		child[i]->free_descendants();
 		if (child[i]->level) // do not attempt to delete leafs, they are delete through leafs vector
-			delete child[i];
+			child[i].reset();
 	}
 }
 
 void Node::getNodeLevel(int assignLevel, std::list<NodePtr>& NodeList)
 {
-  if (level==assignLevel) NodeList.push_back(this) ;
+  if (level==assignLevel) NodeList.push_back(shared_from_this()) ;
   else if (level>0) for (int i = 0; i < child.size(); i++) child[i]->getNodeLevel(assignLevel,NodeList) ;
   return ;
 }
@@ -736,7 +737,7 @@ bool Node::removeDeletedNodes(int assignLevel)
         isUpdate=true ;
         for (int j = 0; j < child[i]->child.size(); j++) tree->push_back(child[i]->child[j]) ;
         tree->decreaseLevelSize(assignLevel) ;
-        delete child[i] ;
+        child[i].reset() ;
       }
       else newChild.push_back(child[i]) ;
     }

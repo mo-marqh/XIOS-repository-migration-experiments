@@ -1,5 +1,5 @@
-#ifndef __TIMER_HPP__
-#define __TIMER_HPP__
+#ifndef __TIMER_REMAP_HPP__
+#define __TIMER_REMAP_HPP__
 
 #include "mpi.hpp"
 #include <string>
@@ -28,9 +28,8 @@ namespace sphereRemap {
     static map<string,CTimer*> allTimer;
     static double getTime(void);
     static CTimer& get(string name);
-  };
-
-
+    static void release(void) ;
+  } ;
 
 }
 #endif

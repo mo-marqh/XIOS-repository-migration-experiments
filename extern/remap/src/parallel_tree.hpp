@@ -14,10 +14,10 @@ public:
 	CParallelTree(MPI_Comm comm);
 	~CParallelTree();
 
-	void build(vector<Node>& node, vector<Node>& node2);
+	void build(vector<NodePtr>& node, vector<NodePtr>& node2);
 
-	void routeNodes(vector<int>& route, vector<Node>& nodes, int level = 0);
-	void routeIntersections(vector<vector<int> >& route, vector<Node>& nodes, int level = 0);
+	void routeNodes(vector<int>& route, vector<NodePtr>& nodes, int level = 0);
+	void routeIntersections(vector<vector<int> >& route, vector<NodePtr>& nodes, int level = 0);
 
 	int nbLocalElements;
 	Elt* localElements;
@@ -26,8 +26,8 @@ public:
 
 private:
 	void updateCirclesForRouting(Coord rootCentre, double rootRadius, int level = 0);
-	void buildSampleTreeCascade(vector<Node>& sampleNodes, int level = 0);
-	void buildLocalTree(const vector<Node>& node, const vector<int>& route);
+	void buildSampleTreeCascade(vector<NodePtr>& sampleNodes, int level = 0);
+	void buildLocalTree(const vector<NodePtr>& node, const vector<int>& route);
 	void buildRouteTree();
 
 	//CSampleTree sampleTree;
@@ -37,7 +37,7 @@ private:
 
 };
 
-void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascadeLevel& comm);
+void buildSampleTree(CSampleTree& tree, const vector<NodePtr>& node, const CCascadeLevel& comm);
 
 }
 #endif

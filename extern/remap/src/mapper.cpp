@@ -10,7 +10,15 @@
 #include "mpi_routing.hpp"
 #include "gridRemap.hpp"
 
+#include <fstream>
+#include "client.hpp"
+
 #include "mapper.hpp"
+
+namespace MemTrack
+{ 
+  void TrackDumpBlocks(std::ofstream& memReport, size_t memtrack_blocks, size_t memtrack_size);
+}
 
 namespace sphereRemap {
 
@@ -56,7 +64,7 @@ void Mapper::setSourceMesh(const double* boundsLon, const double* boundsLat, con
     elt.src_id.ind = i;
     elt.src_id.globalId = sourceGlobalId[i];
     sourceElements.push_back(elt);
-    sourceMesh.push_back(Node(elt.x, cptRadius(elt), &sourceElements.back()));
+    sourceMesh.push_back(make_shared<Node>(elt.x, cptRadius(elt), &sourceElements.back()));
     cptEltGeom(sourceElements[i], Coord(pole[0], pole[1], pole[2]));
     if (area!=NULL) sourceElements[i].given_area=area[i] ;
     else sourceElements[i].given_area=sourceElements[i].area ;
@@ -91,7 +99,7 @@ void Mapper::setTargetMesh(const double* boundsLon, const double* boundsLat, con
     int offs = i*nVertex;
     Elt elt(boundsLon + offs, boundsLat + offs, nVertex);
     targetElements.push_back(elt);
-    targetMesh.push_back(Node(elt.x, cptRadius(elt), &sourceElements.back()));
+    targetMesh.push_back(make_shared<Node>(elt.x, cptRadius(elt), &sourceElements.back()));
     cptEltGeom(targetElements[i], Coord(pole[0], pole[1], pole[2]));
     if (area!=NULL) targetElements[i].given_area=area[i] ;
     else targetElements[i].given_area=targetElements[i].area ;
@@ -120,6 +128,7 @@ vector<double> Mapper::computeWeights(int interpOrder, bool renormalize, bool qu
   MPI_Comm_rank(communicator, &mpiRank);
 
   this->buildSSTree(sourceMesh, targetMesh);
+  
 
   if (mpiRank == 0 && verbose) cout << "Computing intersections ..." << endl;
   double tic = cputime();
@@ -459,7 +468,11 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
   delete[] sendElement;
   delete[] recvElement;
   delete[] sendValue;
+  delete[] sendArea ;
+  delete[] sendGivenArea ;
   delete[] recvValue;
+  delete[] recvArea ;
+  delete[] recvGivenArea ;
   delete[] sendGrad;
   delete[] recvGrad;
   delete[] sendNeighIds;
@@ -489,7 +502,7 @@ void Mapper::buildMeshTopology()
   MPI_Comm_size(communicator, &mpiSize);
   MPI_Comm_rank(communicator, &mpiRank);
 
-  vector<Node> *routingList = new vector<Node>[mpiSize];
+  vector<NodePtr> *routingList = new vector<NodePtr>[mpiSize];
   vector<vector<int> > routes(sstree.localTree.leafs.size());
 
   sstree.routeIntersections(routes, sstree.localTree.leafs);
@@ -516,7 +529,7 @@ void Mapper::buildMeshTopology()
     sendMessageSize[rank] = 0;
     for (size_t j = 0; j < routingList[rank].size(); j++)
     {
-      Elt *elt = (Elt *) (routingList[rank][j].data);
+      Elt *elt = (Elt *) (routingList[rank][j]->data);
       sendMessageSize[rank] += packedPolygonSize(*elt);
     }
   }
@@ -539,7 +552,7 @@ void Mapper::buildMeshTopology()
     pos[rank] = 0;
     for (size_t j = 0; j < routingList[rank].size(); j++)
     {
-      Elt *elt = (Elt *) (routingList[rank][j].data);
+      Elt *elt = (Elt *) (routingList[rank][j]->data);
       packPolygon(*elt, sendBuffer[rank], pos[rank]);
     }
   }
@@ -589,8 +602,8 @@ void Mapper::buildMeshTopology()
       {
         Elt elt;
         unpackPolygon(elt, recvBuffer[rank], pos[rank]);
-        Node node(elt.x, cptRadius(elt), &elt);
-        findNeighbour(sstree.localTree.root, &node, neighbourList);
+        NodePtr node=make_shared<Node>(elt.x, cptRadius(elt), &elt);
+        findNeighbour(sstree.localTree.root, node, neighbourList);
       }
       nbSendNode[rank] = neighbourList.size();
       for (set<NodePtr>::iterator it = neighbourList.begin(); it != neighbourList.end(); it++)
@@ -677,6 +690,7 @@ void Mapper::buildMeshTopology()
 
   /* re-compute on received elements to avoid having to send this information */
   neighbourNodes.resize(nbNeighbourNodes);
+  for(int i=0;i<neighbourNodes.size();i++) neighbourNodes[i]=make_shared<Node>() ;
   setCirclesAndLinks(neighbourElements, neighbourNodes);
   cptAllEltsGeom(neighbourElements, nbNeighbourNodes, srcGrid.pole);
 
@@ -691,12 +705,12 @@ void Mapper::buildMeshTopology()
   */
   for (int j = 0; j < sstree.localTree.leafs.size(); j++)
   {
-    Node& node = sstree.localTree.leafs[j];
+    NodePtr node = sstree.localTree.leafs[j];
 
     /* find all leafs whoes circles that intersect node's circle and save into node->intersectors */
-    node.search(sstree.localTree.root);
+    node->search(sstree.localTree.root);
 
-    Elt *elt = (Elt *)(node.data);
+    Elt *elt = (Elt *)(node->data);
 
     for (int i = 0; i < elt->n; i++) elt->neighbour[i] = NOT_FOUND;
 
@@ -704,7 +718,7 @@ void Mapper::buildMeshTopology()
                    whoes circles intersect with the circle around `elt` (the SS intersectors)
                    and check if they are neighbours in the sense that the two elements share an edge.
                    If they do, save this information for elt */
-    for (list<NodePtr>::iterator it = (node.intersectors).begin(); it != (node.intersectors).end(); ++it)
+    for (list<NodePtr>::iterator it = (node->intersectors).begin(); it != (node->intersectors).end(); ++it)
     {
       Elt *elt2 = (Elt *)((*it)->data);
       set_neighbour(*elt, *elt2);
@@ -729,14 +743,14 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
 
   MPI_Barrier(communicator);
 
-  vector<Node> *routingList = new vector<Node>[mpiSize];
+  vector<NodePtr> *routingList = new vector<NodePtr>[mpiSize];
 
-  vector<Node> routeNodes;  routeNodes.reserve(nbElements);
+  vector<NodePtr> routeNodes;  routeNodes.reserve(nbElements);
   for (int j = 0; j < nbElements; j++)
   {
     elements[j].id.ind = j;
     elements[j].id.rank = mpiRank;
-    routeNodes.push_back(Node(elements[j].x, cptRadius(elements[j]), &elements[j]));
+    routeNodes.push_back(make_shared<Node>(elements[j].x, cptRadius(elements[j]), &elements[j]));
   }
 
   vector<vector<int> > routes(routeNodes.size());
@@ -765,7 +779,7 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
     sentMessageSize[rank] = 0;
     for (size_t j = 0; j < routingList[rank].size(); j++)
     {
-      Elt *elt = (Elt *) (routingList[rank][j].data);
+      Elt *elt = (Elt *) (routingList[rank][j]->data);
       sentMessageSize[rank] += packedPolygonSize(*elt);
     }
   }
@@ -796,7 +810,7 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
     pos[rank] = 0;
     for (size_t j = 0; j < routingList[rank].size(); j++)
     {
-      Elt* elt = (Elt *) (routingList[rank][j].data);
+      Elt* elt = (Elt *) (routingList[rank][j]->data);
       packPolygon(*elt, sendBuffer[rank], pos[rank]);
     }
   }
@@ -840,10 +854,10 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
       {
         unpackPolygon(recvElt[j], recvBuffer[rank], pos[rank]);
         cptEltGeom(recvElt[j], tgtGrid.pole);
-        Node recvNode(recvElt[j].x, cptRadius(recvElt[j]), &recvElt[j]);
-        recvNode.search(sstree.localTree.root);
+        NodePtr recvNode = make_shared<Node>(recvElt[j].x, cptRadius(recvElt[j]), &recvElt[j]);
+        recvNode->search(sstree.localTree.root);
         /* for a node holding an element of the target, loop throught candidates for intersecting source */
-        for (list<NodePtr>::iterator it = (recvNode.intersectors).begin(); it != (recvNode.intersectors).end(); ++it)
+        for (list<NodePtr>::iterator it = (recvNode->intersectors).begin(); it != (recvNode->intersectors).end(); ++it)
         {
           Elt *elt2 = (Elt *) ((*it)->data);
           /* recvElt is target, elt2 is source */
@@ -868,6 +882,9 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
           //FIXME should be deleted: recvElt[j].delete_intersections(); // intersection areas have been packed to buffer and won't be used any more
         }
       }
+      
+      for (int j = 0; j < nbRecvNode[rank]; j++) recvElt[j].delete_intersections();
+            
       delete [] recvElt;
 
     }
@@ -942,7 +959,10 @@ Mapper::~Mapper()
   delete [] srcAddress;
   delete [] srcRank;
   delete [] dstAddress;
+  delete [] sourceWeightId ;
+  delete [] targetWeightId ;
   if (neighbourElements) delete [] neighbourElements;
-}
+  CTimer::release() ;
+ }
 
 }

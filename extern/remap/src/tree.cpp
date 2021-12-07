@@ -26,22 +26,22 @@ CBasicTree::CBasicTree() : ri(0), levelSize(MAX_LEVEL_SIZE), root(NULL)
 }
 */
 
-void CBasicTree::routeNodes(vector<int>& route, vector<Node>& nodes, int assignLevel)
+void CBasicTree::routeNodes(vector<int>& route, vector<NodePtr>& nodes, int assignLevel)
 {
 	for (int i = 0; i < nodes.size(); i++)
 	{
-		root->routeNode(&nodes[i], assignLevel);
-		route[i] = nodes[i].route;
+		root->routeNode(nodes[i], assignLevel);
+		route[i] = nodes[i]->route;
 	}
 }
 
-void CBasicTree::routeIntersections(vector<vector<int> >& routes, vector<Node>& nodes)
+void CBasicTree::routeIntersections(vector<vector<int> >& routes, vector<NodePtr>& nodes)
 {
 	for (int i = 0; i < nodes.size(); i++)
-		root->routeIntersection(routes[i], &nodes[i]);
+		root->routeIntersection(routes[i], nodes[i]);
 }
 
-void CBasicTree::build(vector<Node>& nodes)
+void CBasicTree::build(vector<NodePtr>& nodes)
 {
 	newRoot(1);
 	insertNodes(nodes);
@@ -79,7 +79,7 @@ void CBasicTree::insertNode(NodePtr node)
 	increaseLevelSize(0);
 	push_back(node);
 
-	NodePtr q;
+	NodePtr q=make_shared<Node>();
 	while (pool.size())
 	{
 		q = pool.front();
@@ -87,7 +87,7 @@ void CBasicTree::insertNode(NodePtr node)
 		q = insert(q, root);
 		if (ri)
 		{
-			delete q;
+			q.reset();
 			ri = 0;
 		}
 	}
@@ -102,7 +102,7 @@ void CBasicTree::emptyPool(void)
 		q = insert(q, root);
 		if (ri)
 		{
-			delete q;
+			q.reset();
 			ri = 0;
 		}
 	}
@@ -136,10 +136,10 @@ void CBasicTree::decreaseLevelSize(int level)
 
 void CBasicTree::newRoot(int level)  // newroot <- root
 {
-	root = new Node;
+	root = make_shared<Node>();
 	// if (level > 1) cout << " newRoot level " << level << endl;
 	root->level = level;
-	root->parent = 0;
+	root->parent.reset() ;
 	root->leafCount = 0;
 // initialize root node on the sphere
   root->centre.x=1 ; root->centre.y=0 ; root->centre.z=0 ; 
@@ -154,16 +154,16 @@ CBasicTree::~CBasicTree()
 {
 	//FIXME uncomment the next line and figure out why it segfault sometimes
 	//root->free_descendants(); // recursively deletes all nodes in the tree
-	if (root) delete root;
+	if (root) root.reset();
 }
 
-void CTree::insertNodes(vector<Node>& nodes)
+void CTree::insertNodes(vector<NodePtr>& nodes)
 {
 	int stepSlim = MAX_NODE_SZ*MAX_NODE_SZ*2;
 	const double ratio = 1.5;
 	for (int i = 0; i < nodes.size(); i++)
 	{
-		insertNode(&nodes[i]);
+		insertNode(nodes[i]);
 
 		if (root->leafCount > stepSlim) // time for slim down
 		{
@@ -174,7 +174,7 @@ void CTree::insertNodes(vector<Node>& nodes)
 }
 
 
-void CSampleTree::insertNodes(vector<Node>& nodes)
+void CSampleTree::insertNodes(vector<NodePtr>& nodes)
 {
 	bool first1 = true;
 	bool first2 = true;
@@ -183,10 +183,9 @@ void CSampleTree::insertNodes(vector<Node>& nodes)
 	double ratio = 1.5 ;
   int i ;
   
-//  cout<<"CSampleTree::insertNodes  : nb node to be inserted : "<<nodes.size()<<endl ;
   for (i = 0; i < nodes.size(); i++)
 	{
-    insertNode(&nodes[i]);
+    insertNode(nodes[i]);
 
 		if (root->leafCount > stepSlim && levelSize[assignLevel] < keepNodes-2) // time for slim down
 		{

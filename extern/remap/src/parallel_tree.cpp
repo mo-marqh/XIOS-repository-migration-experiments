@@ -17,21 +17,21 @@ namespace sphereRemap {
 static const int assignLevel = 2;
 
 // only the circle is packed, rest of node will be initialized on unpacking
-static void packNode(Node& node, char *buffer, int& index)
+static void packNode(NodePtr node, char *buffer, int& index)
 {
 	if (buffer == NULL) // compute size only
 		index += 4 * sizeof(double);
 	else
 	{
-		*(Coord *)(&buffer[index]) = node.centre;
+		*(Coord *)(&buffer[index]) = node->centre;
 		index += sizeof(Coord);
 
-		*(double *)(&buffer[index]) = node.radius;
+		*(double *)(&buffer[index]) = node->radius;
 		index += sizeof(double);
 	}
 }
 
-static void unpackNode(Node& node, char *buffer, int& index)
+static void unpackNode(NodePtr node, char *buffer, int& index)
 {
 	Coord centre;
 	double r;
@@ -42,8 +42,8 @@ static void unpackNode(Node& node, char *buffer, int& index)
 	r = *(double *)(&buffer[index]);
 	index += sizeof(double);
 
-	node.centre = centre;
-	node.radius = r;
+	node->centre = centre;
+	node->radius = r;
 }
 
 
@@ -94,7 +94,7 @@ static void assignRoute(CSampleTree& tree, const CCascadeLevel& cl)  // newroot 
 	tree.root->assignRoute(rank, assignLevel);
 }
 
-static void transferRoutedNodes(CMPIRouting& MPIRoute, /*const*/ vector<Node>& nodeSend, const vector<int>& route, vector<Node>& nodeRecv)
+static void transferRoutedNodes(CMPIRouting& MPIRoute, /*const*/ vector<NodePtr>& nodeSend, const vector<int>& route, vector<NodePtr>& nodeRecv)
 {
 	/* `route` knows what goes where */
 	MPIRoute.init(route);
@@ -103,13 +103,13 @@ static void transferRoutedNodes(CMPIRouting& MPIRoute, /*const*/ vector<Node>& n
 	MPIRoute.transferToTarget(&nodeSend[0], &nodeRecv[0], packNode, unpackNode);
 }
 
-static void transferRoutedIntersections(CMPIRouting& MPIRoute, const vector<Node>& nodeSend, const vector<vector<int> >& route, vector<Node>& nodeRecv)
+static void transferRoutedIntersections(CMPIRouting& MPIRoute, const vector<NodePtr>& nodeSend, const vector<vector<int> >& route, vector<NodePtr>& nodeRecv)
 {
 	// `route` knows what goes where
 	MPIRoute.init(route);
 	int nRecv = MPIRoute.getTotalSourceElement();
 	nodeRecv.resize(nRecv);
-	MPIRoute.transferToTarget((Node * /*mpi wants non-const*/) &nodeSend[0], &nodeRecv[0], packNode, unpackNode);
+	MPIRoute.transferToTarget((NodePtr*) &nodeSend[0], &nodeRecv[0], packNode, unpackNode);
 //cout << MPIRoute.mpiRank << " ROUTE " << nRecv << ": " << nodeSend.size() << " " << nodeRecv.size() << "    ";
 }
 
@@ -121,7 +121,7 @@ CParallelTree::CParallelTree(MPI_Comm comm) : communicator(comm), cascade(MAX_NO
 		treeCascade.push_back(CSampleTree(cascade.level[lev].group_size, assignLevel));
 }
 
-void CParallelTree::buildSampleTreeCascade(vector<Node>& sampleNodes /*route field will be modified*/, int level)
+void CParallelTree::buildSampleTreeCascade(vector<NodePtr>& sampleNodes /*route field will be modified*/, int level)
 {
 	buildSampleTree(treeCascade[level], sampleNodes, cascade.level[level]);
 	assignRoute(treeCascade[level] /*out*/, cascade.level[level] /*in*/);
@@ -131,14 +131,14 @@ void CParallelTree::buildSampleTreeCascade(vector<Node>& sampleNodes /*route fie
 		vector<int> route(sampleNodes.size());
 		treeCascade[level].routeNodes(route, sampleNodes, assignLevel);
 
-		vector<Node> routedNodes;
+		vector<NodePtr> routedNodes;
 		CMPIRouting mpiRoute(cascade.level[level].pg_comm);
 		transferRoutedNodes(mpiRoute, sampleNodes, route, routedNodes);
 		buildSampleTreeCascade(routedNodes, level+1);
 	}
 }
 
-void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascadeLevel& comm)
+void buildSampleTree(CSampleTree& tree, const vector<NodePtr>& node, const CCascadeLevel& comm)
 /*
 	In the beginning all the sample elements are distributed
 	-> communicate to make available at each rank
@@ -174,7 +174,7 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 	randomizeArray(randomArray);
 	for (int i = 0; i < nsend; i++)
 	{
-		const Node& no = node[randomArray[i]];
+		const Node& no = *node[randomArray[i]];
 		*((Coord *) (sendBuffer + index)) = no.centre;
 		index += sizeof(Coord)/sizeof(*sendBuffer);
 		sendBuffer[index++] = no.radius;
@@ -209,6 +209,8 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
   randomArray.resize(blocSize);
 	randomizeArray(randomArray);
 	tree.leafs.resize(blocSize);
+	for(auto& it : tree.leafs) it=make_shared<Node>() ;
+
 	index = 0;
   
   size_t s=(sizeof(Coord)/sizeof(*recvBuffer)+1)*nrecv ;
@@ -219,8 +221,8 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 		index += sizeof(Coord)/sizeof(*recvBuffer);
 		double radius = recvBuffer[index%s];
     index++ ;
-		tree.leafs[randomArray[i]].centre = x;
-		tree.leafs[randomArray[i]].radius = radius;
+		tree.leafs[randomArray[i]]->centre = x;
+		tree.leafs[randomArray[i]]->radius = radius;
 
 	}
 
@@ -232,7 +234,6 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 //	cout << "SampleTree build : assign Level " << assignLevel << " nb Nodes : " << tree.levelSize[assignLevel] << endl;
 	CTimer::get("buildSampleTree(local)").suspend();
 	CTimer::get("buildSampleTree(local)").print();
-
 	/* End gracefully if sample tree could not be constructed with desired number of nodes on assignLevel */
 	int allok, ok = (tree.levelSize[assignLevel] == comm.group_size);
 	if (!ok)
@@ -261,7 +262,7 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 }
 
 
-void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& route)
+void CParallelTree::buildLocalTree(const vector<NodePtr>& node, const vector<int>& route)
 {
 	CMPIRouting MPIRoute(communicator);
 	MPI_Barrier(communicator);
@@ -275,7 +276,7 @@ void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& 
 
 	vector<Elt*> ptElement(node.size());
 	for (int i = 0; i < node.size(); i++)
-		ptElement[i] = (Elt *) (node[i].data);
+		ptElement[i] = (Elt *) (node[i]->data);
 
 	vector<Elt*> ptLocalElement(nbLocalElements);
 	for (int i = 0; i < nbLocalElements; i++)
@@ -296,7 +297,7 @@ void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& 
 		Elt& elt = localElements[i];
 		elt.id.ind = i;
 		elt.id.rank = mpiRank;
-		localTree.leafs.push_back(Node(elt.x, cptRadius(elt), &localElements[i]));
+		localTree.leafs.push_back(make_shared<Node>(elt.x, cptRadius(elt), &localElements[i]));
 	}
 	localTree.build(localTree.leafs);
 
@@ -305,7 +306,7 @@ void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& 
 	CTimer::get("buildLocalTree(local)").print();
 }
 
-void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
+void CParallelTree::build(vector<NodePtr>& node, vector<NodePtr>& node2)
 {
 
 	int assignLevel = 2;
@@ -331,7 +332,7 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 //	assert(node.size() > nbSampleNodes);
 //	assert(node2.size() > nbSampleNodes);
 //	assert(node.size() + node2.size() > nbSampleNodes);
-	vector<Node> sampleNodes; sampleNodes.reserve(nbSampleNodes1+nbSampleNodes2);
+	vector<NodePtr> sampleNodes; sampleNodes.reserve(nbSampleNodes1+nbSampleNodes2);
 
 	vector<int> randomArray1(node.size());
 	randomizeArray(randomArray1);
@@ -357,8 +358,8 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
           s2=nbSampleNodes/2 ;
         }
 */
-        for (int i = 0; i <nbSampleNodes1; i++) sampleNodes.push_back(Node(node[randomArray1[i%nb1]].centre,  node[randomArray1[i%nb1]].radius, NULL));
-        for (int i = 0; i <nbSampleNodes2; i++) sampleNodes.push_back(Node(node2[randomArray2[i%nb2]].centre, node2[randomArray2[i%nb2]].radius, NULL));
+        for (int i = 0; i <nbSampleNodes1; i++) sampleNodes.push_back(make_shared<Node>(node[randomArray1[i%nb1]]->centre,  node[randomArray1[i%nb1]]->radius, nullptr));
+        for (int i = 0; i <nbSampleNodes2; i++) sampleNodes.push_back(make_shared<Node>(node2[randomArray2[i%nb2]]->centre, node2[randomArray2[i%nb2]]->radius, nullptr));
 
 /*          
         for (int i = 0; i < nbSampleNodes/2; i++)
@@ -392,13 +393,13 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 	CTimer::get("buildRouteTree").print();
 }
 
-void CParallelTree::routeNodes(vector<int>& route, vector<Node>& nodes /*route field used*/, int level)
+void CParallelTree::routeNodes(vector<int>& route, vector<NodePtr>& nodes /*route field used*/, int level)
 {
 	treeCascade[level].routeNodes(route /*assign*/, nodes, assignLevel);
 
 	if (level+1 < cascade.num_levels)
 	{
-		vector<Node> routedNodes;
+		vector<NodePtr> routedNodes;
 		CMPIRouting MPIRoute(cascade.level[level].pg_comm);
 		transferRoutedNodes(MPIRoute, nodes, route /*use*/, routedNodes);
 		vector<int> globalRank(routedNodes.size());
@@ -437,22 +438,25 @@ void delinearize(const vector<int>& from, vector<vector<int> >& to)
 		copy(src, end = src + to[i].size(), to[i].begin());
 }
 
-void CParallelTree::routeIntersections(vector<vector<int> >& routes, vector<Node>& nodes, int level)
+void CParallelTree::routeIntersections(vector<vector<int> >& routes, vector<NodePtr>& nodes, int level)
 {
 	treeCascade[level].routeIntersections(routes /*assign*/, nodes);
 
 	if (level+1 < cascade.num_levels)
 	{
-		vector<Node> routedNodes;
+		vector<NodePtr> routedNodes;
 		CMPIRouting MPIRoute(cascade.level[level].pg_comm);
 
 		vector<int> flattenedRoutes1;
 		linearize(routes, flattenedRoutes1);
-		vector<Node> double_nodes(flattenedRoutes1.size());
+		vector<NodePtr> double_nodes(flattenedRoutes1.size());
 		int j = 0;
 		for (int i = 0; i < routes.size(); ++i)
 			for (int k = 0; k < routes[i].size(); ++k, ++j)
-				double_nodes[j] = nodes[i];
+			{
+				double_nodes[j] = make_shared<Node>() ;
+				*double_nodes[j] = *nodes[i];
+			}
 		transferRoutedNodes(MPIRoute, double_nodes, flattenedRoutes1 /*use*/, routedNodes);
 		vector<vector<int> > globalRanks(routedNodes.size());
 		routeIntersections(globalRanks /*out*/, routedNodes /*in*/, level + 1);

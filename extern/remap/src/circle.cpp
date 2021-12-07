@@ -34,9 +34,9 @@ namespace sphereRemap
   	leaf.data = &elt;
   }
   
-  void setCirclesAndLinks(Elt *elts, vector<Node>& nodes)
+  void setCirclesAndLinks(Elt *elts, vector<NodePtr>& nodes)
   {
   	for (int i = 0; i < nodes.size(); i++)
-	  	setCircleAndLink(elts[i], nodes[i]);
+	  	setCircleAndLink(elts[i], *nodes[i]);
   }
 }

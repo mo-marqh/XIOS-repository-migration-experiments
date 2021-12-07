@@ -185,16 +185,12 @@ double intersect_ym(Elt *a, Elt *b)
      
        if (dx*dx+dy*dy>fusion_vertex*fusion_vertex)
        {
-          intersectPolygon[nv]=intersectPolygon[n] ;
-
-	  vect_points.push_back( array<double, 2>() );
-          vect_points[nv][0] = intersectPolygon[n].x;
-	  vect_points[nv][1] = intersectPolygon[n].y;
-
-	  nv++ ;
+         intersectPolygon[nv]=intersectPolygon[n] ;
+         vect_points.push_back( array<double, 2>() );
+         vect_points[nv][0] = intersectPolygon[n].x;
+         vect_points[nv][1] = intersectPolygon[n].y;
+         nv++ ;
        }
-      
-
     }
 
     polyline.push_back(vect_points);
@@ -208,10 +204,10 @@ double intersect_ym(Elt *a, Elt *b)
       double area2=0 ;
       for(int i=0;i<indices.size()/3;++i)
       {
-	  Coord x0 = Ox * polyline[0][indices[3*i]][0] + Oy* polyline[0][indices[3*i]][1] + Oz ;
-	  Coord x1 = Ox * polyline[0][indices[3*i+1]][0] + Oy* polyline[0][indices[3*i+1]][1] + Oz ;
-	  Coord x2 = Ox * polyline[0][indices[3*i+2]][0] + Oy* polyline[0][indices[3*i+2]][1] + Oz ;
-	  area2+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
+        Coord x0 = Ox * polyline[0][indices[3*i]][0] + Oy* polyline[0][indices[3*i]][1] + Oz ;
+        Coord x1 = Ox * polyline[0][indices[3*i+1]][0] + Oy* polyline[0][indices[3*i+1]][1] + Oz ;
+        Coord x2 = Ox * polyline[0][indices[3*i+2]][0] + Oy* polyline[0][indices[3*i+2]][1] + Oz ;
+        area2+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
       }
 
       polyline.clear();

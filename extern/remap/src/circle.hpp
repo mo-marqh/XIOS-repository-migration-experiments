@@ -14,7 +14,7 @@ void setCircleAndLink(Elt& elt, Node& leaf);
    of the corresponding grid element.
    At this point the node is a leaf and contains only one element.
 */
-void setCirclesAndLinks(Elt *elts, vector<Node>& leaf);
+void setCirclesAndLinks(Elt *elts, vector<NodePtr>& leaf);
 
 }
 #endif

@@ -2,6 +2,7 @@
 #define __MAPPER_HPP__
 #include "parallel_tree.hpp"
 #include "mpi.hpp"
+#include "timerRemap.hpp"
 
 namespace sphereRemap {
 
@@ -26,7 +27,7 @@ public:
        void setSourceValue(const double* val) ;
        void getTargetValue(double* val) ;
 
-       void buildSSTree(vector<Node>& srcMsh, vector<Node>& trgMsh)
+       void buildSSTree(vector<NodePtr>& srcMsh, vector<NodePtr>& trgMsh)
        {
          sstree.build(srcMsh, trgMsh);
        }
@@ -60,7 +61,7 @@ private:
 
        /** Holds adaptional leaf nodes as ghost cells for gradient computations (hold neighbour elements from other ranks).
            They will be inserted to the local trees but not saved in its leaf array */
-       vector<Node> neighbourNodes;
+       vector<NodePtr> neighbourNodes;
 
        int nbNeighbourElements;
        Elt* neighbourElements;
@@ -68,9 +69,9 @@ private:
        CParallelTree sstree;
        MPI_Comm communicator ;
        std::vector<Elt>  sourceElements ;
-       std::vector<Node> sourceMesh ;
+       std::vector<NodePtr> sourceMesh ;
        std::vector<Elt>  targetElements ;
-       std::vector<Node> targetMesh ;
+       std::vector<NodePtr> targetMesh ;
        std::vector<long> sourceGlobalId ;
        std::vector<long> targetGlobalId ;
 

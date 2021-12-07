@@ -234,6 +234,7 @@ destRanks.push_back(i);
 
 	delete[]  toSend;
 	delete[]  recvCount;
+	delete[]  targetRankToIndex;
 	delete[]  request;
 	delete[]  status;
 }
@@ -597,7 +598,7 @@ template void CMPIRouting::transferToTarget(int *targetElements, int *sourceElem
 template void CMPIRouting::transferFromSource(int *targetElements, int *sourceElements);
 template void CMPIRouting::transferFromSource(int *targetElements, int *sourceElements, void (*pack)(int&, char*, int&), void (* unpack)(int&, char *, int&));
 
-template void CMPIRouting::transferToTarget(Node* targetElements, Node* sourceElements, void (*pack)(Node&, char*, int&), void (* unpack)(Node&, char *, int&));
+template void CMPIRouting::transferToTarget(NodePtr* targetElements, NodePtr* sourceElements, void (*pack)(NodePtr, char*, int&), void (* unpack)(NodePtr, char *, int&));
 template void CMPIRouting::transferToTarget(Elt **targetElements, Elt **sourceElements, void (*pack)(Elt *, char*, int&), void (* unpack)(Elt *, char *, int&));
 template void CMPIRouting::transferFromSource(std::vector<int> *targetElements, std::vector<int> *sourceElements, void (*pack)(const std::vector<int>&, char*, int&), void (* unpack)(std::vector<int>&, const char *, int&));
 

@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "triple.hpp"
+#include <memory>
 
 namespace sphereRemap {
 
@@ -111,15 +112,17 @@ struct Node;
 //typedef Node* NodePtr;
 //#endif
 
-typedef Node* NodePtr;
+//typedef Node* NodePtr;
+typedef std::shared_ptr<Node> NodePtr;
 
-struct Node
+struct Node : public std::enable_shared_from_this<Node>
 {
 	int level; /* FIXME leafs are 0 and root is max level? */
 	int leafCount; /* number of leafs that are descendants of this node (the elements in it's cycle) */
 	Coord centre;
 	double radius;
-	NodePtr parent, ref;
+	std::weak_ptr<Node> parent ;
+	NodePtr ref;
 	std::vector<NodePtr> child;
 	std::list<NodePtr> intersectors;
 	bool reinserted;
@@ -197,7 +200,7 @@ struct Node
 	void assignCircleAndPropagateUp(Coord *centres, double *radia, int level);
 	void printLevel(int level);
 	void routeNode(NodePtr node, int level);
-	void routingIntersecting(std::vector<Node>* routingList, NodePtr node);
+	void routingIntersecting(std::vector<NodePtr>* routingList, NodePtr node);
 	void routeIntersection(std::vector<int>& routes, NodePtr node);
   void getNodeLevel(int level,std::list<NodePtr>& NodeList) ;
   bool removeDeletedNodes(int assignLevel) ;

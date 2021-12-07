@@ -59,6 +59,7 @@ double computePolygoneArea(Elt& a, const Coord &pole)
   vect_points.clear();
   polyline.clear();
   indices_a_gno.clear();
+  delete [] a_gno ;
   return area_a_gno ;
 }
 
