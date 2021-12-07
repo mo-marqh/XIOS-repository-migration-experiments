@@ -48,7 +48,7 @@ namespace xios {
     if (this->type.isEmpty()) this->type.setValue(CExpandDomain::type_attr::edge);
   }
   
-  CGenericAlgorithmTransformation* CExpandDomain::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CExpandDomain::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

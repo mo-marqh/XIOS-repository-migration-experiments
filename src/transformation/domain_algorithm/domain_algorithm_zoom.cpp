@@ -6,7 +6,7 @@
 #include "attribute_template.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CDomainAlgorithmZoom::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CDomainAlgorithmZoom::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                              CTransformation<CDomain>* transformation,
                                                              int elementPositionInGrid,
                                                              std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -24,7 +24,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmZoom(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], zoomDomain));
+  return make_shared<CDomainAlgorithmZoom>(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], zoomDomain);
 }
 CATCH
 

@@ -4,7 +4,7 @@
 namespace xios
 {
   
-  CTransformFilter::CTransformFilter( CGarbageCollector& gc, int slots, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) 
+  CTransformFilter::CTransformFilter( CGarbageCollector& gc, int slots, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue) 
                                     : CFilter(gc, slots, this), algorithm_(algo), 
                                       detectMissingValues_(detectMissingValues), defaultValue_(defaultValue)
   {
@@ -34,7 +34,7 @@ namespace xios
     return packet;
   }
 
-  void CTransformFilter::buildWorkflowGraph(std::vector<CDataPacketPtr> data, CDataPacketPtr packet, CGridAlgorithm* algorithm)
+  void CTransformFilter::buildWorkflowGraph(std::vector<CDataPacketPtr> data, CDataPacketPtr packet, shared_ptr<CGridAlgorithm> algorithm)
   {
     if(this->graphEnabled)
     {

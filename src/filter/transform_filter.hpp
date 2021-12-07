@@ -14,18 +14,18 @@ namespace xios
   {
     public:
 
-      CTransformFilter(CGarbageCollector& gc, int slots, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
+      CTransformFilter(CGarbageCollector& gc, int slots, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue) ;
 
     protected:
       /*!
         Overriding this function to process transformations with auxillary inputs
       */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data) ;
-      void buildWorkflowGraph(std::vector<CDataPacketPtr> data, CDataPacketPtr packet, CGridAlgorithm* algorithm);
+      void buildWorkflowGraph(std::vector<CDataPacketPtr> data, CDataPacketPtr packet, shared_ptr<CGridAlgorithm> algorithm);
       
 //      void apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest);
      
-      CGridAlgorithm* algorithm_ ;
+      shared_ptr<CGridAlgorithm> algorithm_ ;
       bool detectMissingValues_ ;
       bool defaultValue_ ;
 

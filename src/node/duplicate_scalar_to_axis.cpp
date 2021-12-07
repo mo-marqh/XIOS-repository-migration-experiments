@@ -44,7 +44,7 @@ namespace xios {
    
   }
   
-  CGenericAlgorithmTransformation* CDuplicateScalarToAxis::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CDuplicateScalarToAxis::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

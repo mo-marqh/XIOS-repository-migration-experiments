@@ -151,10 +151,10 @@ namespace xios
       private:
         bool activateFieldWorkflow_done_=false ;
       private:
-        CGenericAlgorithmTransformation* transformationAlgorithm_ = nullptr ;
+        shared_ptr<CGenericAlgorithmTransformation> transformationAlgorithm_ = nullptr ;
       public:
-        void setTransformationAlgorithm(CGenericAlgorithmTransformation* transformationAlgorithm) { transformationAlgorithm_=transformationAlgorithm ;}
-        CGenericAlgorithmTransformation* getTransformationAlgorithm(void) { return transformationAlgorithm_ ;}   
+        void setTransformationAlgorithm(shared_ptr<CGenericAlgorithmTransformation> transformationAlgorithm) { transformationAlgorithm_=transformationAlgorithm ;}
+        shared_ptr<CGenericAlgorithmTransformation> getTransformationAlgorithm(void) { return transformationAlgorithm_ ;}   
       private:
         CTransformationPaths transformationPaths_ ;
       public:

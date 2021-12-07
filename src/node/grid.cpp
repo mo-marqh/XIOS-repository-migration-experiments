@@ -1900,7 +1900,7 @@ namespace xios
     bool hadTransform=false ;
     bool hasTransform=false ;
     bool hasRemainTransform=false ;
-    CGenericAlgorithmTransformation* algo ;
+    shared_ptr<CGenericAlgorithmTransformation> algo ;
     int pos ;
 
     for(int i=0 ; i<elements_.size(); i++)
@@ -2191,7 +2191,7 @@ namespace xios
       
       if (!isSource)
       {
-        CGridAlgorithm* gridAlgorithm  ;
+        shared_ptr<CGridAlgorithm> gridAlgorithm  ;
         if (isNewGrid)
         { 
           gridAlgorithm = algo->createGridAlgorithm(gridSrc, newGrid, pos) ;

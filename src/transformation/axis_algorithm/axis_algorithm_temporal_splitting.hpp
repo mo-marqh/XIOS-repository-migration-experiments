@@ -30,9 +30,9 @@ namespace xios
       static bool registerTrans();
       virtual StdString getAlgoName() {return "\\ntemporal_splitting";}
 
-      virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
+      virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue) ;
 
-      static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+      static shared_ptr<CGenericAlgorithmTransformation> create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                      CTransformation<CAxis>* transformation,
                                                      int elementPositionInGrid,
                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

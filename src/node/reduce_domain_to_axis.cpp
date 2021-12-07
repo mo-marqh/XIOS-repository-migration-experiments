@@ -87,7 +87,7 @@ namespace xios {
     }
   }
 
-  CGenericAlgorithmTransformation* CReduceDomainToAxis::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CReduceDomainToAxis::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

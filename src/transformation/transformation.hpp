@@ -39,7 +39,7 @@ namespace xios {
       virtual const string& getId_(void) { ERROR("string Transformation<T>::getId())",<< "unimplemented virtual function for child"); } ;
       virtual const string& getName(void) { ERROR("string Transformation<T>::getId())",<< "unimplemented virtual function for child"); } ;
       virtual const string& getDefName(void) { ERROR("string Transformation<T>::getId())",<< "unimplemented virtual function for child"); } ;
-      virtual CGenericAlgorithmTransformation* createAlgorithm(bool isSource,
+      virtual shared_ptr<CGenericAlgorithmTransformation> createAlgorithm(bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                int elementPositionInGrid,
                                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

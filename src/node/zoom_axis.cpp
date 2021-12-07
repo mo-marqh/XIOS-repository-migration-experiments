@@ -77,7 +77,7 @@ namespace xios {
 
   }
 
-  CGenericAlgorithmTransformation* CZoomAxis::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CZoomAxis::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

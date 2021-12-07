@@ -47,7 +47,7 @@ private:
   CAxis* axisDest_;
 
 public:
-  static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+  static shared_ptr<CGenericAlgorithmTransformation> create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,
                                                 std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

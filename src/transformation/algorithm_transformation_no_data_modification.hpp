@@ -14,7 +14,7 @@ namespace xios
       CAlgorithmTransformationNoDataModification(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
       virtual ~CAlgorithmTransformationNoDataModification() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
-      virtual CGridAlgorithm* createGridAlgorithm(CGrid* gridSrc, CGrid* newGrid, int pos) ;
+      virtual shared_ptr<CGridAlgorithm> createGridAlgorithm(CGrid* gridSrc, CGrid* newGrid, int pos) ;
   };
 
 }

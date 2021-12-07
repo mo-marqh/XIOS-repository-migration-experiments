@@ -22,7 +22,7 @@
 
 namespace xios
 {
-  CGenericAlgorithmTransformation* CAxisAlgorithmInterpolateCoordinate::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+  shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmInterpolateCoordinate::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CAxis>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -40,7 +40,7 @@ namespace xios
     int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
     int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-    return (new CAxisAlgorithmInterpolateCoordinate(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpolateAxis));
+    return make_shared<CAxisAlgorithmInterpolateCoordinate>(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpolateAxis);
   }
   CATCH
 
@@ -137,7 +137,7 @@ namespace xios
   }
   CATCH
 
-  CTransformFilter* CAxisAlgorithmInterpolateCoordinate::createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue)
+  CTransformFilter* CAxisAlgorithmInterpolateCoordinate::createTransformFilter(CGarbageCollector& gc, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue)
   {
     if (hasCoordinateSrc_ && hasCoordinateDest_) return new CTransformFilter(gc, 3, algo, detectMissingValues, defaultValue) ;
     else return new CTransformFilter(gc, 2, algo, detectMissingValues, defaultValue) ;  

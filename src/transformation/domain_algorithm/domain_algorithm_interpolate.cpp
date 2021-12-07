@@ -21,7 +21,7 @@
 #include "grid.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CDomainAlgorithmInterpolate::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CDomainAlgorithmInterpolate::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CDomain>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -39,7 +39,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmInterpolate(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], interpolateDomain));
+  return make_shared<CDomainAlgorithmInterpolate>(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], interpolateDomain);
 }
 CATCH
 

@@ -77,7 +77,7 @@ namespace xios {
 
   }
 
-  CGenericAlgorithmTransformation* CExtractAxis::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CExtractAxis::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

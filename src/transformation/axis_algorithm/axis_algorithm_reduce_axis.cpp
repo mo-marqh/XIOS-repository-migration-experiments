@@ -14,7 +14,7 @@
 
 
 namespace xios {
-CGenericAlgorithmTransformation* CAxisAlgorithmReduceAxis::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmReduceAxis::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                    CTransformation<CAxis>* transformation,
                                                                    int elementPositionInGrid,
                                                                    std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -32,7 +32,7 @@ TRY
   int axisDstIndex   = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmReduceAxis(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
+  return make_shared<CAxisAlgorithmReduceAxis>(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], reduceAxis);
 }
 CATCH
 

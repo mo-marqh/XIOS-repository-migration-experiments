@@ -18,7 +18,7 @@ class CGenericAlgorithmTransformation ;
 class CGridAlgorithmNoDataModification : public CGridAlgorithm
 {
   public:
-    CGridAlgorithmNoDataModification(CGenericAlgorithmTransformation* algo) : CGridAlgorithm(algo) {}
+    CGridAlgorithmNoDataModification(shared_ptr<CGenericAlgorithmTransformation> algo) : CGridAlgorithm(algo) {}
     ~CGridAlgorithmNoDataModification(void) {};
     void computeAlgorithm(void) {} ;
     virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut) ;

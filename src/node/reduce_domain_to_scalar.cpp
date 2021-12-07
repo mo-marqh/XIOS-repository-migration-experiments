@@ -42,7 +42,7 @@ namespace xios {
     if (this->local.isEmpty()) local=false ;
   }
 
-  CGenericAlgorithmTransformation* CReduceDomainToScalar::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CReduceDomainToScalar::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

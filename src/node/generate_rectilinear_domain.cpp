@@ -138,7 +138,7 @@ namespace xios {
 
   }
 
-  CGenericAlgorithmTransformation* CGenerateRectilinearDomain::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CGenerateRectilinearDomain::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

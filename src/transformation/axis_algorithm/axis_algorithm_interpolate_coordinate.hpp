@@ -36,7 +36,7 @@ public:
                      const vector<CArray<double,1>>& auxDataIn, CArray<double,1>& dataOut) ;
   static bool registerTrans();
   virtual StdString getAlgoName() {return "\\ninterpolate_axis";}
-  virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue) ;
+  virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue) ;
   
 private:
   void computeInterp(int nsrc, vector<double>& srcCoordinate, vector<double>& srcValue, vector<int>& srcIndex,
@@ -58,7 +58,7 @@ private:
   vector<double> destCoordinate_ ; // dst axis value
 
 public:
-  static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+  static shared_ptr<CGenericAlgorithmTransformation> create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,
                                                 std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

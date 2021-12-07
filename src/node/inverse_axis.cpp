@@ -39,7 +39,7 @@ namespace xios {
   void CInverseAxis::checkValid(CAxis* axisSrc)
   {}
 
-  CGenericAlgorithmTransformation* CInverseAxis::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CInverseAxis::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

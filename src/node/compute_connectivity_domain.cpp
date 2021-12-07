@@ -51,7 +51,7 @@ namespace xios {
     if (local_neighbor.isEmpty()) local_neighbor.resize(1,1);
   }
 
-  CGenericAlgorithmTransformation* CComputeConnectivityDomain::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CComputeConnectivityDomain::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

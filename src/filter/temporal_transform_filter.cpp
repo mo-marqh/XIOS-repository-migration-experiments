@@ -4,7 +4,7 @@
 namespace xios
 {
 
-  CTemporalTransformFilter::CTemporalTransformFilter(CGarbageCollector& gc, int slots, CGridAlgorithm* algo, int nrecords, bool detectMissingValues, double defaultValue)
+  CTemporalTransformFilter::CTemporalTransformFilter(CGarbageCollector& gc, int slots, shared_ptr<CGridAlgorithm> algo, int nrecords, bool detectMissingValues, double defaultValue)
   : CTransformFilter(gc, slots, algo, detectMissingValues, defaultValue), nrecords_(nrecords), graphCycleCompleted(true)
   {
   }

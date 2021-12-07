@@ -62,7 +62,7 @@ namespace xios {
       ETranformationType getTransformationType(void) { return TRANS_EXTRACT_AXIS ;}
       static CTransformation<CAxis>* getTransformation(const StdString& id) { return SuperClass::get(id);}
       virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
-      virtual CGenericAlgorithmTransformation* createAlgorithm(bool isSource,
+      virtual shared_ptr<CGenericAlgorithmTransformation> createAlgorithm(bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                int elementPositionInGrid,
                                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

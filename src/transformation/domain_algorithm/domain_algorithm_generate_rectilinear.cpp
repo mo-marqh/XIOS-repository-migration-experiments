@@ -17,7 +17,7 @@
 namespace xios {
 
 
-CGenericAlgorithmTransformation* CDomainAlgorithmGenerateRectilinear::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CDomainAlgorithmGenerateRectilinear::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CDomain>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -35,7 +35,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmGenerateRectilinear(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], gridDst, gridSrc, transform));
+  return make_shared<CDomainAlgorithmGenerateRectilinear>(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], gridDst, gridSrc, transform);
 }
 CATCH
 

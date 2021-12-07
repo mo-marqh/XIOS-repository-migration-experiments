@@ -9,7 +9,7 @@
 namespace xios
 {
 
-  CGridAlgorithmGeneric::CGridAlgorithmGeneric(CGrid* gridSrc, CGrid* gridDst, int pos,  CGenericAlgorithmTransformation* algo)
+  CGridAlgorithmGeneric::CGridAlgorithmGeneric(CGrid* gridSrc, CGrid* gridDst, int pos,  shared_ptr<CGenericAlgorithmTransformation> algo)
   : CGridAlgorithm(algo), gridSrc_(gridSrc), gridDst_(gridDst), pos_(pos)
   {
     computeAlgorithm() ;

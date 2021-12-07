@@ -32,14 +32,14 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation(bool isSource)
 ////////// new algorithm for new method               /////////
 ///////////////////////////////////////////////////////////////
 
-CGridAlgorithm* CGenericAlgorithmTransformation::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
+shared_ptr<CGridAlgorithm> CGenericAlgorithmTransformation::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
 {
-  return new CGridAlgorithmGeneric(gridSrc, gridDst, pos, this) ;
+  return make_shared<CGridAlgorithmGeneric>(gridSrc, gridDst, pos, shared_from_this()) ;
 }
 
 
 
-CTransformFilter* CGenericAlgorithmTransformation::createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue)
+CTransformFilter* CGenericAlgorithmTransformation::createTransformFilter(CGarbageCollector& gc, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue)
 {
   return new CTransformFilter(gc, 1, algo, detectMissingValues, defaultValue) ;
 }

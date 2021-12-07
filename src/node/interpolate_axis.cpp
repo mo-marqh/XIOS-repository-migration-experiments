@@ -135,7 +135,7 @@ namespace xios {
     return auxInputs;
   }
 
-  CGenericAlgorithmTransformation* CInterpolateAxis::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CInterpolateAxis::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

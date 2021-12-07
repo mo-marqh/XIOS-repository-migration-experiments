@@ -11,7 +11,7 @@
 #include "grid_transformation_factory_impl.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CAxisAlgorithmDuplicateScalar::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmDuplicateScalar::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CAxis>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -29,7 +29,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int scalarSrcIndex = elementPositionInGridSrc2ScalarPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmDuplicateScalar(isSource, axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], duplicateScalar));
+  return make_shared<CAxisAlgorithmDuplicateScalar>(isSource, axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], duplicateScalar);
 }
 CATCH
 

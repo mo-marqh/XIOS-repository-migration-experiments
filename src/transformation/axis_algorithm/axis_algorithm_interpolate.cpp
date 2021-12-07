@@ -19,7 +19,7 @@
 #include "timer.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CAxisAlgorithmInterpolate::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmInterpolate::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                    CTransformation<CAxis>* transformation,
                                                                    int elementPositionInGrid,
                                                                    std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -37,7 +37,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmInterpolate(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpolateAxis));
+  return make_shared<CAxisAlgorithmInterpolate>(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpolateAxis);
 }
 CATCH
 

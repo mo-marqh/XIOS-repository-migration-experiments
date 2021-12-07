@@ -16,7 +16,7 @@
 #include "context_client.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CDomainAlgorithmExpand::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CDomainAlgorithmExpand::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                CTransformation<CDomain>* transformation,
                                                                int elementPositionInGrid,
                                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -34,7 +34,7 @@ TRY
   int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CDomainAlgorithmExpand(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], expandDomain));
+  return make_shared<CDomainAlgorithmExpand>(isSource, domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], expandDomain);
 }
 CATCH
 

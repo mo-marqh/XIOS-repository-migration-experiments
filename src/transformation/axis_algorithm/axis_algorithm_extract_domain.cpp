@@ -14,8 +14,10 @@
 #include "grid_transformation_factory_impl.hpp"
 #include "reduction.hpp"
 
-namespace xios {
-CGenericAlgorithmTransformation* CAxisAlgorithmExtractDomain::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+namespace xios
+{
+
+shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmExtractDomain::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CAxis>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -33,7 +35,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmExtractDomain(isSource, axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
+  return make_shared<CAxisAlgorithmExtractDomain>(isSource, axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain);
 }
 CATCH
 

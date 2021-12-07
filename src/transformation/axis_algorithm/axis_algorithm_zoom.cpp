@@ -9,7 +9,7 @@
 #include "zoom_axis.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CAxisAlgorithmZoom::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmZoom::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                            CTransformation<CAxis>* transformation,
                                                            int elementPositionInGrid,
                                                            std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -27,7 +27,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmZoom(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis));
+  return make_shared<CAxisAlgorithmZoom>(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis);
 }
 CATCH
 

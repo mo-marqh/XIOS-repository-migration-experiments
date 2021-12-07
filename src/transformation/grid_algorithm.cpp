@@ -6,7 +6,7 @@ namespace xios
 
   CTransformFilter* CGridAlgorithm::createTransformFilter(CGarbageCollector& gc, bool detectMissingValues, double defaultValue)
   {  
-    return algorithm_->createTransformFilter(gc, this, detectMissingValues, defaultValue) ;
+    return algorithm_->createTransformFilter(gc, shared_from_this(), detectMissingValues, defaultValue) ;
   }
 
   bool CGridAlgorithm::isGenerateTranformation(void)

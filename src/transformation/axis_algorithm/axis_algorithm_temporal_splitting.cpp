@@ -12,7 +12,7 @@
 #include "temporal_transform_filter.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CAxisAlgorithmTemporalSplitting::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmTemporalSplitting::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CAxis>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -30,7 +30,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int scalarSrcIndex = elementPositionInGridSrc2ScalarPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmTemporalSplitting(isSource, axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], temporalSplitting));
+  return make_shared<CAxisAlgorithmTemporalSplitting>(isSource, axisListDestP[axisDstIndex], scalarListSrcP[scalarSrcIndex], temporalSplitting);
 }
 CATCH
 
@@ -48,7 +48,7 @@ CAxisAlgorithmTemporalSplitting::CAxisAlgorithmTemporalSplitting(bool isSource, 
   nrecords_ = axisDestination->n_glo ; // also axis must not be distributed, make more test later
 }
 
-CTransformFilter* CAxisAlgorithmTemporalSplitting::createTransformFilter(CGarbageCollector& gc, CGridAlgorithm* algo, bool detectMissingValues, double defaultValue)
+CTransformFilter* CAxisAlgorithmTemporalSplitting::createTransformFilter(CGarbageCollector& gc, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue)
 {
   return new CTemporalTransformFilter(gc, 1, algo, nrecords_, detectMissingValues, defaultValue) ;
 }

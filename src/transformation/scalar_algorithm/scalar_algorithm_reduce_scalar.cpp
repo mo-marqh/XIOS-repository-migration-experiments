@@ -12,7 +12,7 @@
 
 
 namespace xios {
-CGenericAlgorithmTransformation* CScalarAlgorithmReduceScalar::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CScalarAlgorithmReduceScalar::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CScalar>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -30,7 +30,7 @@ TRY
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int scalarSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmReduceScalar(isSource, scalarListDestP[scalarDstIndex], scalarListSrcP[scalarSrcIndex], reduceScalar));
+  return make_shared<CScalarAlgorithmReduceScalar>(isSource, scalarListDestP[scalarDstIndex], scalarListSrcP[scalarSrcIndex], reduceScalar);
 }
 CATCH
 

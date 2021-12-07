@@ -32,7 +32,7 @@ public:
   CGridTransformationFactory() {}
   virtual ~CGridTransformationFactory() {}
 
-  static CGenericAlgorithmTransformation* createTransformation(ETranformationType transType, bool isSource,
+  static shared_ptr<CGenericAlgorithmTransformation> createTransformation(ETranformationType transType, bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                CTransformation<T>* transformation,
                                                                int elementPositionInGrid,
@@ -44,7 +44,7 @@ public:
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 
 public:
-  typedef CGenericAlgorithmTransformation* (*CreateTransformationCallBack)(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+  typedef shared_ptr<CGenericAlgorithmTransformation> (*CreateTransformationCallBack)(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                            CTransformation<T>* transformation,
                                                                            int elementPositionInGrid,
                                                                            std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -67,7 +67,7 @@ template<typename T>
 bool CGridTransformationFactory<T>::initializeTransformation_ = false;
 
 template<typename T>
-CGenericAlgorithmTransformation* CGridTransformationFactory<T>::createTransformation(ETranformationType transType, bool isSource,
+shared_ptr<CGenericAlgorithmTransformation> CGridTransformationFactory<T>::createTransformation(ETranformationType transType, bool isSource,
                                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                                CTransformation<T>* transformation,
                                                                                int elementPositionInGrid,

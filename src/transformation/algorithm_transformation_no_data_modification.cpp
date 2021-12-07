@@ -9,8 +9,8 @@ namespace xios
     dataOut.reference(dataIn) ;
   }
   
-  CGridAlgorithm* CAlgorithmTransformationNoDataModification::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
+  shared_ptr<CGridAlgorithm> CAlgorithmTransformationNoDataModification::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
   {
-    return new CGridAlgorithmNoDataModification(this) ;
+    return make_shared<CGridAlgorithmNoDataModification>(static_pointer_cast<CAlgorithmTransformationNoDataModification>(shared_from_this())) ;
   }
 }

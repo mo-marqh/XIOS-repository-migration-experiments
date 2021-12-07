@@ -9,7 +9,7 @@
 #include "extract_axis.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CAxisAlgorithmExtract::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CAxisAlgorithmExtract::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                            CTransformation<CAxis>* transformation,
                                                            int elementPositionInGrid,
                                                            std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -27,7 +27,7 @@ TRY
   int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CAxisAlgorithmExtract(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
+  return make_shared<CAxisAlgorithmExtract>(isSource, axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], extractAxis);
 }
 CATCH
 

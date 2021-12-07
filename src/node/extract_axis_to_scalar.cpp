@@ -58,7 +58,7 @@ namespace xios {
           << "CScalar destination " << scalarDst->getId() << std::endl);
   }
 
-  CGenericAlgorithmTransformation* CExtractAxisToScalar::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CExtractAxisToScalar::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

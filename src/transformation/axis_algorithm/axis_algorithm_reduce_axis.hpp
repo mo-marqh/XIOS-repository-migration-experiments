@@ -34,7 +34,7 @@ public:
   virtual StdString getAlgoName() {return "\\nreduce_axis_to_axis";}
 
 public:
-  static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+  static shared_ptr<CGenericAlgorithmTransformation> create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CAxis>* transformation,
                                                 int elementPositionInGrid,
                                                 std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

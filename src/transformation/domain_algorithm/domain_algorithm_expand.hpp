@@ -45,7 +45,7 @@ protected:
                                           CArray<int,2>& neighborsDomainSrc);
 
 public:
-  static CGenericAlgorithmTransformation* create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+  static shared_ptr<CGenericAlgorithmTransformation> create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                 CTransformation<CDomain>* transformation,
                                                 int elementPositionInGrid,
                                                 std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

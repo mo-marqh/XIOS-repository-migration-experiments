@@ -14,7 +14,7 @@
 #include "grid_transformation_factory_impl.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CScalarAlgorithmReduceDomain::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CScalarAlgorithmReduceDomain::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CScalar>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -32,7 +32,7 @@ TRY
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmReduceDomain(isSource, scalarListDestP[scalarDstIndex], domainListSrcP[domainSrcIndex], reduceDomain));
+  return make_shared<CScalarAlgorithmReduceDomain>(isSource, scalarListDestP[scalarDstIndex], domainListSrcP[domainSrcIndex], reduceDomain);
 }
 CATCH
 

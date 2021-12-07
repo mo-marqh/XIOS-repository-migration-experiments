@@ -41,7 +41,7 @@ namespace xios {
     
   }
 
-  CGenericAlgorithmTransformation* CReorderDomain::createAlgorithm(bool isSource,
+  shared_ptr<CGenericAlgorithmTransformation> CReorderDomain::createAlgorithm(bool isSource,
                                                         CGrid* gridDst, CGrid* gridSrc,
                                                         int elementPositionInGrid,
                                                         std::map<int, int>& elementPositionInGridSrc2ScalarPosition,

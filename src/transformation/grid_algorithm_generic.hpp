@@ -22,7 +22,7 @@ class CGarbageCollector ;
 class CGridAlgorithmGeneric : public CGridAlgorithm
 {
   public:
-    CGridAlgorithmGeneric(CGrid* gridSrc, CGrid* gridDst, int pos,  CGenericAlgorithmTransformation* algo) ;
+    CGridAlgorithmGeneric(CGrid* gridSrc, CGrid* gridDst, int pos,  shared_ptr<CGenericAlgorithmTransformation> algo) ;
     virtual ~CGridAlgorithmGeneric() {} ;
 
     void computeAlgorithm(void) ;

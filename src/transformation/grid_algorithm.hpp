@@ -18,10 +18,10 @@ namespace xios
 class CTransformFilter ;
 class CGarbageCollector ;
 
-class CGridAlgorithm
+class CGridAlgorithm : public std::enable_shared_from_this<CGridAlgorithm>
 {
   public:
-    CGridAlgorithm(CGenericAlgorithmTransformation* algorithm) : algorithm_(algorithm)  {} ;
+    CGridAlgorithm(shared_ptr<CGenericAlgorithmTransformation> algorithm) : algorithm_(algorithm)  {} ;
     virtual ~CGridAlgorithm() {} ;
     virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut) { abort(); } //=0
     virtual void apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) { abort(); } //=0
@@ -30,7 +30,7 @@ class CGridAlgorithm
     virtual StdString getAlgoName() ;
    
     protected:
-      CGenericAlgorithmTransformation* algorithm_=nullptr ;
+      shared_ptr<CGenericAlgorithmTransformation> algorithm_=nullptr ;
 };
 
 }

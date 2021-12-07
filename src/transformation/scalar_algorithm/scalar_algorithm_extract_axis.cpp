@@ -16,7 +16,7 @@
 #include "reduction.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CScalarAlgorithmExtractAxis::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
+shared_ptr<CGenericAlgorithmTransformation> CScalarAlgorithmExtractAxis::create(bool isSource, CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CScalar>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -34,7 +34,7 @@ TRY
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmExtractAxis(isSource, scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
+  return make_shared<CScalarAlgorithmExtractAxis>(isSource, scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], extractAxis);
 }
 CATCH
 
