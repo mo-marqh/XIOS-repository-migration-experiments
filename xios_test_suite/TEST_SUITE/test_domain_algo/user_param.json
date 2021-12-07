@@ -2,7 +2,7 @@
 	{
 		"Domain": ["lmdz"],
 		"NumberServers": [2],
-		"DomMask": ["false"],
-		"AxisMask": ["false"]
+		"DomMask": ["false","true"],
+		"AxisMask": ["false","true"]
 	}
 ]

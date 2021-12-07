@@ -2,7 +2,7 @@
 	{
 		"Domain": ["dynamico"],
 		"NumberServers": [2],
-		"DomMask": ["false"],
+		"DomMask": ["false","true"],
 		"AxisMask": ["false"]
 	}
 ]
