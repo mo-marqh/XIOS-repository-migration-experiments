@@ -22,11 +22,12 @@ nb_proc_jz=40 # to run completly in parallel, this must be set to 40 for the mom
 
 def OSinfo(runthis):
     red = lambda text: '\033[0;31m' + text + '\033[0m'
-    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
-    theInfo = osstdout.communicate()[0].strip()
-    if osstdout.returncode!=0:
+    osstdout = subprocess.Popen(runthis, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+    theInfo, theErr = osstdout.communicate()
+    #print( theInfo )
+    if theErr:
         print(red(runthis+" FAILED"))
-        print(theInfo)
+        print(theErr)
         sys.exit()
 
 def product_dict(**kwargs):
@@ -43,6 +44,12 @@ def get_default_param():
     l.sort()
     def_param=dict(l)
     return def_param
+
+def get_test_type():
+    test_type = "basic"
+    if ( machine == "irene" ):
+        test_type = "advanced"
+    return test_type
 
 def generate_job(fn, n):
     if machine=="irene":
@@ -164,10 +171,13 @@ def main():
     default_param = get_default_param()
     #print(default_param)
 
+    # default = basic, function( machine, arch, mode )
+    test_type = get_test_type()
+
     for test_folder in test_folder_list:
         config_list=[]
         config_name=[]
-        with open(test_folder+"/user_param.json", "r") as f:
+        with open(test_folder+"/user_param_"+test_type+".json", "r") as f:
             config_dict = json.load(f)
 
         for i in range(len(config_dict)):
