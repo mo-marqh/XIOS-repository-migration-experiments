@@ -59,6 +59,7 @@ public:
   static bool registerTransformation(ETranformationType transType, CreateTransformationCallBack createFn);
   static bool unregisterTransformation(ETranformationType transType);
   static bool initializeTransformation_;
+  static void unregisterAllTransformations(void) ;
 };
 
 template<typename T>
@@ -97,7 +98,7 @@ shared_ptr<CGenericAlgorithmTransformation> CGridTransformationFactory<T>::creat
 template<typename T>
 bool CGridTransformationFactory<T>::registerTransformation(ETranformationType transType, CreateTransformationCallBack createFn)
 {
-  if (0 == transformationCreationCallBacks_)
+  if (nullptr == transformationCreationCallBacks_)
     transformationCreationCallBacks_ = new CallBackMap();
 
   return (*transformationCreationCallBacks_).insert(make_pair(transType, createFn)).second;
@@ -109,6 +110,16 @@ bool CGridTransformationFactory<T>::unregisterTransformation(ETranformationType 
   return (1 == (*transformationCreationCallBacks_).erase(transType));
 }
 
+template<typename T>
+void CGridTransformationFactory<T>::unregisterAllTransformations(void)
+{
+  if (nullptr != transformationCreationCallBacks_) 
+  {
+    transformationCreationCallBacks_->clear() ;
+    delete transformationCreationCallBacks_;
+  }
+}
 
 }
+
 #endif // __XIOS_GRID_TRANSFORMATION_FACTORY_HPP__

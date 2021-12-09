@@ -31,6 +31,13 @@ namespace xios
   CScalar::~CScalar(void)
   { /* Ne rien faire de plus */ }
 
+  void CScalar::releaseStaticAllocation(void)
+  {
+    transformationMapList_.clear() ;
+    CTransformation<CScalar>::unregisterAllTransformations() ;
+    CGridTransformationFactory<CScalar>::unregisterAllTransformations() ;
+  }
+  
   std::map<StdString, ETranformationType> CScalar::transformationMapList_ = std::map<StdString, ETranformationType>();
   bool CScalar::dummyTransformationMapList_ = CScalar::initializeTransformationMap(CScalar::transformationMapList_);
   bool CScalar::initializeTransformationMap(std::map<StdString, ETranformationType>& m)

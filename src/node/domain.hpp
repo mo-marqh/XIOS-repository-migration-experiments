@@ -70,7 +70,8 @@ namespace xios
          explicit CDomain(const StdString & id);
          CDomain(const CDomain & domain);       // Not implemented yet.
          CDomain(const CDomain * const domain); // Not implemented yet.
-       
+         static void releaseStaticAllocation(void) ; // release static allocation on heap
+
          static CDomain* createDomain();
          static CDomain* get(const string& id, bool noError=false) ; //<! return domain pointer using id
          static bool has(const string& id) ; //<! return domain pointer using id

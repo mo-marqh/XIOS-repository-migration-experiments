@@ -130,6 +130,7 @@ namespace xios
     {
       if (poolRessource_->eventLoop(serviceOnly))
       {
+        delete poolRessource_ ;
         poolRessource_=nullptr ;
         // don't forget to free pool ressource later
       } 
@@ -186,5 +187,10 @@ namespace xios
     MPI_Comm_rank(serverComm_,&commRank) ;
     if (commRank==localLeader_) return true ;
     else return false ;
+  }
+
+  CServersRessource::~CServersRessource()
+  {
+    delete winNotify_ ;
   }
 }

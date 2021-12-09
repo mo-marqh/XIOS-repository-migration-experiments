@@ -305,7 +305,6 @@ namespace xios
     delete daemonsManager_  ;
   }
   
-
   CPoolRessource* CXios::getPoolRessource(void)
   {
     if (isClient) return CClient::getPoolRessource() ;

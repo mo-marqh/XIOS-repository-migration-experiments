@@ -69,7 +69,10 @@ namespace xios
 
   CEventScheduler::~CEventScheduler()
   {
-
+    while (!pendingSentParentRequest.empty() || !pendingRecvParentRequest.empty() || !pendingRecvChildRequest.empty() ||  !pendingSentChildRequest.empty())
+    {
+      checkEvent() ;
+    } 
   } 
 
   void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId)

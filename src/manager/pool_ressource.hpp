@@ -22,6 +22,7 @@ namespace xios
     
    public:
     CPoolRessource(MPI_Comm poolComm, const std::string& Id) ;
+    ~CPoolRessource() ;
     
     void createService(const std::string& serviceId, int type, int size, int nbPartition) ;
     void createService(MPI_Comm serviceComm, const std::string& serviceId, int partitionId, int type, int nbPartitions) ; 

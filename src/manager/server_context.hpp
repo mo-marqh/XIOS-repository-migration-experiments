@@ -18,6 +18,7 @@ namespace xios
     CServerContext(CService* parentService, MPI_Comm contextComm, const std::string& poolId, const std::string& serviceId, 
                   const int& partitionId, const std::string& contextId) ;
     ~CServerContext() ;
+    static void releaseStaticAllocation(void) { overlapedComm_.clear() ;}
 
     bool createIntercomm(const string& poolId, const string& serviceId, const int& partitionId, const string& contextId, 
                          const MPI_Comm& intraComm, MPI_Comm& interCommClient, MPI_Comm& interCommServer, bool wait=true) ;

@@ -62,7 +62,8 @@ namespace xios
      delete server;
      for (std::vector<CContextClient*>::iterator it = clientPrimServer.begin(); it != clientPrimServer.end(); it++)  delete *it;
      for (std::vector<CContextServer*>::iterator it = serverPrimServer.begin(); it != serverPrimServer.end(); it++)  delete *it;
-
+     if (registryIn!=nullptr) delete registryIn ;
+     if (registryOut!=nullptr) delete registryOut ;
    }
 
    //----------------------------------------------------------------
@@ -99,6 +100,16 @@ namespace xios
    }
    CATCH
 
+   void CContext::releaseStaticAllocation(void)
+   TRY
+   {
+      CDomain::releaseStaticAllocation();
+      CAxis::releaseStaticAllocation();
+      CScalar::releaseStaticAllocation();
+      if (root) root.reset() ;
+   }
+   CATCH
+   
    //----------------------------------------------------------------
 
    /*!
@@ -325,6 +336,10 @@ void CContext::removeAllContexts(void)
   #define DECLARE_NODE_PAR(Name_, name_) 
   #include "node_type.conf"
 */
+  CObjectFactory::deleteAllContexts<CContext>() ;
+  CObjectFactory::deleteAllContexts<CContextGroup>() ;
+  CObjectFactory::clearCurrentContextId();
+  CGroupFactory::clearCurrentContextId();
 }
    ///---------------------------------------------------------------
 
@@ -537,7 +552,7 @@ void CContext::removeAllContexts(void)
       MPI_Comm_rank(intraComm_,&commRank) ;
       if (commRank==0)
       {
-        if (attached_mode) CXios::getContextsManager()->createServerContext(CClient::getPoolRessource()->getId(), CXios::defaultServerId, 0, getContextId()) ;
+        if (attached_mode) CXios::getContextsManager()->createServerContext(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultServerId, 0, getContextId()) ;
         else if (CXios::usingServer2) CXios::getContextsManager()->createServerContext(CXios::defaultPoolId, CXios::defaultGathererId, 0, getContextId()) ;
         else  CXios::getContextsManager()->createServerContext(CXios::defaultPoolId, CXios::defaultServerId, 0, getContextId()) ;
       }
@@ -546,7 +561,7 @@ void CContext::removeAllContexts(void)
       
       if (attached_mode)
       {
-        parentServerContext_->createIntercomm(CClient::getPoolRessource()->getId(), CXios::defaultServerId, 0, getContextId(), intraComm_, 
+        parentServerContext_->createIntercomm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultServerId, 0, getContextId(), intraComm_, 
                                               interCommClient, interCommServer) ;
         int type ; 
         if (commRank==0) CXios::getServicesManager()->getServiceType(CClient::getPoolRessource()->getId(), CXios::defaultServerId, 0, type) ;
@@ -810,6 +825,7 @@ void CContext::removeAllContexts(void)
       {
         closeAllFile();
         client->releaseBuffers();
+        server->releaseBuffers();
       }
 
       freeComms() ;

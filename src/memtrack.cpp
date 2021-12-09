@@ -493,7 +493,7 @@ namespace MemTrack
           orderedBlocks.insert({size,pBlockHeader}) ;
         }
         
-        //xios::CAddr2line myaddr2line ;
+        xios::CAddr2line myaddr2line ;
         size_t i = 0 ;
         for(auto& it : orderedBlocks)
         {
@@ -509,8 +509,8 @@ namespace MemTrack
             memReport<<strbuff ;
             sprintf(strbuff,"... %s:%d\n", fileName, lineNum);
             memReport<<strbuff ;
-            //pBlockHeader->backTrace(memReport, myaddr2line);
-            pBlockHeader->backTrace(memReport);
+            pBlockHeader->backTrace(memReport, myaddr2line);
+            //pBlockHeader->backTrace(memReport);
             i++ ;
         }
         // Clean up.

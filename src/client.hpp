@@ -44,6 +44,7 @@ namespace xios
         //! Close the error log file if it opens
         static void closeErrorStream();
         static CPoolRessource* getPoolRessource(void) { return poolRessource_ ; }
+        static void finalizePoolRessource() ;
 
         static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
       protected:

@@ -19,6 +19,7 @@ namespace xios
       static std::string getAllCumulatedMem(void) ;
       static void disable(void) { enabled_=false ;}
       static void enable(void) {enabled_=true ;}
+      static void release(void) {allMemChecker_.clear();}
     private:
       static void check(void) ;
       double cumulatedMem_;

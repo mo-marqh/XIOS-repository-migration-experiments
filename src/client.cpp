@@ -16,6 +16,7 @@
 #include <functional>
 #include <cstdio>
 #include "workflow_graph.hpp"
+#include "release_static_allocation.hpp"
 
 namespace xios
 {
@@ -421,7 +422,7 @@ namespace xios
       MPI_Comm_size(contextComm,&commSize) ;
 
       getPoolRessource()->createService(contextComm, id, 0, CServicesManager::CLIENT, 1) ;
-      getPoolRessource()->createService(contextComm, CXios::defaultServerId, 0, CServicesManager::IO_SERVER, 1) ;
+      getPoolRessource()->createService(contextComm, id+"_"+CXios::defaultServerId, 0, CServicesManager::IO_SERVER, 1) ;
 
       if (commRank==0) while (!CXios::getServicesManager()->hasService(getPoolRessource()->getId(), id, 0)) { CXios::getDaemonsManager()->eventLoop();}
 
@@ -487,8 +488,9 @@ namespace xios
       CTimer::get("XIOS init/finalize",false).suspend() ;
       CTimer::get("XIOS").suspend() ;
       CXios::finalizeDaemonsManager() ;
+      finalizePoolRessource() ;
       CContext::removeAllContexts() ; // free memory for related context 
-     
+
 
       if (!is_MPI_Initialized)
       {
@@ -506,10 +508,16 @@ namespace xios
       report(0)<< " Memory report : Minimum buffer size required : " << CClientBuffer::maxRequestSize << " bytes" << endl ;
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
-    
       CWorkflowGraph::drawWorkFlowGraph_client();
+
+      xios::releaseStaticAllocation() ;
+
     }
     
+    void CClient::finalizePoolRessource() 
+    { 
+      delete poolRessource_ ; poolRessource_=nullptr ;
+    }
 
     /*!
     * Return global rank without oasis and current rank in model intraComm in case of oasis

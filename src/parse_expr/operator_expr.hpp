@@ -434,9 +434,27 @@ namespace xios
       return ret ;
     }
 
+    void release(void)
+    { 
+      opScalar.clear();
+      opScalarScalar.clear();
+      opScalarScalarScalar.clear();
+      opField.clear();
+      opFieldField.clear();
+      opFieldScalar.clear();
+      opScalarField.clear();
+      opScalarScalarField.clear();
+      opScalarFieldScalar.clear();
+      opScalarFieldField.clear();
+      opFieldScalarScalar.clear();
+      opFieldScalarField.clear();
+      opFieldFieldScalar.clear();
+      opFieldFieldField.clear();
+    }
   };
 
   extern COperatorExpr operatorExpr;
+
 }
 
 #endif

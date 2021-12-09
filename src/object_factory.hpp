@@ -20,6 +20,7 @@ namespace xios
 
          /// Accesseurs ///
          static StdString & GetCurrentContextId(void);
+         static void clearCurrentContextId(void) {CurrContext.clear(); CurrContext.shrink_to_fit(); }
 
          template <typename U>
             static  std::shared_ptr<U> GetObject(const StdString & id);

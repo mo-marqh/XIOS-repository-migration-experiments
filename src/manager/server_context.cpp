@@ -53,7 +53,7 @@ namespace xios
 
   CServerContext::~CServerContext()
   {
-
+    cout<<"Server Context destructor"<<endl;
   } 
 
   bool CServerContext::createIntercomm(const string& poolId, const string& serviceId, const int& partitionId, const string& contextId, 

@@ -42,6 +42,14 @@ namespace xios
     name_= poolId+"::"+serviceId+"_"+oss.str();
   }
 
+  CService::~CService()
+  {
+    delete eventScheduler_ ;
+    delete winNotify_ ;
+    for(auto& it : contexts_) delete it.second ;
+  }
+
+
   void CService::createContext( const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId)
   {
     int commSize ;
@@ -120,6 +128,7 @@ namespace xios
     {
       if (it->second->eventLoop(serviceOnly))
       {
+        delete it->second ; 
         contexts_.erase(it) ;
         // destroy server_context -> to do later
         break ;
@@ -234,10 +243,10 @@ namespace xios
      info(40)<<"CService::createContext(void)  : receive createContext notification"<<endl ;
      auto& arg=notifyInCreateContext_ ;
      string poolId = get<0>(arg) ;
-     string& serviceId = get<1>(arg) ;
+     string serviceId = get<1>(arg) ;
      int partitionId = get<2>(arg) ;
      string contextId = get<3>(arg) ;
-     contexts_[contextId] = new CServerContext(this, serviceComm_, poolId, serviceId, partitionId, contextId) ; 
+     contexts_[contextId] = new CServerContext(this, serviceComm_, poolId, serviceId, partitionId, contextId) ;
    }
 
    //to remove, not used anymore

@@ -117,6 +117,7 @@ namespace xios
     {
       if (it->second->eventLoop(serviceOnly))
       {
+        delete it->second ;
         services_.erase(it) ;
         // don't forget to free service later
         break ;
@@ -195,6 +196,11 @@ namespace xios
   {
     finalizeSignal_=true ;
     for (auto it=services_.begin(); it!=services_.end() ; ++it) it->second->finalizeSignal() ;
+  }  
+  
+  CPoolRessource::~CPoolRessource()
+  {
+    delete winNotify_ ;
+    for(auto& service : services_) delete service.second ;
   }
-
 }

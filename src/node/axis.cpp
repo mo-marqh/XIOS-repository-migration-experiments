@@ -58,6 +58,13 @@ namespace xios {
      return true;
    }
    CATCH
+   
+   void CAxis::releaseStaticAllocation(void)
+   {
+     transformationMapList_.clear() ;
+     CTransformation<CAxis>::unregisterAllTransformations() ;
+     CGridTransformationFactory<CAxis>::unregisterAllTransformations() ;
+   }
 
    ///---------------------------------------------------------------
 

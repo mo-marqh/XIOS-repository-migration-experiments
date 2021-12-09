@@ -20,6 +20,8 @@
 #include "servers_ressource.hpp"
 #include <cstdio>
 #include "workflow_graph.hpp"
+#include "release_static_allocation.hpp"
+
 
 
 namespace xios
@@ -206,7 +208,7 @@ namespace xios
       CTimer::get("XIOS event loop").suspend() ;
 
       // Delete CContext
-      CObjectTemplate<CContext>::cleanStaticDataStructure();
+      //CObjectTemplate<CContext>::cleanStaticDataStructure();
     }
 
 
@@ -313,8 +315,10 @@ namespace xios
 
 //      MPI_Comm_free(&intraComm);
       CXios::finalizeDaemonsManager();
-      CContext::removeAllContexts() ; // free memory for related context 
+      finalizeServersRessource();
       
+      CContext::removeAllContexts() ; // free memory for related context
+          
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();
@@ -324,8 +328,9 @@ namespace xios
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
-
+      
       CWorkflowGraph::drawWorkFlowGraph_server();
+      xios::releaseStaticAllocation() ; // free memory from static allocation
     }
 
     /*!
@@ -418,5 +423,10 @@ namespace xios
     void CServer::launchServersRessource(MPI_Comm serverComm)
     {
       serversRessource_ = new CServersRessource(serverComm) ;
+    }
+
+    void  CServer::finalizeServersRessource(void) 
+    { 
+      delete serversRessource_; serversRessource_=nullptr ;
     }
 }

@@ -6,8 +6,8 @@
 
 namespace xios
 {
-const StdString CFLatUnits[] = {"degrees_north", "degree_north", "degree_N", "degrees_N", "degreeN", "degreesN"};
-const StdString CFLonUnits[] = {"degrees_east", "degree_east", "degree_E", "degrees_E", "degreeE", "degreesE"};
+//const StdString CFLatUnits[] = {"degrees_north", "degree_north", "degree_N", "degrees_N", "degreeN", "degreesN"};
+//const StdString CFLonUnits[] = {"degrees_east", "degree_east", "degree_E", "degrees_E", "degreeE", "degreesE"};
 
 struct CCFKeywords
 {
@@ -16,22 +16,26 @@ struct CCFKeywords
   static const StdString XIOS_CF_coordinates;
   static const StdString XIOS_CF_bounds;
 };
-const StdString CCFKeywords::XIOS_CF_units("units");
-const StdString CCFKeywords::XIOS_CF_standard_name("standard_name");
-const StdString CCFKeywords::XIOS_CF_coordinates("coordinates");
-const StdString CCFKeywords::XIOS_CF_bounds("bounds");
 
 struct CCFConvention
 {
-  static const std::set<StdString> XIOS_CF_Latitude_units;
-  static const std::set<StdString> XIOS_CF_Longitude_units;
+  static const std::set<StdString>& XIOS_CF_Latitude_units()
+  {
+    if (XIOS_CF_Longitude_units_.empty()) XIOS_CF_Latitude_units_= {"degrees_north", "degree_north", "degree_N", "degrees_N", "degreeN", "degreesN"};
+    return XIOS_CF_Latitude_units_ ;
+  }
 
+  static const std::set<StdString>& XIOS_CF_Longitude_units()
+  {
+    if (XIOS_CF_Longitude_units_.empty()) XIOS_CF_Longitude_units_= {"degrees_east", "degree_east", "degree_E", "degrees_E", "degreeE", "degreesE"};
+    return XIOS_CF_Longitude_units_ ;
+  }
+  static void releaseStaticAllocation(void) { XIOS_CF_Latitude_units_.clear() ; XIOS_CF_Longitude_units_.clear() ; }
 private:
   CCFConvention();
+  static std::set<StdString> XIOS_CF_Latitude_units_;
+  static std::set<StdString> XIOS_CF_Longitude_units_;
 };
-
-const std::set<StdString> CCFConvention::XIOS_CF_Latitude_units(CFLatUnits, CFLatUnits+sizeof(CFLatUnits)/sizeof(CFLatUnits[0]));
-const std::set<StdString> CCFConvention::XIOS_CF_Longitude_units(CFLonUnits, CFLonUnits+sizeof(CFLonUnits)/sizeof(CFLonUnits[0]));
 
 } // namespace xios
 

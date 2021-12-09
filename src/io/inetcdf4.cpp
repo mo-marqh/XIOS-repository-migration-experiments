@@ -762,7 +762,7 @@ namespace xios
       if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &(*itList), path))
       {
         StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &(*itList), path);
-        if (CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit))
+        if (CCFConvention::XIOS_CF_Longitude_units().end() != CCFConvention::XIOS_CF_Longitude_units().find(unit))
         {
           lonName = *itList;
           return lonName;
@@ -784,7 +784,7 @@ namespace xios
       if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &(*itList), path))
       {
         StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &(*itList), path);
-        if (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit))
+        if (CCFConvention::XIOS_CF_Latitude_units().end() != CCFConvention::XIOS_CF_Latitude_units().find(unit))
         {
           latName = *itList;
           return latName;
@@ -810,8 +810,8 @@ namespace xios
     if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &varname, path))
     {
       StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &varname, path);
-      return      (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit)
-                || CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit));
+      return      (CCFConvention::XIOS_CF_Latitude_units().end() != CCFConvention::XIOS_CF_Latitude_units().find(unit)
+                || CCFConvention::XIOS_CF_Longitude_units().end() != CCFConvention::XIOS_CF_Longitude_units().find(unit));
     }
     else return false ;
   }

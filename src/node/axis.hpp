@@ -22,6 +22,7 @@
 #include "gatherer_connector.hpp"
 #include "distribution_type.hpp"
 #include "generic_algorithm_transformation.hpp"
+#include "grid_transformation_factory_impl.hpp"
 
 
 namespace xios
@@ -67,6 +68,7 @@ namespace xios
          explicit CAxis(const StdString & id);
          CAxis(const CAxis & axis);       // Not implemented yet.
          CAxis(const CAxis * const axis); // Not implemented yet.
+         static void releaseStaticAllocation(void) ; // release static allocation on heap
 
          static CAxis* createAxis();
          static CAxis* get(const string& id, bool noError=false) ; //<! return axis pointer using id

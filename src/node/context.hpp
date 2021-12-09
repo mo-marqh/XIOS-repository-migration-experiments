@@ -82,6 +82,8 @@ namespace xios
          /// Destructeur ///
          virtual ~CContext(void);
 
+         static void releaseStaticAllocation(void) ;
+
          //---------------------------------------------------------
 
       public :
@@ -228,7 +230,7 @@ namespace xios
 
         // Get context root
         static CContextGroup* getRoot(void);
-
+       
         // Set current context
         static void setCurrent(const string& id);
 
@@ -328,8 +330,8 @@ namespace xios
   
          std::vector<std::string> primServerId_;
 
-         CRegistry* registryIn ;    //!< input registry which is read from file
-         CRegistry* registryOut ;   //!< output registry which will be written into file at the finalize
+         CRegistry* registryIn=nullptr ;    //!< input registry which is read from file
+         CRegistry* registryOut=nullptr ;   //!< output registry which will be written into file at the finalize
 
 
         MPI_Comm intraComm_ ; //! context intra communicator

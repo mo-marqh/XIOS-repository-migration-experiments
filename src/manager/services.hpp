@@ -20,6 +20,8 @@ namespace xios
 
     CService(MPI_Comm serviceComm, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
              int type, int nbPartitions) ;
+    ~CService() ;
+
     bool eventLoop(bool serviceOnly=false) ;
     void createContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
     void checkCreateContextNotification(void) ;

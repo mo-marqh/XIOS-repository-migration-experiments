@@ -23,6 +23,7 @@ namespace xios
     public:
     
     CServersRessource(MPI_Comm serverComm) ;
+    ~CServersRessource() ;
     void createPool(const string& poolId, const int size) ;
     void createPool(void) ;
     bool eventLoop(bool serviceOnly=false) ;

@@ -52,7 +52,7 @@ namespace xios {
       /// Destructeur ///
     public:
       virtual ~CTransformation(void) {}
-
+      static void unregisterAllTransformations();
     protected:
       typedef CTransformation<T>* (*createTransformationCallBack)(const StdString&, xml::CXMLNode*);
       typedef CTransformation<T>* (*getIdTransformationCallBack)(const StdString&);
@@ -61,6 +61,8 @@ namespace xios {
 
       static bool registerTransformation(ETranformationType transType, tuple<createTransformationCallBack,getIdTransformationCallBack> callBackFunctions);
       static bool unregisterTransformation(ETranformationType transType);
+     
+
 
     protected:
       virtual std::vector<StdString> checkAuxInputs_() { return std::vector<StdString>(); }
@@ -110,6 +112,16 @@ namespace xios {
   {
     int transTypeInt = transType;
     return (1 == (*callBacks_).erase(transType));
+  }
+
+  template<typename T>
+  void CTransformation<T>::unregisterAllTransformations(void)
+  {
+    if (0 != callBacks_)
+    {
+      callBacks_->clear();
+      delete callBacks_ ;  
+    }
   }
 
 } // namespace xios

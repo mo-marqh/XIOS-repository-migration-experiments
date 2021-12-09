@@ -17,6 +17,7 @@ namespace xios
 
          /// Mutateurs ///
          static void SetCurrentContextId(const StdString & context);
+         static void clearCurrentContextId() {CurrContext.clear(); CurrContext.shrink_to_fit();} 
 
          template <typename U>
             static void AddGroup(std::shared_ptr<U> pgroup,

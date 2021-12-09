@@ -66,6 +66,7 @@ namespace xios
 
         static CServersRessource* getServersRessource(void) { return serversRessource_;}
         static void launchServersRessource(MPI_Comm commServer) ;
+        static void finalizeServersRessource(void) ;
         static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
       
       private:
@@ -74,7 +75,7 @@ namespace xios
         static int nbContexts;                    //!< Number of contexts registered by server
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
-        static CServersRessource* serversRessource_ ;
+        static CServersRessource* serversRessource_  ;
     };
 }
 

@@ -24,6 +24,7 @@
 #include "grid_scatterer_connector.hpp"
 #include "grid_gatherer_connector.hpp"
 #include "transformation_path.hpp"
+#include "grid_transformation_factory_impl.hpp"
 
 #include <algorithm>
 #include <regex>
@@ -61,6 +62,12 @@ namespace xios {
    {
    }
 
+   void CDomain::releaseStaticAllocation(void)
+   {
+     transformationMapList_.clear() ;
+     CTransformation<CDomain>::unregisterAllTransformations() ;
+     CGridTransformationFactory<CDomain>::unregisterAllTransformations() ;
+   }
    ///---------------------------------------------------------------
 
    void CDomain::assignMesh(const StdString meshName, const int nvertex)

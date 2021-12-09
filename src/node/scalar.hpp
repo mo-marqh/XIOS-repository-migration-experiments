@@ -19,6 +19,7 @@
 #include "gatherer_connector.hpp"
 #include "distribution_type.hpp"
 #include "generic_algorithm_transformation.hpp"
+#include "grid_transformation_factory_impl.hpp"
 
 
 namespace xios
@@ -66,7 +67,8 @@ namespace xios
       explicit CScalar(const StdString & id);
       CScalar(const CScalar & var);       // Not implemented yet.
       CScalar(const CScalar * const var); // Not implemented yet.
-
+      static void releaseStaticAllocation(void) ; // release static allocation on heap
+      
       /// Destructeur ///
       virtual ~CScalar(void);
 
