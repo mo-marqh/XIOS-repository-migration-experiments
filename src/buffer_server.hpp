@@ -16,6 +16,7 @@ namespace xios
       ~CServerBuffer() ;
 
       bool isBufferFree(size_t count) ;
+      bool isResizing(void) { return resizingBuffer_ ;}
       void* getBuffer(size_t count) ;
       void freeBuffer(size_t count) ;
       void createWindows(MPI_Comm oneSidedComm) ;

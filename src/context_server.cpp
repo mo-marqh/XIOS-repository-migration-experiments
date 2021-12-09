@@ -206,7 +206,8 @@ namespace xios
         int count ;
         MPI_Get_count(&status,MPI_CHAR,&count);
         map<int,CServerBuffer*>::iterator it = buffers.find(rank);
-        if (it->second->isBufferFree(count))
+        if ( (it->second->isBufferFree(count) && !it->second->isResizing()) // accept new request if buffer is free
+          || (it->second->isResizing() && it->second->isBufferEmpty()) )    // or if resizing wait for buffer is empty
         {
           char * addr;
           addr=(char*)it->second->getBuffer(count);
@@ -303,6 +304,7 @@ namespace xios
       {
         buffers[rank]->notifyBufferResizing() ;
         buffers[rank]->updateCurrentWindows() ;
+        buffers[rank]->freeBuffer(count) ;
         info(100)<<"Receive NotifyChangeBufferSize from client rank "<<rank<<endl ;
       } 
       else if (timeLine==timelineEventChangeBufferSize)
@@ -310,8 +312,9 @@ namespace xios
         size_t newSize ;
         vector<MPI_Aint> winAdress(2) ;
         newBuffer>>newSize>>winAdress[0]>>winAdress[1] ;
-        buffers.erase(rank) ;
-        buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winAdress, 0, newSize)));
+        buffers[rank]->freeBuffer(count) ;
+        delete buffers[rank] ;
+        buffers[rank] = new CServerBuffer(windows_[rank], winAdress, 0, newSize) ;
         info(100)<<"Receive ChangeBufferSize from client rank "<<rank<<"  newSize : "<<newSize<<" Address : "<<winAdress[0]<<" & "<<winAdress[1]<<endl ;
       }
       else
@@ -402,6 +405,7 @@ namespace xios
   {
     map<int,CServerBuffer*>::iterator it;
     for(it=buffers.begin();it!=buffers.end();++it) delete it->second;
+    buffers.clear() ;
   }
 
   void CContextServer::releaseBuffers()
@@ -451,8 +455,7 @@ namespace xios
       notifyClientsFinalize() ;
       CTimer::get("receiving requests").suspend();
       context->finalize();
-      freeWindows() ;
-
+      
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;
       for (itMap = itbMap; itMap != iteMap; ++itMap)
