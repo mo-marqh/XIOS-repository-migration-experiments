@@ -410,8 +410,8 @@ namespace xios
 
   void CContextServer::releaseBuffers()
   {
-    for(auto it=buffers.begin();it!=buffers.end();++it) delete it->second ;
-    buffers.clear() ; 
+    //for(auto it=buffers.begin();it!=buffers.end();++it) delete it->second ;
+    //buffers.clear() ; 
     freeWindows() ;
   }
 
