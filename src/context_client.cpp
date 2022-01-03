@@ -368,12 +368,12 @@ namespace xios
    //! Release all buffers
    void CContextClient::releaseBuffers()
    {
-      //map<int,CClientBuffer*>::iterator itBuff;
-      //for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
-      //{
-      //   delete itBuff->second;
-      //}
-      //buffers.clear();
+      map<int,CClientBuffer*>::iterator itBuff;
+      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
+      {
+         delete itBuff->second;
+      }
+      buffers.clear();
 
 // don't know when release windows
 
