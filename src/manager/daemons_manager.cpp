@@ -68,6 +68,7 @@ namespace xios
       CXios::finalizeRegistryManager() ;
       isFinalized_=true ;
     }
+    return isFinalized_;
   }
 
 }
