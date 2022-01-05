@@ -1,4 +1,4 @@
 arch = X64_IRENE, X64_IRENE_GNU, X64_IRENE_LLVM
-mode = prod
+mode = prod, debug
 #arch = X64_IRENE_GNU
 #mode = debug

@@ -10,7 +10,7 @@
 %PROD_CFLAGS    -O3 -D BOOST_DISABLE_ASSERTS
 #%DEV_CFLAGS     -g -fbacktrace
 %DEV_CFLAGS     -g 
-%DEBUG_CFLAGS   -DBZ_DEBUG -g -fbacktrace -fno-inline
+%DEBUG_CFLAGS   -DBZ_DEBUG -g -fbacktrace -fno-inline -fsanitize=return
 
 %BASE_FFLAGS    -D__NONE__ --free-form -ffree-line-length-0
 %PROD_FFLAGS    -O3
