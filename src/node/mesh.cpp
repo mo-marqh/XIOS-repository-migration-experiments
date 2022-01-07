@@ -66,6 +66,9 @@ namespace xios {
       CMesh::meshList.insert( make_pair(meshName, newMesh) );
       return &meshList[meshName];
     }
+
+    MISSING_RETURN( "CMesh* CMesh::getMesh (StdString meshName, int nvertex)" );
+    return nullptr;
   }
 
 ///----------------------------------------------------------------
