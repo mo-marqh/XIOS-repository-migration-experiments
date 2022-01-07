@@ -2,6 +2,9 @@
 
 export build_dir=xios_test_suite/RUN_TEST_SUITE/build_${arch}_${mode}
 export svnR=$(svn info --show-item revision ../../)
+if [[ -v enable_mem_track ]]; then
+  echo "enable_mem_track is set to '$enable_mem_track'"
+fi
 
 echo "Start Building XIOS ... "
 
@@ -53,7 +56,7 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   echo "#MSUB -r XIOS_rev"$svnR >> compile.sh
   echo "#MSUB -m work,scratch" >> compile.sh
   echo "cd ../.. ">> compile.sh
-  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --use_tv --build_dir ${build_dir} --job 16" >> compile.sh
+  echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --use_tv ${enable_mem_track} --build_dir ${build_dir} --job 16" >> compile.sh
   cmd=$(ccc_msub compile.sh)
   jobid="${cmd//[!0-9]/}"
   output=$(ccc_mpp | grep ${jobid})

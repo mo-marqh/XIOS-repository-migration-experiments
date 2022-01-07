@@ -11,6 +11,7 @@ param_short_list = ["DomMask",    "AxisMask", "Dom",    "Srv2",       "NbClnt", 
 
 mode=os.getenv("mode")
 arch=os.getenv("arch")
+enable_mem_track=os.getenv("enable_mem_track")
 machine=os.getenv("xios_machine_name")
 svnR=os.getenv("svnR")
 user_acct=os.getenv("user_account")
@@ -175,6 +176,18 @@ def main():
     test_type = get_test_type()
 
     for test_folder in test_folder_list:
+        # check if test concerns xios features (NetCDF), or memory consumption (mem files)
+        files_list=""
+        flist = open(test_folder+"/checkfile.def", 'r')
+        files_list = flist.read()
+        flist.close()
+        if ( enable_mem_track==None ) and ( not('.mem' in files_list) ) :
+            print( "test_folder = ", test_folder, " : launch std run")
+        elif ( enable_mem_track=='--memtrack full' ) and ( '.mem' in files_list ) :
+            print( "test_folder = ", test_folder, " : launch mem run")            
+        else :
+            continue
+
         config_list=[]
         config_name=[]
         with open(test_folder+"/user_param_"+test_type+".json", "r") as f:

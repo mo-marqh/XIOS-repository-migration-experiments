@@ -12,6 +12,14 @@ export mode=prod
 bash ./run_test
 
 
+# Must be run after main (X64_IRENE, prod) test to append in the same report
+export arch=X64_IRENE
+export mode=prod
+export enable_mem_track="--memtrack full"
+
+bash ./run_test
+
+
 #export arch=X64_IRENE
 #export mode=debug
 

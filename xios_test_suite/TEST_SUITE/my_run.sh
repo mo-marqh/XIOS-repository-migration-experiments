@@ -7,13 +7,28 @@ svnurl=$(svn info --show-item url ../../)
 PWD=$(pwd)
 
 fn=report_${svnR}_${arch}_${mode}.txt
-echo "#revision" ${svnR} > ${fn}
-echo "#url" ${svnurl} >> ${fn}
-echo "#machine" ${xios_machine_name} >> ${fn}
-echo "#build_dir" $(pwd)/build_${arch}_${mode} >> ${fn}
-echo "#arch" $arch >> ${fn}
-echo "#mode" $mode >> ${fn}
 
+if [ -z ${enable_mem_track+x} ]; then
+  # initialize the report for the main part of the test (without memory tracking, see step2.py for details)
+  echo "#revision" ${svnR} > ${fn}
+  echo "#url" ${svnurl} >> ${fn}
+  echo "#machine" ${xios_machine_name} >> ${fn}
+  echo "#build_dir" $(pwd)/build_${arch}_${mode} >> ${fn}
+  echo "#arch" $arch >> ${fn}
+  echo "#mode" $mode >> ${fn}
+else
+  if  [ ! -f "$fn" ]; then 
+    # initialize the report if it does not exist
+    echo "#revision" ${svnR} > ${fn}
+    echo "#url" ${svnurl} >> ${fn}
+    echo "#machine" ${xios_machine_name} >> ${fn}
+    echo "#build_dir" $(pwd)/build_${arch}_${mode} >> ${fn}
+    echo "#arch" $arch >> ${fn}
+    echo "#mode" $mode >> ${fn}
+    echo "#memtrack full" >> ${fn}
+  fi
+  # else write in the same report
+fi
 
 ${PYTHON} step1.py
 
