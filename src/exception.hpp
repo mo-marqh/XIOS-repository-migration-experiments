@@ -78,6 +78,14 @@ namespace xios
        throw exc;                               \
 }
 
+#define MISSING_RETURN(id)  \
+{                     \
+       xios::CException exc(id);                \
+       exc.getStream() << INFO("Missing return");              \
+       error << exc.getMessage() << std::endl;  \
+       throw exc;                               \
+}
+
 #ifdef __XIOS_EXCEPTION
   #define TRY                          \
     {                                  \

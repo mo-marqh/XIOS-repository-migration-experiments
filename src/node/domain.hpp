@@ -174,6 +174,9 @@ namespace xios
          {
            if (hasDirectDomainReference()) if (!getDirectDomainReference()->isCompleted()) return false;
            else return isCompleted_ ;
+
+           MISSING_RETURN( "bool CDomain::isCompleted() " );
+           return true;
          }
          void setCompleted(void) { isCompleted_=true ; }
          void unsetCompleted(void) { isCompleted_=false ; }

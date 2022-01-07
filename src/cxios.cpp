@@ -309,6 +309,9 @@ namespace xios
   {
     if (isClient) return CClient::getPoolRessource() ;
     else if (isServer) return CServer::getServersRessource()->getPoolRessource() ;
+    
+    MISSING_RETURN( "CPoolRessource* CXios::getPoolRessource()" );
+    return nullptr;
   }
 }
 

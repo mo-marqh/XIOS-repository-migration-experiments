@@ -460,6 +460,9 @@ namespace xios
         else ERROR("CGrid::getAssociatedDomain(const string& domainId)",<<"Cannot find domain with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
       }  
     }
+
+    MISSING_RETURN( "CDomain* CGrid::getAssociatedDomain(const string& domainId, bool noError)" );
+    return nullptr;
   } 
 
   CAxis* CGrid::getAssociatedAxis(const string& axisId, bool noError)
@@ -524,6 +527,9 @@ namespace xios
         else ERROR("CGrid::getAssociatedAxis(const string& axisId)",<<"Cannot find axis with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
       }  
     }
+
+    MISSING_RETURN( "CAxis* CGrid::getAssociatedAxis(const string& axisId, bool noError)" );
+    return nullptr;
   } 
 
   CScalar* CGrid::getAssociatedScalar(const string& scalarId, bool noError)
@@ -588,6 +594,9 @@ namespace xios
         else ERROR("CGrid::getAssociatedScalar(const string& scalarId)",<<"Cannot find scalar with [ id = "<< id <<" ] at [ pos = "<<pos<<" ] in the grid");
       }  
     }
+
+    MISSING_RETURN( "CScalar* CGrid::getAssociatedScalar(const string& scalarId, bool noError)" );
+    return nullptr;
   } 
 
 

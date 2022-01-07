@@ -97,6 +97,9 @@ Coord exact_barycentre(const Coord *x, int n)
   else if (n == 0) return ORIGIN;
   else if (n == 2) return midpoint(x[0], x[1]);
   else if (n == 1) return x[0];
+
+  error_exit( "Missing return in : Coord exact_barycentre(const Coord *x, int n)" );
+  return ORIGIN;
 }
 
 Coord sc_gc_moon_normalintegral(Coord a, Coord b, Coord pole)

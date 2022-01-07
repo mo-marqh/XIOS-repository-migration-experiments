@@ -38,7 +38,10 @@ int CServerDistributionDescription::defaultDistributedDimension(int gridDimensio
       break;
     default:
       break;
-  } 
+  }
+
+  MISSING_RETURN( "int CServerDistributionDescription::defaultDistributedDimension(int gridDimension, ServerDistributionType serType)" );
+  return -1;
 }
 
 /*!

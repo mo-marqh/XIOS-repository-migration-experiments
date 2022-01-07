@@ -68,6 +68,9 @@ namespace xios
       else if(hasCoordinateDest_) return false ;
     }
     if (pos==1) return false ;
+
+    MISSING_RETURN( "bool CAxisAlgorithmInterpolateCoordinate::transformAuxField(int pos)" );
+    return false;
   }
 
   CAxisAlgorithmInterpolateCoordinate::CAxisAlgorithmInterpolateCoordinate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)

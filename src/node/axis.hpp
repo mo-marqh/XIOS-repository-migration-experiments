@@ -208,6 +208,9 @@ namespace xios
          {
            if (hasDirectAxisReference()) if (!getDirectAxisReference()->isCompleted()) return false;
            else return isCompleted_ ;
+
+           MISSING_RETURN( "bool CAxis::isCompleted() " );
+           return true;
          }
          void setCompleted(void) { isCompleted_=true ; }
          void unsetCompleted(void) { isCompleted_=false ; }
