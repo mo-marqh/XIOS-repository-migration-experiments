@@ -131,7 +131,7 @@ def main():
                         
                         elif ( enable_mem_track=='--memtrack full' ) and ( '.mem' in files_list ) : # mem file
                             validated = 1
-                            OSinfo("diff "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+"  2>&1  > diff_"+checkfile+".txt")
+                            OSinfo("diff "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+" | grep bytes 2>&1  > diff_"+checkfile+".txt")
                             if os.stat("diff_"+checkfile+".txt").st_size==0: # if no diff -> set 0
                                 validated = 1
                             else: # if diff returns diff -> set -1
