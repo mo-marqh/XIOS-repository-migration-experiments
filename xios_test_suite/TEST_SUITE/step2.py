@@ -46,6 +46,25 @@ def nonblank_lines(f):
         if line and not line.startswith("#"):
             yield line
 
+
+def extract_bytes( filename ):
+    print( filename )
+    fmem = open(filename, 'r')
+    bytes_tot = 0
+    for line in fmem:
+        if not( "bytes" in line ):
+            continue
+        
+        bytes_line = line.replace("\n", "")
+        print( bytes_line.split() )
+        bytes_str = bytes_line.split()[2]
+        if (bytes_str.isdigit() ):
+            bytes_tot += int( bytes_str )
+    fmem.close()
+  
+    return bytes_tot
+
+
 def main():
     ref_list = glob.glob(ref_location+"/*")
     for i in range(len(ref_list)):
@@ -131,10 +150,11 @@ def main():
                         
                         elif ( enable_mem_track=='--memtrack full' ) and ( '.mem' in files_list ) : # mem file
                             validated = 1
-                            OSinfo("diff "+config+"/"+checkfile+" "+"reference/ref_"+config+"/"+checkfile+" | grep bytes 2>&1  > diff_"+checkfile+".txt")
-                            if os.stat("diff_"+checkfile+".txt").st_size==0: # if no diff -> set 0
+                            ref_memory = extract_bytes( "reference/ref_"+config+"/"+checkfile )
+                            res_memory = extract_bytes( config+"/"+checkfile )
+                            if ( ref_memory == res_memory ) :
                                 validated = 1
-                            else: # if diff returns diff -> set -1
+                            else:
                                 validated = -1
                             report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(validated)+"\n")
 

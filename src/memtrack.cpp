@@ -509,8 +509,8 @@ namespace MemTrack
             memReport<<strbuff ;
             sprintf(strbuff,"... %s:%d\n", fileName, lineNum);
             memReport<<strbuff ;
-            pBlockHeader->backTrace(memReport, myaddr2line);
-            //pBlockHeader->backTrace(memReport);
+            //pBlockHeader->backTrace(memReport, myaddr2line);
+            pBlockHeader->backTrace(memReport);
             i++ ;
         }
         // Clean up.
