@@ -374,7 +374,7 @@ TRY
   int nb_inputs=dataAuxInputs.size();
   
   
-  if (!has_src)
+  if (!has_src && !has_dst)
   {
     vecAxisValue.resize(1);
     vecAxisValue[0].resize(axisSrc_->value.numElements());
@@ -384,7 +384,9 @@ TRY
   }
   else 
   {
-    CField* field = CField::get(coordinate_);
+    CField* field ;
+    if (has_src) field = CField::get(coordinate_);
+    else field = CField::get(coordinateDST_);
     CGrid* grid = field->grid;
 
     std::vector<CDomain*> domListP = grid->getDomains();
@@ -452,7 +454,14 @@ TRY
           itIndex = globalLocalIndexSendToServer.find(globalIndex);
           if (iteIndex != itIndex)
           {
-            vecAxisValue[indexMask](axisValueSize) = (*dataAuxInputs[0])(itIndex->second);
+            if (has_src)
+            {
+              vecAxisValue[indexMask](axisValueSize) = (*dataAuxInputs[0])(itIndex->second);
+            }
+            else
+            {
+              vecAxisValue[indexMask](axisValueSize) = axisSrc_-> value(axisValueSize) ;
+            }
             ++axisValueSize;
           }
         }
