@@ -39,7 +39,7 @@ namespace xios
 
     ostringstream oss;
     oss<<partitionId;
-    name_= poolId+"::"+serviceId+"_"+oss.str();
+    name_= poolId+"__"+serviceId+"_"+oss.str();
   }
 
   CService::~CService()

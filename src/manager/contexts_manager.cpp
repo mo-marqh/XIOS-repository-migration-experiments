@@ -203,7 +203,7 @@ namespace xios
     {
       ostringstream oss;
       oss<<partitionId;
-      return poolId+"::"+serviceId+"_"+oss.str()+"::"+contextId;
+      return poolId+"__"+serviceId+"_"+oss.str()+"__"+contextId;
     }
   }
 

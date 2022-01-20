@@ -417,16 +417,16 @@ namespace xios
 
   void CContextServer::freeWindows()
   {
-    if (!isAttachedModeEnabled())
-    {
-      for(auto& it : winComm_)
-      {
-        int rank = it.first ;
-        MPI_Win_free(&windows_[rank][0]);
-        MPI_Win_free(&windows_[rank][1]);
-        MPI_Comm_free(&winComm_[rank]) ;
-      }
-    }
+    //if (!isAttachedModeEnabled())
+    //{
+    //  for(auto& it : winComm_)
+    //  {
+    //    int rank = it.first ;
+    //    MPI_Win_free(&windows_[rank][0]);
+    //    MPI_Win_free(&windows_[rank][1]);
+    //    MPI_Comm_free(&winComm_[rank]) ;
+    //  }
+    //}
   }
 
   void CContextServer::notifyClientsFinalize(void)
