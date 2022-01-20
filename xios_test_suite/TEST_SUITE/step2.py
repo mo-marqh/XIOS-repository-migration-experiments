@@ -52,7 +52,7 @@ def extract_bytes( filename ):
     fmem = open(filename, 'r')
     bytes_tot = 0
     for line in fmem:
-        if not( "bytes" in line ):
+        if not line.startswith("***"):
             continue
         
         bytes_line = line.replace("\n", "")

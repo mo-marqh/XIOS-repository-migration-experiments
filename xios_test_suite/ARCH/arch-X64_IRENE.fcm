@@ -16,10 +16,10 @@
 %PROD_FFLAGS    -O3 -g
 #%DEV_FFLAGS     -g -traceback
 %DEV_FFLAGS     -g 
-%DEBUG_FFLAGS   -g -traceback
+%DEBUG_FFLAGS   -g -traceback -fno-inline
 
 %BASE_INC       -D__NONE__
-%BASE_LD        -lstdc++
+%BASE_LD        -lstdc++ -Wl,--export-dynamic
 
 %CPP            mpicc -EP
 %FPP            cpp -P
