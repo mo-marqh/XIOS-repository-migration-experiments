@@ -59,8 +59,6 @@ namespace xios
       /////////////////////////////////////////
       ///////////// PART 1 ////////////////////
       /////////////////////////////////////////
-      CTimer::get("XIOS").resume() ;
-      CTimer::get("XIOS initialize").resume() ;
       // don't use OASIS
       if (!CXios::usingOasis)
       {
@@ -99,6 +97,8 @@ namespace xios
 
         oasis_get_localcomm(serverComm);
       }
+      CTimer::get("XIOS").resume() ;
+      CTimer::get("XIOS initialize").resume() ;
  
       /////////////////////////////////////////
       ///////////// PART 2 ////////////////////
