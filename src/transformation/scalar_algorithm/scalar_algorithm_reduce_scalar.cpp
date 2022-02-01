@@ -9,6 +9,8 @@
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
 #include "reduction.hpp"
+#include "grid_algorithm_reduce.hpp"
+
 
 
 namespace xios {
@@ -46,7 +48,7 @@ CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(bool isSource, CScala
  : CAlgorithmTransformationReduce(isSource)
 TRY
 {
-  eliminateRedondantSrc_= false ;
+  scalarDestination->checkAttributes() ;
   if (algo->operation.isEmpty())
     ERROR("CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo)",
            << "Operation must be defined."
@@ -74,12 +76,30 @@ TRY
          << "Scalar destination " << scalarDestination->getId());
 
   }
-  transformationMapping_[0].push_back(0) ;
+  
+  auto& transMap = this->transformationMapping_;
+  
+  CArray<size_t,1> dstGlobalIndex ;
+  scalarDestination->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(dstGlobalIndex) ;
+  size_t nbIdx = dstGlobalIndex.numElements();
 
-  scalarDestination->checkAttributes() ;
+  for (size_t idx = 0; idx < nbIdx; ++idx)
+  {
+    size_t globalIdx = dstGlobalIndex(idx);
+    transMap[globalIdx].resize(1);
+    transMap[globalIdx][0]=globalIdx ;      
+  }
+
   this->computeAlgorithm(scalarSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ; 
 }
 CATCH
+
+shared_ptr<CGridAlgorithm> CScalarAlgorithmReduceScalar::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
+{
+  auto algo=make_shared<CGridAlgorithmReduce>(gridSrc, gridDst, pos, shared_from_this(), operator_) ;
+  algo->computeAlgorithm(false) ;
+  return algo ; 
+}
 
 CScalarAlgorithmReduceScalar::~CScalarAlgorithmReduceScalar()
 TRY

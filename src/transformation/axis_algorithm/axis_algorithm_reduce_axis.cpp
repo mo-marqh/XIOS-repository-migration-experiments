@@ -11,6 +11,7 @@
 #include "axis.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
+#include "grid_algorithm_reduce.hpp"
 
 
 namespace xios {
@@ -49,9 +50,14 @@ CAxisAlgorithmReduceAxis::CAxisAlgorithmReduceAxis(bool isSource, CAxis* axisDes
  : CAlgorithmTransformationReduce(isSource)
 TRY
 {
-  eliminateRedondantSrc_= false ;
+  if (!axisDestination->checkGeometricAttributes(false))
+  {
+    axisDestination->resetGeometricAttributes();
+    axisDestination->setGeometricAttributes(*axisSource) ;
+  }
+  axisDestination->checkAttributes() ; 
   algo->checkValid(axisDestination, axisSource);
-  axisDestination->checkAttributes() ;
+  
 
   switch (algo->operation)
   {
@@ -74,22 +80,35 @@ TRY
          << "Axis destination " << axisDestination->getId());
   }
 
-  TransformationIndexMap& transMap = this->transformationMapping_;
-  CArray<int,1>& axisDstIndex = axisDestination->index;
-  int nbAxisIdx = axisDstIndex.numElements();
-  for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+  //TransformationIndexMap& transMap = this->transformationMapping_;
+  //CArray<int,1>& axisDstIndex = axisDestination->index;
+  //int nbAxisIdx = axisDstIndex.numElements();
+
+
+
+  auto& transMap = this->transformationMapping_;
+  
+  CArray<size_t,1> dstGlobalIndex ;
+  axisDestination->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(dstGlobalIndex) ;
+  size_t nbIdx = dstGlobalIndex.numElements();
+
+  for (size_t idx = 0; idx < nbIdx; ++idx)
   {
-    int globalAxisIdx = axisDstIndex(idxAxis);
-    transMap[globalAxisIdx].resize(1);
-    transMap[globalAxisIdx][0]=globalAxisIdx ;      
+    size_t globalIdx = dstGlobalIndex(idx);
+    transMap[globalIdx].resize(1);
+    transMap[globalIdx][0]=globalIdx ;      
   }
 
- 
-  axisDestination->checkAttributes() ;
   this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
 CATCH
 
+shared_ptr<CGridAlgorithm> CAxisAlgorithmReduceAxis::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
+{
+  auto algo=make_shared<CGridAlgorithmReduce>(gridSrc, gridDst, pos, shared_from_this(), operator_) ;
+  algo->computeAlgorithm(false) ;
+  return algo ; 
+}
 
 CAxisAlgorithmReduceAxis::~CAxisAlgorithmReduceAxis()
 TRY

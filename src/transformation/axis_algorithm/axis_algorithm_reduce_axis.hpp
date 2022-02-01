@@ -43,6 +43,8 @@ public:
                                                 std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                 std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                 std::map<int, int>& elementPositionInGridDst2DomainPosition);
+
+  virtual shared_ptr<CGridAlgorithm> createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos);
   static bool dummyRegistered_;
 };
 

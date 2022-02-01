@@ -34,7 +34,9 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation(bool isSource)
 
 shared_ptr<CGridAlgorithm> CGenericAlgorithmTransformation::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
 {
-  return make_shared<CGridAlgorithmGeneric>(gridSrc, gridDst, pos, shared_from_this()) ;
+  auto algo = make_shared<CGridAlgorithmGeneric>(gridSrc, gridDst, pos, shared_from_this()) ;
+  algo->computeAlgorithm() ;
+  return algo ; 
 }
 
 

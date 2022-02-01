@@ -67,12 +67,13 @@ namespace xios
       if (detectMissingValue_)
       {
         vector<bool> touched(repeat* dstSlice, false) ;
-        int pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        int posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
+          int pos = posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
           {
             if (nSrc_[i]==0) for(int l=0; l<sizeT; l++) out[l] = defaultValue ;
@@ -96,13 +97,13 @@ namespace xios
         }
 
         output = dataOut.dataFirst()  ;
-        pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
-          int pos=0 ;
+          int pos=posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
               for(int j=0 ; j<nSrc_[i] ; j++,k++)
                 for(int l=0; l<sizeT; l++) if (!touched[pos+l]) out[l] = defaultValue ;
@@ -143,12 +144,13 @@ namespace xios
       if (detectMissingValue_)
       {
         vector<bool> touched(repeat* dstSlice, false) ;
-        int pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        int posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
+          int pos=posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
           {
             if (nSrc_[i]==0) for(int l=0; l<sizeT; l++) out[l] = defaultValue ;
@@ -172,13 +174,13 @@ namespace xios
         }
 
         output = dataOut.dataFirst()  ;
-        pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
-          int pos=0 ;
+          int pos=posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
               for(int j=0 ; j<nSrc_[i] ; j++,k++)
                 for(int l=0; l<sizeT; l++) if (!touched[pos+l]) out[l] = defaultValue ;
@@ -219,12 +221,13 @@ namespace xios
       if (detectMissingValue_)
       {
         vector<bool> touched(repeat* dstSlice, false) ;
-        int pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        int posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
+          int pos=posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
           {
             if (nSrc_[i]==0) for(int l=0; l<sizeT; l++) out[l] = defaultValue ;
@@ -248,13 +251,13 @@ namespace xios
         }
 
         output = dataOut.dataFirst()  ;
-        pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
-          int pos=0 ;
+          int pos=posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
               for(int j=0 ; j<nSrc_[i] ; j++,k++)
                 for(int l=0; l<sizeT; l++) if (!touched[pos+l]) out[l] = defaultValue ;
@@ -295,12 +298,13 @@ namespace xios
       if (detectMissingValue_)
       {
         vector<int> touched(repeat* dstSlice, 0) ;
-        int pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        int posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
+          int pos=posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
           {
             if (nSrc_[i]==0) for(int l=0; l<sizeT; l++) out[l] = defaultValue ;
@@ -330,13 +334,13 @@ namespace xios
         }
 
         output = dataOut.dataFirst()  ;
-        pos=0 ;
-        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, pos+=dstSlice)
+        posr=0 ;
+        for(int r=0;r<repeat;r++, input+=srcSlice, output+=dstSlice, posr+=dstSlice)
         {
           const double* in = input;
           double* out = output ;
           int k=0 ;
-          int pos=0 ;
+          int pos=posr ;
           for(int i=0; i<dstSize_; i++, out+=sizeT, pos+=sizeT)
               for(int j=0 ; j<nSrc_[i] ; j++,k++)
                 for(int l=0; l<sizeT; l++) 

@@ -123,6 +123,9 @@ namespace xios
          /// Vérifications ///
          void checkAttributes(void);
          bool checkAttributes_done_ = false ;
+         bool checkGeometricAttributes(bool generateError) ; 
+         void setGeometricAttributes(const CAxis& axisSrc) ;
+         void resetGeometricAttributes(void) ;
 
          size_t getGlobalWrittenSize(void) ;
 
@@ -172,10 +175,10 @@ namespace xios
         bool hasLabel;
 
       private:
-         void checkData();
-         void checkMask();
-         void checkBounds();
-         void checkLabel();
+         bool checkData(bool generateError);
+         bool checkMask(bool generateError);
+         bool checkBounds(bool generateError);
+         bool checkLabel(bool generateError);
       
       public:
          void sendAxisToCouplerOut(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid, const string& fieldId, int posInGrid) ;

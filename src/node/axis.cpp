@@ -275,17 +275,87 @@ namespace xios {
      Check common attributes of an axis.
      This check should be done in the very beginning of work flow
    */
+   
    void CAxis::checkAttributes(void)
+   {
+      if (checkAttributes_done_) return ;
+      checkGeometricAttributes(true) ;
+      initializeLocalElement() ;
+      addFullView() ;
+      addWorkflowView() ;
+      addModelView() ;
+
+      checkAttributes_done_ = true ;
+   }
+   
+   void CAxis::resetGeometricAttributes(void)
+   {
+     n_glo.reset();
+     index.reset();
+     n.reset();
+     begin.reset();
+     mask.reset();
+     data_index.reset();
+     data_n.reset();
+     data_begin.reset();
+     value.reset();
+     bounds.reset();
+     label.reset() ;
+   }
+
+   void CAxis::setGeometricAttributes(const CAxis& axisSrc)
+   {
+     resetGeometricAttributes() ;
+     n_glo=axisSrc.n_glo;
+     if (!axisSrc.index.isEmpty())
+     {
+       index.resize(axisSrc.index.shape()) ;
+       index=axisSrc.index;
+     }
+
+     n=axisSrc.n;
+     begin=axisSrc.begin;
+     if (!axisSrc.mask.isEmpty())
+     {
+       mask.resize(axisSrc.mask.shape()) ;
+       mask=axisSrc.mask;
+     }
+     if (!axisSrc.data_index.isEmpty())
+     {
+       data_index.resize(axisSrc.data_index.shape()) ;
+       data_index=axisSrc.data_index;
+     }
+     data_n=axisSrc.data_n;
+     data_begin=axisSrc.data_begin;
+     if (!axisSrc.value.isEmpty())
+     {
+       value.resize(axisSrc.value.shape()) ;
+       value=axisSrc.value;
+     }
+     
+     if (!axisSrc.bounds.isEmpty())
+     {
+       bounds.resize(axisSrc.bounds.shape()) ;
+       bounds=axisSrc.bounds;
+     }
+     if (!axisSrc.label.isEmpty())
+     {
+       label.resize(axisSrc.label.shape()) ;
+       label=axisSrc.label;
+     }
+
+   }
+   
+   bool CAxis::checkGeometricAttributes(bool generateError)
    TRY
    {
-     if (checkAttributes_done_) return ;
-
      CContext* context=CContext::getCurrent();
 
      if (this->n_glo.isEmpty())
-        ERROR("CAxis::checkAttributes(void)",
-              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-              << "The axis is wrongly defined, attribute 'n_glo' must be specified");
+        if (generateError) ERROR("CAxis::checkAttributes(void)",
+                                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                << "The axis is wrongly defined, attribute 'n_glo' must be specified")
+        else return false ; 
       StdSize size = this->n_glo.getValue();
 
       if (!this->index.isEmpty())
@@ -301,18 +371,22 @@ namespace xios {
         if (!this->begin.isEmpty())
         {
           if (begin < 0 || begin > size - 1)
-            ERROR("CAxis::checkAttributes(void)",
-                  << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-                  << "The axis is wrongly defined, attribute 'begin' (" << begin.getValue() << ") must be non-negative and smaller than size-1 (" << size - 1 << ").");
+             if (generateError) ERROR("CAxis::checkAttributes(void)",
+                                      << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                      << "The axis is wrongly defined, attribute 'begin' (" 
+                                      << begin.getValue() << ") must be non-negative and smaller than size-1 (" << size - 1 << ").")
+              else return false ; 
         }
         else this->begin.setValue(0);
 
         if (!this->n.isEmpty())
         {
           if (n < 0 || n > size)
-            ERROR("CAxis::checkAttributes(void)",
-                  << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-                  << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" << size << ").");
+            if (generateError) ERROR("CAxis::checkAttributes(void)",
+                                      << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                      << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" 
+                                      << size << ").")
+            else return false ; 
         }
         else this->n.setValue(size);
 
@@ -326,32 +400,28 @@ namespace xios {
       {
         StdSize true_size = value.numElements();
         if (this->n.getValue() != true_size)
-          ERROR("CAxis::checkAttributes(void)",
-              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-              << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
-              << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
+          if (generateError) ERROR("CAxis::checkAttributes(void)",
+                                   << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                   << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
+                                   << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").")
+          else return false ; 
         this->hasValue = true;
       }
 
-      this->checkBounds();
-      this->checkMask();
-      this->checkData();
-      this->checkLabel();
-      initializeLocalElement() ;
-      addFullView() ;
-      addWorkflowView() ;
-      addModelView() ;
-
-      checkAttributes_done_ = true ;
+      if (!this->checkBounds(generateError)) return false;
+      if (!this->checkMask(generateError))   return false;
+      if (!this->checkData(generateError))   return false;
+      if (!this->checkLabel(generateError))  return false;
+      
+      return true ;
    }
    CATCH_DUMP_ATTR
-
 
 
    /*!
       Check the validity of data, fill in values if any, and apply mask.
    */
-   void CAxis::checkData()
+   bool CAxis::checkData(bool generateError)
    TRY
    {
       if (data_begin.isEmpty()) data_begin.setValue(0);
@@ -362,9 +432,10 @@ namespace xios {
       }
       else if (data_n.getValue() < 0)
       {
-        ERROR("CAxis::checkData(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "The data size should be strictly positive ('data_n' = " << data_n.getValue() << ").");
+        if (generateError) ERROR("CAxis::checkData(void)",
+                              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                              << "The data size should be strictly positive ('data_n' = " << data_n.getValue() << ").")
+        else return false ;
       }
 
       if (data_index.isEmpty())
@@ -387,9 +458,11 @@ namespace xios {
       {
         if (data_index.numElements() != data_n)
         {
-          ERROR("CAxis::checkData(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-                << "The size of data_index = "<< data_index.numElements() << "is not equal to the data size data_n = " << data_n.getValue() << ").");
+          if (generateError) ERROR("CAxis::checkData(void)",
+                               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                               << "The size of data_index = "<< data_index.numElements() << "is not equal to the data size data_n = " 
+                               << data_n.getValue() << ").")
+          else return false ;
         }
         for (int i = 0; i < data_n; ++i)
         {
@@ -397,30 +470,26 @@ namespace xios {
              if (!mask(data_index(i))) data_index(i) = -1;
         }
       }
-
+      return true ;
    }
    CATCH_DUMP_ATTR
 
-    size_t CAxis::getGlobalWrittenSize(void)
-    {
-      return n_glo ;
-    }
-
-   /*!
-     Check validity of mask info and fill in values if any.
-   */
-   void CAxis::checkMask()
+/*!
+   Check validity of mask info and fill in values if any.
+  */
+   bool CAxis::checkMask(bool generateError)
    TRY
    {
       if (!mask.isEmpty())
       {
         if (mask.extent(0) != n)
         {
-          ERROR("CAxis::checkMask(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "The mask does not have the same size as the local domain." << std::endl
-              << "Local size is " << n.getValue() << "." << std::endl
-              << "Mask size is " << mask.extent(0) << ".");
+          if (generateError) ERROR("CAxis::checkMask(void)",
+                                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                                  << "The mask does not have the same size as the local domain." << std::endl
+                                  << "Local size is " << n.getValue() << "." << std::endl
+                                  << "Mask size is " << mask.extent(0) << ".")
+          else return false ;
         }
       }
       else
@@ -428,43 +497,56 @@ namespace xios {
         mask.resize(n);
         mask = true;
       }
+      return true ;
    }
    CATCH_DUMP_ATTR
 
    /*!
      Check validity of bounds info and fill in values if any.
    */
-   void CAxis::checkBounds()
+   bool CAxis::checkBounds(bool generateError)
    TRY
    {
      if (!bounds.isEmpty())
      {
        if (bounds.extent(0) != 2 || bounds.extent(1) != n)
-         ERROR("CAxis::checkAttributes(void)",
-               << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
-               << "Axis size is " << n.getValue() << "." << std::endl
-               << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".");
+         if (generateError) ERROR("CAxis::checkAttributes(void)",
+                               << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
+                               << "Axis size is " << n.getValue() << "." << std::endl
+                               << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".")
+         else return false ;
        hasBounds = true;
      }
      else hasBounds = false;
+     return true ;
    }
    CATCH_DUMP_ATTR
 
-  void CAxis::checkLabel()
+  bool CAxis::checkLabel(bool generateError)
   TRY
   {
     if (!label.isEmpty())
     {
       if (label.extent(0) != n)
-        ERROR("CAxis::checkLabel(void)",
-              << "The label array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension of axis size." << std::endl
-              << "Axis size is " << n.getValue() << "." << std::endl
-              << "label size is "<< label.extent(0)<<  " .");
+        if (generateError) ERROR("CAxis::checkLabel(void)",
+                              << "The label array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension of axis size." << std::endl
+                              << "Axis size is " << n.getValue() << "." << std::endl
+                              << "label size is "<< label.extent(0)<<  " .")
+        else return false ;
       hasLabel = true;
     }
     else hasLabel = false;
+    return true ;
   }
   CATCH_DUMP_ATTR
+
+
+  size_t CAxis::getGlobalWrittenSize(void)
+  {
+    return n_glo ;
+  }
+
+   
 
  
   /*!

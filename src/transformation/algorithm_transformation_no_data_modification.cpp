@@ -11,6 +11,8 @@ namespace xios
   
   shared_ptr<CGridAlgorithm> CAlgorithmTransformationNoDataModification::createGridAlgorithm(CGrid* gridSrc, CGrid* gridDst, int pos)
   {
-    return make_shared<CGridAlgorithmNoDataModification>(static_pointer_cast<CAlgorithmTransformationNoDataModification>(shared_from_this())) ;
+    auto algo=make_shared<CGridAlgorithmNoDataModification>(static_pointer_cast<CAlgorithmTransformationNoDataModification>(shared_from_this())) ;
+    algo->computeAlgorithm() ;
+    return algo ; 
   }
 }

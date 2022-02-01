@@ -12,18 +12,19 @@
 namespace xios
 {
 
-  typedef enum reduction_algurithm_type
+  typedef enum reduction_algorithm_type
   {
-    TRANS_REDUCE_SUM = 0,
-    TRANS_REDUCE_MIN = 1,
-    TRANS_REDUCE_MAX = 2,
-    TRANS_REDUCE_EXTRACT = 3,
-    TRANS_REDUCE_AVERAGE = 4
+    TRANS_REDUCE_NONE = 0, 
+    TRANS_REDUCE_SUM = 1,
+    TRANS_REDUCE_MIN = 2,
+    TRANS_REDUCE_MAX = 3,
+    TRANS_REDUCE_EXTRACT = 4,
+    TRANS_REDUCE_AVERAGE = 5
   } EReductionType;
 
   enum class EReduction
   {
-    sum, min, max, extract, average
+    none, sum, min, max, extract, average
   } ;
 }
 #endif // __XIOS_REDUCTION_TYPES_HPP__

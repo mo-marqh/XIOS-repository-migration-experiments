@@ -25,11 +25,12 @@ class CGridAlgorithmGeneric : public CGridAlgorithm
     CGridAlgorithmGeneric(CGrid* gridSrc, CGrid* gridDst, int pos,  shared_ptr<CGenericAlgorithmTransformation> algo) ;
     virtual ~CGridAlgorithmGeneric() {} ;
 
-    void computeAlgorithm(void) ;
+    void computeAlgorithm(bool eliminateRedundant=true) ;
     virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut) ;
     virtual void apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) ;
     
   protected:
+
     shared_ptr<CGridTransformConnector> gridTransformConnector_=nullptr ;
     CGrid* gridSrc_ = nullptr ;
     CGrid* gridDst_ = nullptr ;

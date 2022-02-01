@@ -50,8 +50,6 @@ CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(bool isSource, CAxis* axi
  : CAlgorithmTransformationReduce(isSource), domainSrc_(domainSource), axisDest_(axisDestination)
 TRY
 {
-  algo->checkValid(axisDestination, domainSource);
-  axisDestination->checkAttributes() ;
   switch (algo->operation)
   {
     case CReduceDomainToAxis::operation_attr::sum:
@@ -73,9 +71,171 @@ TRY
          << "Axis destination " << axisDestination->getId());
 
   }
-
+  
+  algo->checkValid(axisDestination, domainSource);
   dir_ = (CReduceDomainToAxis::direction_attr::iDir == algo->direction)  ? iDir : jDir;
-  bool local = algo->local ;
+
+  bool local = false;
+  if (!algo->local.isEmpty()) local=algo->local ;
+  
+  size_t nj_glo = domainSource->nj_glo ;
+  size_t ni_glo = domainSource->ni_glo ;
+
+  bool validAxis = axisDestination->checkGeometricAttributes(false) ;
+  if (validAxis && !local) 
+  {
+    
+    axisDestination->checkAttributes() ; 
+    if (dir_==jDir)
+    {
+        if (axisDestination->n_glo != domainSource->nj_glo)
+          ERROR("CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo)",
+            << "Extract domain along j, axis destination should have n_glo equal to nj_glo of domain source"
+            << "Domain source " <<domainSource->getId() << " has nj_glo " << domainSource->nj_glo << std::endl
+            << "Axis destination " << axisDestination->getId() << " has n_glo " << axisDestination->n_glo)
+    }
+    else
+    {
+      if (axisDestination->n_glo != domainSource->ni_glo)
+          ERROR("CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo)",
+            << "Extract domain along j, axis destination should have n_glo equal to ni_glo of domain source"
+            << "Domain source " <<domainSource->getId() << " has ni_glo " << domainSource->ni_glo << std::endl
+            << "Axis destination " << axisDestination->getId() << " has n_glo " << axisDestination->n_glo);
+    }
+  }
+  else
+  {
+    // create axis destination from source domain
+
+    axisDestination->resetGeometricAttributes();
+    if (dir_== jDir)
+    {
+      axisDestination->n_glo = domainSource->nj_glo ;
+      
+      CArray<size_t, 1> srcGlobalIndex ;
+      set<size_t> indexFullView;
+      set<size_t> indexWorkflowView;
+      domainSource->getLocalView(CElementView::FULL)->getGlobalIndexView(srcGlobalIndex) ;
+      for(int i=0; i<srcGlobalIndex.numElements(); i++) indexFullView.insert(srcGlobalIndex(i)/ni_glo) ;
+      domainSource->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(srcGlobalIndex) ;
+      for(int i=0; i<srcGlobalIndex.numElements(); i++) indexWorkflowView.insert(srcGlobalIndex(i)/ni_glo) ;
+
+      axisDestination-> n = indexFullView.size() ;
+      axisDestination-> index.resize(axisDestination-> n) ;
+      axisDestination-> mask.resize(axisDestination-> n) ;
+      
+      map<size_t,int> globalToLocalIndex ;
+      auto it=indexFullView.begin();
+      for(int i=0; it!=indexFullView.end(); ++i,++it) 
+      {
+        axisDestination->index(i) = *it ;
+        if (indexWorkflowView.count(*it)==0) axisDestination->mask(i) = false ;
+        else axisDestination->mask(i) = true ;
+        globalToLocalIndex[*it] = i ;
+      }
+      if (domainSource->hasLonLat && domainSource->type == CDomain::type_attr::rectilinear)
+      {
+        axisDestination->value.resize(axisDestination-> n) ;
+        axisDestination->axis_type.setValue(CAxis::axis_type_attr::Y) ;
+        if (domainSource->hasBounds) axisDestination-> bounds.resize(axisDestination-> n, 2) ;
+
+        domainSource->getLocalView(CElementView::FULL)->getGlobalIndexView(srcGlobalIndex) ;
+        for(int i=0; i<srcGlobalIndex.numElements(); i++) 
+        {
+          axisDestination->value(globalToLocalIndex[srcGlobalIndex(i)/ni_glo]) = domainSource->latvalue(i) ;
+          if (domainSource->hasBounds) 
+          {
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)/ni_glo,0]) = domainSource->bounds_latvalue(i,0) ;
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)/ni_glo,1]) = domainSource->bounds_latvalue(i,1) ;
+          }
+        } 
+      }
+      
+    }
+    else // dir_== iDir
+    {
+      axisDestination->n_glo = domainSource->ni_glo ;
+      
+      CArray<size_t, 1> srcGlobalIndex ;
+      set<size_t> indexFullView;
+      set<size_t> indexWorkflowView;
+      domainSource->getLocalView(CElementView::FULL)->getGlobalIndexView(srcGlobalIndex) ;
+      for(int i=0; i<srcGlobalIndex.numElements(); i++) indexFullView.insert(srcGlobalIndex(i)%ni_glo) ;
+      domainSource->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(srcGlobalIndex) ;
+      for(int i=0; i<srcGlobalIndex.numElements(); i++) indexWorkflowView.insert(srcGlobalIndex(i)%ni_glo) ;
+
+      axisDestination-> n = indexFullView.size() ;
+      axisDestination-> index.resize(axisDestination-> n) ;
+      axisDestination-> mask.resize(axisDestination-> n) ;
+      map<size_t,int> globalToLocalIndex ;
+      auto it=indexFullView.begin();
+      for(int i=0; it!=indexFullView.end(); ++i,++it) 
+      {
+        axisDestination->index(i) = *it ;
+        if (indexWorkflowView.count(*it)==0) axisDestination->mask(i) = false ;
+        else axisDestination->mask(i) = true ;
+        globalToLocalIndex[*it] = i ;
+      }
+    
+      if (domainSource->hasLonLat && domainSource->type == CDomain::type_attr::rectilinear)
+      {
+        axisDestination-> value.resize(axisDestination-> n) ;
+        axisDestination-> axis_type.setValue(CAxis::axis_type_attr::X) ;
+        if (domainSource->hasBounds) axisDestination->bounds.resize(axisDestination-> n, 2) ;
+
+        domainSource->getLocalView(CElementView::FULL)->getGlobalIndexView(srcGlobalIndex) ;
+        for(int i=0; i<srcGlobalIndex.numElements(); i++) 
+        {
+          axisDestination->value(globalToLocalIndex[srcGlobalIndex(i)%ni_glo]) = domainSource->lonvalue(i) ;
+          if (domainSource->hasBounds) 
+          {
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)%ni_glo,0]) = domainSource->bounds_lonvalue(i,0) ;
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)%ni_glo,1]) = domainSource->bounds_lonvalue(i,1) ;
+          }
+        } 
+      }
+    
+    }
+   
+    axisDestination->checkAttributes() ;   
+  }
+  
+  // compute needed index for tranformation
+
+  TransformationIndexMap& transMap = transformationMapping_;
+
+  CArray<size_t, 1> srcGlobalIndex ;
+  domainSource->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(srcGlobalIndex) ;
+  CArray<size_t, 1> dstGlobalIndex ;
+  axisDestination->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(dstGlobalIndex) ;
+  
+  if (local)
+  {
+    
+    set<size_t> dstGlobalIndexSet ;
+    for(int i=0; i<dstGlobalIndex.numElements() ; i++) dstGlobalIndexSet.insert(dstGlobalIndex(i)) ; // for mask
+
+    size_t dstInd ; 
+    for(int i=0; i<srcGlobalIndex.numElements(); i++) 
+    {
+      if (dir_== jDir) dstInd=srcGlobalIndex(i)/ni_glo ;
+      else dstInd=srcGlobalIndex(i)%ni_glo ;
+      if (dstGlobalIndexSet.count(dstInd)!=0) transMap[dstInd].push_back(srcGlobalIndex(i)) ; 
+    }
+  }
+  else
+  {
+    for(int i=0; i<dstGlobalIndex.numElements() ;i++)
+    {
+      if (dir_== jDir) 
+        for(size_t j=0; j<ni_glo;j++) transMap[dstGlobalIndex(i)].push_back(dstGlobalIndex(i)*ni_glo+j) ;
+      else
+        for(size_t j=0; j<nj_glo;j++) transMap[dstGlobalIndex(i)].push_back(ni_glo*j+dstGlobalIndex(i)) ;
+    }
+  }
+
+/*
+
 
   TransformationIndexMap& transMap = transformationMapping_;
 
@@ -147,6 +307,7 @@ TRY
   {}
 
   axisDestination->checkAttributes() ;
+*/
   this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
 
 }

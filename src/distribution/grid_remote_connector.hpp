@@ -20,8 +20,9 @@ namespace xios
       CGridRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CDistributedView>>& dstView, MPI_Comm localComm, int remoteSize) ;
       CGridRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CLocalView>>& dstView, MPI_Comm localComm, int remoteSize) ;
       void computeViewDistribution(void) ;
-      void computeConnector(void) ;
+      void computeConnector(bool eliminateRedundant=true) ;
       void computeConnectorMethods(void) ;
+      void computeConnectorRedundant(void) ;
       void computeGenericMethod(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CDistributedView>>& dstView, vector<int>& indElements) ;
       void computeSrcDstNonDistributed(int i, map<int,bool>& ranks) ;
       void computeDstNonDistributed(int i, map<int,bool>& ranks) ;

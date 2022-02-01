@@ -7,6 +7,7 @@
 #include "local_view.hpp"
 #include "grid_scatterer_connector.hpp"
 #include "grid_gatherer_connector.hpp"
+#include "reduction_types.hpp"
 #include "mpi.hpp"
 
 namespace xios
@@ -19,9 +20,9 @@ namespace xios
     public:
       CGridTransformConnector(vector<shared_ptr<CLocalView>> srcViews, vector<shared_ptr<CLocalView>> remoteViews, MPI_Comm localComm) 
                           : srcViews_(srcViews), remoteViews_(remoteViews), localComm_(localComm) 
-                          { computeConnector();}
+                          { }
     
-      void computeConnector(void) ; 
+      void computeConnector(bool eliminateRedundant=true) ; 
     protected:
      MPI_Comm localComm_ ;
      vector<shared_ptr<CLocalView>> srcViews_ ;
@@ -35,7 +36,7 @@ namespace xios
   
     public:
       template<typename T> 
-      void transfer(const CArray<T,1>& dataIn, CArray<T,1>& dataOut)
+      void transfer(const CArray<T,1>& dataIn, CArray<T,1>& dataOut, EReduction op = EReduction::none)
       {
         map<int,CArray<T,1>> tmpArrayIn ;
         gridScattererConnector_->transfer(dataIn, tmpArrayIn) ;
@@ -61,7 +62,9 @@ namespace xios
         MPI_Waitall(requests.size(), requests.data(),status.data()) ;
         
         const double nanValue = std::numeric_limits<double>::quiet_NaN();
-        gridGathererConnector_->transfer(tmpArrayOut, dataOut, nanValue) ;
+
+        if (op == EReduction::none) gridGathererConnector_->transfer(tmpArrayOut, dataOut, nanValue) ;
+        else gridGathererConnector_->transfer(tmpArrayOut, dataOut, op) ;
       }
   
   };

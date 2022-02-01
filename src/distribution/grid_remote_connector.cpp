@@ -113,14 +113,62 @@ namespace xios
   * \detail Depending of the distributions of the view computed in the computeViewDistribution() call, the connector is computed in computeConnectorMethods(), and to achieve better optimisation
   *         some redondant ranks can be removed from the elements_ map.
   */
-  void CGridRemoteConnector::computeConnector(void)
+  void CGridRemoteConnector::computeConnector(bool eliminateRedundant)
   {
-    computeViewDistribution() ;
-    computeConnectorMethods() ;
-    computeRedondantRanks() ; 
-    for(auto& rank : rankToRemove_)
-      for(auto& element : elements_) element.erase(rank) ;
+    if (eliminateRedundant)
+    {
+      computeViewDistribution() ;
+      computeConnectorMethods() ;
+      computeRedondantRanks() ; 
+      for(auto& rank : rankToRemove_)
+        for(auto& element : elements_) element.erase(rank) ;
+    }
+    else
+    {
+       computeViewDistribution() ;
+       computeConnectorRedundant() ;
+    }
   }
+
+/**
+  * \brief Compute the connector, i.e. compute the \b elements_ attribute. 
+  * \detail In this routine we don't eliminate redundant cells as it it performed in 
+  *         computeConnectorMethods. It can be usefull to perform reduce operation over processes.
+            In future, some optimisation could be done considering full redondance of the 
+            source view or the destination view.
+  */
+  void CGridRemoteConnector::computeConnectorRedundant(void)
+  {
+    vector<shared_ptr<CLocalView>> srcView ;
+    vector<shared_ptr<CDistributedView>> dstView ;
+    vector<int> indElements ;
+    elements_.resize(srcView_.size()) ;
+    
+    bool srcViewsNonDistributed=true ; // not usefull now but later for optimization
+    for(int i=0;i<srcView_.size();i++) srcViewsNonDistributed = srcViewsNonDistributed && !isSrcViewDistributed_[i]  ;
+    
+    bool dstViewsNonDistributed=true ;  // not usefull now but later for optimization
+    for(int i=0;i<dstView_.size();i++) dstViewsNonDistributed = dstViewsNonDistributed && !isDstViewDistributed_[i] ;
+    
+    for(int i=0;i<srcView_.size();i++) 
+    {
+      srcView.push_back(srcView_[i]) ;
+      dstView.push_back(dstView_[i]) ;
+      indElements.push_back(i) ;
+    }
+
+    computeGenericMethod(srcView, dstView, indElements) ;
+    
+    map<int,bool> ranks ;  
+    for(auto& it : elements_[indElements[0]]) 
+    {
+      if (it.second.numElements()==0) ranks[it.first] = false ;
+      else  ranks[it.first] = true ;
+    }
+   
+  }
+
+
 /**
   * \brief Compute the connector, i.e. compute the \b elements_ attribute. 
   * \detail In order to achive better optimisation,
@@ -425,7 +473,7 @@ namespace xios
 
   }
 
-  
+
  /**
   * \brief Generic method the compute the grid remote connector. Only distributed elements are specifed in the source view and remote view. 
   *        Connector for non distributed elements are computed separatly to improve performance and memory consumption. After the call,
@@ -649,5 +697,5 @@ namespace xios
       if (!first) rankToRemove_.insert(hashRank[hash]) ;
     }
   }
-
+  
 }

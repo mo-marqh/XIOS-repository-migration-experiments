@@ -47,10 +47,6 @@ namespace xios {
        << "Domain source " <<domainSrc->getId() << std::endl
        << "Axis destination " << axisDst->getId());
 
-    int axis_n_glo = axisDst->n_glo;
-    int domain_ni_glo = domainSrc->ni_glo;
-    int domain_nj_glo = domainSrc->nj_glo;
-
     if (this->operation.isEmpty())
       ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
              << "An operation must be defined."
@@ -64,27 +60,6 @@ namespace xios {
              << "Axis destination " << axisDst->getId());
     if (this->local.isEmpty()) local=false ;
 
-    switch (direction)
-    {
-      case direction_attr::jDir:
-        if (axis_n_glo != domain_ni_glo)
-          ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-            << "Extract domain along j, axis destination should have n_glo equal to ni_glo of domain source"
-            << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_ni_glo << std::endl
-            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
-         break;
-
-      case direction_attr::iDir:
-        if (axis_n_glo != domain_nj_glo)
-          ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-            << "Extract domain along i, axis destination should have n_glo equal to nj_glo of domain source"
-            << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_nj_glo << std::endl
-            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
-        break;
-
-      default:
-        break;
-    }
   }
 
   shared_ptr<CGenericAlgorithmTransformation> CReduceDomainToAxis::createAlgorithm(bool isSource,

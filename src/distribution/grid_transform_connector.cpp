@@ -3,11 +3,12 @@
 #include "scatterer_connector.hpp"
 #include "gatherer_connector.hpp"
 #include "grid_remote_connector.hpp"
+#include "grid_redondant_remote_connector.hpp"
 
 
 namespace xios
 {
-  void CGridTransformConnector::computeConnector(void)
+  void CGridTransformConnector::computeConnector(bool eliminateRedundant)
   {
     int commSize ;
     int commRank ;
@@ -16,7 +17,7 @@ namespace xios
     int nElements = srcViews_.size() ;
 
     auto remoteConnector = make_shared<CGridRemoteConnector>(srcViews_, remoteViews_, localComm_, commSize) ;  
-    remoteConnector->computeConnector() ;
+    remoteConnector->computeConnector(eliminateRedundant) ; 
     
     vector<shared_ptr<CDistributedElement>> sendElements(nElements) ;
     scattererConnector_.resize(nElements) ;

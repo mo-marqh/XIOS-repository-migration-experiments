@@ -27,7 +27,6 @@ namespace xios
       TransformationIndexMap transformationMapping_;
       shared_ptr<CReduceTransformConnector> reduceTransformConnector_ ;
       bool detectMissingValue_=true ;
-      bool eliminateRedondantSrc_ = true ; 
   };
 
 }

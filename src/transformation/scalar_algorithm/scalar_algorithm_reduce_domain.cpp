@@ -73,37 +73,42 @@ TRY
 
   }
 
-  TransformationIndexMap& transMap = this->transformationMapping_;
-
-  int ni_glo = domainSrc_->ni_glo ;
-  int nj_glo = domainSrc_->nj_glo ;
-  int nbDomainIdx ;
+  bool local=false ;
+  if (!algo->local.isEmpty()) local=algo->local ;
   
-  bool  local = algo->local ;
+  auto& transMap = this->transformationMapping_;  
   
   if (local)
   {
-      const CArray<int, 1>& i_index = domainSrc_-> i_index.getValue() ;
-      const CArray<int, 1>& j_index = domainSrc_-> j_index.getValue() ;
-      const CArray<bool,1>& localMask = domainSrc_-> localMask ;
-      int nbDomainIdx = i_index.numElements();
+    scalarDestination->n=1 ; // no mask
+    scalarDestination->mask.reset() ;
+    
+    CArray<size_t,1> srcGlobalIndex ;
+    domainSource->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(srcGlobalIndex) ;
+    size_t nbIdx = srcGlobalIndex.numElements();
+    if (nbIdx==0) scalarDestination->n=0 ;
+    scalarDestination->checkAttributes() ;
 
-      for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain)
-      {
-        if (localMask(idxDomain))
-        { 
-          transMap[0].push_back(j_index(idxDomain)* ni_glo + i_index(idxDomain));
-        }
-      }
+    for (size_t idx = 0; idx < nbIdx; ++idx)
+    {
+      size_t globalIdx = srcGlobalIndex(idx);
+      transformationMapping_[0].push_back(globalIdx);
+    }
+
   }
   else
-  {  
-    nbDomainIdx = ni_glo * nj_glo;
-    for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain) transMap[0].push_back(idxDomain);    
+  {
+   scalarDestination->checkAttributes() ;
+
+   int globalIndexSize = domainSource->getLocalView(CElementView::WORKFLOW)->getGlobalSize();
+   CArray<size_t,1> dstGlobalIndex ;
+   scalarDestination->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(dstGlobalIndex) ;
+   if (dstGlobalIndex.numElements()!=0)
+     for (int idx = 0; idx < globalIndexSize; ++idx)  transformationMapping_[0].push_back(idx);
   }
-  
-  scalarDestination->checkAttributes() ;
+
   this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ;
+
 }
 CATCH
 

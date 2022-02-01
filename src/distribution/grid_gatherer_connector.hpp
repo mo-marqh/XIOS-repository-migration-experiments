@@ -9,6 +9,7 @@
 #include "distributed_view.hpp"
 #include "context_client.hpp"
 #include "gatherer_connector.hpp"
+#include "reduction_types.hpp"
 
 
 namespace xios
@@ -29,14 +30,23 @@ namespace xios
       }
 
       template<typename T> 
-      void transfer(const map<int, CArray<T,1>>& input, CArray<T,1>& output)
+      void transfer(const map<int, CArray<T,1>>& input, CArray<T,1>& output, EReduction op = EReduction::none)
       {
         int n = elementsConnector_.size()-1 ;
-       shared_ptr<CGathererConnector>* connector = elementsConnector_.data() + n ;
+        shared_ptr<CGathererConnector>* connector = elementsConnector_.data() + n ;
         output.resize(dstSize_) ;
-        for(auto& rankDataIn : input) 
+       
+        if (op == EReduction::none)
+          for(auto& rankDataIn : input) 
+            elementsConnector_[n]->transfer(rankDataIn.first, connector, n, rankDataIn.second.dataFirst(), output.dataFirst()) ;
+        else
         {
-          elementsConnector_[n]->transfer(rankDataIn.first, connector, n, rankDataIn.second.dataFirst(), output.dataFirst()) ;
+          T defaultValue = std::numeric_limits<T>::quiet_NaN();
+          vector<int> count(dstSize_,0) ;
+          for(auto& rankDataIn : input) 
+            elementsConnector_[n]->transfer(rankDataIn.first, connector, n, rankDataIn.second.dataFirst(), output.dataFirst(), op, count.data()) ;
+
+          for(int i=0;i<dstSize_;i++) if (count[i]==0) output(i)=defaultValue ;
         }
       } 
 
@@ -54,7 +64,7 @@ namespace xios
       } 
 
       template<typename T>
-      void transfer(CEventServer& event, CArray<T,1>& dataOut)
+      void transfer(CEventServer& event, CArray<T,1>& dataOut, EReduction op = EReduction::none)
       {
         map<int, CArray<T,1>> dataIn ;
         for (auto& subEvent : event.subEvents) 
@@ -62,7 +72,7 @@ namespace xios
           auto& data = dataIn[subEvent.rank]; 
           (*subEvent.buffer) >> data ;
         }
-        transfer(dataIn, dataOut) ;
+        transfer(dataIn, dataOut, op) ;
       }
       
 

@@ -12,10 +12,9 @@ namespace xios
   CGridAlgorithmGeneric::CGridAlgorithmGeneric(CGrid* gridSrc, CGrid* gridDst, int pos,  shared_ptr<CGenericAlgorithmTransformation> algo)
   : CGridAlgorithm(algo), gridSrc_(gridSrc), gridDst_(gridDst), pos_(pos)
   {
-    computeAlgorithm() ;
   }
 
-  void CGridAlgorithmGeneric::computeAlgorithm(void)
+  void CGridAlgorithmGeneric::computeAlgorithm(bool eliminateRedondant)
   {
     shared_ptr<CGridLocalElements> gridSrcElements = gridSrc_->getGridLocalElements() ;
     shared_ptr<CGridLocalElements> gridDstElements = gridDst_->getGridLocalElements() ;
@@ -47,6 +46,7 @@ namespace xios
     }
 
     gridTransformConnector_ = make_shared<CGridTransformConnector>(srcView->getViews(), remoteViews, comm ) ;
+    gridTransformConnector_->computeConnector(eliminateRedondant) ;
  
   }
 

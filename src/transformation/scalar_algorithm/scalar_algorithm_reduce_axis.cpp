@@ -78,11 +78,41 @@ TRY
          << "Scalar destination " << scalarDestination->getId());
 
   } 
-  
-  int globalIndexSize = axisSource-> n_glo;
-  for (int idx = 0; idx < globalIndexSize; ++idx)  transformationMapping_[0].push_back(idx);
 
-  scalarDestination->checkAttributes() ;
+  bool local=false ;
+  if (!algo->local.isEmpty()) local=algo->local ;
+  
+  auto& transMap = this->transformationMapping_;  
+  
+  if (local)
+  {
+    scalarDestination->n=1 ; // no mask
+    scalarDestination->mask.reset() ;
+    
+    CArray<size_t,1> srcGlobalIndex ;
+    axisSource->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(srcGlobalIndex) ;
+    size_t nbIdx = srcGlobalIndex.numElements();
+    if (nbIdx==0) scalarDestination->n=0 ;
+    scalarDestination->checkAttributes() ;
+
+    for (size_t idx = 0; idx < nbIdx; ++idx)
+    {
+      size_t globalIdx = srcGlobalIndex(idx);
+      transformationMapping_[0].push_back(globalIdx);
+    }
+
+  }
+  else
+  {
+   scalarDestination->checkAttributes() ;
+
+   int globalIndexSize = axisSource->getLocalView(CElementView::WORKFLOW)->getGlobalSize();
+   CArray<size_t,1> dstGlobalIndex ;
+   scalarDestination->getLocalView(CElementView::WORKFLOW)->getGlobalIndexView(dstGlobalIndex) ;
+   if (dstGlobalIndex.numElements()!=0)
+     for (int idx = 0; idx < globalIndexSize; ++idx)  transformationMapping_[0].push_back(idx);
+  }
+
   this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ;
   
 }
