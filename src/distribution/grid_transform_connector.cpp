@@ -3,7 +3,6 @@
 #include "scatterer_connector.hpp"
 #include "gatherer_connector.hpp"
 #include "grid_remote_connector.hpp"
-#include "grid_redondant_remote_connector.hpp"
 
 
 namespace xios
