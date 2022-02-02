@@ -7,4 +7,9 @@ then
 fi
 source ./load_env
 ./launch_compile $1 $2
-./launch_test_suite $1 $2
+if [[ -n $(find BUILD/ -name generic_testcase.exe) ]]
+then
+    ./launch_test_suite $1 $2
+else
+    echo "All compilation test failed"
+fi
