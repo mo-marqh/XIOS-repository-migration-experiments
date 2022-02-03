@@ -47,6 +47,7 @@ namespace xios
 
     int nDst = dstView_.size() ;
     vector<size_t> hashRank(remoteSize_) ;
+    vector<size_t> sizeRank(remoteSize_) ;
     isDstViewDistributed_.resize(nDst) ;
 
     for(int i=0; i<nDst; i++)
@@ -55,6 +56,8 @@ namespace xios
       dstView_[i]->getGlobalIndexView(globalIndexView) ;
       hashRank.assign(remoteSize_,0) ; // everybody ranks to 0 except rank of the remote view I have 
                                        // that would be assign to my local hash 
+      sizeRank.assign(remoteSize_,0) ;
+
       for(auto& it : globalIndexView)
       {
         int rank=it.first ;
@@ -63,14 +66,17 @@ namespace xios
         size_t hashValue=0 ;
         for(size_t ind=0;ind<globalIndexSize;ind++) hashValue += hashGlobalIndex(globalIndex(ind)) ;
         hashRank[rank] += hashValue ;
+        sizeRank[rank] += globalIndexSize ;
       }
       // sum all the hash for every process of the local comm. The reduce is on the size of remote view (remoteSize_)
       // after that for each rank of the remote view, we get the hash
       MPI_Allreduce(MPI_IN_PLACE, hashRank.data(), remoteSize_, MPI_SIZE_T, MPI_SUM, localComm_) ;
+      MPI_Allreduce(MPI_IN_PLACE, sizeRank.data(), remoteSize_, MPI_SIZE_T, MPI_SUM, localComm_) ;
       size_t value = hashRank[0] ;
+      size_t size = sizeRank[0] ;
       isDstViewDistributed_[i]=false ;
       for(int j=0 ; j<remoteSize_ ; j++) 
-        if (value != hashRank[j]) 
+        if (size!=sizeRank[j] || value != hashRank[j]) 
         { 
           isDstViewDistributed_[i]=true ;
           break ;
@@ -90,20 +96,21 @@ namespace xios
       srcView_[i]->getGlobalIndexView(globalIndex) ;
       hashRank.assign(commSize,0) ; // 0 for everybody except my rank
       size_t globalIndexSize = globalIndex.numElements() ;
+      
+      size_t allEqual ;
+      MPI_Allreduce(&globalIndexSize, &allEqual, 1, MPI_SIZE_T, MPI_BXOR, localComm_) ;
+      if (allEqual!=0) 
+      {
+        isSrcViewDistributed_[i]=true ;
+        break ;
+      }
+
+      // warning : jenkins hash : 0 --> 0 : need to compare number of element for each ranks
       size_t hashValue=0 ;
       for(size_t ind=0;ind<globalIndexSize;ind++) hashValue += hashGlobalIndex(globalIndex(ind)) ;
-        hashRank[commRank] += hashValue ;
-    
-      // Same method than for remote view 
-      MPI_Allreduce(MPI_IN_PLACE, hashRank.data(), commSize, MPI_SIZE_T, MPI_SUM, localComm_) ;
-      size_t value = hashRank[0] ;
-      isSrcViewDistributed_[i]=false ;
-      for(int j=0 ; j<commSize ; j++) 
-        if (value != hashRank[j]) 
-        { 
-          isSrcViewDistributed_[i]=true ;
-          break ;
-        }
+      MPI_Allreduce(&hashValue, &allEqual, 1, MPI_SIZE_T, MPI_BXOR, localComm_) ;
+      if (allEqual!=0) isSrcViewDistributed_[i]=true ;
+      else isSrcViewDistributed_[i]=false ;
     }
 
   }
@@ -658,8 +665,11 @@ namespace xios
         size_t hash ;
         hash=0 ;
         for(int i=0; i<globalIndex.numElements(); i++) hash+=hashGlobalIndex(globalIndex(i)) ;
-        if (hashRanks.count(rank)==0) hashRanks[rank]=hash ;
-        else hashRanks[rank]=hashGlobalIndex.hashCombine(hashRanks[rank],hash) ;
+        if (globalIndex.numElements()>0)
+        {
+          if (hashRanks.count(rank)==0) hashRanks[rank]=hash ;
+          else hashRanks[rank]=hashGlobalIndex.hashCombine(hashRanks[rank],hash) ;
+        }
       }
     // a hash is now computed for data block I will sent to the server.
 
