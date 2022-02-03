@@ -38,13 +38,13 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   jobid="${cmd//[!0-9]/}"
 
   i=0
-  output=$(ccc_mpp -n -u ${USER} | grep ${jobid})
+  output=$(squeue -u $USER | grep ${jobid})
   while [ ! -z "$output" ]
   do
     echo "job" $jobid "pending/running for about" ${i} seconds
     sleep 30
     ((i+=30))
-    output=$(ccc_mpp -n -u ${USER} | grep ${jobid})
+    output=$(squeue -u $USER | grep ${jobid})
     if [[ $i -eq 300 ]]; then
       ccc_mdel $jobid
       break

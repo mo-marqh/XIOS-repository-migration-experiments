@@ -26,7 +26,6 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
   echo "cd ../.. ">> compile.sh
   echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --use_tv --build_dir ${build_dir} --job 16" >> compile.sh
   cmd=$(sbatch compile.sh)
-  sleep 10
   jobid="${cmd//[!0-9]/}"
   i=0
   output=$(squeue -u uim55ri | grep ${jobid})
@@ -60,23 +59,20 @@ if [[ ${xios_machine_name} == "irene" ]]; then
   echo "cd ../.. ">> compile.sh
   echo "./make_xios --arch_path `pwd`/../ARCH --arch ${arch} --${mode} --use_tv ${enable_mem_track} --build_dir ${build_dir} --job 16" >> compile.sh
   cmd=$(ccc_msub compile.sh)
-  sleep 10
   jobid="${cmd//[!0-9]/}"
   i=0
-  output=$(ccc_mpp -n -u ${USER} | grep ${jobid})
+  output=$(squeue -u $USER | grep ${jobid})
   while [ ! -z "$output" ]
   do
     echo "compiling job " $jobid "pending/running for about" ${i} seconds
     sleep 30
     ((i+=30))
-    output=$(ccc_mpp -n -u ${USER} | grep ${jobid})
+    output=$(squeue -u $USER | grep ${jobid})
   done
 
 fi
 
-#build_info=$(sacct -j $jobid -o State)
-#if [[ $build_info == *"COMPLETED"* ]]; then
-exec=${build_dir}/bin/generic_testcase.exe
+exec=build_${arch}_${mode}/bin/generic_testcase.exe
 if [[ -f "$exec" ]]; then
   build_ok=true
 else
