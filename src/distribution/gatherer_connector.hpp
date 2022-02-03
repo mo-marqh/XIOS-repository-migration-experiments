@@ -217,11 +217,18 @@ namespace xios
                     if (!std::isnan(*(input + i)))
                     {
                       if (*(count+connector[j])==0) *(output+connector[j]) = *(input + i) ;
-                      else *(output+connector[j]) += *(input + i) ;
+                      else *(output+connector[j]) = *(output+connector[j])* (*(count+connector[j])) + *(input + i) ;
                       (*(count+connector[j]))++ ;
                     } 
                     j++ ;
                   }
+                for(int i=0, j=0; i<srcSize; i++)
+                    if (mask[i]) 
+                    {
+                      if (!std::isnan(*(input + i)))
+                        *(output+connector[j]) /= (*(count+connector[j]));
+                      j++ ;
+                    }
                 break ;
               default :
                 ERROR("CGathererConnector::transfer",
