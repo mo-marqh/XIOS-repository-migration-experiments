@@ -245,7 +245,11 @@ namespace xios
                  if (domain->hasBounds)
                    SuperClassWriter::addDimension(dimVertId, domain->nvertex);
 
-                 if (server->intraCommSize > 1)
+                 int commRank ;
+                 int commSize ;
+                 MPI_Comm_rank(comm_file,&commRank) ;
+                 MPI_Comm_size(comm_file,&commSize) ;
+                 if (commSize > 1)
                  {
                    this->writeLocalAttributes(domain->ibegin,
                                               domain->ni,
@@ -260,7 +264,7 @@ namespace xios
                                                       domain->jbegin,
                                                       domain->nj,
                                                       domain->ni_glo,domain->nj_glo,
-                                                      server->intraCommRank,server->intraCommSize);
+                                                      commRank,commSize);
                  }
 
                  if (domain->hasLonLat)
@@ -2473,7 +2477,9 @@ namespace xios
           }
         }
 
-         bool isRoot = (server->intraCommRank == 0);
+         int commRank ;
+         MPI_Comm_rank(comm_file,&commRank) ;
+         bool isRoot = (commRank == 0);
 
          if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
          {

@@ -556,7 +556,7 @@ namespace xios {
             MPI_Comm_size(fileComm, &commSize);
             MPI_Comm_rank(fileComm, &commRank);
 
-            if (server->intraCommSize > 1)
+            if (commSize > 1)
             {
               oss << "_" ;
               int width=0; int n = commSize-1;
