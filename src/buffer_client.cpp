@@ -392,7 +392,7 @@ namespace xios
     bool ret ;
     lockBuffer() ;
     ret=*notify[current] == notifyResizeBuffer_ ? true : false ;
-    if (ret) 
+    if (ret || !hasWindows) 
     {
       *notify[current] = notifyNothing_ ;
       resizingBufferStep_=3;  
