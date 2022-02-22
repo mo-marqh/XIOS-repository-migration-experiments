@@ -1,0 +1,8 @@
+[
+	{
+		"Domain": ["nemo"],
+		"NumberServers": [2],
+		"DomMask": ["false","true"],
+		"AxisMask": ["false"]
+	}
+]
