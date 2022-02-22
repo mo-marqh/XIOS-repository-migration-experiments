@@ -3,6 +3,7 @@
     "Domain": "lmdz",
     "DomMask": "false",
     "AxisMask": "false",
+    "ScalarMask": "none",
     "UseServer2": "false",
     "PctServer2": 50,
     "Duration": "1d",

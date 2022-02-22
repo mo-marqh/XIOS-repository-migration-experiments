@@ -9,6 +9,8 @@
       <variable id="domain"> XIOS::Domain </variable>
       <variable id="domain_mask"> XIOS::DomMask </variable>
       <variable id="axis_mask"> XIOS::AxisMask </variable>
+      <variable id="scalar_mask"> true </variable>
+      <variable id="scalar_mask_type"> XIOS::ScalarMask </variable>
       <variable id="init_field2D"> rank </variable>
       <variable id="ni"> 36 </variable>
       <variable id="nj"> 18 </variable>

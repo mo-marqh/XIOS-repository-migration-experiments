@@ -6,8 +6,8 @@ import json
 import itertools
 import copy
 
-param_list =       ["DomMask",    "AxisMask", "Domain", "UseServer2", "NumberClients", "NumberServers", "PctServer2", "Duration", "OneSided", "NonDistTran"]
-param_short_list = ["DomMask",    "AxisMask", "Dom",    "Srv2",       "NbClnt",        "NbSrv",         "PctSrv2",    "Duration", "OneSided", "NDtTr"]
+param_list =       ["DomMask",    "AxisMask", "ScalarMask", "Domain", "UseServer2", "NumberClients", "NumberServers", "PctServer2", "Duration", "OneSided", "NonDistTran"]
+param_short_list = ["DomMask",    "AxisMask", "ScaMask",    "Dom",    "Srv2",       "NbClnt",        "NbSrv",         "PctSrv2",    "Duration", "OneSided", "NDtTr"]
 
 mode=os.getenv("mode")
 arch=os.getenv("arch")

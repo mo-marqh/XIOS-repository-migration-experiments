@@ -1,6 +1,7 @@
 [
 	{
 		"NumberServers": [2],
+		"ScalarMask": ["none", "sparse"],
 		"OneSided": ["false"]
 	}
 ]
