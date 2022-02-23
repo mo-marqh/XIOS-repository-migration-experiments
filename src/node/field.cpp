@@ -1433,7 +1433,15 @@ namespace xios
         grid_->setContextClient(contextClient);
     }
     else if (context->getServiceType()==CServicesManager::CLIENT)
-      grid_->setContextClient(contextClient);
+    {
+      if (grid_)
+        grid_->setContextClient(contextClient);
+      else
+        ERROR( "CField::setContextClient(contextClient)",
+               << "Grid not defined for " << getId()
+               << " (if field is an input field, set read_access to true)"
+               );
+    }
   }
   CATCH_DUMP_ATTR
 
