@@ -50,10 +50,70 @@ CScalarAlgorithmExtractAxis::CScalarAlgorithmExtractAxis(bool isSource, CScalar*
  : CAlgorithmTransformationTransfer(isSource)
 TRY
 {
+  scalarDestination->mask.reset();
+  scalarDestination->value.reset();
+  scalarDestination->n.reset();
+
   algo->checkValid(scalarDestination, axisSource);
   pos_ = algo->position;
-  this->transformationMapping_[0]=pos_ ;
 
+  scalarDestination->mask.setValue( false ); // scalar do not contain data_index, WF view set looking at mask
+  scalarDestination->n.setValue( 0 );
+
+  // ----------------------------
+  bool scalarOnThisAxisPiece(false);
+  CArray<size_t,1> sourceGlobalIdx = axisSource->getLocalElement()->getGlobalIndex();
+  int indexSize = sourceGlobalIdx.numElements();
+  int idxSrc(-1);
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
+  {
+    if ( sourceGlobalIdx(countSrc) == pos_ )
+    {
+      scalarOnThisAxisPiece = true;
+      idxSrc = countSrc;
+    }
+  }
+   
+  int idxMin = INT_MAX;
+  for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
+  {
+    if ( sourceGlobalIdx(countSrc) < idxMin )
+      idxMin = sourceGlobalIdx(countSrc);
+  }
+  
+  CArray<int,1> sourceWorkflowIdx = axisSource->getLocalView(CElementView::WORKFLOW)->getIndex();
+  int srcWorkflowSize = sourceWorkflowIdx.numElements();
+  
+
+  if (scalarOnThisAxisPiece)
+  {
+    int iIdxSrc2 = (idxSrc+idxMin)%axisSource->n_glo;
+    int convert_locally_global_idx = (iIdxSrc2-idxMin) ;
+    bool concerned_by_WF(false);
+    for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
+    {
+      if (sourceWorkflowIdx(i)==convert_locally_global_idx)
+      {      
+        concerned_by_WF = true;
+        break;
+      }
+    }
+
+    // Check if in WF
+    if (concerned_by_WF)
+    {
+      this->transformationMapping_[0]=pos_ ;
+      scalarDestination->mask.setValue( true );
+      scalarDestination->n.setValue( 1 );
+    }
+
+    if (axisSource->hasValue)
+    {
+      scalarDestination->value = axisSource->value(idxSrc);
+    }
+  }
+  // ----------------------------
+  
   scalarDestination->checkAttributes() ;
   this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ;
 }
