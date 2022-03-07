@@ -15,19 +15,27 @@ namespace xios
   {}
 
 
-  void CGridClientServerRemoteConnector::computeConnector(void)
+  void CGridClientServerRemoteConnector::computeConnector(bool eliminateRedondant)
   {
-    auto workflowRemoteConnector=make_shared<CGridRemoteConnector>(srcWorkflowView_,dstView_,localComm_,remoteSize_) ;
-    workflowRemoteConnector->computeConnector() ;
-    computeViewDistribution() ;
+    if (eliminateRedondant)
+    {
+      auto workflowRemoteConnector=make_shared<CGridRemoteConnector>(srcWorkflowView_,dstView_,localComm_,remoteSize_) ;
+      workflowRemoteConnector->computeConnector() ;
+      computeViewDistribution() ;
     
-    for(int i=0;i<srcView_.size();i++) isSrcViewDistributed_[i] =  isSrcViewDistributed_[i] || workflowRemoteConnector->getIsSrcViewDistributed()[i]  ;
-    computeConnectorMethods() ;
-    computeRedondantRanks() ;
+      for(int i=0;i<srcView_.size();i++) isSrcViewDistributed_[i] =  isSrcViewDistributed_[i] || workflowRemoteConnector->getIsSrcViewDistributed()[i]  ;
+      computeConnectorMethods() ;
+      computeRedondantRanks() ;
 
-    for(auto& rank : rankToRemove_)
-      if (workflowRemoteConnector->getRankToRemove().count(rank)!=0)
-        for(auto& element : elements_) element.erase(rank) ;
+      for(auto& rank : rankToRemove_)
+        if (workflowRemoteConnector->getRankToRemove().count(rank)!=0)
+          for(auto& element : elements_) element.erase(rank) ;
+    }
+    else 
+    {
+      computeViewDistribution() ;
+      computeConnectorRedundant() ;
+    }
   }
 
 }

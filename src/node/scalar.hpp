@@ -199,8 +199,8 @@ namespace xios
 
     public:
       void computeRemoteElement(CContextClient* client, EDistributionType) ;
-      void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndex, shared_ptr<CScattererConnector> &scattererConnector,
-                                 const string& scalarId="") ;
+      void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn,
+                              shared_ptr<CScattererConnector> &scattererConnector, const string& scalarId="") ;
 
       static void recvScalarDistribution(CEventServer& event) ;
       void receivedScalarDistribution(CEventServer& event, int phasis) ;
@@ -230,6 +230,7 @@ namespace xios
 
     private:
      shared_ptr<CScattererConnector>  serverToClientConnector_ = nullptr ;
+     shared_ptr<CDistributedElement> elementTo_ ;
     public: 
       shared_ptr<CScattererConnector> getServerToClientConnector(void) { return serverToClientConnector_ ;} 
 

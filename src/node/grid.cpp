@@ -1417,7 +1417,7 @@ namespace xios
     if (sendGridToCouplerOut_done_.count(client)!=0) return ;
     else sendGridToCouplerOut_done_.insert(client) ;
     this->sendAllAttributesToServer(client, getCouplingAlias(fieldId));
-    distributeGridToServer(client,fieldId) ;
+    distributeGridToServer(client, fieldId) ;
   }
 
 
@@ -1471,7 +1471,11 @@ namespace xios
     
     // CGridClientServerRemoteConnector : workflowView is added to avoid spurious optimisation with only the fullview
     auto gridRemoteConnector = make_shared<CGridClientServerRemoteConnector>(localViews, workflowView, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
-    gridRemoteConnector->computeConnector() ;
+    gridRemoteConnector->computeConnector(true) ;
+    
+    auto gridRemoteConnectorIn = make_shared<CGridClientServerRemoteConnector>(localViews, workflowView, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
+    gridRemoteConnectorIn->computeConnector(false) ;
+
     
     vector<shared_ptr<CScattererConnector>> scattererConnectors ;
     shared_ptr<CScattererConnector> scattererConnector;
@@ -1480,33 +1484,36 @@ namespace xios
       if (elements[i].type==TYPE_DOMAIN) 
       { 
         CDomain* domain = (CDomain*) elements[i].ptr ;
-        if (isCoupling) domain->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), scattererConnector,  domain->getCouplingAlias(fieldId,i)) ;
+        if (isCoupling) domain->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
+                                                   scattererConnector,  domain->getCouplingAlias(fieldId,i)) ;
         else 
         {
           sendAddDomain(domain->getId(),client) ;
-          domain->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), scattererConnector) ;
+          domain->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
         }
         scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_AXIS)
       {
         CAxis* axis = (CAxis*) elements[i].ptr ;
-        if (isCoupling) axis->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), scattererConnector,  axis->getCouplingAlias(fieldId,i)) ;
+        if (isCoupling) axis->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
+                                                 scattererConnector,  axis->getCouplingAlias(fieldId,i)) ;
         else 
         {
           sendAddAxis(axis->getId(),client) ;
-          axis->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), scattererConnector) ;
+          axis->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
         }
         scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_SCALAR)
       {
         CScalar* scalar = (CScalar*) elements[i].ptr ;
-        if (isCoupling) scalar->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), scattererConnector,  scalar->getCouplingAlias(fieldId,i)) ;
+        if (isCoupling) scalar->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
+                                                   scattererConnector,  scalar->getCouplingAlias(fieldId,i)) ;
         else 
         {
           sendAddScalar(scalar->getId(),client) ;
-          scalar->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), scattererConnector) ;
+          scalar->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
         }
         scattererConnectors.push_back(scattererConnector) ;
       }
