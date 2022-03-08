@@ -1809,7 +1809,7 @@ namespace xios
     {
       CDomain* pDom = CDomain::get(domainId);
       pDom->solveRefInheritance(apply);
-      pDom->solveInheritanceTransformation();
+      if (apply) pDom->solveInheritanceTransformation();
     }
 
     setAxisList();
@@ -1817,7 +1817,7 @@ namespace xios
     {
       CAxis* pAxis = CAxis::get(axisId);
       pAxis->solveRefInheritance(apply);
-      pAxis->solveInheritanceTransformation();
+      if (apply) pAxis->solveInheritanceTransformation();
     }
 
     setScalarList();
@@ -1825,7 +1825,7 @@ namespace xios
     {
       CScalar* pScalar = CScalar::get(scalarId);
       pScalar->solveRefInheritance(apply);
-      pScalar->solveInheritanceTransformation();
+      if (apply) pScalar->solveInheritanceTransformation();
     }
   }
   CATCH_DUMP_ATTR

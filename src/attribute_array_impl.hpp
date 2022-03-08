@@ -112,12 +112,9 @@ namespace xios
     template <typename T_numtype, int N_rank>
     bool CAttributeArray<T_numtype,N_rank>::isEqual_(const CAttributeArray& attr)
     {
-      if ((!this->hasInheritedValue() && !attr.hasInheritedValue()))
-          return true;
-      if (this->hasInheritedValue() && attr.hasInheritedValue())
-          return (this->getInheritedValue() == attr.getInheritedValue());
-      else 
-        return false;      
+      if (this->isEmpty() && attr.isEmpty()) return true ;
+      if (!this->isEmpty() && !attr.isEmpty())  return (this->getValue() == attr.getValue());
+      else return false;  
     }
 
     template <typename T_numtype, int N_rank>

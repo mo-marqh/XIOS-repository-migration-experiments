@@ -164,12 +164,9 @@ namespace xios
     template <class T>
     bool CAttributeTemplate<T>::isEqual_(const CAttributeTemplate& attr)
     {
-      if ((!this->hasInheritedValue() && !attr.hasInheritedValue()))
-          return true;
-      if (this->hasInheritedValue() && attr.hasInheritedValue())
-          return (this->getInheritedValue() == attr.getInheritedValue());
-      else 
-        return false;
+      if (this->isEmpty() && attr.isEmpty()) return true ;
+      if (!this->isEmpty() && !attr.isEmpty())  return (this->getValue() == attr.getValue());
+      else return false;
     }
 
       //---------------------------------------------------------------
