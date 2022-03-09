@@ -305,7 +305,7 @@ namespace xios
         buffers[rank]->notifyBufferResizing() ;
         buffers[rank]->updateCurrentWindows() ;
         buffers[rank]->freeBuffer(count) ;
-        info(100)<<"Receive NotifyChangeBufferSize from client rank "<<rank<<endl ;
+        info(100)<<"Context id "<<context->getId()<<" : Receive NotifyChangeBufferSize from client rank "<<rank<<endl ;
       } 
       else if (timeLine==timelineEventChangeBufferSize)
       {
@@ -315,11 +315,12 @@ namespace xios
         buffers[rank]->freeBuffer(count) ;
         delete buffers[rank] ;
         buffers[rank] = new CServerBuffer(windows_[rank], winAdress, 0, newSize) ;
-        info(100)<<"Receive ChangeBufferSize from client rank "<<rank<<"  newSize : "<<newSize<<" Address : "<<winAdress[0]<<" & "<<winAdress[1]<<endl ;
+        info(100)<<"Context id "<<context->getId()<<" : Receive ChangeBufferSize from client rank "<<rank
+                 <<"  newSize : "<<newSize<<" Address : "<<winAdress[0]<<" & "<<winAdress[1]<<endl ;
       }
       else
       {
-        info(100)<<"Receive standard event from client rank "<<rank<<"  with timeLine : "<<timeLine<<endl ;
+        info(100)<<"Context id "<<context->getId()<<" : Receive standard event from client rank "<<rank<<"  with timeLine : "<<timeLine<<endl ;
         it=events.find(timeLine);
         if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
         it->second->push(rank,buffers[rank],startBuffer,size);
@@ -383,7 +384,7 @@ namespace xios
 //         context->setProcessingEvent() ;
          isProcessingEvent_=true ;
          CTimer::get("Process events").resume();
-         info(100)<<"Received Event "<<currentTimeLine<<" of class "<<event->classId<<" of type "<<event->type<<endl ;
+         info(100)<<"Context id "<<context->getId()<<" : Process Event "<<currentTimeLine<<" of class "<<event->classId<<" of type "<<event->type<<endl ;
          dispatchEvent(*event);
          CTimer::get("Process events").suspend();
          isProcessingEvent_=false ;
