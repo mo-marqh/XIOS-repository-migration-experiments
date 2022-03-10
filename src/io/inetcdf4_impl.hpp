@@ -30,8 +30,13 @@ void CINetCDF4::getData(CArray<T, Ndim>& data, const StdString& var,
           << ", Data size = "  << array_size
           << " ] Invalid array size");
   }
-
-  CNetCdfInterface::getVaraType(ncidp, varid, &sstart[0], &scount[0], data.dataFirst());
+  
+  if (data.numElements()==0)
+  {
+    T data ;
+    CNetCdfInterface::getVaraType(ncidp, varid, &sstart[0], &scount[0], &data); // netcdf is very bad
+  }
+  else  CNetCdfInterface::getVaraType(ncidp, varid, &sstart[0], &scount[0], data.dataFirst());
 }
 
 } // namespace xios

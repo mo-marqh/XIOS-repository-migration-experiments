@@ -707,20 +707,51 @@ namespace xios
         sstart.push_back(0);
       scount.push_back(1);
       it++;
+    
+      if ( it == dimlist.end()) // scalar case
+      {
+        if (start && count)
+        {
+          scount.pop_back();
+          scount.push_back((*count)[0]);
+          array_size *= (*count)[0];
+        }
+        return ;
+      }
     }
-    for (int i = 0; it != dimlist.end(); it++, i++)
+    
+    if ( it == dimlist.end()) // scalar case
     {
       if (start && count)
       {
-        sstart.push_back((*start)[i]);
-        scount.push_back((*count)[i]);
-        array_size *= (*count)[i];
+        sstart.push_back((*start)[0]);
+        scount.push_back((*count)[0]);
+        array_size *= (*count)[0];
       }
       else
       {
         sstart.push_back(0);
-        scount.push_back(dimmap[*it]);
-        array_size *= dimmap[*it];
+        scount.push_back(1);
+        array_size *= 1;
+      }
+
+    }
+    else
+    {  
+      for (int i = 0; it != dimlist.end(); it++, i++)
+      {
+        if (start && count)
+        {
+          sstart.push_back((*start)[i]);
+          scount.push_back((*count)[i]);
+          array_size *= (*count)[i];
+        }
+        else
+        {
+          sstart.push_back(0);
+          scount.push_back(dimmap[*it]);
+          array_size *= dimmap[*it];
+        }
       }
     }
   }
