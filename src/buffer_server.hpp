@@ -19,6 +19,7 @@ namespace xios
       bool isResizing(void) { return resizingBuffer_ ;}
       void* getBuffer(size_t count) ;
       void freeBuffer(size_t count) ;
+      void popBuffer(size_t count) ;
       void createWindows(MPI_Comm oneSidedComm) ;
       bool getBufferFromClient(size_t timeLine, char* & buffer, size_t& count) ;
       bool isBufferEmpty(void) ;
@@ -27,6 +28,7 @@ namespace xios
       void unlockBuffer(void) ;
       void notifyClientFinalize(void) ;
       void notifyBufferResizing(void) ;
+      size_t getUsed(void) { return used ;}
     private:
       char* buffer;
       size_t first;   // first occupied element

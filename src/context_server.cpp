@@ -304,8 +304,9 @@ namespace xios
       {
         buffers[rank]->notifyBufferResizing() ;
         buffers[rank]->updateCurrentWindows() ;
-        buffers[rank]->freeBuffer(count) ;
-        info(100)<<"Context id "<<context->getId()<<" : Receive NotifyChangeBufferSize from client rank "<<rank<<endl ;
+        buffers[rank]->popBuffer(count) ;
+        info(100)<<"Context id "<<context->getId()<<" : Receive NotifyChangeBufferSize from client rank "<<rank<<endl
+                 <<"isBufferEmpty ? "<<buffers[rank]->isBufferEmpty()<<"  remaining count : "<<buffers[rank]->getUsed()<<endl;
       } 
       else if (timeLine==timelineEventChangeBufferSize)
       {

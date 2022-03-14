@@ -155,6 +155,7 @@ namespace xios
     {
       first=0 ;
       count-- ;
+      used-- ;
       end=size ;
     }
 
@@ -181,6 +182,45 @@ namespace xios
       {
           ERROR("void CServerBuffer::freeBuffer(size_t count)",
                  <<"cannot free required size in buffer") ;
+      }
+    }
+    used-=count ;
+  }
+
+  void CServerBuffer::popBuffer(size_t count)
+  {
+    if (count==0) return ;
+
+    if (current==0)  
+    {
+      current = end ;
+      end=size ;
+    }
+    
+
+    if (first<=current)
+    {
+      if (current-count >first)
+      {
+        current-=count ;
+      }
+      else
+      {
+          ERROR("void CServerBuffer::popBuffer(size_t count)",
+                 <<"cannot pop required size in buffer") ;
+      }
+
+    }
+    else
+    {
+      if (current-count>=0)
+      {
+        current-=count ;
+      }
+      else
+      {
+          ERROR("void CServerBuffer::freeBuffer(size_t count)",
+                 <<"cannot pop required size in buffer") ;
       }
     }
     used-=count ;
