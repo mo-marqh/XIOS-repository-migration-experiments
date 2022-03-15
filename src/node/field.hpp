@@ -103,6 +103,7 @@ namespace xios
 
          CGrid* getRelGrid(void) const;
          CFile* getRelFile(void) const;
+         CGrid* getAssociatedGrid(void) const ;
          CDomain* getAssociatedDomain(const std::string& domainId, bool noError=false) const;
          CAxis*   getAssociatedAxis(const std::string& axisId, bool noError=false) const;
          CScalar* getAssociatedScalar(const std::string& scalarId, bool noError=false) const;

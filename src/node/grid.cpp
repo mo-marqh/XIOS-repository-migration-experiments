@@ -182,6 +182,37 @@ namespace xios
    }
    CATCH
 
+
+   CGrid* CGrid::get(const string& id, bool noError)
+   {
+     const regex r("::");
+     smatch m;
+     if (regex_search(id, m, r))
+     {
+        if (m.size()!=1) ERROR("CGrid* Cgrid::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        string fieldId=m.prefix() ;
+        if (fieldId.empty()) ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        string suffix=m.suffix() ;
+        if (!suffix.empty()) ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> bad format id, suffix is not empty");
+        if (!CField::has(fieldId)) 
+          if (noError)  return nullptr ;
+          else ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+        CField* field=CField::get(fieldId) ;
+        return field->getAssociatedGrid() ;
+     }
+     else 
+     {
+       if (noError) if(!CObjectFactory::HasObject<CGrid>(id)) return nullptr ;
+       return CObjectFactory::GetObject<CGrid>(id).get();
+     }
+   }
+   
+   bool CGrid::has(const string& id)
+   {
+     if (CGrid::get(id,true)==nullptr) return false ;
+     else return true ;
+   }
+
    //----------------------------------------------------------------
 
    //! Change virtual field group to a new one

@@ -367,6 +367,13 @@ namespace xios
   }
   CATCH
 
+  CGrid* CField::getAssociatedGrid(void) const
+  TRY
+  {
+    return this->grid_;
+  }
+  CATCH
+
   CDomain* CField::getAssociatedDomain(const string& domainId, bool noError) const
   {
     if (grid_==nullptr)
