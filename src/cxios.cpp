@@ -58,6 +58,8 @@ namespace xios
   CCouplerManager*    CXios::couplerManager_=nullptr ;
   CRegistryManager*   CXios::registryManager_=nullptr ;
 
+  CMpiGarbageCollector CXios::MpiGarbageCollector_  ;
+
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
   {

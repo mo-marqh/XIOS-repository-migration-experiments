@@ -10,6 +10,7 @@
 #include "daemons_manager.hpp"
 #include "coupler_manager.hpp"
 #include "registry_manager.hpp"
+#include "mpi_garbage_collector.hpp"
 
 namespace xios
 {
@@ -74,8 +75,9 @@ namespace xios
      static CServicesManager* servicesManager_ ;
      static CContextsManager* contextsManager_ ;
      static CDaemonsManager* daemonsManager_ ;
-     
-
+     static CMpiGarbageCollector MpiGarbageCollector_  ;
+    public:
+     static CMpiGarbageCollector& getMpiGarbageCollector(void) { return MpiGarbageCollector_ ; }
     public:
      //! Setting xios to use server mode
      static void setUsingServer();
@@ -110,7 +112,7 @@ namespace xios
      static CContextsManager*   getContextsManager(void) { return contextsManager_ ;}
      static CDaemonsManager*    getDaemonsManager(void) { return daemonsManager_ ;}
      static CPoolRessource*     getPoolRessource(void) ;
-
+     
      static MPI_Comm getGlobalComm(void) { return globalComm ;}
      static MPI_Comm getXiosComm(void) { return xiosComm ;}
      static void setXiosComm(MPI_Comm comm) { xiosComm=comm ;}

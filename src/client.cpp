@@ -491,7 +491,7 @@ namespace xios
       finalizePoolRessource() ;
       CContext::removeAllContexts() ; // free memory for related context 
 
-
+      CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();

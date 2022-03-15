@@ -334,10 +334,16 @@ namespace xios
         MPI_Comm interComm ;
         MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, 0, &interComm) ;
         MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
         MPI_Comm_free(&interComm) ;
         windows_[rank].resize(2) ;
+        
         MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
+        CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;
+        
         MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);   
+        CXios::getMpiGarbageCollector().registerWindow(windows_[rank][1]) ;
+
         CTimer::get("create Windows").suspend() ;
       }
       else
