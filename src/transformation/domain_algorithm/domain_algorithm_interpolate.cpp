@@ -101,7 +101,7 @@ TRY
   if (readFromFile_)  readRemapInfo();
   else computeRemap(); 
 
-    this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW)) ;
+    this->computeAlgorithm(domainSource->getLocalView(CElementView::WORKFLOW), domainDestination->getLocalView(CElementView::WORKFLOW), detectMissingValue, renormalize) ;
     
 }
 CATCH

@@ -4,7 +4,8 @@ namespace xios
 {
 
   CWeightTransformConnector::CWeightTransformConnector(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView, unordered_map<int, std::vector<int>>& indexMap, 
-                                                   unordered_map<int, std::vector<double>>& weightMap) : srcView_(srcView), dstView_(dstView)
+                                                       unordered_map<int, std::vector<double>>& weightMap,  bool detectMissingValue, bool renormalize) : 
+                                                       srcView_(srcView), dstView_(dstView), detectMissingValue_(detectMissingValue), renormalize_(renormalize)
   {
     computeConnector(indexMap, weightMap) ;
   }

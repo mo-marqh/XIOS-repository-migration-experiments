@@ -5,10 +5,10 @@ namespace xios
 {
 
 
-  void CAlgorithmTransformationWeight::computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView)
+  void CAlgorithmTransformationWeight::computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView, bool detectMissingValue, bool renormalize)
   {
     this->computeRecvElement(srcView, dstView) ;
-    weightTransformConnector_ = make_shared<CWeightTransformConnector>(recvElement_->getView(CElementView::FULL), dstView, transformationMapping_, transformationWeight_) ; 
+    weightTransformConnector_ = make_shared<CWeightTransformConnector>(recvElement_->getView(CElementView::FULL), dstView, transformationMapping_, transformationWeight_, detectMissingValue, renormalize) ; 
   }
  
 

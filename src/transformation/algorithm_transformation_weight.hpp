@@ -14,12 +14,13 @@ namespace xios
   {
     public:
 
-      CAlgorithmTransformationWeight(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
+      CAlgorithmTransformationWeight(bool isSource) : CGenericAlgorithmTransformation(isSource) {} 
+                                                                                                 
       virtual ~CAlgorithmTransformationWeight() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
       virtual void computeRecvElement(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView);
     protected:
-      virtual void computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;
+      virtual void computeAlgorithm(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView, bool detectMissingValue, bool renormalize) ;
 
       //! Map between global index of destination element and source element
       TransformationIndexMap transformationMapping_;

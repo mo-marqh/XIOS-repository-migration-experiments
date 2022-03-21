@@ -67,7 +67,7 @@ TRY
   }
   std::vector<CArray<double,1>* > dataAuxInputs ;
   computeRemap(dataAuxInputs) ;
-  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW)) ;
+  this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisDestination->getLocalView(CElementView::WORKFLOW), false, false) ;
 }
 CATCH
 
