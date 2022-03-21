@@ -494,19 +494,19 @@ namespace xios
     if ((CDomain::type_attr::rectilinear == domain->type))
     {
       // Ok, try to read some attributes such as longitude and latitude
-      domain->hasLatInReadFile_ = SuperClassWriter::hasVariable(itMapNj->first);
-      domain->hasLonInReadFile_  = SuperClassWriter::hasVariable(itMapNi->first);
+      domain->hasLatInReadFile = SuperClassWriter::hasVariable(itMapNj->first);
+      domain->hasLonInReadFile = SuperClassWriter::hasVariable(itMapNi->first);
     }
     else if ((CDomain::type_attr::curvilinear == domain->type) || (CDomain::type_attr::unstructured == domain->type) )
     {
       StdString latName = this->getLatCoordName(fieldId);
-      domain->hasLatInReadFile_ = SuperClassWriter::hasVariable(latName) ;
+      domain->hasLatInReadFile = SuperClassWriter::hasVariable(latName) ;
       StdString lonName = this->getLonCoordName(fieldId);        
-      domain->hasLonInReadFile_ = SuperClassWriter::hasVariable(lonName) ; 
+      domain->hasLonInReadFile = SuperClassWriter::hasVariable(lonName) ; 
       StdString boundsLatName = this->getBoundsId(latName);
-      domain->hasBoundsLatInReadFile_ = SuperClassWriter::hasVariable(boundsLatName) ; 
+      domain->hasBoundsLatInReadFile = SuperClassWriter::hasVariable(boundsLatName) ; 
       StdString boundsLonName = this->getBoundsId(lonName);
-      domain->hasBoundsLonInReadFile_ = SuperClassWriter::hasVariable(boundsLonName) ;
+      domain->hasBoundsLonInReadFile = SuperClassWriter::hasVariable(boundsLonName) ;
     }
   }
   CATCH

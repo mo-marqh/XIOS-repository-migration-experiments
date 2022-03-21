@@ -218,11 +218,7 @@ namespace xios
          bool hasArea;
          bool hasLonLat;
          bool hasPole ;
-         bool hasLatInReadFile_ ; // specify if latitude is defined on read file, so it can be read later when grid distribution will be defined
-         bool hasBoundsLatInReadFile_ ; // specify if latitude boundarues are defined on read file, so it can be read later when grid distribution will be defined
-         bool hasLonInReadFile_ ; // specify if longitude is defined on read file, so it can be read later when grid distribution will be defined
-         bool hasBoundsLonInReadFile_ ; // specify if longitude boundaries are defined on read file, so it can be read later when grid distribution will be defined
-
+        
          void computeLocalMask(void) ;
       
          /** The number of server of a context client. Avoid to re-compute indice computed in a previous computeConnectedClient */

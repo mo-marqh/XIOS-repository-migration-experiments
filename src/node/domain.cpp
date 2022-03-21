@@ -41,8 +41,7 @@ namespace xios {
       , hasLonLat(false)
       , isRedistributed_(false), hasPole(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
-      , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
-      , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
+      , clients()
    {
    }
 
@@ -53,9 +52,8 @@ namespace xios {
       , hasLonLat(false)
       , isRedistributed_(false), hasPole(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
-      , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
-      , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
-   {
+      , clients()
+    {
     }
 
    CDomain::~CDomain(void)
@@ -493,7 +491,7 @@ namespace xios {
    void CDomain::fillInRectilinearLonLat()
    TRY
    {
-     if (!lonvalue_rectilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty())
+     if (!lonvalue_rectilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty() )
      {
        lonvalue_1d.resize(ni);
        for (int idx = 0; idx < ni; ++idx)
@@ -501,7 +499,7 @@ namespace xios {
        lon_start.setValue(lonvalue_rectilinear_read_from_file(0));
        lon_end.setValue(lonvalue_rectilinear_read_from_file(ni_glo-1));
      }
-     else if (!hasLonInReadFile_)
+     else if (hasLonInReadFile.isEmpty() || !hasLonInReadFile)
      {
        if (!lonvalue_2d.isEmpty()) lonvalue_2d.free();
        lonvalue_1d.resize(ni);
@@ -535,7 +533,7 @@ namespace xios {
        lat_start.setValue(latvalue_rectilinear_read_from_file(0));
        lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1));
      }
-     else if (!hasLatInReadFile_)
+     else if (hasLatInReadFile.isEmpty() || !hasLatInReadFile)
      {
        if (!latvalue_2d.isEmpty()) latvalue_1d.free();
        latvalue_1d.resize(nj);
