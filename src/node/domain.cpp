@@ -892,7 +892,10 @@ namespace xios {
         for(int i=0;i<ni;++i) j_index(i)=0;
 
         if (!area.isEmpty())
-          area.transposeSelf(1, 0);
+        {
+          CArray<double,2> newArea(area.dataFirst(),shape(ni,nj),duplicateData) ;
+          area.reference(newArea) ;
+        }
      }
 
      if (ni_glo.isEmpty())
