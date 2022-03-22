@@ -143,6 +143,7 @@ namespace xios {
                                   const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder);
          static CGrid* get(const string& id, bool noError=false) ; //<! return grid pointer using id
          static bool has(const string& id) ; //<! return if grid exist using id
+         static CField* getFieldFromId(const string& id) ; //<! return field id if used in grid reference
          static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                      const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);

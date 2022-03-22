@@ -1297,6 +1297,8 @@ namespace xios
     }
     else
     {
+      CField* field=CGrid::getFieldFromId(grid_ref) ;
+      if (field!=nullptr) field->solveGridReference() ;
       if (CGrid::has(grid_ref)) this->grid_ = CGrid::get(grid_ref);
       else  ERROR("CField::solveGridReference(void)",
                    << "Invalid reference to grid '" << grid_ref.getValue() << "'.");

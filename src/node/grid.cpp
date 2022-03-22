@@ -212,6 +212,23 @@ namespace xios
      if (CGrid::get(id,true)==nullptr) return false ;
      else return true ;
    }
+   
+   CField* CGrid::getFieldFromId(const string& id)
+   {
+     const regex r("::");
+     smatch m;
+     if (regex_search(id, m, r))
+     {
+        if (m.size()!=1) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        string fieldId=m.prefix() ;
+        if (fieldId.empty()) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        string suffix=m.suffix() ;
+        if (!suffix.empty()) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, suffix is not empty");
+        if (!CField::has(fieldId)) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+        return CField::get(fieldId) ;
+     } 
+     else return nullptr ;
+   }
 
    //----------------------------------------------------------------
 
