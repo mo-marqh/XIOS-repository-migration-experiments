@@ -2322,7 +2322,7 @@ namespace xios
           CDomain* domain = CDomain::create();
           domain->duplicateAttributes(element.domain) ;
           domain->setTemplateId(element.domain) ;
-          domain->name = element.domain->getId() ;
+          if (domain->name.isEmpty()) domain->name = element.domain->getId() ;
           newGrid->addDomain(domain->getId()) ;
         }
         else if (element.type==TYPE_AXIS)      
@@ -2330,7 +2330,7 @@ namespace xios
           CAxis* axis = CAxis::create();
           axis->duplicateAttributes(element.axis) ;
           axis->setTemplateId(element.axis) ;
-          axis->name = element.axis->getId() ;
+          if (axis->name.isEmpty()) axis->name = element.axis->getId() ;
           newGrid->addAxis(axis->getId()) ;
         }
         else if (element.type==TYPE_SCALAR)      
@@ -2338,7 +2338,7 @@ namespace xios
           CScalar* scalar = CScalar::create();
           scalar->duplicateAttributes(element.scalar) ;
           scalar->setTemplateId(element.scalar) ;
-          scalar->name = element.scalar->getId() ;
+          if (scalar->name.isEmpty()) scalar->name = element.scalar->getId() ;
           newGrid->addScalar(scalar->getId()) ;
         }
       }
