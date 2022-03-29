@@ -130,7 +130,8 @@ def main():
                             validated = 1
                             np.seterr(divide='ignore', invalid='ignore')
                             for var in res.variables:
-                                if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))) and (not (var.startswith('atm__'))):
+                                print("checkfile = ", checkfile, ", var = ", var)
+                                if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))) and (not (var.startswith('atm__')) and (var!="lat") and (var!="lon") ):
                                     ref_interp = ref.variables[var]
                                     ref_array = ref_interp[:]
                                     res_interp = res.variables[var]
