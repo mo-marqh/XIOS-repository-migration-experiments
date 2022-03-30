@@ -178,6 +178,7 @@ namespace xios
          static ENodeType GetType(void);
 
         template <int N> void setData(const CArray<double, N>& _data);
+        void checkSumLike( const double* array, int numElements, bool output ) const;
         static bool dispatchEvent(CEventServer& event);
         static bool isCollectiveEvent(CEventServer& event);
         void sendAllAttributesToServer(CContextClient* client) ; 
