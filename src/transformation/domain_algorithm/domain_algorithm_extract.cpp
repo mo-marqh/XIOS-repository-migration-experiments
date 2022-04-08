@@ -140,6 +140,8 @@ TRY
   domainDest_->i_index.resize(niDest*njDest);
   domainDest_->j_index.resize(niDest*njDest);
 
+  if (!domainSrc_->nvertex.isEmpty()) domainDest_->nvertex = domainSrc_->nvertex ;
+
   // Resize lon/lat, bounds, area arrays to local domain dimensions
   if (!domainSrc_->lonvalue_1d.isEmpty())
   {
@@ -148,10 +150,10 @@ TRY
       domainDest_->lonvalue_1d.resize(niDest);
       domainDest_->latvalue_1d.resize(njDest);
     }
-    else if (domainDest_->type == CDomain::type_attr::unstructured)
+    else 
     {
-      domainDest_->lonvalue_1d.resize(niDest);
-      domainDest_->latvalue_1d.resize(niDest);
+      domainDest_->lonvalue_1d.resize(niDest*njDest);
+      domainDest_->latvalue_1d.resize(niDest*njDest);
     }
   }
   else if (!domainSrc_->lonvalue_2d.isEmpty())
@@ -164,12 +166,12 @@ TRY
     if (!domainSrc_->bounds_lon_2d.isEmpty())
     {
       domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
-      domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
+      domainDest_->bounds_lat_2d.resize(domainDest_->nvertex, niDest, njDest);
     }
     else if (!domainSrc_->bounds_lon_1d.isEmpty())
     {
       domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
-      domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
+      domainDest_->bounds_lat_1d.resize(domainDest_->nvertex, niDest);
     }
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
@@ -271,7 +273,7 @@ TRY
           domainDest_->lonvalue_1d(iIdxDestLocal) = domainSrc_->lonvalue_1d(iIdxSrcLocal);
           domainDest_->latvalue_1d(jIdxDestLocal) = domainSrc_->latvalue_1d(jIdxSrcLocal);
         }
-        else if (domainDest_->type == CDomain::type_attr::unstructured)
+        else
         {
           domainDest_->lonvalue_1d(countDest) = domainSrc_->lonvalue_1d(countSrc);
           domainDest_->latvalue_1d(countDest) = domainSrc_->latvalue_1d(countSrc);
@@ -279,11 +281,8 @@ TRY
       }
       else if (!domainDest_->lonvalue_2d.isEmpty())
       {
-        if (domainDest_->type == CDomain::type_attr::curvilinear)
-        {
-          domainDest_->lonvalue_2d(iIdxDestLocal, jIdxDestLocal) = domainSrc_->lonvalue_2d(iIdxSrcLocal,jIdxSrcLocal);
-          domainDest_->latvalue_2d(iIdxDestLocal, jIdxDestLocal) = domainSrc_->latvalue_2d(iIdxSrcLocal,jIdxSrcLocal);
-        }
+        domainDest_->lonvalue_2d(iIdxDestLocal, jIdxDestLocal) = domainSrc_->lonvalue_2d(iIdxSrcLocal,jIdxSrcLocal);
+        domainDest_->latvalue_2d(iIdxDestLocal, jIdxDestLocal) = domainSrc_->latvalue_2d(iIdxSrcLocal,jIdxSrcLocal);
       }
       
       // if point i has been identified as extracted, increment position in destination domain for the next point
