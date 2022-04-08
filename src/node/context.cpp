@@ -679,7 +679,7 @@ void CContext::removeAllContexts(void)
   bool CContext::eventLoop(bool enableEventsProcessing)
   {
     bool  finished(true); 
-    if (isLockedContext()) return false;
+    if (isLockedContext()) enableEventsProcessing=false;
     
     setCurrent(getId()) ;
 
