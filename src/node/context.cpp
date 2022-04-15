@@ -683,19 +683,19 @@ void CContext::removeAllContexts(void)
     
     setCurrent(getId()) ;
 
-    if (client!=nullptr && !finalized) client->checkBuffers();
+    if (client!=nullptr && !finalized) client->eventLoop();
     
     for (int i = 0; i < clientPrimServer.size(); ++i)
     {
-      if (!finalized) clientPrimServer[i]->checkBuffers();
+      if (!finalized) clientPrimServer[i]->eventLoop();
       if (!finalized) finished &= serverPrimServer[i]->eventLoop(enableEventsProcessing);
     }
 
     for (auto couplerOut : couplerOutClient_)
-      if (!finalized) couplerOut.second->checkBuffers();
+      if (!finalized) couplerOut.second->eventLoop();
     
     for (auto couplerIn : couplerInClient_)
-      if (!finalized) couplerIn.second->checkBuffers();
+      if (!finalized) couplerIn.second->eventLoop();
     
     for (auto couplerOut : couplerOutServer_)
       if (!finalized) couplerOut.second->eventLoop(enableEventsProcessing);
@@ -787,7 +787,7 @@ void CContext::removeAllContexts(void)
         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
         client->finalize();
         info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
-        while (client->havePendingRequests()) client->checkBuffers();
+        while (client->havePendingRequests()) client->eventLoop();
         info(100)<<"DEBUG: context "<<getId()<<" no pending request ok"<<endl ;
         bool notifiedFinalized=false ;
         do
@@ -807,7 +807,7 @@ void CContext::removeAllContexts(void)
            bool bufferReleased;
            do
            {
-             clientPrimServer[i]->checkBuffers();
+             clientPrimServer[i]->eventLoop();
              bufferReleased = !clientPrimServer[i]->havePendingRequests();
            } while (!bufferReleased);
            
@@ -1098,7 +1098,6 @@ void CContext::removeAllContexts(void)
     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) 
     {
       for(auto field : fileOutField) slaveServers_.insert(field->getContextClient()) ; 
-      for(auto field : fileInField)  slaveServers_.insert(field->getContextClient()) ;  
     }
 
     for(auto& slaveServer : slaveServers_) sendCloseDefinition(slaveServer) ;
@@ -1708,9 +1707,9 @@ void CContext::removeAllContexts(void)
    void CContext::sendUpdateCalendar(int step)
    TRY
    {
-     CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
      for(auto client : slaveServers_) 
      {
+       CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
        if (client->isServerLeader())
        {
          CMessage msg;

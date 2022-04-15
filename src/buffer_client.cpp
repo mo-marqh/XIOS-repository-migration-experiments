@@ -143,6 +143,7 @@ namespace xios
     CTimer::get("lock buffer").resume();
     if (hasWindows)
     {
+      if (winState[current]==true) ERROR("CClientBuffer::lockBuffer(void)",<<"Try lo lock client buffer but winState said it is already locked") ;
       MPI_Win_lock(MPI_LOCK_EXCLUSIVE,clientRank_, 0, windows_[current]) ;
       winState[current]=true ;
     }
@@ -154,6 +155,7 @@ namespace xios
     CTimer::get("unlock buffer").resume();
     if (hasWindows)
     {
+      if (winState[current]==false) ERROR("CClientBuffer::lockBuffer(void)",<<"Try lo unlock client buffer but winState said it is already unlocked") ;
       MPI_Win_unlock(clientRank_, windows_[current]) ;
       winState[current]=false ;
     }

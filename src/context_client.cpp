@@ -174,10 +174,10 @@ namespace xios
       
       if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
       {
-        while (checkBuffers(ranks)) context_->globalEventLoop() ;
+        while (checkBuffers(ranks)) callGlobalEventLoop() ;
       
         CXios::getDaemonsManager()->scheduleContext(hashId_) ;
-        while (CXios::getDaemonsManager()->isScheduledContext(hashId_)) context_->globalEventLoop() ;
+        while (CXios::getDaemonsManager()->isScheduledContext(hashId_)) callGlobalEventLoop() ;
       }
       
       timeLine++;
@@ -286,7 +286,7 @@ namespace xios
           if (doUnlockBuffers) for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
           checkBuffers();
 
-          context_->globalEventLoop() ;
+          callGlobalEventLoop() ;
         }
 
       } while (!areBuffersFree && !nonBlocking);
@@ -300,6 +300,17 @@ namespace xios
       return areBuffersFree;
    }
 
+   void CContextClient::eventLoop(void)
+   {
+      if (!locked_) checkBuffers() ;
+   }
+
+   void CContextClient::callGlobalEventLoop(void)
+   {
+     locked_=true ;
+     context_->globalEventLoop() ;
+     locked_=false ;
+   }
    /*!
    Make a new buffer for a certain connection to server with specific rank
    \param [in] rank rank of connected server

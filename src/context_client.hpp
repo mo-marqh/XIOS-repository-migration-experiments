@@ -38,6 +38,8 @@ namespace xios
       void newBuffer(int rank);
       bool checkBuffers(list<int>& ranks);
       bool checkBuffers(void);
+      void eventLoop(void) ;
+      void callGlobalEventLoop() ;
       void releaseBuffers(void);
       bool havePendingRequests(void);
       bool havePendingRequests(list<int>& ranks) ;
@@ -128,6 +130,8 @@ namespace xios
       bool isGrowableBuffer_ = true ;
 
       double latency_=0e-2 ;
+
+      bool locked_ = false ; //!< The context client is locked to avoid recursive checkBuffer
   };
 }
 
