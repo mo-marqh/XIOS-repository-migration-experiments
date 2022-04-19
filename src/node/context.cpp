@@ -1095,10 +1095,13 @@ void CContext::removeAllContexts(void)
     }
     
     // construct slave server list
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) 
+    if (serviceType_==CServicesManager::CLIENT) 
     {
       for(auto field : fileOutField) slaveServers_.insert(field->getContextClient()) ; 
+      for(auto field : fileInField) slaveServers_.insert(field->getContextClient()) ; 
     }
+    else if (serviceType_==CServicesManager::GATHERER) 
+      for(auto field : fileOutField) slaveServers_.insert(field->getContextClient()) ; 
 
     for(auto& slaveServer : slaveServers_) sendCloseDefinition(slaveServer) ;
 
