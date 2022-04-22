@@ -51,8 +51,10 @@ namespace xios {
       public :
          enum EEventId
          {
+           EVENT_ID_COLLECTIVE=100,
            EVENT_ID_ADD_FIELD, EVENT_ID_ADD_FIELD_GROUP, EVENT_ID_ADD_VARIABLE,
-           EVENT_ID_ADD_VARIABLE_GROUP, EVENT_ID_CREATE_ENABLED_FIELDS
+           EVENT_ID_ADD_VARIABLE_GROUP, EVENT_ID_CREATE_ENABLED_FIELDS,
+           EVENT_ID_NO_COLLECTIVE=1000,
          };
 
          typedef CFileAttributes RelAttributes;

@@ -76,8 +76,10 @@ namespace xios {
 
          enum EEventId
          {
+           EVENT_ID_COLLECTIVE=100,
            EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS, EVENT_ID_ADD_SCALAR,
            EVENT_ID_SEND_MASK,
+           EVENT_ID_NO_COLLECTIVE=1000,
 
          };
 

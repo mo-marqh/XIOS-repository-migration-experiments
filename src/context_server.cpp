@@ -114,7 +114,7 @@ namespace xios
     checkPendingProbe() ;
     CTimer::get("check pending request").suspend();
     CTimer::get("check event process").resume();
-    if (enableEventsProcessing)  processEvents();
+    processEvents(enableEventsProcessing);
     CTimer::get("check event process").suspend();
     return finished;
   }
@@ -319,7 +319,7 @@ namespace xios
         newBuffer>>newSize>>winAdress[0]>>winAdress[1] ;
         buffers[rank]->freeBuffer(count) ;
         delete buffers[rank] ;
-        buffers[rank] = new CServerBuffer(windows_[rank], winAdress, 0, newSize) ;
+        buffers[rank] = new CServerBuffer(windows_[rank], winAdress, 0, 2*newSize) ;
         info(100)<<"Context id "<<context->getId()<<" : Receive ChangeBufferSize from client rank "<<rank
                  <<"  newSize : "<<newSize<<" Address : "<<winAdress[0]<<" & "<<winAdress[1]<<endl ;
       }
@@ -338,7 +338,7 @@ namespace xios
     CTimer::get("Process request").suspend();
   }
 
-  void CContextServer::processEvents(void)
+  void CContextServer::processEvents(bool enableEventsProcessing)
   {
     map<size_t,CEventServer*>::iterator it;
     CEventServer* event;
@@ -362,6 +362,7 @@ namespace xios
         }
         else if (isAttachedModeEnabled() || eventScheduler_->queryEvent(currentTimeLine,hashId) )
         {
+          if (!enableEventsProcessing && isCollectiveEvent(*event)) return ;
 
           if (!eventScheduled_) 
           {
@@ -497,7 +498,7 @@ namespace xios
 
   bool CContextServer::isCollectiveEvent(CEventServer& event)
   {
-    if (event.classId==CField::GetType()) return CField::isCollectiveEvent(event);
+    if (event.type>1000) return false ;
     else return true ;
   }
 }

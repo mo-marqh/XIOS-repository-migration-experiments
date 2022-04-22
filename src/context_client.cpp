@@ -448,8 +448,13 @@ namespace xios
    */
    void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize)
    {
-     for(auto& it : mapSize) 
-      buffers[it.first]->fixBufferSize(std::max(CXios::minBufferSize*1.0,std::min(it.second*CXios::bufferSizeFactor*1.01,CXios::maxBufferSize*1.0)));
+     setFixedBuffer() ;
+     for(auto& it : mapSize)
+     {
+      size_t size=std::max(CXios::minBufferSize*1.0,std::min(it.second*CXios::bufferSizeFactor*1.01,CXios::maxBufferSize*1.0)) ;
+      mapBufferSize_[it.first]=size ;
+      if (buffers.count(it.first)>0) buffers[it.first]->fixBufferSize(size);
+     }
    }
 
   /*!

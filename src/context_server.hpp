@@ -24,7 +24,7 @@ namespace xios
     void checkPendingRequest(void) ;
     void getBufferFromClient(size_t timeLine) ;
     void processRequest(int rank, char* buff,int count) ;
-    void processEvents(void) ;
+    void processEvents(bool enableEventsProcessing) ;
     bool hasFinished(void);
     void dispatchEvent(CEventServer& event) ;
     bool isCollectiveEvent(CEventServer& event) ;

@@ -52,12 +52,14 @@ namespace xios
          public :
          enum EEventId
          {
+           EVENT_ID_COLLECTIVE=100,
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
            EVENT_ID_CONTEXT_FINALIZE_CLIENT,
            EVENT_ID_COUPLER_IN_READY,
            EVENT_ID_COUPLER_IN_CLOSE_DEFINITION,
            EVENT_ID_COUPLER_IN_CONTEXT_FINALIZED,
+           EVENT_ID_NO_COLLECTIVE=1000,
          };
 
          /// typedef ///

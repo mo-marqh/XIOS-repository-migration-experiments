@@ -557,6 +557,7 @@ namespace xios
   bool CField::evaluateBufferSize(map<CContextClient*,map<int,size_t>>& evaluateBuffer, bool isOptPerformance)
   {
     CContextClient* client=nullptr ;
+    const size_t headerSize=100 ;
 
     for(int i=0;i<2;i++)
     {
@@ -568,21 +569,21 @@ namespace xios
       {
         map<int,size_t> bufferSize ;
    
-        if (evaluateBuffer.count(client)!=0) bufferSize = evaluateBuffer[client] ;
+        bufferSize = evaluateBuffer[client] ;
         if (isOptPerformance)
         {
           for(auto& it : dataSize) 
           {
-            if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second ;
-            else bufferSize[it.first]+=it.second ;
+            if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second+headerSize ;
+            else bufferSize[it.first]+=it.second+headerSize ;
           }
         }
         else
         {
           for(auto& it : dataSize) 
           {
-            if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second ;
-            else bufferSize[it.first]=std::max(bufferSize[it.first],(size_t)it.second) ;
+              if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second+headerSize ;
+              else bufferSize[it.first]=std::max(bufferSize[it.first],(size_t)(it.second+headerSize)) ;
           }
         }
         evaluateBuffer[client] = bufferSize ;

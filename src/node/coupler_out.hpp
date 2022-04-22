@@ -46,7 +46,9 @@ namespace xios
       public :
          enum EEventId
          {
-           NO_EVENT
+           EVENT_ID_COLLECTIVE=100,
+           NO_EVENT,
+           EVENT_ID_NO_COLLECTIVE=1000,
          };
 
          typedef CCouplerOutAttributes RelAttributes;

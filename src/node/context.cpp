@@ -1129,7 +1129,7 @@ void CContext::removeAllContexts(void)
     map<CContextClient*,map<int,size_t>> fieldBufferEvaluation ;
     for(auto field : fileOutField) field->evaluateBufferSize(fieldBufferEvaluation, CXios::isOptPerformance) ; // output to server
     for(auto field : couplerOutField) field->evaluateBufferSize(fieldBufferEvaluation, CXios::isOptPerformance) ; // output to coupler
-    for(auto field : fieldModelIn) field->evaluateBufferSize(fieldBufferEvaluation, CXios::isOptPerformance) ; // server to client (for io servers)
+    for(auto field : fileInField) field->evaluateBufferSize(fieldBufferEvaluation, CXios::isOptPerformance) ; // server to client (for io servers)
     
     // fix size for each context client
     for(auto& it : fieldBufferEvaluation) it.first->setBufferSize(it.second) ;

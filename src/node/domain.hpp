@@ -57,7 +57,9 @@ namespace xios
      public:
          enum EEventId
          {
-           EVENT_ID_DOMAIN_DISTRIBUTION, EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE
+           EVENT_ID_COLLECTIVE=100,
+           EVENT_ID_DOMAIN_DISTRIBUTION, EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE,
+           EVENT_ID_NO_COLLECTIVE=100,
          } ;
 
       public:

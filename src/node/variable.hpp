@@ -38,7 +38,9 @@ namespace xios
          public :
             enum EEventId
             {
-             EVENT_ID_VARIABLE_VALUE
+             EVENT_ID_COLLECTIVE=100,
+             EVENT_ID_VARIABLE_VALUE,
+             EVENT_ID_NO_COLLECTIVE=1000,
             };
 
             friend class CVariableGroup;
