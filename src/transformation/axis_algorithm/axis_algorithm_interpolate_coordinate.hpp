@@ -44,6 +44,7 @@ private:
 
   // Interpolation order
   int order_;
+  bool extrapolate_ ;
   StdString coordinateSrc_; // pressure src
   StdString coordinateDest_; // pressure dst
   bool hasCoordinate_=false ;

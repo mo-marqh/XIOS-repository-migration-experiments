@@ -81,6 +81,10 @@ namespace xios
     axisDestination->checkAttributes() ;
 
     order_ = interpAxis->order.getValue();
+    
+    if (interpAxis->extrapolate.isEmpty()) extrapolate_=true ;
+    else extrapolate_=interpAxis->extrapolate ;
+
     if (!interpAxis->coordinate.isEmpty())
     {
       coordinateSrc_ = interpAxis->coordinate.getValue();
@@ -286,9 +290,18 @@ namespace xios
       
         for(int i=0; i < ndst;i++)
         {
+          bool intrapolating( true );
           x=dstCoordinate[dstIndex[i]] ;
-          if ( x<=srcCoordinate[srcIndex[0]]) lastj=0 ;
-          else if (x>=srcCoordinate[srcIndex[nsrc-1]]) lastj=nsrc-2 ;
+          if ( x<=srcCoordinate[srcIndex[0]])
+          {
+            lastj=0 ;
+            intrapolating = false;
+          }
+          else if (x>=srcCoordinate[srcIndex[nsrc-1]])
+          {
+            lastj=nsrc-2 ;
+            intrapolating = false;
+          }
           else
           {
             for(int j=lastj; j<nsrc; j++)
@@ -297,12 +310,19 @@ namespace xios
               if (x >= srcCoordinate[srcIndex[j]] && x<srcCoordinate[srcIndex[j+1]]) break ;
             }  
           }
-          x0=srcCoordinate[srcIndex[lastj]] ;
-          x1=srcCoordinate[srcIndex[lastj+1]] ;
-          y0=srcValue[srcIndex[lastj]] ;
-          y1=srcValue[srcIndex[lastj+1]] ;
-          y=((x-x1)*y0-(x-x0)*y1)/(x0-x1) ;
-          dstValue[dstIndex[i]]=y ;
+          if ((!extrapolate_) && (!intrapolating))
+          {
+            dstValue[dstIndex[i]]= std::numeric_limits<double>::quiet_NaN() ;
+          }
+          else
+          {
+            x0=srcCoordinate[srcIndex[lastj]] ;
+            x1=srcCoordinate[srcIndex[lastj+1]] ;
+            y0=srcValue[srcIndex[lastj]] ;
+            y1=srcValue[srcIndex[lastj+1]] ;
+            y=((x-x1)*y0-(x-x0)*y1)/(x0-x1) ;
+            dstValue[dstIndex[i]]=y ;
+          }
         }
       }
     }
@@ -314,9 +334,18 @@ namespace xios
       
       for(int i=0; i < ndst;i++)
       {
+        bool intrapolating( true );
         x=dstCoordinate[dstIndex[i]] ;
-        if ( x<=srcCoordinate[srcIndex[0]]) lastj=0 ;
-        else if (x>=srcCoordinate[srcIndex[nsrc-1]]) lastj=nsrc-2 ;
+        if ( x<=srcCoordinate[srcIndex[0]])
+        {
+          lastj=0 ;
+          intrapolating = false;
+        }
+        else if (x>=srcCoordinate[srcIndex[nsrc-1]])
+        {
+          lastj=nsrc-2 ;
+          intrapolating = false;
+        }
         else
         {
           for(int j=lastj; j<nsrc; j++)
@@ -332,16 +361,24 @@ namespace xios
         {
           if ( (x-srcCoordinate[srcIndex[lastj-1]]) > (srcCoordinate[srcIndex[lastj+2]]-x) ) cj=lastj ;
           else cj=lastj+1 ;
-        } 
-        x0=srcCoordinate[srcIndex[cj-1]] ;
-        x1=srcCoordinate[srcIndex[cj]] ;
-        x2=srcCoordinate[srcIndex[cj+1]] ;
-        y0=srcValue[srcIndex[cj-1]] ;
-        y1=srcValue[srcIndex[cj]] ;
-        y2=srcValue[srcIndex[cj+1]] ;
-            
-        y=y0*(x-x1)*(x-x2)/((x0-x1)*(x0-x2)) + y1*(x-x0)*(x-x2)/((x1-x0)*(x1-x2)) + y2*(x-x0)*(x-x1)/((x2-x0)*(x2-x1))  ;
-        dstValue[dstIndex[i]]=y ;
+        }
+        if ((!extrapolate_) && (!intrapolating))
+        {
+          dstValue[dstIndex[i]]= std::numeric_limits<double>::quiet_NaN() ;
+        }
+        else
+        {
+          x0=srcCoordinate[srcIndex[cj-1]] ;
+          x1=srcCoordinate[srcIndex[cj]] ;
+          x2=srcCoordinate[srcIndex[cj+1]] ;
+          y0=srcValue[srcIndex[cj-1]] ;
+          y1=srcValue[srcIndex[cj]] ;
+          y2=srcValue[srcIndex[cj+1]] ;
+          
+          y=y0*(x-x1)*(x-x2)/((x0-x1)*(x0-x2)) + y1*(x-x0)*(x-x2)/((x1-x0)*(x1-x2)) + y2*(x-x0)*(x-x1)/((x2-x0)*(x2-x1))  ;
+          dstValue[dstIndex[i]]=y ;
+        }
+
       }
     }
   }  
