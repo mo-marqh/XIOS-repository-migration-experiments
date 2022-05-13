@@ -65,6 +65,23 @@ namespace xios
 
     if (packet->status == CDataPacket::NO_ERROR)
     {
+      if ( data.numElements() != grid_->getWorkflowToModelConnector()->getDstSize() )
+      {
+	ERROR("CGridLocalConnector::transfer(...)",
+	      << "Bad definition of grids size for grid (destination) " << grid_->getId()
+	      << ", awaited size = " << data.numElements()
+	      << ", while will generate data size = " << grid_->getWorkflowToModelConnector()->getDstSize()
+	      );
+
+      }
+      if ( packet->data.numElements() != grid_->getWorkflowToModelConnector()->getSrcSize() )
+      {
+	ERROR("CGridLocalConnector::transfer(...)",
+	      << "Bad definition of grids size for grid (source) " << grid_->getId()
+	      << ", awaited size = " << grid_->getWorkflowToModelConnector()->getSrcSize()
+	      << ", while received data size = " << packet->data.numElements()
+	      );
+      }
       if (hasMissingValue_) grid_->getWorkflowToModelConnector()->transfer(packet->data, data, missingValue_);
       else grid_->getWorkflowToModelConnector()->transfer(packet->data, data);
     }
