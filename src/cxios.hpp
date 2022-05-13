@@ -63,7 +63,10 @@ namespace xios
      static CRegistry* globalRegistry ; //!< global registry which is wrote by the root process of the servers
      static double recvFieldTimeout; //!< Time to wait for data before issuing an error when receiving a field
      static bool checkEventSync; //!< For debuuging, check if event are coherent and synchrone on client side
-     
+
+     static bool checkSumSend; //!< For debugging, compute a checksum of fields sent by the model to the XIOS client (very expensive !)
+     static bool checkSumRecv; //!< For debugging, compute a checksum of fields received by the model through the XIOS client
+
      static const string defaultPoolId ;
      static const string defaultServerId ;
      static const string defaultGathererId ;

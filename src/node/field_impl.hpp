@@ -20,7 +20,7 @@ namespace xios {
     {
       if (check_if_active.isEmpty() || (!check_if_active.isEmpty() && (!check_if_active) || isActive(true)))
       {
-	if ( info.getLevel()>100  )
+	if ( CXios::checkSumSend )
 	{
 	  const double* array = _data.dataFirst();
 	  int numElements( _data.numElements() );
@@ -43,7 +43,7 @@ namespace xios {
     if (clientToModelStoreFilter_)
     {
       CDataPacket::StatusCode status = clientToModelStoreFilter_->getData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
-      if ( info.getLevel()>100  )
+      if ( CXios::checkSumRecv )
       {
 	const double* array = _data.dataFirst();
 	int numElements( _data.numElements() );
