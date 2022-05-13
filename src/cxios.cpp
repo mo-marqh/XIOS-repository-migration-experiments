@@ -42,6 +42,8 @@ namespace xios
   CRegistry* CXios::globalRegistry = 0;
   double CXios::recvFieldTimeout = 300.0;
   bool CXios::checkEventSync=false ;
+  bool CXios::checkSumRecv=false ;
+  bool CXios::checkSumSend=false ;
  
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
@@ -92,6 +94,9 @@ namespace xios
 
     checkEventSync = getin<bool>("check_event_sync", checkEventSync);
 
+    checkSumSend = getin<bool>("checksum_send_fields", false);
+    checkSumRecv = getin<bool>("checksum_recv_fields", false);
+ 
     globalComm=MPI_COMM_WORLD ;
   }
 
