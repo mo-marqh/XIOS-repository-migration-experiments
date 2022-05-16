@@ -54,7 +54,7 @@ TRY
 {
   interpAxis->checkValid(axisSource);
   order_ = interpAxis->order.getValue();
-  if (interpAxis->extrapolate.isEmpty()) extrapolate_=false ;
+  if (interpAxis->extrapolate.isEmpty()) extrapolate_=true ;
   else extrapolate_=interpAxis->extrapolate ;
   
   this->idAuxInputs_.clear();
@@ -194,7 +194,7 @@ TRY
       }
 
     }
-    else
+    else if (extrapolate_)
     {
       it=itb ;
       if (destValue <= *it) 
