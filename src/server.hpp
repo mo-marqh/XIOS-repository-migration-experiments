@@ -21,7 +21,7 @@ namespace xios
         static void finalize(void);
         static void eventLoop(void);
         
-        static MPI_Comm intraComm;
+        static MPI_Comm intraComm_;
         static MPI_Comm serversComm_;
         static std::list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
         static std::list<MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)

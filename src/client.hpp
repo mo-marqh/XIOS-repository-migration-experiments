@@ -18,8 +18,8 @@ namespace xios
         static void registerContext_old(const string& id, MPI_Comm contextComm);
         static void callOasisEnddef(void) ; 
         
-        static MPI_Comm intraComm;
-        static MPI_Comm interComm;
+        static MPI_Comm intraComm_;
+        static MPI_Comm interComm_;
         static std::list<MPI_Comm> contextInterComms;
         static int serverLeader;
         static bool is_MPI_Initialized ;

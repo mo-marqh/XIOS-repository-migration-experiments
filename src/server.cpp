@@ -26,7 +26,7 @@
 
 namespace xios
 {
-    MPI_Comm CServer::intraComm ;
+    MPI_Comm CServer::intraComm_ ;
     MPI_Comm CServer::serversComm_ ;
     std::list<MPI_Comm> CServer::interCommLeft ;
     std::list<MPI_Comm> CServer::interCommRight ;

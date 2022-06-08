@@ -23,8 +23,8 @@ namespace xios
 
     const double serverPublishDefaultTimeout=10;
 
-    MPI_Comm CClient::intraComm ;
-    MPI_Comm CClient::interComm ;
+    MPI_Comm CClient::intraComm_ ;
+    MPI_Comm CClient::interComm_ ;
     MPI_Comm CClient::clientsComm_ ;
 
     std::list<MPI_Comm> CClient::contextInterComms;
@@ -35,7 +35,7 @@ namespace xios
     StdOFStream CClient::m_errorStream;
     CPoolRessource* CClient::poolRessource_=nullptr ;
 
-    MPI_Comm& CClient::getInterComm(void)   { return (interComm); }
+    MPI_Comm& CClient::getInterComm(void)   { return (interComm_); }
      
 ///---------------------------------------------------------------
 /*!
@@ -468,10 +468,10 @@ namespace xios
         int rank ;
         int msg=0 ;
 
-        MPI_Comm_rank(intraComm,&rank) ;
+        MPI_Comm_rank(intraComm_,&rank) ;
         if (rank==0) 
         {
-          MPI_Send(&msg,1,MPI_INT,0,5,interComm) ; // tags oasis_endded = 5
+          MPI_Send(&msg,1,MPI_INT,0,5,interComm_) ; // tags oasis_endded = 5
         }
 
       }
