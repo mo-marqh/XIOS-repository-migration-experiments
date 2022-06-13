@@ -114,6 +114,13 @@ namespace xios
       else // localComm is given
       {
         MPI_Comm_dup(localComm,&clientComm) ;
+        MPI_Comm_dup(localComm,&intraComm_) ;
+
+        if (CXios::usingServer)
+        {
+          MPI_Comm_rank(intraComm_,&rank_) ;
+        }
+
       }
       
      
@@ -243,7 +250,6 @@ namespace xios
         } 
 
       } 
-      
       MPI_Bcast(&error,1,MPI_INT,0,clientComm) ;
       
       if (error==false)  // you have a server
@@ -262,6 +268,9 @@ namespace xios
           MPI_Comm_free(&intraComm) ;
           MPI_Intercomm_merge(interComm,high, &intraComm ) ;
           high=false ;
+          if (i==pos) {
+            interComm_=interComm ;
+          }
         }
         xiosGlobalComm=intraComm ;
       }
@@ -306,6 +315,9 @@ namespace xios
             MPI_Intercomm_create(intraComm, 0, globalComm, clientsRank[0], 3141, &interComm);
             MPI_Intercomm_merge(interComm,high, &intraComm ) ;
             high=false ;
+          }
+          if (i==pos) {
+            interComm_=interComm ; // NOT TESTED !
           }
         }
         xiosGlobalComm=intraComm ;
@@ -458,7 +470,7 @@ namespace xios
       bool oasisEnddef=CXios::getin<bool>("call_oasis_enddef",true) ;
       if (!oasisEnddef) ERROR("void CClient::callOasisEnddef(void)", <<"Function xios_oasis_enddef called but variable <call_oasis_enddef> is set to false."<<endl
                                                                      <<"Variable <call_oasis_enddef> must be set to true"<<endl) ;
-      if (CXios::isServer)
+      if (!CXios::isClient) // != isServer (change recently )
       // Attached mode
       {
         // nothing to do   

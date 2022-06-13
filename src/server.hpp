@@ -18,6 +18,9 @@ namespace xios
         static void xiosGlobalCommByFileExchange(MPI_Comm serverComm) ;
         static void xiosGlobalCommByPublishing(MPI_Comm serverComm) ;
 
+        static void listenRootOasisEnddef(void);
+        static void listenOasisEnddef(void);
+
         static void finalize(void);
         static void eventLoop(void);
         

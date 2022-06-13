@@ -40,7 +40,16 @@ namespace xios
     CXios::getRessourcesManager()->eventLoop() ;
     CXios::getServicesManager()->eventLoop() ;
     CXios::getContextsManager()->eventLoop() ;
-    if (isServer_) return CServer::getServersRessource()->eventLoop(false) ;
+    if (isServer_) {
+        if (CServer::isRoot) {
+            CServer::listenOasisEnddef() ;
+            CServer::listenRootOasisEnddef() ;
+        }
+        else {
+            CServer::listenRootOasisEnddef() ;
+        }
+        return CServer::getServersRessource()->eventLoop(false) ;
+    }
     else  return CXios::getPoolRessource()->eventLoop(false) ;
   }
   
