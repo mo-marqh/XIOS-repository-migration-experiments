@@ -99,8 +99,9 @@ namespace xios
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
 
         oasis_get_localcomm(serverComm);
-        MPI_Comm_dup(serverComm, &intraComm_);
       }
+      MPI_Comm_dup(serverComm, &intraComm_);
+      
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS initialize").resume() ;
  
