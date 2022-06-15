@@ -26,6 +26,7 @@ namespace xios
   const string CXios::defaultPoolId="default_pool_id" ;
   const string CXios::defaultServerId="default_server_id" ;
   const string CXios::defaultGathererId="default_gatherer_id" ;
+  const string CXios::defaultServicesId="default_services_id" ;
   
   bool CXios::xiosStack = true;
   bool CXios::systemStack = false;

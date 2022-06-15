@@ -105,10 +105,9 @@ namespace xios
 
           MPI_Comm_split(globalComm, color, commRank, &clientComm) ;
         }
-        else // using oasis to split communicator
+        else
         {
-          if (!is_MPI_Initialized) oasis_init(codeId) ;
-          oasis_get_localcomm(clientComm) ;
+	  ERROR("void CClient::initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)", <<"OASIS usage is set. In these conditions, XIOS initialization needs the local_comm created by OASIS."<<endl) ;
         }
       }
       else // localComm is given
@@ -506,8 +505,7 @@ namespace xios
       CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
       if (!is_MPI_Initialized)
       {
-        if (CXios::usingOasis) oasis_finalize();
-        else MPI_Finalize() ;
+        if (!CXios::usingOasis) MPI_Finalize() ;
       }
       
       info(20) << "Client side context is finalized"<<endl ;

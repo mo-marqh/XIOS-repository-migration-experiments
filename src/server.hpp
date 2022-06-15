@@ -6,11 +6,33 @@
 #include "context_client.hpp"
 #include "mpi.hpp"
 #include "event_scheduler.hpp"
+#include "oasis_cinterface.hpp"
 
 namespace xios
 {
     class CServersRessource ;
 
+    class CThirdPartyDriver
+    {
+      public:
+        CThirdPartyDriver()
+        {
+          oasis_init(CXios::xiosCodeId);
+        };
+        virtual ~CThirdPartyDriver()
+        {
+          oasis_finalize();
+        };
+        virtual void endSynchronizedDefinition()
+        {
+          oasis_enddef();
+        };
+        virtual void getComponentCommunicator(MPI_Comm &intraComm)
+        {
+          oasis_get_localcomm(intraComm);
+        };
+    };
+  
     class CServer
     {
       public:
@@ -79,6 +101,8 @@ namespace xios
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
         static CServersRessource* serversRessource_  ;
+
+        static CThirdPartyDriver* driver_;
     };
 }
 

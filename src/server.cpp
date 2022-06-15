@@ -47,6 +47,7 @@ namespace xios
     bool CServer::is_MPI_Initialized ;
     CEventScheduler* CServer::eventScheduler = 0;
     CServersRessource* CServer::serversRessource_=nullptr ;
+    CThirdPartyDriver* CServer::driver_ =nullptr ;
 
        
     void CServer::initialize(void)
@@ -96,9 +97,9 @@ namespace xios
       }
       else // using OASIS
       {
-        if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
+        if (!is_MPI_Initialized) driver_ = new CThirdPartyDriver();
 
-        oasis_get_localcomm(serverComm);
+        driver_->getComponentCommunicator( serverComm );
       }
       MPI_Comm_dup(serverComm, &intraComm_);
       
@@ -199,7 +200,10 @@ namespace xios
           ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
           servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
           servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServerId, CServicesManager::OUT_SERVER, nprocsServer, nbPoolsServer2) ;
+
+
         }
+        servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServicesId, CServicesManager::ALL_SERVICES, nbRessources, 1) ;
       }
       CTimer::get("XIOS initialize").suspend() ;
 
@@ -380,10 +384,10 @@ namespace xios
        {
          boost::hash<string> hashString;
          size_t hashId = hashString("oasis_enddef");
-         if (CXios::getPoolRessource()->getService(CXios::defaultServerId,0)->getEventScheduler()->queryEvent(0,hashId))
+         if (CXios::getPoolRessource()->getService(CXios::defaultServicesId,0)->getEventScheduler()->queryEvent(0,hashId))
          {
-           CXios::getPoolRessource()->getService(CXios::defaultServerId,0)->getEventScheduler()->popEvent() ;
-           oasis_enddef() ;
+           CXios::getPoolRessource()->getService(CXios::defaultServicesId,0)->getEventScheduler()->popEvent() ;
+           driver_->endSynchronizedDefinition() ;
            eventSent=false ;
          }
        }
@@ -396,7 +400,7 @@ namespace xios
            MPI_Recv(&msg,1,MPI_INT,root,5,intraComm_,&status) ; // tags oasis_endded = 5
            boost::hash<string> hashString;
            size_t hashId = hashString("oasis_enddef");
-           CXios::getPoolRessource()->getService(CXios::defaultServerId,0)->getEventScheduler()->registerEvent(0,hashId);
+           CXios::getPoolRessource()->getService(CXios::defaultServicesId,0)->getEventScheduler()->registerEvent(0,hashId);
            eventSent=true ;
        }
      }
@@ -426,7 +430,7 @@ namespace xios
 
       if (!is_MPI_Initialized)
       {
-        if (CXios::usingOasis) oasis_finalize();
+        if (CXios::usingOasis) delete driver_;
         else MPI_Finalize() ;
       }
       report(0)<<"Performance report : Time spent for XIOS : "<<CTimer::get("XIOS server").getCumulatedTime()<<endl  ;

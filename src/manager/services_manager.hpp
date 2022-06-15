@@ -22,6 +22,7 @@ namespace xios
     static const int GATHERER=1 ;
     static const int IO_SERVER=2 ;
     static const int OUT_SERVER=3 ;
+    static const int ALL_SERVICES=4 ;
 
     public:
     
