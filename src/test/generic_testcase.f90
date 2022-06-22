@@ -187,7 +187,8 @@ CONTAINS
     LOGICAL :: ok
     INTEGER :: ierr      
 
-    LOGICAL :: ok_field2D, ok_field3D, ok_pressure_shifted, ok_pressure, ok_field2D_sub, ok_field3D_sub,ok_field3D_recv, ok_field3D_send
+    LOGICAL :: ok_field2D, ok_field3D, ok_pressure_shifted, ok_pressure, ok_field2D_sub, ok_field3D_sub, &
+               ok_field3D_recv, ok_field3D_send
     LOGICAL :: ok_field_X, ok_field_Y, ok_field_XY, ok_field_Z, ok_field_XYZ, ok_field_XZ, ok_field_YZ
     LOGICAL :: ok_field2D_W, ok_field3D_W, ok_pressure_W, ok_field2D_sub_W, ok_field3D_sub_W,ok_field3D_recv_W, ok_field3D_send_W
     LOGICAL :: ok_field_XW, ok_field_YW, ok_field_XYW, ok_field_ZW, ok_field_XYZW, ok_field_XZW, ok_field_YZW
