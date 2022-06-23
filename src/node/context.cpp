@@ -893,9 +893,6 @@ void CContext::removeAllContexts(void)
     // pour chacun des contextes.
     solveDescInheritance(true);
  
-    // Solve inheritance for field to know if enabled or not.
-    for (auto field : CField::getAll()) field->solveRefInheritance();
-
     // Check if some axis, domains or grids are eligible to for compressed indexed output.
     // Warning: This must be done after solving the inheritance and before the rest of post-processing
     // --> later ????    checkAxisDomainsGridsEligibilityForCompressedOutput();      
@@ -908,6 +905,10 @@ void CContext::removeAllContexts(void)
 
     //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
     findEnabledFiles();
+
+    // Solve inheritance for field to know if enabled or not.
+    for (auto field : CField::getAll()) field->solveRefInheritance();
+
     findEnabledWriteModeFiles();
     findEnabledReadModeFiles();
     findEnabledCouplerIn();
@@ -922,7 +923,7 @@ void CContext::removeAllContexts(void)
     findFieldsWithReadAccess();
     vector<CField*>& fieldWithReadAccess = fieldsWithReadAccess_ ;
     vector<CField*> fieldModelIn ; // fields potentially from model
-     
+
     // define if files are on clientSied or serverSide 
     if (serviceType_==CServicesManager::CLIENT)
     {
@@ -1340,6 +1341,12 @@ void CContext::removeAllContexts(void)
               else
                enabledFiles.push_back(allFiles[i]);
             }
+	    else // Si l'attribut 'enabled' est fixé à faux.
+	    {
+	      // disabled all fields contained in file (used in findFieldsWithReadAccess through field_ref dependencies)
+	      const vector<CField*>&& fieldList=allFiles[i]->getEnabledFields() ;
+	      for(auto field : fieldList) field->enabled.setValue(false);
+	    }
          }
          else
          {
