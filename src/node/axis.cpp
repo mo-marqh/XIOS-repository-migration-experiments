@@ -46,7 +46,7 @@ namespace xios {
    bool CAxis::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
    TRY
    {
-     m["zoom_axis"] = TRANS_ZOOM_AXIS;
+     m["zoom_axis"] = TRANS_EXTRACT_AXIS;
      m["interpolate_axis"] = TRANS_INTERPOLATE_AXIS;
      m["extract_axis"] = TRANS_EXTRACT_AXIS;
      m["inverse_axis"] = TRANS_INVERSE_AXIS;
@@ -807,6 +807,10 @@ namespace xios {
         it = transformationMapList_.find(nodeElementName);
         if (ite != it)
         {
+          if (it->first == "zoom_axis")
+          {
+            info(0) << "WARNING : " << it->first << " is deprecated, replaced by extract_axis." << endl;
+          }
           transformationMap_.push_back(std::make_pair(it->second, CTransformation<CAxis>::createTransformation(it->second,
                                                                                                                nodeId,
                                                                                                                &node)));

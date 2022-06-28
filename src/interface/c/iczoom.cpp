@@ -14,8 +14,8 @@
 
 #include "icutil.hpp"
 #include "timer.hpp"
-#include "zoom_axis.hpp"
-#include "zoom_domain.hpp"
+#include "extract_axis.hpp"
+#include "extract_domain.hpp"
 
 extern "C"
 {
@@ -23,16 +23,18 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
 
-   typedef xios::CZoomAxis   * XZoomAxisPtr;
-   typedef xios::CZoomDomain * XZoomDomainPtr;
+   typedef xios::CExtractAxis   * XExtractAxisPtr;
+   typedef xios::CExtractDomain * XExtractDomainPtr;
    // ------------------------ Création des handle -----------------------------
-   void cxios_zoom_axis_handle_create (XZoomAxisPtr * _ret, const char * _id, int _id_len)
+   void cxios_zoom_axis_handle_create (XExtractAxisPtr * _ret, const char * _id, int _id_len)
    TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
+      cout << "WARNING : you are using the zoom_axis interface. zoom_domain is deprecated, replace it with extract_axis." << endl;
+      cout << "\t Calls to xios_set/get_zoom_axis_attr must be replaced with xios_set/get_extract_axis_attr in your model." << endl;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CZoomAxis::get(id);
+      *_ret = xios::CExtractAxis::get(id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -43,21 +45,25 @@ extern "C"
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
+      cout << "WARNING : you are using the zoom_axis interface. zoom_domain is deprecated, replace it with extract_axis." << endl;
+      cout << "\t Calls to xios_set/get_zoom_axis_attr must be replaced with xios_set/get_extract_axis_attr in your model." << endl;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CZoomAxis::has(id);
+      *_ret = xios::CExtractAxis::has(id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
 
    // ------------------------ Création des handle -----------------------------
-   void cxios_zoom_domain_handle_create(XZoomDomainPtr * _ret, const char * _id, int _id_len)
+   void cxios_zoom_domain_handle_create(XExtractDomainPtr * _ret, const char * _id, int _id_len)
    TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
+      cout << "WARNING : you are using the zoom_domain interface. zoom_domain is deprecated, replace it with extract_domain." << endl;
+      cout << "\t Calls to xios_set/get_zoom_domain_attr must be replaced with xios_set/get_extract_domain_attr in your model." << endl;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CZoomDomain::get(id);
+      *_ret = xios::CExtractDomain::get(id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -68,9 +74,10 @@ extern "C"
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      cout << "WARNING : you are using the zoom_domain interface. zoom_domain is deprecated, replace it with extract_domain." << endl;
+      cout << "\t Calls to xios_set/get_zoom_domain_attr must be replaced with xios_set/get_extract_domain_attr in your model." << endl;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CZoomDomain::has(id);
+      *_ret = xios::CExtractDomain::has(id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

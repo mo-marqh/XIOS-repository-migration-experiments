@@ -2341,7 +2341,7 @@ namespace xios {
   bool CDomain::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
   TRY
   {
-    m["zoom_domain"] = TRANS_ZOOM_DOMAIN;
+    m["zoom_domain"] = TRANS_EXTRACT_DOMAIN;
     m["interpolate_domain"] = TRANS_INTERPOLATE_DOMAIN;
     m["generate_rectilinear_domain"] = TRANS_GENERATE_RECTILINEAR_DOMAIN;
     m["compute_connectivity_domain"] = TRANS_COMPUTE_CONNECTIVITY_DOMAIN;
@@ -2535,6 +2535,10 @@ namespace xios {
         it = transformationMapList_.find(nodeElementName);
         if (ite != it)
         {
+          if (it->first == "zoom_domain")
+          {
+            info(0) << "WARNING : " << it->first << " is deprecated, replaced by extract_domain." << endl;
+          }
           transformationMap_.push_back(std::make_pair(it->second, CTransformation<CDomain>::createTransformation(it->second,
                                                                                                                 nodeId,
                                                                                                                 &node)));
