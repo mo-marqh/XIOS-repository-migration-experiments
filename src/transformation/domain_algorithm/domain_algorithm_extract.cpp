@@ -199,7 +199,6 @@ TRY
     if ( sourceGlobalIdx(countSrc) < IdxMin )
       IdxMin = sourceGlobalIdx(countSrc);
   }
-  
   int countDest(0); // increment of the position in destination domain 
   for (int countSrc = 0; countSrc < indexSize ; ++countSrc)
   {
@@ -216,8 +215,8 @@ TRY
       // ------------------ define transformation only if in the WF ------------------ 
       // countSrc+IdxMin is the global position (not index) considering the distributed memory
       //     - can be compared to the workflow view
-      int iIdxSrc2 = (countSrc+IdxMin)%domainSource->ni_glo;
-      int jIdxSrc2 = (countSrc+IdxMin)/domainSource->ni_glo;
+      int iIdxSrc2 = (countSrc%domainSource->ni)+(IdxMin)%domainSource->ni_glo;
+      int jIdxSrc2 = (countSrc/domainSource->ni)+(IdxMin)/domainSource->ni_glo;
       int convert_locally_global_idx = (jIdxSrc2-jIdxSrcMin)*domainSource->ni + (iIdxSrc2-iIdxSrcMin) ;
       bool concerned_by_WF(false);
       for ( int i = 0 ; i<sourceWorkflowIdx.numElements() ; ++i )
