@@ -194,6 +194,29 @@ extern "C"
   }
 
 
+  void cxios_set_scalar_n(scalar_Ptr scalar_hdl, int n)
+  {
+    CTimer::get("XIOS").resume();
+    scalar_hdl->n.setValue(n);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_n(scalar_Ptr scalar_hdl, int* n)
+  {
+    CTimer::get("XIOS").resume();
+    *n = scalar_hdl->n.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_n(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->n.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_scalar_name(scalar_Ptr scalar_hdl, const char * name, int name_size)
   {
     std::string name_str;

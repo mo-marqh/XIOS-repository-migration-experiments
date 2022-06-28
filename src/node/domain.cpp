@@ -499,7 +499,7 @@ namespace xios {
        lon_start.setValue(lonvalue_rectilinear_read_from_file(0));
        lon_end.setValue(lonvalue_rectilinear_read_from_file(ni_glo-1));
      }
-     else if (hasLonInReadFile.isEmpty() || !hasLonInReadFile)
+     else if (has_lon_in_read_file.isEmpty() || !has_lon_in_read_file)
      {
        if (!lonvalue_2d.isEmpty()) lonvalue_2d.free();
        lonvalue_1d.resize(ni);
@@ -533,7 +533,7 @@ namespace xios {
        lat_start.setValue(latvalue_rectilinear_read_from_file(0));
        lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1));
      }
-     else if (hasLatInReadFile.isEmpty() || !hasLatInReadFile)
+     else if (has_lat_in_read_file.isEmpty() || !has_lat_in_read_file)
      {
        if (!latvalue_2d.isEmpty()) latvalue_1d.free();
        latvalue_1d.resize(nj);

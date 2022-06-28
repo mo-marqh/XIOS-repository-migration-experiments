@@ -12,7 +12,7 @@ CONTAINS
 
   SUBROUTINE xios(set_scalargroup_attr)  &
     ( scalargroup_id, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-    , name, positive, prec, scalar_ref, standard_name, unit, value )
+    , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup))  :: scalargroup_hdl
@@ -26,6 +26,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask
       LOGICAL (KIND=C_BOOL) :: mask_tmp
+      INTEGER  , OPTIONAL, INTENT(IN) :: n
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
       INTEGER  , OPTIONAL, INTENT(IN) :: prec
@@ -38,13 +39,13 @@ CONTAINS
       (scalargroup_id,scalargroup_hdl)
       CALL xios(set_scalargroup_attr_hdl_)   &
       ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-      , name, positive, prec, scalar_ref, standard_name, unit, value )
+      , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(set_scalargroup_attr)
 
   SUBROUTINE xios(set_scalargroup_attr_hdl)  &
     ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-    , name, positive, prec, scalar_ref, standard_name, unit, value )
+    , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup)) , INTENT(IN) :: scalargroup_hdl
@@ -57,6 +58,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask
       LOGICAL (KIND=C_BOOL) :: mask_tmp
+      INTEGER  , OPTIONAL, INTENT(IN) :: n
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
       INTEGER  , OPTIONAL, INTENT(IN) :: prec
@@ -67,13 +69,13 @@ CONTAINS
 
       CALL xios(set_scalargroup_attr_hdl_)  &
       ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-      , name, positive, prec, scalar_ref, standard_name, unit, value )
+      , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(set_scalargroup_attr_hdl)
 
   SUBROUTINE xios(set_scalargroup_attr_hdl_)   &
     ( scalargroup_hdl, axis_type_, bounds_, bounds_name_, comment_, group_ref_, label_, long_name_  &
-    , mask_, name_, positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
+    , mask_, n_, name_, positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup)) , INTENT(IN) :: scalargroup_hdl
@@ -86,6 +88,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name_
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_
       LOGICAL (KIND=C_BOOL) :: mask__tmp
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive_
       INTEGER  , OPTIONAL, INTENT(IN) :: prec_
@@ -135,6 +138,11 @@ CONTAINS
       (scalargroup_hdl%daddr, mask__tmp)
       ENDIF
 
+      IF (PRESENT(n_)) THEN
+        CALL cxios_set_scalargroup_n &
+      (scalargroup_hdl%daddr, n_)
+      ENDIF
+
       IF (PRESENT(name_)) THEN
         CALL cxios_set_scalargroup_name &
       (scalargroup_hdl%daddr, name_, len(name_))
@@ -174,7 +182,7 @@ CONTAINS
 
   SUBROUTINE xios(get_scalargroup_attr)  &
     ( scalargroup_id, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-    , name, positive, prec, scalar_ref, standard_name, unit, value )
+    , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup))  :: scalargroup_hdl
@@ -188,6 +196,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask
       LOGICAL (KIND=C_BOOL) :: mask_tmp
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec
@@ -200,13 +209,13 @@ CONTAINS
       (scalargroup_id,scalargroup_hdl)
       CALL xios(get_scalargroup_attr_hdl_)   &
       ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-      , name, positive, prec, scalar_ref, standard_name, unit, value )
+      , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(get_scalargroup_attr)
 
   SUBROUTINE xios(get_scalargroup_attr_hdl)  &
     ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-    , name, positive, prec, scalar_ref, standard_name, unit, value )
+    , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup)) , INTENT(IN) :: scalargroup_hdl
@@ -219,6 +228,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask
       LOGICAL (KIND=C_BOOL) :: mask_tmp
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec
@@ -229,13 +239,13 @@ CONTAINS
 
       CALL xios(get_scalargroup_attr_hdl_)  &
       ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-      , name, positive, prec, scalar_ref, standard_name, unit, value )
+      , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(get_scalargroup_attr_hdl)
 
   SUBROUTINE xios(get_scalargroup_attr_hdl_)   &
     ( scalargroup_hdl, axis_type_, bounds_, bounds_name_, comment_, group_ref_, label_, long_name_  &
-    , mask_, name_, positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
+    , mask_, n_, name_, positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup)) , INTENT(IN) :: scalargroup_hdl
@@ -248,6 +258,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_
       LOGICAL (KIND=C_BOOL) :: mask__tmp
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive_
       INTEGER  , OPTIONAL, INTENT(OUT) :: prec_
@@ -297,6 +308,11 @@ CONTAINS
         mask_ = mask__tmp
       ENDIF
 
+      IF (PRESENT(n_)) THEN
+        CALL cxios_get_scalargroup_n &
+      (scalargroup_hdl%daddr, n_)
+      ENDIF
+
       IF (PRESENT(name_)) THEN
         CALL cxios_get_scalargroup_name &
       (scalargroup_hdl%daddr, name_, len(name_))
@@ -336,7 +352,7 @@ CONTAINS
 
   SUBROUTINE xios(is_defined_scalargroup_attr)  &
     ( scalargroup_id, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-    , name, positive, prec, scalar_ref, standard_name, unit, value )
+    , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup))  :: scalargroup_hdl
@@ -357,6 +373,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: long_name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask
       LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n
+      LOGICAL(KIND=C_BOOL) :: n_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive
@@ -376,13 +394,13 @@ CONTAINS
       (scalargroup_id,scalargroup_hdl)
       CALL xios(is_defined_scalargroup_attr_hdl_)   &
       ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-      , name, positive, prec, scalar_ref, standard_name, unit, value )
+      , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_scalargroup_attr)
 
   SUBROUTINE xios(is_defined_scalargroup_attr_hdl)  &
     ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-    , name, positive, prec, scalar_ref, standard_name, unit, value )
+    , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup)) , INTENT(IN) :: scalargroup_hdl
@@ -402,6 +420,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: long_name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask
       LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n
+      LOGICAL(KIND=C_BOOL) :: n_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive
@@ -419,13 +439,13 @@ CONTAINS
 
       CALL xios(is_defined_scalargroup_attr_hdl_)  &
       ( scalargroup_hdl, axis_type, bounds, bounds_name, comment, group_ref, label, long_name, mask  &
-      , name, positive, prec, scalar_ref, standard_name, unit, value )
+      , n, name, positive, prec, scalar_ref, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_scalargroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_scalargroup_attr_hdl_)   &
     ( scalargroup_hdl, axis_type_, bounds_, bounds_name_, comment_, group_ref_, label_, long_name_  &
-    , mask_, name_, positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
+    , mask_, n_, name_, positive_, prec_, scalar_ref_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(scalargroup)) , INTENT(IN) :: scalargroup_hdl
@@ -445,6 +465,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: long_name__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_
       LOGICAL(KIND=C_BOOL) :: mask__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_
+      LOGICAL(KIND=C_BOOL) :: n__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
       LOGICAL(KIND=C_BOOL) :: name__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive_
@@ -506,6 +528,12 @@ CONTAINS
         mask__tmp = cxios_is_defined_scalargroup_mask &
       (scalargroup_hdl%daddr)
         mask_ = mask__tmp
+      ENDIF
+
+      IF (PRESENT(n_)) THEN
+        n__tmp = cxios_is_defined_scalargroup_n &
+      (scalargroup_hdl%daddr)
+        n_ = n__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN

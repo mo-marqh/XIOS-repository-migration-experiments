@@ -65,6 +65,29 @@ extern "C"
   }
 
 
+  void cxios_set_field_build_workflow_graph(field_Ptr field_hdl, bool build_workflow_graph)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->build_workflow_graph.setValue(build_workflow_graph);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_build_workflow_graph(field_Ptr field_hdl, bool* build_workflow_graph)
+  {
+    CTimer::get("XIOS").resume();
+    *build_workflow_graph = field_hdl->build_workflow_graph.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_build_workflow_graph(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->build_workflow_graph.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_field_cell_methods(field_Ptr field_hdl, const char * cell_methods, int cell_methods_size)
   {
     std::string cell_methods_str;

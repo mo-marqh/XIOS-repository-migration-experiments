@@ -49,6 +49,25 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_axis_ref
 
 
+    SUBROUTINE cxios_set_fieldgroup_build_workflow_graph(fieldgroup_hdl, build_workflow_graph) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: build_workflow_graph
+    END SUBROUTINE cxios_set_fieldgroup_build_workflow_graph
+
+    SUBROUTINE cxios_get_fieldgroup_build_workflow_graph(fieldgroup_hdl, build_workflow_graph) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: build_workflow_graph
+    END SUBROUTINE cxios_get_fieldgroup_build_workflow_graph
+
+    FUNCTION cxios_is_defined_fieldgroup_build_workflow_graph(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_build_workflow_graph
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_build_workflow_graph
+
+
     SUBROUTINE cxios_set_fieldgroup_cell_methods(fieldgroup_hdl, cell_methods, cell_methods_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

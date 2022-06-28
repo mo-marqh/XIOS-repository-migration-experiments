@@ -16,6 +16,29 @@ extern "C"
 {
   typedef xios::CReduceAxisToScalar* reduce_axis_to_scalar_Ptr;
 
+  void cxios_set_reduce_axis_to_scalar_local(reduce_axis_to_scalar_Ptr reduce_axis_to_scalar_hdl, bool local)
+  {
+    CTimer::get("XIOS").resume();
+    reduce_axis_to_scalar_hdl->local.setValue(local);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_reduce_axis_to_scalar_local(reduce_axis_to_scalar_Ptr reduce_axis_to_scalar_hdl, bool* local)
+  {
+    CTimer::get("XIOS").resume();
+    *local = reduce_axis_to_scalar_hdl->local.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_reduce_axis_to_scalar_local(reduce_axis_to_scalar_Ptr reduce_axis_to_scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = reduce_axis_to_scalar_hdl->local.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_reduce_axis_to_scalar_operation(reduce_axis_to_scalar_Ptr reduce_axis_to_scalar_hdl, const char * operation, int operation_size)
   {
     std::string operation_str;

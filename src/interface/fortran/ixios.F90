@@ -78,6 +78,10 @@ USE iscalargroup_attr, ONLY : xios(set_scalargroup_attr), xios(get_scalargroup_a
 !!! Transformation INTERFACES
 !-------------------------------------------------------------------------------
 !!! DOMAIN TRANSFORMATIONS
+USE iextract_domain, ONLY : txios(extract_domain), xios(is_valid_extract_domain)
+
+USE iextract_domain_attr, ONLY : xios(set_extract_domain_attr), xios(get_extract_domain_attr), xios(is_defined_extract_domain_attr)
+
 USE izoom_domain, ONLY : txios(zoom_domain), xios(is_valid_zoom_domain)
 
 USE izoom_domain_attr, ONLY : xios(set_zoom_domain_attr), xios(get_zoom_domain_attr), xios(is_defined_zoom_domain_attr)

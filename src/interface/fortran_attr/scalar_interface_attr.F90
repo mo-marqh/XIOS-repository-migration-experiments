@@ -154,6 +154,25 @@ MODULE scalar_interface_attr
     END FUNCTION cxios_is_defined_scalar_mask
 
 
+    SUBROUTINE cxios_set_scalar_n(scalar_hdl, n) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: n
+    END SUBROUTINE cxios_set_scalar_n
+
+    SUBROUTINE cxios_get_scalar_n(scalar_hdl, n) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      INTEGER (KIND=C_INT)             :: n
+    END SUBROUTINE cxios_get_scalar_n
+
+    FUNCTION cxios_is_defined_scalar_n(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_n
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_n
+
+
     SUBROUTINE cxios_set_scalar_name(scalar_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl

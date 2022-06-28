@@ -11,17 +11,19 @@ MODULE ifield_attr
 CONTAINS
 
   SUBROUTINE xios(set_field_attr)  &
-    ( field_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-    , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-    , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-    , valid_max, valid_min )
+    ( field_id, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+    , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+    , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field))  :: field_hdl
       CHARACTER(LEN=*), INTENT(IN) ::field_id
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: add_offset
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
+      LOGICAL  , OPTIONAL, INTENT(IN) :: build_workflow_graph
+      LOGICAL (KIND=C_BOOL) :: build_workflow_graph_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(IN) :: check_if_active
@@ -62,25 +64,27 @@ CONTAINS
       CALL xios(get_field_handle) &
       (field_id,field_hdl)
       CALL xios(set_field_attr_hdl_)   &
-      ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-      , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-      , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-      , valid_max, valid_min )
+      ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+      , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+      , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(set_field_attr)
 
   SUBROUTINE xios(set_field_attr_hdl)  &
-    ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-    , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-    , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-    , valid_max, valid_min )
+    ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+    , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+    , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: add_offset
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
+      LOGICAL  , OPTIONAL, INTENT(IN) :: build_workflow_graph
+      LOGICAL (KIND=C_BOOL) :: build_workflow_graph_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(IN) :: check_if_active
@@ -119,25 +123,27 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_min
 
       CALL xios(set_field_attr_hdl_)  &
-      ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-      , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-      , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-      , valid_max, valid_min )
+      ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+      , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+      , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(set_field_attr_hdl)
 
   SUBROUTINE xios(set_field_attr_hdl_)   &
-    ( field_hdl, add_offset_, axis_ref_, cell_methods_, cell_methods_mode_, check_if_active_, comment_  &
-    , compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_, expr_, field_ref_  &
-    , freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_, level_, long_name_, name_  &
-    , operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_, ts_enabled_, ts_split_freq_  &
-    , unit_, valid_max_, valid_min_ )
+    ( field_hdl, add_offset_, axis_ref_, build_workflow_graph_, cell_methods_, cell_methods_mode_  &
+    , check_if_active_, comment_, compression_level_, default_value_, detect_missing_value_, domain_ref_  &
+    , enabled_, expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_  &
+    , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
+    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: add_offset_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref_
+      LOGICAL  , OPTIONAL, INTENT(IN) :: build_workflow_graph_
+      LOGICAL (KIND=C_BOOL) :: build_workflow_graph__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods_mode_
       LOGICAL  , OPTIONAL, INTENT(IN) :: check_if_active_
@@ -183,6 +189,12 @@ CONTAINS
       IF (PRESENT(axis_ref_)) THEN
         CALL cxios_set_field_axis_ref &
       (field_hdl%daddr, axis_ref_, len(axis_ref_))
+      ENDIF
+
+      IF (PRESENT(build_workflow_graph_)) THEN
+        build_workflow_graph__tmp = build_workflow_graph_
+        CALL cxios_set_field_build_workflow_graph &
+      (field_hdl%daddr, build_workflow_graph__tmp)
       ENDIF
 
       IF (PRESENT(cell_methods_)) THEN
@@ -344,17 +356,19 @@ CONTAINS
   END SUBROUTINE xios(set_field_attr_hdl_)
 
   SUBROUTINE xios(get_field_attr)  &
-    ( field_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-    , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-    , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-    , valid_max, valid_min )
+    ( field_id, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+    , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+    , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field))  :: field_hdl
       CHARACTER(LEN=*), INTENT(IN) ::field_id
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: add_offset
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: build_workflow_graph
+      LOGICAL (KIND=C_BOOL) :: build_workflow_graph_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(OUT) :: check_if_active
@@ -395,25 +409,27 @@ CONTAINS
       CALL xios(get_field_handle) &
       (field_id,field_hdl)
       CALL xios(get_field_attr_hdl_)   &
-      ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-      , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-      , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-      , valid_max, valid_min )
+      ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+      , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+      , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(get_field_attr)
 
   SUBROUTINE xios(get_field_attr_hdl)  &
-    ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-    , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-    , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-    , valid_max, valid_min )
+    ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+    , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+    , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: add_offset
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: build_workflow_graph
+      LOGICAL (KIND=C_BOOL) :: build_workflow_graph_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(OUT) :: check_if_active
@@ -452,25 +468,27 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_min
 
       CALL xios(get_field_attr_hdl_)  &
-      ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-      , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-      , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-      , valid_max, valid_min )
+      ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+      , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+      , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(get_field_attr_hdl)
 
   SUBROUTINE xios(get_field_attr_hdl_)   &
-    ( field_hdl, add_offset_, axis_ref_, cell_methods_, cell_methods_mode_, check_if_active_, comment_  &
-    , compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_, expr_, field_ref_  &
-    , freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_, level_, long_name_, name_  &
-    , operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_, ts_enabled_, ts_split_freq_  &
-    , unit_, valid_max_, valid_min_ )
+    ( field_hdl, add_offset_, axis_ref_, build_workflow_graph_, cell_methods_, cell_methods_mode_  &
+    , check_if_active_, comment_, compression_level_, default_value_, detect_missing_value_, domain_ref_  &
+    , enabled_, expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_  &
+    , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
+    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: add_offset_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref_
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: build_workflow_graph_
+      LOGICAL (KIND=C_BOOL) :: build_workflow_graph__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods_mode_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: check_if_active_
@@ -516,6 +534,12 @@ CONTAINS
       IF (PRESENT(axis_ref_)) THEN
         CALL cxios_get_field_axis_ref &
       (field_hdl%daddr, axis_ref_, len(axis_ref_))
+      ENDIF
+
+      IF (PRESENT(build_workflow_graph_)) THEN
+        CALL cxios_get_field_build_workflow_graph &
+      (field_hdl%daddr, build_workflow_graph__tmp)
+        build_workflow_graph_ = build_workflow_graph__tmp
       ENDIF
 
       IF (PRESENT(cell_methods_)) THEN
@@ -677,11 +701,11 @@ CONTAINS
   END SUBROUTINE xios(get_field_attr_hdl_)
 
   SUBROUTINE xios(is_defined_field_attr)  &
-    ( field_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-    , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-    , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-    , valid_max, valid_min )
+    ( field_id, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+    , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+    , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field))  :: field_hdl
@@ -690,6 +714,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: add_offset_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
       LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: build_workflow_graph
+      LOGICAL(KIND=C_BOOL) :: build_workflow_graph_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cell_methods
       LOGICAL(KIND=C_BOOL) :: cell_methods_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cell_methods_mode
@@ -754,20 +780,20 @@ CONTAINS
       CALL xios(get_field_handle) &
       (field_id,field_hdl)
       CALL xios(is_defined_field_attr_hdl_)   &
-      ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-      , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-      , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-      , valid_max, valid_min )
+      ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+      , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+      , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(is_defined_field_attr)
 
   SUBROUTINE xios(is_defined_field_attr_hdl)  &
-    ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-    , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-    , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-    , valid_max, valid_min )
+    ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+    , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+    , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -775,6 +801,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: add_offset_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
       LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: build_workflow_graph
+      LOGICAL(KIND=C_BOOL) :: build_workflow_graph_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cell_methods
       LOGICAL(KIND=C_BOOL) :: cell_methods_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cell_methods_mode
@@ -837,20 +865,20 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: valid_min_tmp
 
       CALL xios(is_defined_field_attr_hdl_)  &
-      ( field_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
-      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
-      , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
-      , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
-      , valid_max, valid_min )
+      ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
+      , comment, compression_level, default_value, detect_missing_value, domain_ref, enabled, expr  &
+      , field_ref, freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(is_defined_field_attr_hdl)
 
   SUBROUTINE xios(is_defined_field_attr_hdl_)   &
-    ( field_hdl, add_offset_, axis_ref_, cell_methods_, cell_methods_mode_, check_if_active_, comment_  &
-    , compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_, expr_, field_ref_  &
-    , freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_, level_, long_name_, name_  &
-    , operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_, ts_enabled_, ts_split_freq_  &
-    , unit_, valid_max_, valid_min_ )
+    ( field_hdl, add_offset_, axis_ref_, build_workflow_graph_, cell_methods_, cell_methods_mode_  &
+    , check_if_active_, comment_, compression_level_, default_value_, detect_missing_value_, domain_ref_  &
+    , enabled_, expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_  &
+    , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
+    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -858,6 +886,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: add_offset__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref_
       LOGICAL(KIND=C_BOOL) :: axis_ref__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: build_workflow_graph_
+      LOGICAL(KIND=C_BOOL) :: build_workflow_graph__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cell_methods_
       LOGICAL(KIND=C_BOOL) :: cell_methods__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cell_methods_mode_
@@ -929,6 +959,12 @@ CONTAINS
         axis_ref__tmp = cxios_is_defined_field_axis_ref &
       (field_hdl%daddr)
         axis_ref_ = axis_ref__tmp
+      ENDIF
+
+      IF (PRESENT(build_workflow_graph_)) THEN
+        build_workflow_graph__tmp = cxios_is_defined_field_build_workflow_graph &
+      (field_hdl%daddr)
+        build_workflow_graph_ = build_workflow_graph__tmp
       ENDIF
 
       IF (PRESENT(cell_methods_)) THEN

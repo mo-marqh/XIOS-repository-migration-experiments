@@ -220,6 +220,29 @@ extern "C"
   }
 
 
+  void cxios_set_scalargroup_n(scalargroup_Ptr scalargroup_hdl, int n)
+  {
+    CTimer::get("XIOS").resume();
+    scalargroup_hdl->n.setValue(n);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalargroup_n(scalargroup_Ptr scalargroup_hdl, int* n)
+  {
+    CTimer::get("XIOS").resume();
+    *n = scalargroup_hdl->n.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalargroup_n(scalargroup_Ptr scalargroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalargroup_hdl->n.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_scalargroup_name(scalargroup_Ptr scalargroup_hdl, const char * name, int name_size)
   {
     std::string name_str;

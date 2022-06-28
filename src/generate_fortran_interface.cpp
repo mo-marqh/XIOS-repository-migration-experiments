@@ -258,6 +258,18 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   zoomDomain.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"extract_domain_interface_attr.F90").c_str());
+  extractDomain.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icextract_domain_attr.cpp").c_str());
+  extractDomain.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iextract_domain_attr.F90").c_str());
+  extractDomain.generateFortranInterface(file);
+  file.close();
+
   file.open((path+"interpolate_domain_interface_attr.F90").c_str());
   interpolateDomain.generateFortran2003Interface(file);
   file.close();
