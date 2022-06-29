@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <string>
+#include "log_type.hpp"
 
 namespace xios
 {
@@ -24,10 +25,24 @@ namespace xios
       else rdbuf(NULL) ;
       return *this;
     }
+
+    CLog& operator()(CLogType& logType)
+    {
+      if (logSetting==nullptr) setLogSetting() ;
+      if (logSetting->isSet(logType))
+      {
+        rdbuf(strBuf_);
+        *this<<"-> "<<name<<" : " ;
+      }
+      else rdbuf(NULL) ;
+      return *this;
+    }
+       
     void setLevel(int l) {level=l; }
     int getLevel() {return level ;}
     bool isActive(void) { if (rdbuf()==NULL) return true ; else return false ;}
     bool isActive(int l) {if (l<=level) return true ; else return false ; }
+    bool isActive(CLogType& logType) {if (logSetting==nullptr) setLogSetting() ; if (logSetting->isSet(logType)) return true; else return false; }
 
   public:
     //! Write log into a file with its streambuf
@@ -50,6 +65,10 @@ namespace xios
     int level ;
     string name ;
     std::streambuf* strBuf_;
+    
+    void setLogSetting(void) {logSetting = new CSetLog ;}
+
+    CSetLog* logSetting = nullptr ;
   };
 
   extern CLog info;
