@@ -6,8 +6,10 @@
 #include "calendar_type.hpp"
 #include "duration.hpp"
 
-#include "context_client.hpp"
-#include "context_server.hpp"
+#include "legacy_context_client.hpp"
+#include "legacy_context_server.hpp"
+#include "one_sided_context_client.hpp"
+#include "one_sided_context_server.hpp"
 #include "nc4_data_output.hpp"
 #include "node_type.hpp"
 #include "message.hpp"
@@ -531,8 +533,8 @@ void CContext::removeAllContexts(void)
     MPI_Comm_dup(intraComm_, &intraCommClient);
     comms.push_back(intraCommClient);
     // attached_mode=parentServerContext_->isAttachedMode() ; //ym probably inherited from source context
-    server = new CContextServer(this,intraComm_, interCommServer); // check if we need to dupl. intraComm_ ?
-    client = new CContextClient(this,intraCommClient,interCommClient);
+    server = CContextServer::getNew(this,intraComm_, interCommServer); // check if we need to dupl. intraComm_ ?
+    client = CContextClient::getNew(this,intraCommClient,interCommClient);
     client->setAssociatedServer(server) ;  
     server->setAssociatedClient(client) ;  
 
@@ -593,8 +595,8 @@ void CContext::removeAllContexts(void)
       MPI_Comm intraCommClient, intraCommServer ;
       intraCommClient=intraComm_ ;
       MPI_Comm_dup(intraComm_, &intraCommServer) ;
-      client = new CContextClient(this, intraCommClient, interCommClient);
-      server = new CContextServer(this, intraCommServer, interCommServer);
+      client = CContextClient::getNew(this, intraCommClient, interCommClient);
+      server = CContextServer::getNew(this, intraCommServer, interCommServer);
       client->setAssociatedServer(server) ;
       server->setAssociatedClient(client) ;
     }
@@ -630,8 +632,8 @@ void CContext::removeAllContexts(void)
         intraCommClient=intraComm_ ;
         MPI_Comm_dup(intraComm_, &intraCommServer) ;
 
-        CContextClient* client = new CContextClient(this, intraCommClient, interCommClient) ;
-        CContextServer* server = new CContextServer(this, intraCommServer, interCommServer) ;
+        CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient) ;
+        CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer) ;
         client->setAssociatedServer(server) ;
         server->setAssociatedClient(client) ;
         clientPrimServer.push_back(client);
@@ -727,8 +729,8 @@ void CContext::removeAllContexts(void)
         MPI_Comm_dup(intraComm_, &intraCommServer) ;
         MPI_Comm_dup(interComm, &interCommClient) ;
         MPI_Comm_dup(interComm, &interCommServer) ;
-        CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
-        CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
+        CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient);
+        CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer);
         client->setAssociatedServer(server) ;
         server->setAssociatedClient(client) ;
         MPI_Comm_free(&interComm) ;
@@ -749,8 +751,8 @@ void CContext::removeAllContexts(void)
        MPI_Comm_dup(intraComm_, &intraCommServer) ;
        MPI_Comm_dup(interComm, &interCommServer) ;
        MPI_Comm_dup(interComm, &interCommClient) ;
-       CContextServer* server = new CContextServer(this, intraCommServer, interCommServer);
-       CContextClient* client = new CContextClient(this, intraCommClient, interCommClient);
+       CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer);
+       CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient);
        client->setAssociatedServer(server) ;
        server->setAssociatedClient(client) ;
        MPI_Comm_free(&interComm) ;
@@ -764,7 +766,7 @@ void CContext::removeAllContexts(void)
    TRY
    {
       registryOut->hierarchicalGatherRegistry() ;
-      if (server->intraCommRank==0) CXios::getRegistryManager()->merge(*registryOut) ;
+      if (server->getIntraCommRank()==0) CXios::getRegistryManager()->merge(*registryOut) ;
 
       if (serviceType_==CServicesManager::CLIENT)
       {

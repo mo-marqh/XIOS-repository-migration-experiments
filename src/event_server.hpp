@@ -20,11 +20,14 @@ namespace xios
     CEventServer(CContextServer* contextServer) : contextServer_(contextServer) {}
 
     void push(int rank,CServerBuffer* serverBuffer ,char* startBuffer,int size) ;
+    int getNbSender(void) {return nbSender ;}
+
     CContextServer* getContextServer(void) { return contextServer_ ;}
     
     struct SSubEvent
     {
       int rank ;
+      char* startBuffer ;
       CServerBuffer* serverBuffer ;
       CBufferIn*  buffer ;
       int size ;

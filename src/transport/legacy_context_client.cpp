@@ -1,5 +1,5 @@
 #include "xios_spl.hpp"
-#include "context_client.hpp"
+#include "legacy_context_client.hpp"
 #include "context_server.hpp"
 #include "event_client.hpp"
 #include "buffer_out.hpp"
@@ -24,97 +24,26 @@ namespace xios
     \param [in] interComm_ communicator of group server
     \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode).
     */
-    CContextClient::CContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
-     : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4), associatedServer_(nullptr)
+    CLegacyContextClient::CLegacyContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
+                         : CContextClient(parent, intraComm_, interComm_, cxtSer),
+                           mapBufferSize_(),  maxBufferedEvents(4)
     {
-      
-      context_ = parent;
-      intraComm = intraComm_;
-      interComm = interComm_;
-      MPI_Comm_rank(intraComm, &clientRank);
-      MPI_Comm_size(intraComm, &clientSize);
-
-      int flag;
-      MPI_Comm_test_inter(interComm, &flag);
-      if (flag) isAttached_=false ;
-      else  isAttached_=true ;
-
       pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
       if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
-      
 
-
-      if (flag) MPI_Comm_remote_size(interComm, &serverSize);
-      else  MPI_Comm_size(interComm, &serverSize);
-
-      computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
-
-      if (flag) MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
+      if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
       
       MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
-
-      auto time=chrono::system_clock::now().time_since_epoch().count() ;
-      std::default_random_engine rd(time); // not reproducible from a run to another
-      std::uniform_int_distribution<size_t> dist;
-      hashId_=dist(rd) ;
-      MPI_Bcast(&hashId_,1,MPI_SIZE_T,0,intraComm) ; // Bcast to all server of the context
 
       timeLine = 1;
     }
 
-    void CContextClient::computeLeader(int clientRank, int clientSize, int serverSize,
-                                       std::list<int>& rankRecvLeader,
-                                       std::list<int>& rankRecvNotLeader)
-    {
-      if ((0 == clientSize) || (0 == serverSize)) return;
-
-      if (clientSize < serverSize)
-      {
-        int serverByClient = serverSize / clientSize;
-        int remain = serverSize % clientSize;
-        int rankStart = serverByClient * clientRank;
-
-        if (clientRank < remain)
-        {
-          serverByClient++;
-          rankStart += clientRank;
-        }
-        else
-          rankStart += remain;
-
-        for (int i = 0; i < serverByClient; i++)
-          rankRecvLeader.push_back(rankStart + i);
-
-        rankRecvNotLeader.resize(0);
-      }
-      else
-      {
-        int clientByServer = clientSize / serverSize;
-        int remain = clientSize % serverSize;
-
-        if (clientRank < (clientByServer + 1) * remain)
-        {
-          if (clientRank % (clientByServer + 1) == 0)
-            rankRecvLeader.push_back(clientRank / (clientByServer + 1));
-          else
-            rankRecvNotLeader.push_back(clientRank / (clientByServer + 1));
-        }
-        else
-        {
-          int rank = clientRank - (clientByServer + 1) * remain;
-          if (rank % clientByServer == 0)
-            rankRecvLeader.push_back(remain + rank / clientByServer);
-          else
-            rankRecvNotLeader.push_back(remain + rank / clientByServer);
-        }
-      }
-    }
 
     /*!
     In case of attached mode, the current context must be reset to context for client
     \param [in] event Event sent to server
     */
-    void CContextClient::sendEvent(CEventClient& event)
+    void CLegacyContextClient::sendEvent(CEventClient& event)
     {
       list<int> ranks = event.getRanks();
  
@@ -135,7 +64,7 @@ namespace xios
         MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm) ;
         if (typeId/clientSize!=event.getTypeId() || classId/clientSize!=event.getClassId() || timeLine_out/clientSize!=timeLine)
         {
-           ERROR("void CContextClient::sendEvent(CEventClient& event)",
+           ERROR("void CLegacyContextClient::sendEvent(CEventClient& event)",
                << "Event are not coherent between client for timeline = "<<timeLine);
         }
         
@@ -147,7 +76,7 @@ namespace xios
         for(int i=0;i<serverSize;i++)  if (servers[i]==0) osstr<<i<<" , " ;
         if (!osstr.str().empty())
         {
-          ERROR("void CContextClient::sendEvent(CEventClient& event)",
+          ERROR("void CLegacyContextClient::sendEvent(CEventClient& event)",
                  <<" Some servers will not receive the message for timeline = "<<timeLine<<endl
                  <<"Servers are : "<<osstr.str()) ;
         }
@@ -183,48 +112,6 @@ namespace xios
       timeLine++;
     }
 
-    /*!
-    If client is also server (attached mode), after sending event, it should process right away
-    the incoming event.
-    \param [in] ranks list rank of server connected this client
-    */
-    void CContextClient::waitEvent(list<int>& ranks)
-    {
-      while (checkBuffers(ranks))
-      {
-        context_->eventLoop() ;
-      }
-
-      MPI_Request req ;
-      MPI_Status status ;
-
-      MPI_Ibarrier(intraComm,&req) ;
-      int flag=false ;
-
-      do  
-      {
-        CXios::getDaemonsManager()->eventLoop() ;
-        MPI_Test(&req,&flag,&status) ;
-      } while (!flag) ;
-
-
-    }
-
-
-    void CContextClient::waitEvent_old(list<int>& ranks)
-    {
-      parentServer->server->setPendingEvent();
-      while (checkBuffers(ranks))
-      {
-        parentServer->server->listen();
-        parentServer->server->checkPendingRequest();
-      }
-
-      while (parentServer->server->hasPendingEvent())
-      {
-       parentServer->server->eventLoop();
-      }
-    }
 
     /*!
      * Get buffers for each connection to the servers. This function blocks until there is enough room in the buffers unless
@@ -238,7 +125,7 @@ namespace xios
      * \param [in] nonBlocking whether this function should be non-blocking
      * \return whether the already allocated buffers could be used
     */
-    bool CContextClient::getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers,
+    bool CLegacyContextClient::getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers,
                                     bool nonBlocking /*= false*/)
     {
       list<int>::const_iterator itServer, itSize;
@@ -300,12 +187,12 @@ namespace xios
       return areBuffersFree;
    }
 
-   void CContextClient::eventLoop(void)
+   void CLegacyContextClient::eventLoop(void)
    {
       if (!locked_) checkBuffers() ;
    }
 
-   void CContextClient::callGlobalEventLoop(void)
+   void CLegacyContextClient::callGlobalEventLoop(void)
    {
      locked_=true ;
      context_->globalEventLoop() ;
@@ -315,7 +202,7 @@ namespace xios
    Make a new buffer for a certain connection to server with specific rank
    \param [in] rank rank of connected server
    */
-   void CContextClient::newBuffer(int rank)
+   void CLegacyContextClient::newBuffer(int rank)
    {
       if (!mapBufferSize_.count(rank))
       {
@@ -334,7 +221,7 @@ namespace xios
       sendBuff[1]=mapBufferSize_[rank];
       sendBuff[2]=buffers[rank]->getWinAddress(0); 
       sendBuff[3]=buffers[rank]->getWinAddress(1); 
-      info(100)<<"CContextClient::newBuffer : rank "<<rank<<" winAdress[0] "<<buffers[rank]->getWinAddress(0)<<" winAdress[1] "<<buffers[rank]->getWinAddress(1)<<endl;
+      info(100)<<"CLegacyContextClient::newBuffer : rank "<<rank<<" winAdress[0] "<<buffers[rank]->getWinAddress(0)<<" winAdress[1] "<<buffers[rank]->getWinAddress(1)<<endl;
       bufOut->put(sendBuff, 4); 
       buffer->checkBuffer(true);
       
@@ -373,7 +260,7 @@ namespace xios
    Verify state of buffers. Buffer is under pending state if there is no message on it
    \return state of buffers, pending(true), ready(false)
    */
-   bool CContextClient::checkBuffers(void)
+   bool CLegacyContextClient::checkBuffers(void)
    {
       map<int,CClientBuffer*>::iterator itBuff;
       bool pending = false;
@@ -383,7 +270,7 @@ namespace xios
    }
 
    //! Release all buffers
-   void CContextClient::releaseBuffers()
+   void CLegacyContextClient::releaseBuffers()
    {
       map<int,CClientBuffer*>::iterator itBuff;
       for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
@@ -411,7 +298,7 @@ namespace xios
    Lock the buffers for one sided communications
    \param [in] ranks list rank of server to which client connects to
    */
-   void CContextClient::lockBuffers(list<int>& ranks)
+   void CLegacyContextClient::lockBuffers(list<int>& ranks)
    {
       list<int>::iterator it;
       for (it = ranks.begin(); it != ranks.end(); it++) buffers[*it]->lockBuffer();
@@ -421,7 +308,7 @@ namespace xios
    Unlock the buffers for one sided communications
    \param [in] ranks list rank of server to which client connects to
    */
-   void CContextClient::unlockBuffers(list<int>& ranks)
+   void CLegacyContextClient::unlockBuffers(list<int>& ranks)
    {
       list<int>::iterator it;
       for (it = ranks.begin(); it != ranks.end(); it++) buffers[*it]->unlockBuffer();
@@ -432,7 +319,7 @@ namespace xios
    \param [in] ranks list rank of server to which client connects to
    \return state of buffers, pending(true), ready(false)
    */
-   bool CContextClient::checkBuffers(list<int>& ranks)
+   bool CLegacyContextClient::checkBuffers(list<int>& ranks)
    {
       list<int>::iterator it;
       bool pending = false;
@@ -446,7 +333,7 @@ namespace xios
     * \param [in] mapSize maps the rank of the connected servers to the size of the correspoinding buffer
     * \param [in] maxEventSize maps the rank of the connected servers to the size of the biggest event
    */
-   void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize)
+   void CLegacyContextClient::setBufferSize(const std::map<int,StdSize>& mapSize)
    {
      setFixedBuffer() ;
      for(auto& it : mapSize)
@@ -457,46 +344,10 @@ namespace xios
      }
    }
 
-  /*!
-  Get leading server in the group of connected server
-  \return ranks of leading servers
-  */
-  const std::list<int>& CContextClient::getRanksServerNotLeader(void) const
-  {
-    return ranksServerNotLeader;
-  }
-
-  /*!
-  Check if client connects to leading server
-  \return connected(true), not connected (false)
-  */
-  bool CContextClient::isServerNotLeader(void) const
-  {
-    return !ranksServerNotLeader.empty();
-  }
-
-  /*!
-  Get leading server in the group of connected server
-  \return ranks of leading servers
-  */
-  const std::list<int>& CContextClient::getRanksServerLeader(void) const
-  {
-    return ranksServerLeader;
-  }
-
-  /*!
-  Check if client connects to leading server
-  \return connected(true), not connected (false)
-  */
-  bool CContextClient::isServerLeader(void) const
-  {
-    return !ranksServerLeader.empty();
-  }
-
    /*!
    * Finalize context client and do some reports. Function is non-blocking.
    */
-  void CContextClient::finalize(void)
+  void CLegacyContextClient::finalize(void)
   {
     map<int,CClientBuffer*>::iterator itBuff;
     std::list<int>::iterator ItServerLeader; 
@@ -542,7 +393,7 @@ namespace xios
 
   /*!
   */
-  bool CContextClient::havePendingRequests(void)
+  bool CLegacyContextClient::havePendingRequests(void)
   {
     bool pending = false;
     map<int,CClientBuffer*>::iterator itBuff;
@@ -551,7 +402,7 @@ namespace xios
     return pending;
   }
   
-  bool CContextClient::havePendingRequests(list<int>& ranks)
+  bool CLegacyContextClient::havePendingRequests(list<int>& ranks)
   {
       list<int>::iterator it;
       bool pending = false;
@@ -559,7 +410,7 @@ namespace xios
       return pending;
   }
 
-  bool CContextClient::isNotifiedFinalized(void)
+  bool CLegacyContextClient::isNotifiedFinalized(void)
   {
     if (isAttachedModeEnabled()) return true ;
 

@@ -1,4 +1,4 @@
-#include "context_server.hpp"
+#include "legacy_context_server.hpp"
 #include "buffer_in.hpp"
 #include "type.hpp"
 #include "context.hpp"
@@ -30,47 +30,17 @@ namespace xios
 {
   using namespace std ;
 
-  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) 
-    : eventScheduler_(nullptr), isProcessingEvent_(false), associatedClient_(nullptr)
+  CLegacyContextServer::CLegacyContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) 
+    : CContextServer(parent, intraComm_, interComm_),
+      isProcessingEvent_(false)
   {
-    context=parent;
-    intraComm=intraComm_;
-    MPI_Comm_size(intraComm,&intraCommSize);
-    MPI_Comm_rank(intraComm,&intraCommRank);
-
-    interComm=interComm_;
-    int flag;
-    MPI_Comm_test_inter(interComm,&flag);
-
-    if (flag) attachedMode=false ;
-    else  attachedMode=true ;
-    
-    if (flag) MPI_Comm_remote_size(interComm,&clientSize_);
-    else  MPI_Comm_size(interComm,&clientSize_);
-
-   
-    SRegisterContextInfo contextInfo ;
-    CXios::getContextsManager()->getContextInfo(context->getId(), contextInfo, intraComm) ;
-
-  //  if (contextInfo.serviceType != CServicesManager::CLIENT) // we must have an event scheduler => to be retrieve from the associated services
-  //  {
-      //if (!isAttachedModeEnabled()) eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
-    eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
+ 
     MPI_Comm_dup(intraComm, &processEventBarrier_) ;
-  //  }
-
+ 
 
     currentTimeLine=1;
     scheduled=false;
     finished=false;
-
-    // generate unique hash for server
-    auto time=chrono::system_clock::now().time_since_epoch().count() ;
-    std::default_random_engine rd(time); // not reproducible from a run to another
-    std::uniform_int_distribution<size_t> dist;
-    hashId=dist(rd) ;
-    MPI_Bcast(&hashId,1,MPI_SIZE_T,0,intraComm) ; // Bcast to all server of the context
-
 
     if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
     MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
@@ -81,30 +51,23 @@ namespace xios
     if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
       
   }
-
-//! Attached mode is used ?
-//! \return true if attached mode is used, false otherwise
-  bool CContextServer::isAttachedModeEnabled() const
-  {
-    return attachedMode ;
-  }
-  
-  void CContextServer::setPendingEvent(void)
+ 
+  void CLegacyContextServer::setPendingEvent(void)
   {
     pendingEvent=true;
   }
 
-  bool CContextServer::hasPendingEvent(void)
+  bool CLegacyContextServer::hasPendingEvent(void)
   {
     return pendingEvent;
   }
 
-  bool CContextServer::hasFinished(void)
+  bool CLegacyContextServer::hasFinished(void)
   {
     return finished;
   }
 
-  bool CContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
+  bool CLegacyContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
   {
     CTimer::get("listen request").resume();
     listen();
@@ -119,7 +82,7 @@ namespace xios
     return finished;
   }
 
- void CContextServer::listen(void)
+ void CLegacyContextServer::listen(void)
   {
     int rank;
     int flag;
@@ -136,7 +99,7 @@ namespace xios
     if (flag==true) listenPendingRequest(message, status) ;
   }
 
-  bool CContextServer::listenPendingRequest( MPI_Message &message, MPI_Status& status)
+  bool CLegacyContextServer::listenPendingRequest( MPI_Message &message, MPI_Status& status)
   {
     int count;
     char * addr;
@@ -193,7 +156,7 @@ namespace xios
     }
   }
 
-  void CContextServer::checkPendingProbe(void)
+  void CLegacyContextServer::checkPendingProbe(void)
   {
     
     list<int> recvProbe ;
@@ -227,7 +190,7 @@ namespace xios
   }
 
 
-  void CContextServer::checkPendingRequest(void)
+  void CLegacyContextServer::checkPendingRequest(void)
   {
     map<int,MPI_Request>::iterator it;
     list<int> recvRequest;
@@ -262,9 +225,9 @@ namespace xios
     }
   }
 
-  void CContextServer::getBufferFromClient(size_t timeLine)
+  void CLegacyContextServer::getBufferFromClient(size_t timeLine)
   {
-    CTimer::get("CContextServer::getBufferFromClient").resume() ;
+    CTimer::get("CLegacyContextServer::getBufferFromClient").resume() ;
     if (!isAttachedModeEnabled()) // one sided desactivated in attached mode
     {  
       int rank ;
@@ -283,11 +246,11 @@ namespace xios
         }
       }
     }
-    CTimer::get("CContextServer::getBufferFromClient").suspend() ;
+    CTimer::get("CLegacyContextServer::getBufferFromClient").suspend() ;
   }
          
        
-  void CContextServer::processRequest(int rank, char* buff,int count)
+  void CLegacyContextServer::processRequest(int rank, char* buff,int count)
   {
 
     CBufferIn buffer(buff,count);
@@ -327,6 +290,7 @@ namespace xios
       {
         info(100)<<"Context id "<<context->getId()<<" : Receive standard event from client rank "<<rank<<"  with timeLine : "<<timeLine<<endl ;
         it=events.find(timeLine);
+       
         if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
         it->second->push(rank,buffers[rank],startBuffer,size);
         if (timeLine>0) lastTimeLine[rank]=timeLine ;
@@ -338,7 +302,7 @@ namespace xios
     CTimer::get("Process request").suspend();
   }
 
-  void CContextServer::processEvents(bool enableEventsProcessing)
+  void CLegacyContextServer::processEvents(bool enableEventsProcessing)
   {
     map<size_t,CEventServer*>::iterator it;
     CEventServer* event;
@@ -408,21 +372,21 @@ namespace xios
     else if (pendingRequest.empty()) getBufferFromClient(currentTimeLine) ; // if pure one sided check buffer even if no event recorded at current time line
   }
 
-  CContextServer::~CContextServer()
+  CLegacyContextServer::~CLegacyContextServer()
   {
     map<int,CServerBuffer*>::iterator it;
     for(it=buffers.begin();it!=buffers.end();++it) delete it->second;
     buffers.clear() ;
   }
 
-  void CContextServer::releaseBuffers()
+  void CLegacyContextServer::releaseBuffers()
   {
     //for(auto it=buffers.begin();it!=buffers.end();++it) delete it->second ;
     //buffers.clear() ; 
     freeWindows() ;
   }
 
-  void CContextServer::freeWindows()
+  void CLegacyContextServer::freeWindows()
   {
     //if (!isAttachedModeEnabled())
     //{
@@ -436,7 +400,7 @@ namespace xios
     //}
   }
 
-  void CContextServer::notifyClientsFinalize(void)
+  void CLegacyContextServer::notifyClientsFinalize(void)
   {
     for(auto it=buffers.begin();it!=buffers.end();++it)
     {
@@ -444,7 +408,7 @@ namespace xios
     }
   }
 
-  void CContextServer::dispatchEvent(CEventServer& event)
+  void CLegacyContextServer::dispatchEvent(CEventServer& event)
   {
     string contextName;
     string buff;
@@ -458,7 +422,7 @@ namespace xios
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       finished=true;
-      info(20)<<" CContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
+      info(20)<<" CLegacyContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
       notifyClientsFinalize() ;
       CTimer::get("receiving requests").suspend();
       context->finalize();
@@ -492,11 +456,11 @@ namespace xios
     else if (event.classId==CVariable::GetType()) CVariable::dispatchEvent(event);
     else
     {
-      ERROR("void CContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl);
+      ERROR("void CLegacyContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl);
     }
   }
 
-  bool CContextServer::isCollectiveEvent(CEventServer& event)
+  bool CLegacyContextServer::isCollectiveEvent(CEventServer& event)
   {
     if (event.type>1000) return false ;
     else return true ;

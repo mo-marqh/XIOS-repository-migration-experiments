@@ -161,12 +161,12 @@ namespace xios {
        }
      }
 
-     std::unordered_map<int, vector<size_t> >::const_iterator itIndexEnd = indSrv_[client->serverSize].end();
+     std::unordered_map<int, vector<size_t> >::const_iterator itIndexEnd = indSrv_[client->getRemoteSize()].end();
      // std::map<int, std::vector<int> >::const_iterator itWrittenIndexEnd = indWrittenSrv_.end();
-     for (size_t k = 0; k < connectedServerRank_[client->serverSize].size(); ++k)
+     for (size_t k = 0; k < connectedServerRank_[client->getRemoteSize()].size(); ++k)
      {
-       int rank = connectedServerRank_[client->serverSize][k];
-       std::unordered_map<int, std::vector<size_t> >::const_iterator it = indSrv_[client->serverSize].find(rank);
+       int rank = connectedServerRank_[client->getRemoteSize()][k];
+       std::unordered_map<int, std::vector<size_t> >::const_iterator it = indSrv_[client->getRemoteSize()].find(rank);
        size_t idxCount = (it != itIndexEnd) ? it->second.size() : 0;
 
        // size estimation for sendIndex (and sendArea which is always smaller or equal)
@@ -1882,7 +1882,7 @@ namespace xios {
 /* old method
     if (type==EDistributionType::BANDS) // Bands distribution to send to file server
     {
-      int nbServer = client->serverSize;
+      int nbServer = client->getRemoteSize();
       std::vector<int> nGlobDomain(2);
       nGlobDomain[0] = this->ni_glo;
       nGlobDomain[1] = this->nj_glo;
@@ -1918,9 +1918,9 @@ namespace xios {
 
     if (distType==EDistributionType::BANDS) // Bands distribution to send to file server
     {
-      int nbServer = client->serverSize;
-      int nbClient = client->clientSize ;
-      int rankClient = client->clientRank ;
+      int nbServer = client->getRemoteSize();
+      int nbClient = client->getIntraCommSize() ;
+      int rankClient = client->getIntraCommRank() ;
       int size = nbServer / nbClient ;
       int start ;
       if (nbServer%nbClient > rankClient)
@@ -1951,9 +1951,9 @@ namespace xios {
     }
     else if (distType==EDistributionType::COLUMNS) // Bands distribution to send to file server
     {
-      int nbServer = client->serverSize;
-      int nbClient = client->clientSize ;
-      int rankClient = client->clientRank ;
+      int nbServer = client->getRemoteSize();
+      int nbClient = client->getIntraCommSize() ;
+      int rankClient = client->getIntraCommRank() ;
       int size = nbServer / nbClient ;
       int start ;
       if (nbServer%nbClient > rankClient)
@@ -1987,7 +1987,7 @@ namespace xios {
     }
     else if (distType==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
     {
-      int nbServer = client->serverSize;
+      int nbServer = client->getRemoteSize();
       int nglo=ni_glo*nj_glo ;
       CArray<size_t,1> indGlo ;
       for(size_t i=0;i<nglo;i++) indGlo(i) = i ;

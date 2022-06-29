@@ -55,4 +55,7 @@ namespace xios
        **itBuff << *itSizes << timeLine << *itSenders << classId << typeId << **itMsg;
      }
    }
+
+   void CEventClient::send(size_t timeLine, int size, CBufferOut* buffer) { *buffer << size << timeLine << *itNbSenders << classId << typeId << **itMessages;}
+ 
 }

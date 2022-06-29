@@ -189,8 +189,8 @@ namespace xios {
      if (isDistributed)
      {
        // size estimation for sendDistributedValue
-       std::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client->serverSize].end();
-       for (it = indSrv_[client->serverSize].begin(); it != ite; ++it)
+       std::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client->getRemoteSize()].end();
+       for (it = indSrv_[client->getRemoteSize()].begin(); it != ite; ++it)
        {
          size_t size = 6 * sizeof(size_t);
          size += CArray<int,1>::size(it->second.size());
@@ -889,9 +889,9 @@ namespace xios {
 
     if (type==EDistributionType::BANDS) // Bands distribution to send to file server
     {
-      int nbServer = client->serverSize;
-      int nbClient = client->clientSize ;
-      int rankClient = client->clientRank ;
+      int nbServer = client->getRemoteSize();
+      int nbClient = client->getIntraCommSize() ;
+      int rankClient = client->getIntraCommRank() ;
       int size = nbServer / nbClient ;
       int start ;
       if (nbServer%nbClient > rankClient)
@@ -920,7 +920,7 @@ namespace xios {
     }
     else if (type==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
     {
-      int nbServer = client->serverSize;
+      int nbServer = client->getRemoteSize();
       size_t nglo=n_glo ;
       CArray<size_t,1> indGlo(nglo) ;
       for(size_t i=0;i<nglo;i++) indGlo(i) = i ;

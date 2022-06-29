@@ -943,7 +943,7 @@ namespace xios
                                                        + sizeof(size_t);
 
      std::map<int, StdSize> dataSizes;
-     int receiverSize = client->serverSize;
+     int receiverSize = client->getRemoteSize();
      std::map<int,size_t>& dataSizeMap = bufferForWriting ? connectedDataSize_[receiverSize]: connectedDataSizeRead_;
      std::vector<int>& connectedServerRanks = bufferForWriting ? connectedServerRank_[receiverSize] : connectedServerRankRead_;
 
@@ -1394,7 +1394,7 @@ namespace xios
     if (isScalarGrid()) return false;
     else if (0 != client)
     {
-      return  (isDataDistributed() ||  (1 != client->clientSize) || (1 != client->serverSize));
+      return  (isDataDistributed() ||  (1 != client->getRemoteSize()) || (1 != client->getRemoteSize()));
     }
     else
       return isDataDistributed();    

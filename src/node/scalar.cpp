@@ -410,7 +410,7 @@ namespace xios
     }
     else if (type==EDistributionType::NONE) // domain is not distributed ie all servers get the same local domain
     {
-      int nbServer = client->serverSize;
+      int nbServer = client->getRemoteSize();
       CArray<size_t,1> indGlo(nglo) ;
       for(size_t i=0;i<nglo;i++) indGlo(i) = i ;
       for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer].reference(indGlo.copy()) ; 

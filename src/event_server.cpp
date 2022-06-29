@@ -34,6 +34,7 @@ namespace xios
     ev.serverBuffer = serverBuffer;
     ev.buffer = new CBufferIn(buffer.ptr(), buffer.remain());
     ev.size = size;  
+    ev.startBuffer = startBuffer ; // for one sided, take ownership of buffer for now
     subEvents.push_back(ev);
   
     if (subEvents.size() > nbSender)
@@ -43,6 +44,7 @@ namespace xios
               << "Too many subevents have been received (" << subEvents.size() << " instead of " << nbSender << ").");
     }
   }
+
 
   bool CEventServer::isFull(void)  
   {
@@ -54,8 +56,16 @@ namespace xios
     list<SSubEvent>::iterator it;
     for (it = subEvents.begin(); it != subEvents.end(); it++)
     {
-      it->serverBuffer->freeBuffer(it->size);
-      delete it->buffer;
+      if (it->serverBuffer==nullptr) // one_sided case
+      {
+        delete [] it->startBuffer ;
+        delete it->buffer;
+      }
+      else // legacy case
+      {
+        it->serverBuffer->freeBuffer(it->size);
+        delete it->buffer;
+      }
     }
   }
 }
