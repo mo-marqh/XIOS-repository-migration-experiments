@@ -48,8 +48,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <dlfcn.h>
 #include <map>
 #include <fstream>
+#include "log.hpp"
 #include "memtrack.hpp"
-//#include "log.hpp"
 #include "addr2line.hpp"
 #undef new    // IMPORTANT!
 
