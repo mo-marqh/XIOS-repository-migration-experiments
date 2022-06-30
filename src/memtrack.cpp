@@ -49,7 +49,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <fstream>
 #include "memtrack.hpp"
-#include "log.hpp"
+//#include "log.hpp"
 #include "addr2line.hpp"
 #undef new    // IMPORTANT!
 
