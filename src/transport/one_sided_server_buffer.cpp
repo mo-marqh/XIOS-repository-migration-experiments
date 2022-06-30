@@ -8,7 +8,7 @@
 
 namespace xios
 {
-  static CLogType logProtocol("log_protocol") ;
+  CLogType logProtocol("log_protocol") ;
 
   COneSidedServerBuffer::COneSidedServerBuffer(int clientRank, const MPI_Comm& commSelf, const MPI_Comm& interCommMerged, map<size_t, SPendingEvent>& pendingEvents, 
                                                map<size_t, SPendingEvent>& completedEvents, vector<char>& buffer) 

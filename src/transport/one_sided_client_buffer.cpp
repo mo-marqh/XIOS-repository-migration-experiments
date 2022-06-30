@@ -5,7 +5,7 @@
 namespace xios
 {
   
-  static CLogType logProtocol("log_protocol") ;
+  extern CLogType logProtocol;
 
   COneSidedClientBuffer::COneSidedClientBuffer(MPI_Comm& interComm, int serverRank, MPI_Comm& commSelf, MPI_Comm& interCommMerged, int intraServerRank) : interComm_(interComm), serverRank_(serverRank)
   {
