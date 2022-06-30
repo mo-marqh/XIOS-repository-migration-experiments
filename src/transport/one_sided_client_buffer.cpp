@@ -117,7 +117,7 @@ namespace xios
         currentBuffer->write(&buffer, size, addr, start, count) ;
         if (count > 0) 
         {
-          blocs_.push_back({addr,currentBuffer_, start, count, currentWindow_}) ;
+          blocs_.push_back({addr,currentBuffer_, start, static_cast<int>(count), currentWindow_}) ;
           nbBlocs++ ; 
         }
 
@@ -126,7 +126,7 @@ namespace xios
 
         if (count > 0) 
         {
-          blocs_.push_back({addr,currentBuffer_, start, count, currentWindow_}) ;
+          blocs_.push_back({addr,currentBuffer_, start, static_cast<int>(count), currentWindow_}) ;
           nbBlocs++ ; 
         }
 
