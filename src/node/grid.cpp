@@ -1950,13 +1950,13 @@ namespace xios
     bool isNewGrid ;
     if (CGrid::has(newId))
     {
-      cout<<"Retrive existing grid : "<<newId<<endl ;
+      info(100)<<"Retrive existing grid : "<<newId<<endl ;
       newGrid = CGrid::get(newId);
       isNewGrid = false ;
     }
     else  
     {
-      cout<<"Create new grid : "<<newId<<endl ;
+      info(100)<<"Create new grid : "<<newId<<endl ;
       newGrid = CGrid::create(newId) ;
       isNewGrid = true ;
     }
@@ -1977,16 +1977,28 @@ namespace xios
       else if (dstElement.type==TYPE_SCALAR) transformationPath = dstElement.scalar->getTransformationPaths() ;
 
       SElement srcElement  ;
-      if (gridSrc==nullptr) srcElement = this->elements_[i] ;
-      else srcElement = gridSrc->elements_[i] ;
+      
+      CTransformationPaths testTransformationPath(transformationPath) ;
+      testTransformationPath.mergePaths() ;
 
-      if (gridSrc==nullptr) transformationPath.mergePaths() ;
-      else
+      if (testTransformationPath.hasTransform())
       {  
-        if (srcElement.type==TYPE_DOMAIN)      transformationPath.mergePaths(srcElement.domain->getTransformationPaths()) ;
-        else if (srcElement.type==TYPE_AXIS)   transformationPath.mergePaths(srcElement.axis->getTransformationPaths()) ;
-        else if (srcElement.type==TYPE_SCALAR) transformationPath.mergePaths(srcElement.scalar->getTransformationPaths()) ;
+        if (gridSrc==nullptr) srcElement = this->elements_[i] ;
+        else srcElement = gridSrc->elements_[i] ;
+
+        if (gridSrc==nullptr) transformationPath.mergePaths() ;
+        else
+        {  
+          if (srcElement.type==TYPE_DOMAIN)      transformationPath.mergePaths(srcElement.domain->getTransformationPaths()) ;
+          else if (srcElement.type==TYPE_AXIS)   transformationPath.mergePaths(srcElement.axis->getTransformationPaths()) ;
+          else if (srcElement.type==TYPE_SCALAR) transformationPath.mergePaths(srcElement.scalar->getTransformationPaths()) ;
+        }
       }
+      else
+      {
+        srcElement = this->elements_[i] ;
+        transformationPath.mergePaths() ;
+      }  
 
       hasTransform=transformationPath.hasTransform()  ;
       
@@ -2008,7 +2020,7 @@ namespace xios
         CGrid* tmpGridDst=CGrid::create(); // destination Grid
         map<int,int> posInGrid={{0,0}} ;
                
-        cout<<"--> New transform from "<<srcElementId<<" to "<<dstElementId<<endl ;
+        info(100)<<"--> New transform from "<<srcElementId<<" to "<<dstElementId<<endl ;
         if (dstElementType==EElement::DOMAIN)
         {
           CDomain* dstDomain ;
@@ -2021,13 +2033,13 @@ namespace xios
             if (CDomain::has(dstElementId)) 
             {
               dstDomain = CDomain::get(dstElementId) ;
-              cout<<"Retrive existing domain : "<<dstElementId<<endl ;
+              info(100)<<"Retrive existing domain : "<<dstElementId<<endl ;
             }
             else
             {
               dstDomain = CDomain::create() ;
               dstDomain->createAlias(dstElementId) ;
-              cout<<"Create new domain : "<<dstDomain->getId()<<" with alias : "<<dstElementId<<endl ;
+              info(100)<<"Create new domain : "<<dstDomain->getId()<<" with alias : "<<dstElementId<<endl ;
 
               if (isGenerate) 
               {
@@ -2083,13 +2095,13 @@ namespace xios
             if (CAxis::has(dstElementId)) 
             {
               dstAxis = CAxis::get(dstElementId) ;
-              cout<<"Retrive existing axis : "<<dstElementId<<endl ;
+              info(100)<<"Retrive existing axis : "<<dstElementId<<endl ;
             }
             else
             {
               dstAxis = CAxis::create() ;
               dstAxis->createAlias(dstElementId) ;
-              cout<<"Create new axis : "<<dstAxis->getId()<<" with alias : "<<dstElementId<<endl ;
+              info(100)<<"Create new axis : "<<dstAxis->getId()<<" with alias : "<<dstElementId<<endl ;
               
               if (isGenerate) 
               {
@@ -2144,13 +2156,13 @@ namespace xios
             if (CScalar::has(dstElementId)) 
             {
               dstScalar = CScalar::get(dstElementId) ;
-              cout<<"Retrive existing scalar : "<<dstElementId<<endl ;
+              info(100)<<"Retrive existing scalar : "<<dstElementId<<endl ;
             }
             else
             {
               dstScalar = CScalar::create() ;
               dstScalar->createAlias(dstElementId) ;
-              cout<<"Create new scalar : "<<dstScalar->getId()<<" with alias : "<<dstElementId<<endl ;
+              info(100)<<"Create new scalar : "<<dstScalar->getId()<<" with alias : "<<dstElementId<<endl ;
               
               if (isGenerate) 
               {
@@ -2322,7 +2334,7 @@ namespace xios
           CDomain* domain = CDomain::create();
           domain->duplicateAttributes(element.domain) ;
           domain->setTemplateId(element.domain) ;
-          if (domain->name.isEmpty()) domain->name = element.domain->getId() ;
+          domain->name = domain->getDomainOutputName() ;
           newGrid->addDomain(domain->getId()) ;
         }
         else if (element.type==TYPE_AXIS)      
@@ -2330,7 +2342,7 @@ namespace xios
           CAxis* axis = CAxis::create();
           axis->duplicateAttributes(element.axis) ;
           axis->setTemplateId(element.axis) ;
-          if (axis->name.isEmpty()) axis->name = element.axis->getId() ;
+          axis->name = axis->getAxisOutputName() ;
           newGrid->addAxis(axis->getId()) ;
         }
         else if (element.type==TYPE_SCALAR)      
@@ -2338,7 +2350,7 @@ namespace xios
           CScalar* scalar = CScalar::create();
           scalar->duplicateAttributes(element.scalar) ;
           scalar->setTemplateId(element.scalar) ;
-          if (scalar->name.isEmpty()) scalar->name = element.scalar->getId() ;
+          scalar->name = scalar->getScalarOutputName() ;
           newGrid->addScalar(scalar->getId()) ;
         }
       }
