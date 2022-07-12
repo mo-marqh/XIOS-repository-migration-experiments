@@ -19,7 +19,7 @@ namespace xios
             : SuperClass()
             , SuperClassWriter(filename, exist)
             , filename(filename)
-            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none)
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relElements_()
       {
         SuperClass::type = MULTI_FILE;
         compressionLevel= file->compression_level.isEmpty() ? 0 :file->compression_level ;
@@ -33,7 +33,7 @@ namespace xios
             , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
-            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none)
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relElements_()
       {
         SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
         if (file==NULL) compressionLevel = 0 ;
@@ -67,13 +67,107 @@ namespace xios
         }
 
          CContext* context = CContext::getCurrent() ;
-
          if (domain->IsWritten(this->filename)) return;
          domain->checkAttributes();
 
          if (domain->isEmpty())
            if (SuperClass::type==MULTI_FILE) return;
 
+
+         // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
+         if (!domain->lonvalue.isEmpty() )
+         {
+           int comm_file_rank(0);
+           MPI_Comm_rank( comm_file, &comm_file_rank );
+           int comm_file_size(1);
+           MPI_Comm_size( comm_file, &comm_file_size );
+         
+           // Get element current FULL view
+           shared_ptr<CLocalView> srcView = domain->getLocalView(CElementView::FULL) ;
+           vector<shared_ptr<CLocalView>> srcViews;
+           srcViews.push_back( srcView );
+         
+           // Compute a without redundancy element FULL view to enable a consistent hash computation
+           vector<shared_ptr<CLocalView>> remoteViews;
+           shared_ptr<CLocalView> remoteView;
+           // define the remote view without redundancy (naive distribution of the remote view)
+           int globalSize = domain->ni_glo.getValue()*domain->nj_glo.getValue();
+           int localSize = globalSize/comm_file_size;
+           if ( (comm_file_rank==comm_file_size-1) && (localSize*comm_file_size != globalSize ) )
+             localSize += globalSize-localSize*comm_file_size;
+           CArray<size_t,1> globalIndex( localSize );
+           CArray<int,1> index( localSize );
+           for (int iloc=0; iloc<localSize ; iloc++ )
+           {
+             globalIndex(iloc) = comm_file_rank*(globalSize/comm_file_size) + iloc;
+             index(iloc) = iloc;
+           }
+           shared_ptr<CLocalElement> localElement = make_shared<CLocalElement>(comm_file_rank, globalSize, globalIndex) ;
+           localElement->addView(CElementView::FULL, index) ;
+           remoteView = localElement->getView(CElementView::FULL) ;
+           remoteViews.push_back( remoteView );
+         
+           // Compute the connector between current and without redundancy FULL views
+           shared_ptr<CGridTransformConnector> gridTransformConnector = make_shared<CGridTransformConnector>(srcViews, remoteViews, comm_file ) ;
+           gridTransformConnector->computeConnector(true) ; // eliminateRedondant = true
+           CArray<double,1> lon_distributedValue, lat_distributedValue ;
+           gridTransformConnector->transfer(domain->lonvalue, lon_distributedValue );
+           gridTransformConnector->transfer(domain->latvalue, lat_distributedValue );
+
+           // Compute the distributed hash (v0) of the element
+           // it will be associated to the default element name (= map key), and to the name really written
+           int localHash = 0;
+           for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*lon_distributedValue(iloc)*lat_distributedValue(iloc);
+           int globalHash(0);
+           globalHash = localHash;
+           MPI_Allreduce( &localHash, &globalHash, 1, MPI_INT, MPI_SUM, comm_file  );
+         
+           StdString defaultNameKey = domain->getDomainOutputName();
+           if ( !relElements_.count ( defaultNameKey ) )
+           {
+             // if defaultNameKey not in the map, write the element such as it is defined
+             relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, defaultNameKey) ) );
+           }
+           else // look if a hash associated this key is equal
+           {
+             bool elementIsInMap(false);
+             auto defaultNameKeyElements = relElements_.equal_range( defaultNameKey );
+             for (auto it = defaultNameKeyElements.first; it != defaultNameKeyElements.second; it++)
+             {
+               if ( it->second.first == globalHash )
+               {
+                 // if yes, associate the same ids to current element
+                 domain->name = it->second.second;
+                 // lon/lat names must be updated too, check that its exist, if not "lon"/"lat" (default values) are used
+                 StdString lon_name = "lon_"+it->second.second;
+                 int ncid = SuperClassWriter::getCurrentGroup();
+                 int varId = 0;
+                 nc_inq_varid(ncid, lon_name.c_str(), &varId);
+                 if (!varId) //lon_name = "lon"
+                 {
+                   domain->lon_name = "lon";
+                   domain->lat_name = "lat";
+                 }
+                 else
+                 {
+                   domain->lon_name = "lon_"+it->second.second;
+                   domain->lat_name = "lat_"+it->second.second;
+                 }
+                 elementIsInMap = true;
+               }
+             }
+             // if no : inheritance has been excessive, define new names and store it (could be used by another grid)
+             if (!elementIsInMap)  // ! in MAP
+             {
+               domain->name =  domain->getId();
+               domain->lon_name = "lon_"+domain->getId();
+               domain->lat_name = "lat_"+domain->getId();
+               relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain->getDomainOutputName()) ) ) ;// = domain->getId()          
+             }
+           }
+         }
+
+         
          std::vector<StdString> dim0, dim1;
          StdString domid = domain->getDomainOutputName();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
@@ -997,6 +1091,82 @@ namespace xios
       void CNc4DataOutput::writeAxis_(CAxis* axis)
       {
         if (axis->IsWritten(this->filename)) return;
+
+        // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
+        if (!axis->value.isEmpty() )
+        {
+          int comm_file_rank(0);
+          MPI_Comm_rank( comm_file, &comm_file_rank );
+          int comm_file_size(1);
+          MPI_Comm_size( comm_file, &comm_file_size );
+
+          // Get element current FULL view
+          shared_ptr<CLocalView> srcView = axis->getLocalView(CElementView::FULL) ;
+          vector<shared_ptr<CLocalView>> srcViews;
+          srcViews.push_back( srcView );
+          
+          // Compute a without redundancy element FULL view to enable a consistent hash computation
+          vector<shared_ptr<CLocalView>> remoteViews;
+          shared_ptr<CLocalView> remoteView;
+          // define the remote view without redundancy (naive distribution of the remote view)
+          int globalSize = axis->n_glo.getValue();
+          int localSize = globalSize/comm_file_size;
+          if ( (comm_file_rank==comm_file_size-1) && (localSize*comm_file_size != globalSize ) )
+            localSize += globalSize-localSize*comm_file_size;
+          CArray<size_t,1> globalIndex( localSize );
+          CArray<int,1> index( localSize );
+          for (int iloc=0; iloc<localSize ; iloc++ )
+          {
+            globalIndex(iloc) = comm_file_rank*(globalSize/comm_file_size) + iloc;
+            index(iloc) = iloc;
+          }
+          shared_ptr<CLocalElement> localElement = make_shared<CLocalElement>(comm_file_rank, globalSize, globalIndex) ;
+          localElement->addView(CElementView::FULL, index) ;
+          remoteView = localElement->getView(CElementView::FULL) ;
+          remoteViews.push_back( remoteView );
+        
+          // Compute the connector between current and without redundancy FULL views
+          shared_ptr<CGridTransformConnector> gridTransformConnector = make_shared<CGridTransformConnector>(srcViews, remoteViews, comm_file ) ;
+          gridTransformConnector->computeConnector(true) ; // eliminateRedondant = true
+          CArray<double,1> distributedValue ;
+          gridTransformConnector->transfer(axis->value, distributedValue );
+        
+          // Compute the distributed hash (v0) of the element
+          // it will be associated to the default element name (= map key), and to the name really written
+          int localHash = 0;
+          for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
+          int globalHash(0);
+          globalHash = localHash;
+          MPI_Allreduce( &localHash, &globalHash, 1, MPI_INT, MPI_SUM, comm_file  );
+
+          StdString defaultNameKey = axis->getAxisOutputName();
+          if ( !relElements_.count ( defaultNameKey ) )
+          {
+            // if defaultNameKey not in the map, write the element such as it is defined
+            relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, defaultNameKey) ) );
+          }
+          else // look if a hash associated this key is equal
+          {
+            bool elementIsInMap(false);
+            auto defaultNameKeyElements = relElements_.equal_range( defaultNameKey );
+            for (auto it = defaultNameKeyElements.first; it != defaultNameKeyElements.second; it++)
+            {
+              if ( it->second.first == globalHash )
+              {
+                // if yes, associate the same ids to current element
+                axis->name = it->second.second;
+                elementIsInMap = true;
+              }
+            }
+             // if no : inheritance has been excessive, define new names and store it (could be used by another grid)
+            if (!elementIsInMap)  // ! in MAP
+            {
+              axis->name =  axis->getId();
+              relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, axis->getAxisOutputName()) ) ) ;// = axis->getId()          
+            }
+          }
+        }
+
         axis->checkAttributes();
 
         int size  = (MULTI_FILE == SuperClass::type) ? axis->n.getValue()

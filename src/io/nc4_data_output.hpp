@@ -127,6 +127,9 @@ namespace xios
             enum { none, centered, instant, record} timeCounterType ;
             bool hasTimeInstant ;
             bool hasTimeCentered ;
+	
+            std::unordered_multimap< StdString, pair<int,StdString> > relElements_;
+
       }; // class CNc4DataOutput
 
 } // namespace xios
