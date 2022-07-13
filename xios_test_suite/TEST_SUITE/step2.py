@@ -131,7 +131,8 @@ def main():
                             np.seterr(divide='ignore', invalid='ignore')
                             for var in res.variables:
                                 print("checkfile = ", checkfile, ", var = ", var)
-                                if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))) and (not (var.startswith('atm__')) and (var!="lat") and (var!="lon") ):
+                                if (not (var.startswith('lon_'))) and (not (var.startswith('lat_'))) and (not (var.startswith('time_'))) and (not (var.startswith('atm__')) and (var!="lat") and (var!="lon") ) and \
+                                        (var!="axis") and (not (var.startswith('axis_')))and (not (var.startswith('domain_'))) and (not (var.startswith('default_pool_id__default_gatherer_id_0__atm__'))):
                                     ref_interp = ref.variables[var]
                                     ref_array = ref_interp[:]
                                     res_interp = res.variables[var]
