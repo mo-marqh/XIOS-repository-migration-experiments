@@ -123,36 +123,23 @@ namespace xios
            MPI_Allreduce( &localHash, &globalHash, 1, MPI_INT, MPI_SUM, comm_file  );
          
            StdString defaultNameKey = domain->getDomainOutputName();
-           if ( !relElements_.count ( defaultNameKey ) )
+           if ( !relDomains_.count ( defaultNameKey ) )
            {
              // if defaultNameKey not in the map, write the element such as it is defined
-             relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, defaultNameKey) ) );
+             relDomains_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain) ) );
            }
            else // look if a hash associated this key is equal
            {
              bool elementIsInMap(false);
-             auto defaultNameKeyElements = relElements_.equal_range( defaultNameKey );
+             auto defaultNameKeyElements = relDomains_.equal_range( defaultNameKey );
              for (auto it = defaultNameKeyElements.first; it != defaultNameKeyElements.second; it++)
              {
                if ( it->second.first == globalHash )
                {
                  // if yes, associate the same ids to current element
-                 domain->name = it->second.second;
-                 // lon/lat names must be updated too, check that its exist, if not "lon"/"lat" (default values) are used
-                 StdString lon_name = "lon_"+it->second.second;
-                 int ncid = SuperClassWriter::getCurrentGroup();
-                 int varId = 0;
-                 nc_inq_varid(ncid, lon_name.c_str(), &varId);
-                 if (!varId) //lon_name = "lon"
-                 {
-                   domain->lon_name = "lon";
-                   domain->lat_name = "lat";
-                 }
-                 else
-                 {
-                   domain->lon_name = "lon_"+it->second.second;
-                   domain->lat_name = "lat_"+it->second.second;
-                 }
+                 domain->name = it->second.second->getDomainOutputName();
+                 domain->lon_name = it->second.second->lon_name;
+                 domain->lat_name = it->second.second->lat_name;
                  elementIsInMap = true;
                }
              }
@@ -162,7 +149,7 @@ namespace xios
                domain->name =  domain->getId();
                domain->lon_name = "lon_"+domain->getId();
                domain->lat_name = "lat_"+domain->getId();
-               relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain->getDomainOutputName()) ) ) ;// = domain->getId()          
+               relDomains_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain) ) ) ;         
              }
            }
          }
