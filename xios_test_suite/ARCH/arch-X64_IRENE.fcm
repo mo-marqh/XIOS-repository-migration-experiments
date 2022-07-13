@@ -19,7 +19,7 @@
 %DEBUG_FFLAGS   -g -traceback -fno-inline
 
 %BASE_INC       -D__NONE__
-%BASE_LD        -lstdc++ -Wl,--export-dynamic
+%BASE_LD        -Wl,-E -lunwind -lstdc++ -Wl,--export-dynamic
 
 %CPP            mpicc -EP
 %FPP            cpp -P
