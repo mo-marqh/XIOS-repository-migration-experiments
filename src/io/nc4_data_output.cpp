@@ -77,24 +77,9 @@ namespace xios
          // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
          if (!domain->lonvalue.isEmpty() )
          {
-           int globalSize = domain->ni_glo.getValue()*domain->nj_glo.getValue();
-           CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
-           shared_ptr<CGridTransformConnector> gridTransformConnector;
-           // Compute a without redundancy element FULL view to enable a consistent hash computation
-           domain->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm_file, gridTransformConnector, globalIndex );
-           int localSize = globalIndex.numElements();
-           
-           CArray<double,1> lon_distributedValue, lat_distributedValue ;
-           gridTransformConnector->transfer(domain->lonvalue, lon_distributedValue );
-           gridTransformConnector->transfer(domain->latvalue, lat_distributedValue );
+           // The hash of the element will be associated to the default element name (= map key), and to the name really written
+           int globalHash = domain->computeAttributesHash( comm_file ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
 
-           // Compute the distributed hash (v0) of the element
-           // it will be associated to the default element name (= map key), and to the name really written
-           int localHash = 0;
-           for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*lon_distributedValue(iloc)*lat_distributedValue(iloc);
-           int globalHash(0);
-           MPI_Allreduce( &localHash, &globalHash, 1, MPI_INT, MPI_SUM, comm_file  );
-         
            StdString defaultNameKey = domain->getDomainOutputName();
            if ( !relDomains_.count ( defaultNameKey ) )
            {
@@ -1055,22 +1040,8 @@ namespace xios
         // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
         if (!axis->value.isEmpty() )
         {
-           int globalSize = axis->n_glo.getValue();
-           CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
-           shared_ptr<CGridTransformConnector> gridTransformConnector;
-           // Compute a without redundancy element FULL view to enable a consistent hash computation
-           axis->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm_file, gridTransformConnector, globalIndex );
-           int localSize = globalIndex.numElements();
-
-          CArray<double,1> distributedValue ;
-          gridTransformConnector->transfer(axis->value, distributedValue );
-        
-          // Compute the distributed hash (v0) of the element
-          // it will be associated to the default element name (= map key), and to the name really written
-          int localHash = 0;
-          for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
-          int globalHash(0);
-          MPI_Allreduce( &localHash, &globalHash, 1, MPI_INT, MPI_SUM, comm_file  );
+          // The hash of the element will be associated to the default element name (= map key), and to the name really written
+          int globalHash = axis->computeAttributesHash( comm_file ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
 
           StdString defaultNameKey = axis->getAxisOutputName();
           if ( !relElements_.count ( defaultNameKey ) )

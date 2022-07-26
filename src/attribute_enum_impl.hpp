@@ -125,6 +125,13 @@ namespace xios
     else return false;
   }
 
+  template <class T>
+  int CAttributeEnum<T>::computeHash(void)
+  {
+    // Basic hash computation through string
+    return std::hash<string>{}( toString() );
+  }
+
   //---------------------------------------------------------------
 
   template <class T>

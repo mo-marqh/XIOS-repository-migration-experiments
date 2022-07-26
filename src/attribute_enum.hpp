@@ -51,6 +51,7 @@ namespace xios
             bool hasInheritedValue(void) const;                    
             
             bool isEqual(const CAttribute& attr );
+            int computeHash(void);
 
             /// Destructeur ///
             virtual ~CAttributeEnum(void) { }

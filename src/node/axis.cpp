@@ -303,6 +303,45 @@ namespace xios {
      label.reset() ;
    }
 
+   int CAxis::computeAttributesHash( MPI_Comm comm )
+   {
+     int axis_hash = 0;
+     
+     // Compute the hash of distributed attributs (value ...)
+     int globalSize = this->n_glo.getValue();
+     CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
+     shared_ptr<CGridTransformConnector> gridTransformConnector;
+     // Compute a without redundancy element FULL view to enable a consistent hash computation (and a distributed globalIndex)
+     this->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm, gridTransformConnector, globalIndex );
+     int localSize = globalIndex.numElements();
+
+     CArray<double,1> distributedValue ;
+     gridTransformConnector->transfer(this->value, distributedValue );
+        
+     int localHash = 0;
+     for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
+     int distributedHash = 0;
+     MPI_Allreduce( &localHash, &distributedHash, 1, MPI_INT, MPI_SUM, comm  );
+
+     // Compute the hash of global attributs (unit, prec ...)
+     vector<StdString> excludedAttr;
+     //excludedAttr.push_back("name");
+     // internal attributs
+     excludedAttr.insert(excludedAttr.end(), { "index", "data_n", "data_begin", "data_index"  });
+     excludedAttr.insert(excludedAttr.end(), { "begin", "n" });     
+     excludedAttr.push_back("axis_ref");
+     // in distributed
+     excludedAttr.push_back("value");
+     // should be considered in distributed
+     excludedAttr.push_back("bounds");
+     excludedAttr.push_back("label");
+     excludedAttr.push_back("mask"); // ???
+
+     int globalHash = this->computeGlobalAttributesHash( excludedAttr );
+
+     return distributedHash + globalHash;
+   }
+
    void CAxis::setGeometricAttributes(const CAxis& axisSrc)
    {
      resetGeometricAttributes() ;

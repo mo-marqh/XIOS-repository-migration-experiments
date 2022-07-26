@@ -1769,6 +1769,54 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   int CDomain::computeAttributesHash( MPI_Comm comm )
+   {
+     int domain_hash = 0;
+     
+     // Compute the hash of distributed attributs (value ...)
+     int globalSize = this->ni_glo.getValue()*this->nj_glo.getValue();
+     CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
+     shared_ptr<CGridTransformConnector> gridTransformConnector;
+     // Compute a without redundancy element FULL view to enable a consistent hash computation
+     this->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm, gridTransformConnector, globalIndex );
+     int localSize = globalIndex.numElements();
+           
+     CArray<double,1> lon_distributedValue, lat_distributedValue ;
+     gridTransformConnector->transfer(this->lonvalue, lon_distributedValue );
+     gridTransformConnector->transfer(this->latvalue, lat_distributedValue );
+
+     // Compute the distributed hash (v0) of the element
+     // it will be associated to the default element name (= map key), and to the name really written
+     int localHash = 0;
+     for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*lon_distributedValue(iloc)*lat_distributedValue(iloc);
+     int distributedHash = 0;
+     MPI_Allreduce( &localHash, &distributedHash, 1, MPI_INT, MPI_SUM, comm  );
+     
+     // Compute the hash of global attributs (unit, prec ...)
+     vector<StdString> excludedAttr;
+     //excludedAttr.push_back("name");
+     // internal attributs
+     excludedAttr.insert(excludedAttr.end(), { "ibegin", "jbegin", "ni", "nj", "i_index", "j_index" });
+     excludedAttr.insert(excludedAttr.end(), { "data_ni", "data_nj", "data_ibegin", "data_jbegin" });
+     excludedAttr.insert(excludedAttr.end(), { "data_i_index", "data_j_index", "domain_ref" });
+     // in distributed through lonvalue and latvalue
+     excludedAttr.insert(excludedAttr.end(), { "lonvalue_1d", "latvalue_1d", "lonvalue_2d", "latvalue_2d" });
+     // should be considered in distributed
+     excludedAttr.insert(excludedAttr.end(), { "mask_1d", "mask_2d" }); // ???
+     excludedAttr.insert(excludedAttr.end(), { "bounds_lon_1d", "bounds_lat_1d", "bounds_lon_2d", "bounds_lat_2d" });
+     excludedAttr.insert(excludedAttr.end(), { "area" });
+     // private
+     excludedAttr.insert(excludedAttr.end(), { "lon_start", "lon_end", "lat_start", "lat_end" });
+     excludedAttr.insert(excludedAttr.end(), { "bounds_lon_start", "bounds_lon_end", "bounds_lat_start", "bounds_lat_end" });
+     excludedAttr.insert(excludedAttr.end(), { "has_lat_in_read_file", "has_lon_in_read_file", "has_bounds_lat_in_read_file", "has_bounds_lon_in_read_file" });
+     excludedAttr.insert(excludedAttr.end(), { "lonvalue_rectilinear_read_from_file", "latvalue_rectilinear_read_from_file", "lonvalue_curvilinear_read_from_file", "latvalue_curvilinear_read_from_file" });
+     excludedAttr.insert(excludedAttr.end(), { "bounds_lonvalue_curvilinear_read_from_file", "bounds_latvalue_curvilinear_read_from_file", "lonvalue_unstructured_read_from_file", "latvalue_unstructured_read_from_file" });
+     excludedAttr.insert(excludedAttr.end(), { "bounds_lonvalue_unstructured_read_from_file", "bounds_latvalue_unstructured_read_from_file" });
+     
+     int globalHash = this->computeGlobalAttributesHash( excludedAttr );
+
+     return distributedHash + globalHash;
+   }
 
    void CDomain::initializeLocalElement(void)
    {

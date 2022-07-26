@@ -116,6 +116,14 @@ namespace xios
       if (!this->isEmpty() && !attr.isEmpty())  return (this->getValue() == attr.getValue());
       else return false;  
     }
+  
+    template <typename T_numtype, int N_rank>
+    int CAttributeArray<T_numtype,N_rank>::computeHash(void)
+    {
+      ERROR("CAttributeArray::computeHash(void)",
+       << "NOT IMPLEMENTED FOR NOW !");
+      return std::hash<string>{}( toString() );
+    }
 
     template <typename T_numtype, int N_rank>
     StdString CAttributeArray<T_numtype,N_rank>::_toString(void) const
