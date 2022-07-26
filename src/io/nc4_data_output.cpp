@@ -57,6 +57,54 @@ namespace xios
       {
         StdString lonName,latName ;
 
+        // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
+        if (!domain->lonvalue.isEmpty() )
+        {
+          // The hash of the element will be associated to the default element name (= map key), and to the name really written
+          int globalHash = domain->computeAttributesHash( comm_file ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
+        
+          StdString defaultNameKey = domain->getDomainOutputName();
+          if ( !relDomains_.count ( defaultNameKey ) )
+          {
+            // if defaultNameKey not in the map, write the element such as it is defined
+            relDomains_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain) ) );
+          }
+          else // look if a hash associated this key is equal
+          {
+            bool elementIsInMap(false);
+            auto defaultNameKeyElements = relDomains_.equal_range( defaultNameKey );
+            for (auto it = defaultNameKeyElements.first; it != defaultNameKeyElements.second; it++)
+            {
+              if ( it->second.first == globalHash )
+              {
+                // if yes, associate the same ids to current element
+                domain->name = it->second.second->getDomainOutputName();
+                domain->lon_name = it->second.second->lon_name;
+                domain->lat_name = it->second.second->lat_name;
+                if (domain->type == CDomain::type_attr::unstructured)
+                {
+                  domain->dim_i_name = it->second.second->dim_i_name;
+                  domain->dim_j_name = it->second.second->dim_j_name;
+                }
+                elementIsInMap = true;
+              }
+            }
+            // if no : inheritance has been excessive, define new names and store it (could be used by another grid)
+            if (!elementIsInMap)  // ! in MAP
+            {
+              domain->name =  domain->getId();
+              domain->lon_name = "lon_"+domain->getId();
+              domain->lat_name = "lat_"+domain->getId();
+              if (domain->type == CDomain::type_attr::unstructured)
+              {
+                domain->dim_i_name = "cell_"+domain->getId();
+                domain->dim_j_name = "nvertex_"+domain->getId();
+              }
+              relDomains_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain) ) ) ;         
+            }
+          }
+        }
+
         if (domain->type == CDomain::type_attr::unstructured)
         {
           if (SuperClassWriter::useCFConvention)
@@ -72,45 +120,6 @@ namespace xios
 
          if (domain->isEmpty())
            if (SuperClass::type==MULTI_FILE) return;
-
-
-         // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
-         if (!domain->lonvalue.isEmpty() )
-         {
-           // The hash of the element will be associated to the default element name (= map key), and to the name really written
-           int globalHash = domain->computeAttributesHash( comm_file ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
-
-           StdString defaultNameKey = domain->getDomainOutputName();
-           if ( !relDomains_.count ( defaultNameKey ) )
-           {
-             // if defaultNameKey not in the map, write the element such as it is defined
-             relDomains_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain) ) );
-           }
-           else // look if a hash associated this key is equal
-           {
-             bool elementIsInMap(false);
-             auto defaultNameKeyElements = relDomains_.equal_range( defaultNameKey );
-             for (auto it = defaultNameKeyElements.first; it != defaultNameKeyElements.second; it++)
-             {
-               if ( it->second.first == globalHash )
-               {
-                 // if yes, associate the same ids to current element
-                 domain->name = it->second.second->getDomainOutputName();
-                 domain->lon_name = it->second.second->lon_name;
-                 domain->lat_name = it->second.second->lat_name;
-                 elementIsInMap = true;
-               }
-             }
-             // if no : inheritance has been excessive, define new names and store it (could be used by another grid)
-             if (!elementIsInMap)  // ! in MAP
-             {
-               domain->name =  domain->getId();
-               domain->lon_name = "lon_"+domain->getId();
-               domain->lat_name = "lat_"+domain->getId();
-               relDomains_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain) ) ) ;         
-             }
-           }
-         }
 
          
          std::vector<StdString> dim0, dim1;
@@ -856,7 +865,9 @@ namespace xios
          if (!domain->dim_i_name.isEmpty()) cellName=domain->dim_i_name;
          else cellName="cell";
          StdString dimXid = cellName+appendDomid;
-         StdString dimVertId = StdString("nvertex").append(appendDomid);
+         StdString dimVertId;
+         if (!domain->dim_j_name.isEmpty()) dimVertId=domain->dim_j_name;
+         else dimVertId = StdString("nvertex").append(appendDomid);
 
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
