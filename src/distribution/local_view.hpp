@@ -11,8 +11,9 @@ namespace xios
 
   class CLocalElement ;
   class CRemoteConnector ;
+  class CGridTransformConnector;
 
-  class CLocalView : public CDistributedView
+  class CLocalView : public CDistributedView, public std::enable_shared_from_this<CLocalView>
   {
     public:
     CLocalView(shared_ptr<CLocalElement> parent, CElementView::type type, const CArray<int,1>& indexView) ;
@@ -52,6 +53,7 @@ namespace xios
       }
     }
 
+    void createWithoutRedundancyFullViewConnector( int globalSize, MPI_Comm comm_file, shared_ptr<CGridTransformConnector>& gridTransformConnector, CArray<size_t,1>& globalIndex );
 
     int getLocalSize(void) {return localSize_ ;}
     int getSize(void) {return size_;} 

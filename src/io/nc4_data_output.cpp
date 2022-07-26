@@ -77,39 +77,13 @@ namespace xios
          // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
          if (!domain->lonvalue.isEmpty() )
          {
-           int comm_file_rank(0);
-           MPI_Comm_rank( comm_file, &comm_file_rank );
-           int comm_file_size(1);
-           MPI_Comm_size( comm_file, &comm_file_size );
-         
-           // Get element current FULL view
-           shared_ptr<CLocalView> srcView = domain->getLocalView(CElementView::FULL) ;
-           vector<shared_ptr<CLocalView>> srcViews;
-           srcViews.push_back( srcView );
-         
-           // Compute a without redundancy element FULL view to enable a consistent hash computation
-           vector<shared_ptr<CLocalView>> remoteViews;
-           shared_ptr<CLocalView> remoteView;
-           // define the remote view without redundancy (naive distribution of the remote view)
            int globalSize = domain->ni_glo.getValue()*domain->nj_glo.getValue();
-           int localSize = globalSize/comm_file_size;
-           if ( (comm_file_rank==comm_file_size-1) && (localSize*comm_file_size != globalSize ) )
-             localSize += globalSize-localSize*comm_file_size;
-           CArray<size_t,1> globalIndex( localSize );
-           CArray<int,1> index( localSize );
-           for (int iloc=0; iloc<localSize ; iloc++ )
-           {
-             globalIndex(iloc) = comm_file_rank*(globalSize/comm_file_size) + iloc;
-             index(iloc) = iloc;
-           }
-           shared_ptr<CLocalElement> localElement = make_shared<CLocalElement>(comm_file_rank, globalSize, globalIndex) ;
-           localElement->addView(CElementView::FULL, index) ;
-           remoteView = localElement->getView(CElementView::FULL) ;
-           remoteViews.push_back( remoteView );
-         
-           // Compute the connector between current and without redundancy FULL views
-           shared_ptr<CGridTransformConnector> gridTransformConnector = make_shared<CGridTransformConnector>(srcViews, remoteViews, comm_file ) ;
-           gridTransformConnector->computeConnector(true) ; // eliminateRedondant = true
+           CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
+           shared_ptr<CGridTransformConnector> gridTransformConnector;
+           // Compute a without redundancy element FULL view to enable a consistent hash computation
+           domain->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm_file, gridTransformConnector, globalIndex );
+           int localSize = globalIndex.numElements();
+           
            CArray<double,1> lon_distributedValue, lat_distributedValue ;
            gridTransformConnector->transfer(domain->lonvalue, lon_distributedValue );
            gridTransformConnector->transfer(domain->latvalue, lat_distributedValue );
@@ -119,7 +93,6 @@ namespace xios
            int localHash = 0;
            for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*lon_distributedValue(iloc)*lat_distributedValue(iloc);
            int globalHash(0);
-           globalHash = localHash;
            MPI_Allreduce( &localHash, &globalHash, 1, MPI_INT, MPI_SUM, comm_file  );
          
            StdString defaultNameKey = domain->getDomainOutputName();
@@ -1082,39 +1055,13 @@ namespace xios
         // Check that the name associated to the current element is not in conflict with an existing element (due to CGrid::duplicateSentGrid)
         if (!axis->value.isEmpty() )
         {
-          int comm_file_rank(0);
-          MPI_Comm_rank( comm_file, &comm_file_rank );
-          int comm_file_size(1);
-          MPI_Comm_size( comm_file, &comm_file_size );
+           int globalSize = axis->n_glo.getValue();
+           CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
+           shared_ptr<CGridTransformConnector> gridTransformConnector;
+           // Compute a without redundancy element FULL view to enable a consistent hash computation
+           axis->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm_file, gridTransformConnector, globalIndex );
+           int localSize = globalIndex.numElements();
 
-          // Get element current FULL view
-          shared_ptr<CLocalView> srcView = axis->getLocalView(CElementView::FULL) ;
-          vector<shared_ptr<CLocalView>> srcViews;
-          srcViews.push_back( srcView );
-          
-          // Compute a without redundancy element FULL view to enable a consistent hash computation
-          vector<shared_ptr<CLocalView>> remoteViews;
-          shared_ptr<CLocalView> remoteView;
-          // define the remote view without redundancy (naive distribution of the remote view)
-          int globalSize = axis->n_glo.getValue();
-          int localSize = globalSize/comm_file_size;
-          if ( (comm_file_rank==comm_file_size-1) && (localSize*comm_file_size != globalSize ) )
-            localSize += globalSize-localSize*comm_file_size;
-          CArray<size_t,1> globalIndex( localSize );
-          CArray<int,1> index( localSize );
-          for (int iloc=0; iloc<localSize ; iloc++ )
-          {
-            globalIndex(iloc) = comm_file_rank*(globalSize/comm_file_size) + iloc;
-            index(iloc) = iloc;
-          }
-          shared_ptr<CLocalElement> localElement = make_shared<CLocalElement>(comm_file_rank, globalSize, globalIndex) ;
-          localElement->addView(CElementView::FULL, index) ;
-          remoteView = localElement->getView(CElementView::FULL) ;
-          remoteViews.push_back( remoteView );
-        
-          // Compute the connector between current and without redundancy FULL views
-          shared_ptr<CGridTransformConnector> gridTransformConnector = make_shared<CGridTransformConnector>(srcViews, remoteViews, comm_file ) ;
-          gridTransformConnector->computeConnector(true) ; // eliminateRedondant = true
           CArray<double,1> distributedValue ;
           gridTransformConnector->transfer(axis->value, distributedValue );
         
@@ -1123,7 +1070,6 @@ namespace xios
           int localHash = 0;
           for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
           int globalHash(0);
-          globalHash = localHash;
           MPI_Allreduce( &localHash, &globalHash, 1, MPI_INT, MPI_SUM, comm_file  );
 
           StdString defaultNameKey = axis->getAxisOutputName();
