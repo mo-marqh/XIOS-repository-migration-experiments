@@ -1769,10 +1769,8 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   int CDomain::computeAttributesHash( MPI_Comm comm )
+   size_t CDomain::computeAttributesHash( MPI_Comm comm )
    {
-     int domain_hash = 0;
-     
      // Compute the hash of distributed attributs (value ...)
      int globalSize = this->ni_glo.getValue()*this->nj_glo.getValue();
      CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
@@ -1787,10 +1785,10 @@ namespace xios {
 
      // Compute the distributed hash (v0) of the element
      // it will be associated to the default element name (= map key), and to the name really written
-     int localHash = 0;
+     size_t localHash = 0;
      for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*lon_distributedValue(iloc)*lat_distributedValue(iloc);
-     int distributedHash = 0;
-     MPI_Allreduce( &localHash, &distributedHash, 1, MPI_INT, MPI_SUM, comm  );
+     size_t distributedHash = 0;
+     MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm  );
      
      // Compute the hash of global attributs (unit, prec ...)
      vector<StdString> excludedAttr;
@@ -1813,7 +1811,7 @@ namespace xios {
      excludedAttr.insert(excludedAttr.end(), { "bounds_lonvalue_curvilinear_read_from_file", "bounds_latvalue_curvilinear_read_from_file", "lonvalue_unstructured_read_from_file", "latvalue_unstructured_read_from_file" });
      excludedAttr.insert(excludedAttr.end(), { "bounds_lonvalue_unstructured_read_from_file", "bounds_latvalue_unstructured_read_from_file" });
      
-     int globalHash = this->computeGlobalAttributesHash( excludedAttr );
+     size_t globalHash = this->computeGlobalAttributesHash( excludedAttr );
 
      return distributedHash + globalHash;
    }

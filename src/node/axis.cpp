@@ -303,10 +303,8 @@ namespace xios {
      label.reset() ;
    }
 
-   int CAxis::computeAttributesHash( MPI_Comm comm )
+   size_t CAxis::computeAttributesHash( MPI_Comm comm )
    {
-     int axis_hash = 0;
-     
      // Compute the hash of distributed attributs (value ...)
      int globalSize = this->n_glo.getValue();
      CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
@@ -318,10 +316,10 @@ namespace xios {
      CArray<double,1> distributedValue ;
      gridTransformConnector->transfer(this->value, distributedValue );
         
-     int localHash = 0;
+     size_t localHash = 0;
      for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
-     int distributedHash = 0;
-     MPI_Allreduce( &localHash, &distributedHash, 1, MPI_INT, MPI_SUM, comm  );
+     size_t distributedHash = 0;
+     MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm  );
 
      // Compute the hash of global attributs (unit, prec ...)
      vector<StdString> excludedAttr;
@@ -337,7 +335,7 @@ namespace xios {
      excludedAttr.push_back("label");
      excludedAttr.push_back("mask"); // ???
 
-     int globalHash = this->computeGlobalAttributesHash( excludedAttr );
+     size_t globalHash = this->computeGlobalAttributesHash( excludedAttr );
 
      return distributedHash + globalHash;
    }

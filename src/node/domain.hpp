@@ -90,7 +90,7 @@ namespace xios
          void checkAttributes(void);
          bool checkAttributes_done_ = false ;
 
-         int computeAttributesHash( MPI_Comm comm );
+         size_t computeAttributesHash( MPI_Comm comm );
          
       //////////////////////////
       ///// transformations ////

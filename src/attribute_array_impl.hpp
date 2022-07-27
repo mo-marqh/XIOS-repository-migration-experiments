@@ -118,7 +118,7 @@ namespace xios
     }
   
     template <typename T_numtype, int N_rank>
-    int CAttributeArray<T_numtype,N_rank>::computeHash(void)
+    size_t CAttributeArray<T_numtype,N_rank>::computeHash(void)
     {
       ERROR("CAttributeArray::computeHash(void)",
        << "NOT IMPLEMENTED FOR NOW !");

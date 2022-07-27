@@ -43,7 +43,7 @@ namespace xios
             virtual StdString dump(void) const = 0;
             virtual StdString dumpGraph(void) const = 0;
             virtual bool isEqual(const CAttribute& ) = 0;
-            virtual int computeHash(void) = 0;
+            virtual size_t computeHash(void) = 0;
 
             //! Returns true if and only if the attribute should be publicly exposed in the API
             virtual bool isPublic() const { return true; }

@@ -272,9 +272,9 @@ namespace xios
         Compute the hash value of current attribute map excluding some attributs.
         \param [in] excludedAttrs attribute to be excluded from hash computation
       */
-      int CAttributeMap::computeGlobalAttributesHash(const vector<StdString>& excludedAttrs)
+      size_t CAttributeMap::computeGlobalAttributesHash(const vector<StdString>& excludedAttrs)
       {
-         int attrs_hash( 0 );
+         size_t attrs_hash( 0 );
          typedef std::pair<StdString, CAttribute*> StdStrAttPair;
 
          SuperClassMap::const_iterator it = this->begin(), end = this->end();

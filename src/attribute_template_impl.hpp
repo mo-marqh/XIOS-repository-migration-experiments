@@ -170,7 +170,7 @@ namespace xios
     }
 
     template <class T>
-    int CAttributeTemplate<T>::computeHash(void)
+    size_t CAttributeTemplate<T>::computeHash(void)
     {
       // Basic hash computation through string
       return std::hash<string>{}( toString() );

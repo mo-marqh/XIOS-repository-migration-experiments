@@ -128,8 +128,8 @@ namespace xios
             bool hasTimeInstant ;
             bool hasTimeCentered ;
 	
-            std::multimap< StdString, pair<int,StdString> > relElements_;
-            std::multimap< StdString, pair<int,CDomain*> > relDomains_;
+            std::multimap< StdString, pair<size_t,StdString> > relElements_;
+            std::multimap< StdString, pair<size_t,CDomain*> > relDomains_;
 
       }; // class CNc4DataOutput
 

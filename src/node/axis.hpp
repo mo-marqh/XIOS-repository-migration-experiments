@@ -129,7 +129,7 @@ namespace xios
          void setGeometricAttributes(const CAxis& axisSrc) ;
          void resetGeometricAttributes(void) ;
 
-         int computeAttributesHash( MPI_Comm comm );
+         size_t computeAttributesHash( MPI_Comm comm );
 
          size_t getGlobalWrittenSize(void) ;
 

@@ -43,7 +43,7 @@ namespace xios
             bool hasInheritedValue(void) const;
                         
             bool isEqual(const CAttribute& attr);
-            int computeHash(void);
+            size_t computeHash(void);
 
             /// Destructeur ///
             virtual ~CAttributeArray(void) { }
