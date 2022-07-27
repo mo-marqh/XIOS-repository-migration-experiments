@@ -19,7 +19,7 @@ namespace xios
             : SuperClass()
             , SuperClassWriter(filename, exist)
             , filename(filename)
-            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relElements_()
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relAxis_(), relDomains_()
       {
         SuperClass::type = MULTI_FILE;
         compressionLevel= file->compression_level.isEmpty() ? 0 :file->compression_level ;
@@ -33,7 +33,7 @@ namespace xios
             , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
-            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relElements_()
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relAxis_(), relDomains_()
       {
         SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
         if (file==NULL) compressionLevel = 0 ;
@@ -78,28 +78,14 @@ namespace xios
               if ( it->second.first == globalHash )
               {
                 // if yes, associate the same ids to current element
-                domain->name = it->second.second->getDomainOutputName();
-                domain->lon_name = it->second.second->lon_name;
-                domain->lat_name = it->second.second->lat_name;
-                if (domain->type == CDomain::type_attr::unstructured)
-                {
-                  domain->dim_i_name = it->second.second->dim_i_name;
-                  domain->dim_j_name = it->second.second->dim_j_name;
-                }
+                domain->renameAttributesBeforeWriting( it->second.second );
                 elementIsInMap = true;
               }
             }
             // if no : inheritance has been excessive, define new names and store it (could be used by another grid)
             if (!elementIsInMap)  // ! in MAP
             {
-              domain->name =  domain->getId();
-              domain->lon_name = "lon_"+domain->getId();
-              domain->lat_name = "lat_"+domain->getId();
-              if (domain->type == CDomain::type_attr::unstructured)
-              {
-                domain->dim_i_name = "cell_"+domain->getId();
-                domain->dim_j_name = "nvertex_"+domain->getId();
-              }
+              domain->renameAttributesBeforeWriting();
               relDomains_.insert( make_pair( defaultNameKey, make_pair(globalHash, domain) ) ) ;         
             }
           }
@@ -1055,29 +1041,29 @@ namespace xios
           int globalHash = axis->computeAttributesHash( comm_file ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
 
           StdString defaultNameKey = axis->getAxisOutputName();
-          if ( !relElements_.count ( defaultNameKey ) )
+          if ( !relAxis_.count ( defaultNameKey ) )
           {
             // if defaultNameKey not in the map, write the element such as it is defined
-            relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, defaultNameKey) ) );
+            relAxis_.insert( make_pair( defaultNameKey, make_pair(globalHash, axis) ) );
           }
           else // look if a hash associated this key is equal
           {
             bool elementIsInMap(false);
-            auto defaultNameKeyElements = relElements_.equal_range( defaultNameKey );
+            auto defaultNameKeyElements = relAxis_.equal_range( defaultNameKey );
             for (auto it = defaultNameKeyElements.first; it != defaultNameKeyElements.second; it++)
             {
               if ( it->second.first == globalHash )
               {
                 // if yes, associate the same ids to current element
-                axis->name = it->second.second;
+                axis->renameAttributesBeforeWriting( it->second.second );
                 elementIsInMap = true;
               }
             }
              // if no : inheritance has been excessive, define new names and store it (could be used by another grid)
             if (!elementIsInMap)  // ! in MAP
             {
-              axis->name =  axis->getId();
-              relElements_.insert( make_pair( defaultNameKey, make_pair(globalHash, axis->getAxisOutputName()) ) ) ;// = axis->getId()          
+              axis->renameAttributesBeforeWriting();
+              relAxis_.insert( make_pair( defaultNameKey, make_pair(globalHash, axis) ) ) ;// = axis->getId()          
             }
           }
         }

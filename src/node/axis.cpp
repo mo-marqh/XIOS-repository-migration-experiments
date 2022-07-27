@@ -339,7 +339,21 @@ namespace xios {
 
      return distributedHash + globalHash;
    }
-
+  
+   void CAxis::renameAttributesBeforeWriting(CAxis* writtenAxis)
+   {
+     if (writtenAxis!=NULL)
+     {
+       this->name = writtenAxis->getAxisOutputName();
+       // + label if necessary, other attributs concerned ?
+     }
+     else
+     {
+       this->name =  this->getId();
+       // + label if necessary, other attributs concerned ?
+     }
+   }
+  
    void CAxis::setGeometricAttributes(const CAxis& axisSrc)
    {
      resetGeometricAttributes() ;

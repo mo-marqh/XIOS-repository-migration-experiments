@@ -91,6 +91,7 @@ namespace xios
          bool checkAttributes_done_ = false ;
 
          size_t computeAttributesHash( MPI_Comm comm );
+         void renameAttributesBeforeWriting(CDomain* writtenDomain=NULL);
          
       //////////////////////////
       ///// transformations ////

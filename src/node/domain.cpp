@@ -1815,6 +1815,32 @@ namespace xios {
 
      return distributedHash + globalHash;
    }
+  
+   void CDomain::renameAttributesBeforeWriting(CDomain* writtenDomain)
+   {
+     if (writtenDomain!=NULL)
+     {
+       this->name = writtenDomain->getDomainOutputName();
+       this->lon_name = writtenDomain->lon_name;
+       this->lat_name = writtenDomain->lat_name;
+       if (this->type == CDomain::type_attr::unstructured)
+       {
+         this->dim_i_name = writtenDomain->dim_i_name;
+         this->dim_j_name = writtenDomain->dim_j_name;
+       }
+     }
+     else
+     {
+       this->name =  this->getId();
+       this->lon_name = "lon_"+this->getId();
+       this->lat_name = "lat_"+this->getId();
+       if (this->type == CDomain::type_attr::unstructured)
+       {
+         this->dim_i_name = "cell_"+this->getId();
+         this->dim_j_name = "nvertex_"+this->getId();
+       }
+     }
+   }
 
    void CDomain::initializeLocalElement(void)
    {
