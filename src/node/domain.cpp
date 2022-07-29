@@ -1993,30 +1993,70 @@ namespace xios {
       int nbServer = client->getRemoteSize();
       int nbClient = client->getIntraCommSize() ;
       int rankClient = client->getIntraCommRank() ;
-      int size = nbServer / nbClient ;
+
+      int nbChunk = max( nbServer, nbClient);
+      int size ;//= nbChunk / nbClient ;
       int start ;
-      if (nbServer%nbClient > rankClient)
+      
+      if (nbServer<=nbClient) // nbChunk = nbClient
       {
-       start = (size+1) * rankClient ;
-       size++ ;
+        // distribution regarding client only : 1 chunk per client, one server can recv from many clients (see serverRank below)
+        size = 1;
+        start = rankClient;
       }
-      else start = size*rankClient + nbServer%nbClient ;
+      else // nbChunk = nbServer
+      {
+        // distribution regarding servers : 1 client with size(+1) chunk will send to size(+1)  servers
+        size = nbChunk/nbClient;
+        int nClientWithAdditionalChunk = nbChunk - size*nbClient;
+        if (rankClient<nClientWithAdditionalChunk) // distribute size+1 chunks per client
+        {
+          size++;
+          start =  size*rankClient;
+        }
+        else // distribute the rest with size chunks
+        {
+          start =  (size+1)*nClientWithAdditionalChunk+size*(rankClient-nClientWithAdditionalChunk);
+        }
+      }
      
       for(int i=0; i<size; i++)
       { 
         int rank=start+i ; 
-        size_t indSize = nj_glo/nbServer ;
+        size_t indSize = nj_glo/nbChunk ;
         size_t indStart ;
-        if (nj_glo % nbServer > rank)
+        if (nj_glo % nbChunk > rank)
         {
           indStart = (indSize+1) * rank ;
           indSize++ ;
         }
-        else indStart = indSize*rank + nj_glo%nbServer ;
+        else indStart = indSize*rank + nj_glo%nbChunk ;
        
         indStart=indStart*ni_glo ;
         indSize=indSize*ni_glo ;
-        auto& globalInd =  globalIndex[rank] ;
+        // compute the server rank concerns by the chunk
+        int serverRank;
+        if (nbServer<=nbClient)
+        {
+          // nChunkPerServer(+1) client will send to 1 server
+          int nChunkPerServer = nbChunk/nbServer;
+          int nServerWithAdditionalChunk = nbChunk - nChunkPerServer*nbServer;
+          if (rankClient<nServerWithAdditionalChunk*(nChunkPerServer+1))
+          {
+            serverRank = rank/(nChunkPerServer+1);
+          }
+          else
+          {
+            // nServerWithAdditionalChunk servers have been affected above with (nChunkPerServer+1) chunks
+            // the rest will recv nChunkPerServer
+            serverRank = nServerWithAdditionalChunk+(rank-nServerWithAdditionalChunk*(nChunkPerServer+1))/nChunkPerServer;
+          }
+        }
+        else // (nbServer > nbClient)
+        {
+          serverRank = rank;
+        }
+        auto& globalInd =  globalIndex[serverRank] ;
         globalInd.resize(indSize) ;
         for(size_t n = 0 ; n<indSize; n++) globalInd(n)=indStart+n ;
       }
