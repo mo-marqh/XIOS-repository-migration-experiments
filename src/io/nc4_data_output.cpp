@@ -2354,7 +2354,9 @@ namespace xios
                   std::vector<StdString> axisList   = grid->getAxisList();
                   std::vector<StdString> scalarList  = grid->getScalarList() ;
                   int numElement = axisDomainOrder.numElements();
-                  int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
+                  int idxDomain = domainList.size() - 1 ;
+                  int idxAxis = axisList.size() - 1 ;
+                  int idxScalar = scalarList.size() - 1 ;
                   int idx = domainList.size() * 2 + axisList.size() - 1;
 
                   start.reserve(idx+1);
@@ -2387,13 +2389,20 @@ namespace xios
                     }
                     else
                     {
-                      if (1 == axisDomainOrder.numElements())
+                      if (idx ==-1) 
                       {
-                        CScalar* scalar = CScalar::get(scalarList[scalarList.size()-1]);
+                        CScalar* scalar = CScalar::get(scalarList[idxScalar]);
                         start.push_back(0);
                         count.push_back(scalar->n);
+                        idx-- ;
                       }
-                      --idx;
+                      else if (idx<-1)
+                      {
+                        CScalar* scalar = CScalar::get(scalarList[idxScalar]);
+                        count.back()*=scalar->n;
+                        idx-- ;
+                      }
+                      --idxScalar;
                     }
                   }
                 }
