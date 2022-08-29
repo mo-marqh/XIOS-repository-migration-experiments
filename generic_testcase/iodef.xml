@@ -86,7 +86,7 @@
   <context id="xios">
     <variable_definition>
       <variable_group id="buffer">
-	<variable id="min_buffer_size" type="int">10000000</variable>
+	<variable id="min_buffer_size" type="int">10000</variable>
 	<variable id="optimal_buffer_size" type="string">performance</variable>
 	<variable id="buffer_factor_size" type="double">0.8</variable> 
       </variable_group>
@@ -102,7 +102,6 @@
         <variable id="pure_one_sided" type="bool">false</variable>
         <variable id="check_event_sync" type="bool">true</variable>
       </variable_group>
-      <variable id="activate_non_distributed_transformation" type="bool">true</variable>
     </variable_definition>
   </context>
 
