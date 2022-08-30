@@ -392,7 +392,9 @@ namespace xios
                        
                        start[0]=domain->jbegin;
                        count[0]=domain->nj;
-                       CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->ni));
+                       CArray<double,1> lat;
+                       lat.resize( domain->nj.getValue() );
+                       for (int j=0;j<domain->nj.getValue();j++) lat(j) = domain->latvalue(j*domain->ni.getValue());
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
                        start[0]=domain->ibegin;
