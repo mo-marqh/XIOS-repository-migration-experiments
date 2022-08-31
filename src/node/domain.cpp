@@ -1826,7 +1826,7 @@ namespace xios {
        if (this->type == CDomain::type_attr::unstructured)
        {
          this->dim_i_name = writtenDomain->dim_i_name;
-         this->dim_j_name = writtenDomain->dim_j_name;
+         this->nvertex_name = writtenDomain->nvertex_name;
        }
      }
      else
@@ -1837,7 +1837,7 @@ namespace xios {
        if (this->type == CDomain::type_attr::unstructured)
        {
          this->dim_i_name = "cell_"+this->getId();
-         this->dim_j_name = "nvertex_"+this->getId();
+         this->nvertex_name = "nvertex_"+this->getId();
        }
      }
    }

@@ -854,8 +854,8 @@ namespace xios
          else cellName="cell";
          StdString dimXid = cellName+appendDomid;
          StdString dimVertId;
-         if (!domain->dim_j_name.isEmpty()) dimVertId=domain->dim_j_name;
-         else dimVertId = StdString("nvertex").append(appendDomid);
+         if (domain->nvertex_name.isEmpty()) dimVertId = "nvertex";
+         else dimVertId = domain->nvertex_name;
 
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
