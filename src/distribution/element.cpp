@@ -86,7 +86,7 @@ namespace xios
  
 
 
-  CLocalElement::CLocalElement(int localRank, size_t globalSize, CArray<size_t,1>& globalIndex) 
+  CLocalElement::CLocalElement(int localRank, size_t globalSize, const CArray<size_t,1>& globalIndex) 
                              : CDistributedElement(globalSize, {{localRank, globalIndex}}),
                                globalIndex_(CDistributedElement::globalIndex_[localRank]), localSize_(CDistributedElement::localSize_[localRank]), localRank_(localRank)
   {

@@ -53,7 +53,7 @@ namespace xios
       std::map<pair<CElementView::type,CElementView::type>, shared_ptr<CLocalConnector>> connectors_  ;
  
     public: 
-      CLocalElement(int localRank, size_t globalSize, CArray<size_t,1>& globalIndex) ;
+      CLocalElement(int localRank, size_t globalSize, const CArray<size_t,1>& globalIndex) ;
       CLocalElement(int localRank, CEventServer& event) ;
       void recvFromClient(int localRank, CEventServer& event) ;
       const CArray<size_t,1>& getGlobalIndex(void) { return globalIndex_ ;}
