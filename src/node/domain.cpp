@@ -2112,7 +2112,7 @@ namespace xios {
 
  
 
-  void CDomain::distributeToServer(CContextClient* client, map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn,
+  void CDomain::distributeToServer(CContextClient* client, bool inOut, map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn,
                                    shared_ptr<CScattererConnector> &scattererConnector, const string& domainId)
   TRY
   {
@@ -2174,6 +2174,7 @@ namespace xios {
     ////////////
     // phase 3 : compute connector to receive from server
     ////////////
+    if (inOut)
     {
       auto scatteredElement = make_shared<CDistributedElement>(ni_glo*nj_glo, globalIndexIn) ;
       scatteredElement->addFullView() ;
@@ -2277,10 +2278,16 @@ namespace xios {
  
     serverFromClientConnector_ = make_shared<CGathererConnector>(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
     serverFromClientConnector_->computeConnector() ;
+    elementFrom_.reset() ;
       
-    serverToClientConnector_ = make_shared<CScattererConnector>(localElement_->getView(CElementView::WORKFLOW), elementTo_->getView(CElementView::FULL),
+    if (elementTo_)
+    {
+      serverToClientConnector_ = make_shared<CScattererConnector>(localElement_->getView(CElementView::WORKFLOW), elementTo_->getView(CElementView::FULL),
                                                                 context->getIntraComm(), client->getRemoteSize()) ;
-    serverToClientConnector_->computeConnector() ;
+      serverToClientConnector_->computeConnector() ;
+      elementTo_.reset() ;
+    }
+
   }
   CATCH_DUMP_ATTR
 

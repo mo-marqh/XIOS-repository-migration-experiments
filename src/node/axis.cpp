@@ -981,7 +981,7 @@ namespace xios {
     remoteElement_[client]->addFullView() ;
   }
  
-  void CAxis::distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn, 
+  void CAxis::distributeToServer(CContextClient* client, bool inOut, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn, 
                                  shared_ptr<CScattererConnector> &scattererConnector, const string& axisId)
   {
     string serverAxisId = axisId.empty() ? this->getId() : axisId ;
@@ -1041,6 +1041,7 @@ namespace xios {
     ////////////
     // phase 3 : compute connector to receive from server
     ////////////
+    if (inOut)
     {
       auto scatteredElement = make_shared<CDistributedElement>(n_glo, globalIndexIn) ;
       scatteredElement->addFullView() ;
@@ -1127,7 +1128,7 @@ namespace xios {
 //      gathererConnector_ =  make_shared<CGathererConnector>(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
 //      gathererConnector_ -> computeConnector() ;
     }
-    else if (phasis==3)
+    else if (phasis==3) // only for server -> client
     {
       elementTo_ = make_shared<CDistributedElement>(event) ;
       elementTo_->addFullView() ;
@@ -1144,10 +1145,15 @@ namespace xios {
  
     serverFromClientConnector_ = make_shared<CGathererConnector>(elementFrom_->getView(CElementView::FULL), localElement_->getView(CElementView::WORKFLOW)) ;
     serverFromClientConnector_->computeConnector() ;
-      
-    serverToClientConnector_ = make_shared<CScattererConnector>(localElement_->getView(CElementView::WORKFLOW), elementTo_->getView(CElementView::FULL),
+    elementFrom_.reset() ;
+
+    if (elementTo_)
+    {
+      serverToClientConnector_ = make_shared<CScattererConnector>(localElement_->getView(CElementView::WORKFLOW), elementTo_->getView(CElementView::FULL),
                                                                 context->getIntraComm(), client->getRemoteSize()) ;
-    serverToClientConnector_->computeConnector() ;
+      serverToClientConnector_->computeConnector() ;
+      elementTo_.reset() ;
+    }
   }
   CATCH_DUMP_ATTR
 

@@ -171,7 +171,7 @@ namespace xios {
          CScalar* addScalar(const std::string& id=StdString());
 
       public:
-         void sendGridToFileServer(CContextClient* client) ;
+         void sendGridToFileServer(CContextClient* client, bool inOut) ;
       private:
          std::set<CContextClient*> sendGridToFileServer_done_ ;
      
@@ -350,7 +350,7 @@ namespace xios {
         shared_ptr<CGridLocalConnector> getWorkflowToModelConnector(void) { if (workflowToModelConnector_==nullptr) computeWorkflowToModelConnector() ; return workflowToModelConnector_;}
 
       public: //? 
-        void distributeGridToServer(CContextClient* client, const string& fieldId="");
+        void distributeGridToServer(CContextClient* client, bool inOut, const string& fieldId="");
       
             
       private:

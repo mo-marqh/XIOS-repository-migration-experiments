@@ -252,7 +252,7 @@ namespace xios
        
        public:
          void computeRemoteElement(CContextClient* client, EDistributionType) ;
-         void distributeToServer(CContextClient* client, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn, 
+         void distributeToServer(CContextClient* client, bool inOut, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn, 
                                  shared_ptr<CScattererConnector>& scattererConnector, const string& axisId="") ;
 
          static void recvAxisDistribution(CEventServer& event) ;

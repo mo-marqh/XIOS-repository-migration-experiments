@@ -1011,6 +1011,20 @@ void CContext::removeAllContexts(void)
     if (serviceType_==CServicesManager::CServicesManager::GATHERER || serviceType_==CServicesManager::IO_SERVER) 
       for(auto file : this->enabledReadModeFiles) file->setContextClient(client) ;
    
+
+    // workflow startpoint => data from server on client side
+    // important : sendFieldToInputFileServer must be done prior sendFieldToFileServer because for the first case the grid remoteConnectorIn
+    //             and grid remoteConnectorOut will be computed, and in the second case only the remoteConnectorOut.
+    if (serviceType_==CServicesManager::CLIENT)
+    {
+      for(auto field : fileInField) 
+      {
+        field->sendFieldToInputFileServer() ;
+        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
+        fileInFields_.push_back(field) ;
+      }
+    }
+
     // workflow endpoint => sent to IO/SERVER
     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER)
     {
@@ -1075,17 +1089,6 @@ void CContext::removeAllContexts(void)
     for(auto field : couplerOutField) 
     {
       field->connectToCouplerOut(garbageCollector) ; // for now the same kind of filter that for file server
-    }
-
-     // workflow startpoint => data from server on client side
-    if (serviceType_==CServicesManager::CLIENT)
-    {
-      for(auto field : fileInField) 
-      {
-        field->sendFieldToInputFileServer() ;
-        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
-        fileInFields_.push_back(field) ;
-      }
     }
 
     // workflow startpoint => data read from file on server side

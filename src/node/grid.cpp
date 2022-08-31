@@ -1447,7 +1447,7 @@ namespace xios
 
  
 
-  void CGrid::sendGridToFileServer(CContextClient* client)
+  void CGrid::sendGridToFileServer(CContextClient* client, bool inOut)
   {
     if (sendGridToFileServer_done_.count(client)!=0) return ;
     else sendGridToFileServer_done_.insert(client) ;
@@ -1456,7 +1456,7 @@ namespace xios
     CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
     gridPtr->sendCreateChild(this->getId(),client);
     this->sendAllAttributesToServer(client);
-    distributeGridToServer(client) ;
+    distributeGridToServer(client, inOut) ;
   }
 
 
@@ -1465,11 +1465,11 @@ namespace xios
     if (sendGridToCouplerOut_done_.count(client)!=0) return ;
     else sendGridToCouplerOut_done_.insert(client) ;
     this->sendAllAttributesToServer(client, getCouplingAlias(fieldId));
-    distributeGridToServer(client, fieldId) ;
+    distributeGridToServer(client, false, fieldId) ;
   }
 
 
-  void CGrid::distributeGridToServer(CContextClient* client, const string& fieldId)
+  void CGrid::distributeGridToServer(CContextClient* client, bool inOut, const string& fieldId)
   {
     CContext* context = CContext::getCurrent();
     bool isCoupling = !fieldId.empty() ;
@@ -1519,12 +1519,17 @@ namespace xios
     
     // CGridClientServerRemoteConnector : workflowView is added to avoid spurious optimisation with only the fullview
     auto gridRemoteConnector = make_shared<CGridClientServerRemoteConnector>(localViews, workflowView, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
-    gridRemoteConnector->computeConnector(true) ;
+    gridRemoteConnector->computeConnectorOut() ;
     
-    auto gridRemoteConnectorIn = make_shared<CGridClientServerRemoteConnector>(localViews, workflowView, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
-    gridRemoteConnectorIn->computeConnector(false) ;
+    shared_ptr<CGridClientServerRemoteConnector> gridRemoteConnectorIn ;
+    if (inOut)
+    {
+      gridRemoteConnectorIn = make_shared<CGridClientServerRemoteConnector>(localViews, workflowView, remoteViews, context->getIntraComm(), client->getRemoteSize()) ;
+      gridRemoteConnectorIn->computeConnectorIn() ;
+    }
+    else gridRemoteConnectorIn = gridRemoteConnector ;
 
-    
+
     vector<shared_ptr<CScattererConnector>> scattererConnectors ;
     shared_ptr<CScattererConnector> scattererConnector;
     for(int i=0 ; i<elements.size() ; i++)
@@ -1532,36 +1537,36 @@ namespace xios
       if (elements[i].type==TYPE_DOMAIN) 
       { 
         CDomain* domain = (CDomain*) elements[i].ptr ;
-        if (isCoupling) domain->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
+        if (isCoupling) domain->distributeToServer(client, inOut, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
                                                    scattererConnector,  domain->getCouplingAlias(fieldId,i)) ;
         else 
         {
           sendAddDomain(domain->getId(),client) ;
-          domain->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
+          domain->distributeToServer(client, inOut, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
         }
         scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_AXIS)
       {
         CAxis* axis = (CAxis*) elements[i].ptr ;
-        if (isCoupling) axis->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
+        if (isCoupling) axis->distributeToServer(client, inOut, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
                                                  scattererConnector,  axis->getCouplingAlias(fieldId,i)) ;
         else 
         {
           sendAddAxis(axis->getId(),client) ;
-          axis->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
+          axis->distributeToServer(client, inOut, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
         }
         scattererConnectors.push_back(scattererConnector) ;
       }
       else if (elements[i].type==TYPE_SCALAR)
       {
         CScalar* scalar = (CScalar*) elements[i].ptr ;
-        if (isCoupling) scalar->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
+        if (isCoupling) scalar->distributeToServer(client, inOut, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i),
                                                    scattererConnector,  scalar->getCouplingAlias(fieldId,i)) ;
         else 
         {
           sendAddScalar(scalar->getId(),client) ;
-          scalar->distributeToServer(client, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
+          scalar->distributeToServer(client, inOut, gridRemoteConnector->getDistributedGlobalIndex(i), gridRemoteConnectorIn->getDistributedGlobalIndex(i), scattererConnector) ;
         }
         scattererConnectors.push_back(scattererConnector) ;
       }
@@ -1587,24 +1592,24 @@ namespace xios
       if (element.type==TYPE_DOMAIN) 
       { 
          clientToServerConnectors.push_back(element.domain->getClientToServerConnector(client)) ;
-         clientFromServerConnectors.push_back(element.domain->getClientFromServerConnector(client)) ;
+         if (inOut) clientFromServerConnectors.push_back(element.domain->getClientFromServerConnector(client)) ;
       }
       else if (element.type==TYPE_AXIS)
       {
         clientToServerConnectors.push_back(element.axis->getClientToServerConnector(client)) ;
-        clientFromServerConnectors.push_back(element.axis->getClientFromServerConnector(client)) ;
+        if (inOut) clientFromServerConnectors.push_back(element.axis->getClientFromServerConnector(client)) ;
 
       }
       else if (element.type==TYPE_SCALAR)
       {
         clientToServerConnectors.push_back(element.scalar->getClientToServerConnector(client)) ;
-        clientFromServerConnectors.push_back(element.scalar->getClientFromServerConnector(client)) ;
+        if (inOut) clientFromServerConnectors.push_back(element.scalar->getClientFromServerConnector(client)) ;
       }
     }
     
     // compute the grid clientToServerConnector to send flux from client to servers
     clientToServerConnector_[client] = make_shared<CGridScattererConnector>(clientToServerConnectors) ;
-    clientFromServerConnector_[client] = make_shared<CGridGathererConnector>(clientFromServerConnectors) ;
+    if (inOut) clientFromServerConnector_[client] = make_shared<CGridGathererConnector>(clientFromServerConnectors) ;
 
   }
 

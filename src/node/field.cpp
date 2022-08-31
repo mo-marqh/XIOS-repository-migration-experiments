@@ -1465,7 +1465,7 @@ namespace xios
     CContext::getCurrent()->sendContextToFileServer(client);
     getRelFile()->sendFileToFileServer(client);
     sentGrid_ = grid_-> duplicateSentGrid() ;
-    sentGrid_->sendGridToFileServer(client);
+    sentGrid_->sendGridToFileServer(client, false);
     name = getFieldOutputName() ;
     this->sendAllAttributesToServer(client);
     this->sendAddAllVariables(client);
@@ -1476,7 +1476,7 @@ namespace xios
     CContext::getCurrent()->sendContextToFileServer(client);
     getRelFile()->sendFileToFileServer(client);
     sentGrid_ = grid_-> duplicateSentGrid() ;
-    sentGrid_->sendGridToFileServer(client);
+    sentGrid_->sendGridToFileServer(client, true);
     read_access=true ; // not the best solution, but on server side, the field must be a starting point of the workflow
                        // must be replace by a better solution when implementing filters for reading and send to client
                        // on server side

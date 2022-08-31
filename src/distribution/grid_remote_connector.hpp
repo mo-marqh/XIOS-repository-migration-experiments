@@ -21,13 +21,14 @@ namespace xios
       CGridRemoteConnector(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CLocalView>>& dstView, MPI_Comm localComm, int remoteSize) ;
       void computeViewDistribution(void) ;
       void computeConnector(bool eliminateRedundant=true) ;
-      void computeConnectorMethods(void) ;
+      void computeConnectorMethods(bool reverse=false) ;
       void computeConnectorRedundant(void) ;
       void computeGenericMethod(vector<shared_ptr<CLocalView>>& srcView, vector<shared_ptr<CDistributedView>>& dstView, vector<int>& indElements) ;
       void computeSrcDstNonDistributed(int i, map<int,bool>& ranks) ;
       void computeDstNonDistributed(int i, map<int,bool>& ranks) ;
       void computeSrcNonDistributed(int i) ;
-      void computeRedondantRanks(void) ;
+      void computeSrcNonDistributedReverse(int i) ;
+      void computeRedondantRanks(bool reverse=false) ;
       std::map<int, CArray<size_t,1>>& getDistributedGlobalIndex(int pos) { return elements_[pos] ;} 
       const vector<bool>& getIsSrcViewDistributed(void) { return isSrcViewDistributed_ ;}
       const vector<bool>& getIsDstViewDistributed(void) { return isDstViewDistributed_ ;}

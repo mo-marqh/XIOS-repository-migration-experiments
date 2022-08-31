@@ -37,5 +37,52 @@ namespace xios
       computeConnectorRedundant() ;
     }
   }
+ 
+  void CGridClientServerRemoteConnector::computeConnectorOut()
+  {
+    set<int> workflowRankToRemove ;
+    vector<bool> workflowIsSrcViewDistributed ;
+    {
+      auto workflowRemoteConnector=make_shared<CGridRemoteConnector>(srcWorkflowView_,dstView_,localComm_,remoteSize_) ;
+      workflowRemoteConnector->computeViewDistribution() ;
+      workflowRemoteConnector->computeConnectorMethods(false) ;
+      workflowRemoteConnector->computeRedondantRanks(false) ;
+      workflowRankToRemove = workflowRemoteConnector->getRankToRemove() ;
+      workflowIsSrcViewDistributed = workflowRemoteConnector->getIsSrcViewDistributed() ;
+    }
+    
+    computeViewDistribution() ;
+    
+    for(int i=0;i<srcView_.size();i++) isSrcViewDistributed_[i] =  isSrcViewDistributed_[i] || workflowIsSrcViewDistributed[i]  ;
+    computeConnectorMethods(false) ;
+    computeRedondantRanks(false) ;
 
+    for(auto& rank : rankToRemove_)
+      if (workflowRankToRemove.count(rank)!=0)
+        for(auto& element : elements_) element.erase(rank) ;
+  }
+
+  void CGridClientServerRemoteConnector::computeConnectorIn()
+  {
+    set<int> workflowRankToRemove ;
+    vector<bool> workflowIsSrcViewDistributed ;
+    {
+      auto workflowRemoteConnector=make_shared<CGridRemoteConnector>(srcWorkflowView_,dstView_,localComm_,remoteSize_) ;
+      workflowRemoteConnector->computeViewDistribution() ;
+      workflowRemoteConnector->computeConnectorMethods(true) ;
+      workflowRemoteConnector->computeRedondantRanks(true) ;
+      workflowRankToRemove = workflowRemoteConnector->getRankToRemove() ;
+      workflowIsSrcViewDistributed = workflowRemoteConnector->getIsSrcViewDistributed() ;
+    }
+
+    computeViewDistribution() ;
+    
+    for(int i=0;i<srcView_.size();i++) isSrcViewDistributed_[i] =  isSrcViewDistributed_[i] || workflowIsSrcViewDistributed[i]  ;
+    computeConnectorMethods(true) ;
+    computeRedondantRanks(true) ;
+
+    for(auto& rank : rankToRemove_)
+      if (workflowRankToRemove.count(rank)!=0)
+        for(auto& element : elements_) element.erase(rank) ;
+  }
 }

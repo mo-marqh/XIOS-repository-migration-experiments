@@ -2,6 +2,7 @@
 #include "client_client_dht_template.hpp"
 #include "leader_process.hpp"
 #include "mpi.hpp"
+#include "element.hpp"
 
 
 
@@ -187,7 +188,7 @@ namespace xios
   *         After that, we call the \b removeRedondantRanks method to supress blocks of data that can be sent 
   *         redondantly the the remote servers
   */
-  void CGridRemoteConnector::computeConnectorMethods(void)
+  void CGridRemoteConnector::computeConnectorMethods(bool reverse)
   {
     vector<shared_ptr<CLocalView>> srcView ;
     vector<shared_ptr<CDistributedView>> dstView ;
@@ -200,33 +201,123 @@ namespace xios
     bool dstViewsNonDistributed=true ;
     for(int i=0;i<dstView_.size();i++) dstViewsNonDistributed = dstViewsNonDistributed && !isDstViewDistributed_[i] ;
     
-    if (srcViewsNonDistributed) 
+  //*****************************************************
+    if (srcViewsNonDistributed && dstViewsNonDistributed)
+    {
+      int commRank, commSize ;
+      MPI_Comm_rank(localComm_,&commRank) ;
+      MPI_Comm_size(localComm_,&commSize) ;
+ 
+      map<int,bool> ranks ;
+      if (reverse)
+      {
+        int leaderRank=getLeaderRank(remoteSize_, commSize, commRank) ;
+        ranks[leaderRank] = true ; 
+      }
+      else
+      {
+        list<int> remoteRanks;
+        list<int> notUsed ;
+        computeLeaderProcess(commRank, commSize, remoteSize_, remoteRanks, notUsed) ;
+        for(int rank : remoteRanks) ranks[rank]=true ;
+      }
+      for(int i=0; i<srcView_.size(); i++) computeSrcDstNonDistributed(i,ranks) ;  
+    }
+  
+  //*****************************************************
+    else if (srcViewsNonDistributed) 
     {
       int commRank, commSize ;
       MPI_Comm_rank(localComm_,&commRank) ;
       MPI_Comm_size(localComm_,&commSize) ;
       list<int> remoteRanks;
       list<int> notUsed ;
-      map<int,bool> ranks ;  
-      computeLeaderProcess(commRank, commSize, remoteSize_, remoteRanks, notUsed) ;
-      for(int rank : remoteRanks) ranks[rank]=true ;
+      map<int,bool> ranks ;
       
-      for(int i=0; i<srcView_.size(); i++)  
+      if (reverse)
       {
-        if (isDstViewDistributed_[i]) computeSrcNonDistributed(i) ;
-        else computeSrcDstNonDistributed(i, ranks) ;
+        shared_ptr<CLocalElement> voidElement = make_shared<CLocalElement>(commRank, 0, CArray<size_t,1>()) ;
+        shared_ptr<CLocalView> voidView = make_shared<CLocalView>(voidElement, CElementView::FULL, CArray<int,1>()) ;
+
+        for(int i=0;i<srcView_.size();i++) 
+          if (isDstViewDistributed_[i])
+          {
+            if (commRank==0) srcView.push_back(srcView_[i]) ;
+            else srcView.push_back(make_shared<CLocalView>(make_shared<CLocalElement>(commRank, srcView_[i]->getGlobalSize(), CArray<size_t,1>()),
+                                                           CElementView::FULL, CArray<int,1>())) ; // void view
+            dstView.push_back(dstView_[i]) ;
+            indElements.push_back(i) ;
+          }
+        
+        computeGenericMethod(srcView, dstView, indElements) ;
+
+        for(int i=0;i<srcView_.size();i++) 
+          if (isDstViewDistributed_[i])
+          {
+            size_t sizeElement ;
+            int nRank ;
+            if (commRank==0) nRank = elements_[i].size() ;
+            MPI_Bcast(&nRank, 1, MPI_INT, 0, localComm_) ;
+              
+            auto it=elements_[i].begin() ;
+            for(int j=0;j<nRank;j++)
+            {
+              int rank ;
+              size_t sizeElement ;
+              if (commRank==0) { rank = it->first ; sizeElement=it->second.numElements(); }
+              MPI_Bcast(&rank, 1, MPI_INT, 0, localComm_) ;
+              MPI_Bcast(&sizeElement, 1, MPI_SIZE_T, 0, localComm_) ;
+              if (commRank!=0) elements_[i][rank].resize(sizeElement) ;
+              MPI_Bcast(elements_[i][rank].dataFirst(), sizeElement, MPI_SIZE_T, 0, localComm_) ;
+              if (commRank==0) ++it ;
+            }
+          }
+
+        for(auto& it : elements_[indElements[0]]) 
+        {
+          if (it.second.numElements()==0) ranks[it.first] = false ;
+          else  ranks[it.first] = true ;
+        }
+    
+        for(int i=0;i<srcView_.size();i++) 
+          if (!isDstViewDistributed_[i]) computeSrcDstNonDistributed(i, ranks) ;
+
       }
+      else 
+      {
+        computeLeaderProcess(commRank, commSize, remoteSize_, remoteRanks, notUsed) ;
+        for(int rank : remoteRanks) ranks[rank]=true ;
+
+        for(int i=0; i<srcView_.size(); i++)  
+        {
+          if (isDstViewDistributed_[i]) computeSrcNonDistributed(i) ;
+          else computeSrcDstNonDistributed(i, ranks) ;
+        }
+      }
+
     } 
+  //*****************************************************
     else if (dstViewsNonDistributed)
     {
+      int commRank, commSize ;
+      MPI_Comm_rank(localComm_,&commRank) ;
+      MPI_Comm_size(localComm_,&commSize) ;
+ 
       map<int,bool> ranks ;
-      for(int i=0;i<remoteSize_;i++) ranks[i]=true ;
+      if (reverse)
+      {
+        int leaderRank=getLeaderRank(remoteSize_, commSize, commRank) ;
+        ranks[leaderRank] = true ; 
+      }
+      else for(int i=0;i<remoteSize_;i++) ranks[i]=true ;
+     
       for(int i=0; i<srcView_.size(); i++)  
       {
         if (isSrcViewDistributed_[i]) computeDstNonDistributed(i,ranks) ;
         else computeSrcDstNonDistributed(i,ranks) ;
       }
     } 
+  //*****************************************************
     else
     {
       for(int i=0;i<srcView_.size();i++) 
@@ -338,6 +429,69 @@ namespace xios
     }
   }
 
+/**
+  * \brief Compute the connector for the element \b i when the source view is not distributed. 
+  *        After the call element_[i] is defined.
+  *  \param i Indice of the element composing the source grid. 
+  */
+
+  void CGridRemoteConnector::computeSrcNonDistributedReverse(int i)
+  {
+    auto& element = elements_[i] ;
+    map<int,CArray<size_t,1>> globalIndexView ;
+    dstView_[i]->getGlobalIndexView(globalIndexView) ;
+    
+    CClientClientDHTTemplate<int>::Index2InfoTypeMap dataInfo;
+    
+    for(auto& it : globalIndexView)
+    {
+      auto& globalIndex=it.second ;
+      for(size_t ind : globalIndex) dataInfo[ind]=it.first ;
+    }
+    
+    // First we feed the distributed hash map  with key (remote global index) 
+    // associated with the value of the remote rank
+    CClientClientDHTTemplate<int> DHT(dataInfo, localComm_) ;
+    // after we feed the DHT with the local global indices of the source view
+
+    int commRank, commSize ;
+    MPI_Comm_rank(localComm_,&commRank) ;
+    MPI_Comm_size(localComm_,&commSize) ;
+    CArray<size_t,1> srcIndex ;
+    // like the source view is not distributed, then only the rank 0 need to feed the DHT
+    if (commRank==0) srcView_[i]->getGlobalIndexView(srcIndex) ;
+    
+    // compute the mapping
+    DHT.computeIndexInfoMapping(srcIndex) ;
+    auto& returnInfo = DHT.getInfoIndexMap() ;
+    
+    // returnInfo contains now the map for each global indices to send to a list of remote rank
+    // only for the rank=0 because it is the one to feed the DHT
+    // so it need to send the list to each server leader i.e. the local process that handle specifically one or more 
+    // servers
+    
+    // rankIndGlo : rankIndGlo[rank][indGlo] : list of indice to send the the remote server of rank "rank"
+    vector<vector<size_t>> rankIndGlo(remoteSize_) ;
+    if (commRank==0) 
+      for(auto& it1 : returnInfo)
+        for(auto& it2 : it1.second) rankIndGlo[it2].push_back(it1.first) ;
+    
+   // bcast the same for each client
+   for(int remoteRank=0 ; remoteRank<remoteSize_ ; remoteRank++)
+   {
+      int remoteDataSize ;
+      if (commRank==0) remoteDataSize = rankIndGlo[remoteRank].size() ;
+      MPI_Bcast(&remoteDataSize, 1, MPI_INT, 0, localComm_) ;
+
+      auto& element = elements_[i][remoteRank] ;
+      element.resize(remoteDataSize) ;
+      if (commRank==0) for(int j=0 ; j<remoteDataSize; j++) element(j)=rankIndGlo[remoteRank][j] ;
+      MPI_Bcast(element.dataFirst(), remoteDataSize, MPI_SIZE_T, 0, localComm_) ;
+   }
+  }
+
+
+
   /**
    * \brief Compute the remote connector for the element \b i when the remote view is not distributed. 
    *        After the call,  element_[i] is defined.
@@ -441,7 +595,7 @@ namespace xios
       for(auto& it1 : returnInfo) 
         for(auto& it2 : it1.second) indGlo.push_back(it1.first) ;
 
-    // now local rank 0 know which indices to seed to remote rank 0, but all the server
+    // now local rank 0 know which indices to send to remote rank 0, but all the server
     // must receive the same information. So only the leader rank will sent this.
     // So local rank 0 must broadcast the information to all leader.
     // for this we create a new communicator composed of local process that must send data
@@ -641,7 +795,7 @@ namespace xios
   *        of a specific server rank using a hash method. So data to send to a rank is associated to a hash.
   *        After we compare hash between local rank and remove redondant data corresponding to the same hash.
   */
-  void CGridRemoteConnector::computeRedondantRanks(void)
+  void CGridRemoteConnector::computeRedondantRanks(bool reverse)
   {
     int commRank ;
     MPI_Comm_rank(localComm_,&commRank) ;
@@ -671,40 +825,55 @@ namespace xios
           else hashRanks[rank]=hashGlobalIndex.hashCombine(hashRanks[rank],hash) ;
         }
       }
-    // a hash is now computed for data block I will sent to the server.
-
-    CClientClientDHTTemplate<int>::Index2InfoTypeMap info ;
-
-    map<size_t,int> hashRank ;
-    HashXIOS<int> hashGlobalIndexRank;
-    for(auto& it : hashRanks) 
+    
+    if (reverse)
     {
-      it.second = hashGlobalIndexRank.hashCombine(it.first,it.second) ; 
-      info[it.second]=commRank ;
-      hashRank[it.second]=it.first ;
+      set<size_t> hashs ;
+      //easy because local
+      for(auto& hashRank : hashRanks)
+      {
+        if (hashs.count(hashRank.second)==0) hashs.insert(hashRank.second) ;
+        else rankToRemove_.insert(hashRank.first) ;
+      }
+    
     }
-
-    // we feed a DHT map with key : hash, value : myrank
-    CClientClientDHTTemplate<int> dataHash(info, localComm_) ;
-    CArray<size_t,1> hashList(hashRank.size()) ;
-    
-    int i=0 ;
-    for(auto& it : hashRank) { hashList(i)=it.first ; i++; }
-
-    // now who are the ranks that have the same hash : feed the DHT with my list of hash
-    dataHash.computeIndexInfoMapping(hashList) ;
-    auto& hashRankList = dataHash.getInfoIndexMap() ;
-    
-
-    for(auto& it : hashRankList)
+    else
     {
-      size_t hash = it.first ;
-      auto& ranks = it.second ;
+      // a hash is now computed for data block I will sent to the server.
+
+      CClientClientDHTTemplate<int>::Index2InfoTypeMap info ;
+  
+      map<size_t,int> hashRank ;
+      HashXIOS<int> hashGlobalIndexRank;
+      for(auto& it : hashRanks) 
+      {
+        it.second = hashGlobalIndexRank.hashCombine(it.first,it.second) ; 
+        info[it.second]=commRank ;
+        hashRank[it.second]=it.first ;
+      }
+
+      // we feed a DHT map with key : hash, value : myrank
+      CClientClientDHTTemplate<int> dataHash(info, localComm_) ;
+      CArray<size_t,1> hashList(hashRank.size()) ;
+    
+      int i=0 ;
+      for(auto& it : hashRank) { hashList(i)=it.first ; i++; }
+
+      // now who are the ranks that have the same hash : feed the DHT with my list of hash
+      dataHash.computeIndexInfoMapping(hashList) ;
+      auto& hashRankList = dataHash.getInfoIndexMap() ;
+    
+
+      for(auto& it : hashRankList)
+      {
+        size_t hash = it.first ;
+        auto& ranks = it.second ;
       
-      bool first=true ;
-      // only the process with the lowest rank get in charge of sendinf data to remote server
-      for(int rank : ranks) if (commRank>rank) first=false ;
-      if (!first) rankToRemove_.insert(hashRank[hash]) ;
+        bool first=true ;
+        // only the process with the lowest rank get in charge of sendinf data to remote server
+        for(int rank : ranks) if (commRank>rank) first=false ;
+        if (!first) rankToRemove_.insert(hashRank[hash]) ;
+      }
     }
   }
   
