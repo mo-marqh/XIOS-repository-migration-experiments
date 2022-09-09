@@ -4,6 +4,7 @@
 #include "intersection_ym.hpp"
 #include "earcut.hpp"
 #include <vector>
+#include <array>
 
 namespace sphereRemap {
 
