@@ -19,12 +19,15 @@ namespace xios
       void suspend(void);
       void resume(void);
       void reset(void);
+      void add(double time) { cumulatedTime+=time ;}
+      void minus(double time) { cumulatedTime-=time ;}
       double getCumulatedTime(void);
       static std::map<std::string,CTimer> allTimer;
       static double getTime(void);
       static CTimer& get(std::string name, bool trace=true);
       static std::string getAllCumulatedTime(void) ;
       static void release(void) { allTimer.clear() ;}
+      bool isSuspended() { return suspended; }
   };
 }
 

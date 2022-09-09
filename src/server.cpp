@@ -59,7 +59,7 @@ namespace xios
       if (initialized) is_MPI_Initialized=true ;
       else is_MPI_Initialized=false ;
       MPI_Comm globalComm=CXios::getGlobalComm() ;
-
+      CTimer::get("XIOS server").resume() ;
       /////////////////////////////////////////
       ///////////// PART 1 ////////////////////
       /////////////////////////////////////////
@@ -408,7 +408,7 @@ namespace xios
     void CServer::finalize(void)
     {
       CTimer::get("XIOS").suspend() ;
-     
+      CTimer::get("XIOS server").suspend() ;
       delete eventScheduler ;
 
       for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)

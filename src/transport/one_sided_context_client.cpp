@@ -95,12 +95,24 @@ namespace xios
           itBuffer=buffers.find(rank) ;
         }
         itBuffer->second->eventLoop() ;
+        double time=CTimer::getTime() ;
         bool succed = itBuffer->second->writeEvent(timeLine, event)  ;
+        if (succed) 
+        {
+          time=CTimer::getTime()-time ;
+          if (!CTimer::get("Blocking time").isSuspended()) CTimer::get("Blocking time").minus(time) ;
+        }
+
         if (succed) event.remove() ;
         else event.next() ;
-        if (event.isFirst()) callGlobalEventLoop() ;
+        if (event.isFirst())
+        {
+          if (CTimer::get("Blocking time").isSuspended()) CTimer::get("Blocking time").resume() ;
+          callGlobalEventLoop() ;
+        } 
       }
-      
+      if (!CTimer::get("Blocking time").isSuspended()) CTimer::get("Blocking time").suspend() ;
+
       if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
       {
         while (checkBuffers(ranks)) callGlobalEventLoop() ;

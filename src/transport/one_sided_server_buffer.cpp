@@ -60,7 +60,8 @@ namespace xios
     }
     else // receive standard event
     {
-
+      info(logProtocol)<<"received request from rank : "<<clientRank_<<"  with timeline : "<<timeline
+                                                        <<"   at time : "<<CTimer::get("XIOS server").getTime()<<endl ;
       bufferIn>> nbSenders ;
       nbSenders_[timeline] = nbSenders ;
       auto pendingFullEvent=pendingFullEvents_.find(timeline) ;
@@ -100,10 +101,12 @@ namespace xios
       if (lastBlocToFree_!=0)
       {
         info(logProtocol)<<"Send bloc to free : "<<lastBlocToFree_<<endl ;
+        if (info.isActive(logProtocol)) CTimer::get("Send bloc to free").resume() ;
         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, windowRank_, 0, winControl_) ;
         MPI_Aint target=MPI_Aint_add(controlAddr_, CONTROL_ADDR*sizeof(MPI_Aint)) ;
         MPI_Put(&lastBlocToFree_, 1, MPI_AINT, windowRank_, target, 1, MPI_AINT, winControl_) ;
         MPI_Win_unlock(windowRank_,winControl_) ; 
+        if (info.isActive(logProtocol)) CTimer::get("Send bloc to free").suspend() ;
         lastBlocToFree_ = 0 ;        
       }
     }
@@ -125,21 +128,44 @@ namespace xios
   {
     if (!pendingRmaRequests_.empty())
     {
-      int flag ;
+      int flag ;    
+
+      if (info.isActive(logProtocol)) CTimer::get("transfer MPI_Testall").resume() ;
       MPI_Testall(pendingRmaRequests_.size(), pendingRmaRequests_.data(), &flag, pendingRmaStatus_.data()) ;
+      if (info.isActive(logProtocol)) CTimer::get("transfer MPI_Testall").suspend() ;
+      
       if (flag==true) 
       {
         if (!isLocked_) ERROR("void COneSidedServerBuffer::testPendingRequests(void)",<<"windows is not Locked");
         for(auto& win : windowsLocked_) 
         {
           info(logProtocol)<<"unlock window "<<win<<endl ;
+          if (info.isActive(logProtocol)) CTimer::get("transfer unlock").resume() ;
           MPI_Win_unlock(windowRank_,windows_[win]) ; 
+          if (info.isActive(logProtocol)) CTimer::get("transfer unlock").suspend() ;
         }
         windowsLocked_.clear() ;
-          
+        
+
+        if (info.isActive(logProtocol)) CTimer::get("transfer MPI_Rget from "+std::to_string(clientRank_)).suspend() ;
+        if (info.isActive(logProtocol)) CTimer::get("lastTransfer from "+std::to_string(clientRank_)).suspend() ;
+        
+        size_t transferedSize = 0 ;
+        for(auto& count : pendingRmaCount_) transferedSize+=count ;
+
+        if (info.isActive(logProtocol))
+        {
+          double time = CTimer::get("lastTransfer from "+std::to_string(clientRank_)).getCumulatedTime() ;
+          info(logProtocol)<<"Tranfer message from rank : "<<clientRank_<<"  nbBlocs : "<< pendingRmaStatus_.size()
+                           << "  total count = "<<transferedSize<<"  duration : "<<time<<" s"
+                           << "  Bandwith : "<< transferedSize/time<< "byte/s"<<endl ;
+          CTimer::get("lastTransfer from "+std::to_string(clientRank_)).reset() ;
+         }
+
         isLocked_=false ;
         pendingRmaRequests_.clear() ;
         pendingRmaStatus_.clear() ;
+        pendingRmaCount_.clear() ;
         completedEvents_.insert(onTransferEvents_.begin(),onTransferEvents_.end()) ;
         
         for(auto & event : onTransferEvents_) 
@@ -194,7 +220,7 @@ namespace xios
       {
         if (bufferResize_.front().first==timeline)
         {
-          currentBufferSize_=bufferResize_.front().second ;
+          currentBufferSize_=bufferResize_.front().second * bufferServerFactor_ ;
           info(logProtocol)<<"Received new buffer size="<<currentBufferSize_<<"  at timeline="<<timeline<<endl ;
           bufferResize_.pop_front() ;
           newBuffer(currentBufferSize_,fixed_) ;
@@ -215,12 +241,18 @@ namespace xios
       }
       
       if (isLocked_) ERROR("void COneSidedServerBuffer::transferEvents(void)",<<"windows is Locked");
+      
+      if (info.isActive(logProtocol)) CTimer::get("transfer MPI_Rget from "+std::to_string(clientRank_)).resume() ;
+      if (info.isActive(logProtocol)) CTimer::get("lastTransfer from "+std::to_string(clientRank_)).resume() ;
       for(auto& bloc : blocs) 
       {
         int win=get<2>(bloc) ;
         if (windowsLocked_.count(win)==0) 
         {
+          info(logProtocol)<<"lock window "<<win<<endl ;
+          if (info.isActive(logProtocol)) CTimer::get("transfer lock").resume() ;
           MPI_Win_lock(MPI_LOCK_SHARED, windowRank_, 0, windows_[win]) ;
+          if (info.isActive(logProtocol)) CTimer::get("transfer lock").suspend() ;
           windowsLocked_.insert(win) ;
         }
       }
@@ -232,7 +264,7 @@ namespace xios
         transferedSize += eventSize ;
         pendingBlocs_.erase(pendingBlocs_.begin()) ;
         
-//        break ; // transfering just one event temporary => to remove
+        //  break ; // transfering just one event temporary => to remove
         
         if (pendingBlocs_.empty()) break ; // no more blocs to tranfer => exit loop
 
@@ -243,7 +275,7 @@ namespace xios
         {
           if (bufferResize_.front().first==timeline)
           {
-            currentBufferSize_=bufferResize_.front().second ;
+            currentBufferSize_=bufferResize_.front().second * bufferServerFactor_ ;
             info(logProtocol)<<"Received new buffer size="<<currentBufferSize_<<"  at timeline="<<timeline<<endl ;
             bufferResize_.pop_front() ;
             newBuffer(currentBufferSize_,fixed_) ;
@@ -258,7 +290,10 @@ namespace xios
             int win=get<2>(bloc) ;
             if (windowsLocked_.count(win)==0) 
             {
+              info(logProtocol)<<"lock window "<<win<<endl ;
+              if (info.isActive(logProtocol)) CTimer::get("transfer lock").resume() ;
               MPI_Win_lock(MPI_LOCK_SHARED, windowRank_, 0, windows_[win]) ;
+              if (info.isActive(logProtocol)) CTimer::get("transfer lock").suspend() ;
               windowsLocked_.insert(win) ;
             }
           }
@@ -330,11 +365,17 @@ namespace xios
   {
     MPI_Request request ;
     MPI_Aint offsetAddr=MPI_Aint_add(addr, offset) ;
-    info(logProtocol)<<"receive Bloc from client "<<clientRank_<<" : timeline="<<timeline<<"  addr="<<addr<<"  count="<<count<<" buffer="<<buffer<<"  start="<<start<<endl ;
-    info(logProtocol)<<"check dest buffers ; start_buffer="<<static_cast<void*>(buffer->getBuffer())<<"  end_buffer="<<static_cast<void*>(buffer->getBuffer()+buffer->getSize()-1)
-             <<"  start="<<static_cast<void*>(buffer->getBuffer()+start)<<"   end="<<static_cast<void*>(buffer->getBuffer()+start+count-1)<<endl ;
+    if (info.isActive(logProtocol))
+    {
+      info(logProtocol)<<"receive Bloc from client "<<clientRank_<<" : timeline="<<timeline<<"  addr="<<addr<<"  count="<<count<<" buffer="<<buffer<<"  start="<<start<<endl ;
+      info(logProtocol)<<"check dest buffers ; start_buffer="<<static_cast<void*>(buffer->getBuffer())<<"  end_buffer="<<static_cast<void*>(buffer->getBuffer()+buffer->getSize()-1)
+               <<"  start="<<static_cast<void*>(buffer->getBuffer()+start)<<"   end="<<static_cast<void*>(buffer->getBuffer()+start+count-1)<<endl ;
+    }
+    if (info.isActive(logProtocol)) CTimer::get("MPI_Rget").resume() ;
     MPI_Rget(buffer->getBuffer()+start, count, MPI_CHAR, windowRank_, offsetAddr, count, MPI_CHAR, windows_[window], &request) ;
+    if (info.isActive(logProtocol)) CTimer::get("MPI_Rget").suspend() ;
     pendingRmaRequests_.push_back(request) ;
+    pendingRmaCount_.push_back(count) ;
     onTransferEvents_[timeline].push_back({buffer,start,count,addr}) ;
   }
 
@@ -347,7 +388,8 @@ namespace xios
     size=0 ;
     
     ostringstream outStr ;
-    outStr<<"Received Event from client "<<clientRank_<<"  timeline="<<timeline<<"  nbBlocs="<<completedEvent.size()<<endl ;
+    if (info.isActive(logProtocol)) outStr<<"Received Event from client "<<clientRank_<<"  timeline="<<timeline
+                                          <<"  nbBlocs="<<completedEvent.size()<<endl ;
     int i=0 ;
     MPI_Aint addr ;
     for(auto& bloc : completedEvent) 

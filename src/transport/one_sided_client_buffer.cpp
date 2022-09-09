@@ -42,13 +42,11 @@ namespace xios
     MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_, &winControl_);
     CXios::getMpiGarbageCollector().registerWindow(winControl_) ;
 
-    
-
-    CTimer::get("create Windows").suspend() ;
-
     MPI_Barrier(winComm_) ;
     MPI_Win_attach(winControl_, control_, controlSize_*sizeof(MPI_Aint)) ;
     MPI_Barrier(winComm_) ;
+    CTimer::get("create Windows").suspend() ;
+ 
  //   MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, winControl_) ;
  //   MPI_Win_unlock(0,winControl_) ;
 
@@ -216,7 +214,9 @@ namespace xios
     while (!requests_.empty() && out) 
     {
       request = requests_.front() ;
+      if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Test").resume() ;
       MPI_Test(&request.mpiRequest, &flag, MPI_STATUS_IGNORE) ;
+      if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Test").suspend() ;
       if (flag==true)
       {
         delete request.buffer ;
@@ -259,7 +259,9 @@ namespace xios
         outStr<<"Bloc "<<i<<"  addr="<<it->addr<<"  count="<<it->count<<"  checksum="<<checksum<<"  ;  " ;
       }
     }
+    if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").resume() ;
     MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, serverRank_, 20, interComm_, &request.mpiRequest ) ;
+    if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").suspend() ;
     info(logProtocol)<<outStr.str()<<endl ;
     requests_.push_back(request) ;
   }

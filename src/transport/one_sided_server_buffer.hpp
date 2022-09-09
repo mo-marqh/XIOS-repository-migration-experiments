@@ -131,6 +131,7 @@ namespace xios
       size_t fixedSize_ = 0 ;
       size_t currentBufferSize_=0 ;
       double growingFactor_ = 2. ;
+      double bufferServerFactor_=10. ;
       
       std::list<CBuffer*> buffers_ ;
       CBuffer* currentBuffer_=nullptr ;
@@ -143,6 +144,7 @@ namespace xios
      
       vector<MPI_Request> pendingRmaRequests_ ;
       vector<MPI_Status> pendingRmaStatus_ ;
+      vector<int> pendingRmaCount_ ;
 
       map<size_t, list<SBloc>> onTransferEvents_ ; // map<size_t timeline, list<pair<char* bloc, int count>>>
       map<size_t, list<SBloc>> completedEvents_ ; // map<size_t timeline, list<pair<char* bloc, int count>>>

@@ -92,17 +92,21 @@ namespace xios
     int rank;
     int flag;
     MPI_Status status;
-    
-    traceOff();
-    MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm, &flag, &status);
-    traceOn();
-    if (flag==true)
+    flag=true ;
+
+    while(flag)
     {
-      requests_.push_back(CRequest(interComm, status)) ;
-      if (requests_.back().test()) 
+      traceOff();
+      MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm, &flag, &status);
+      traceOn();
+      if (flag==true)
       {
-        processRequest(requests_.back()) ;
-        requests_.pop_back() ;
+        requests_.push_back(CRequest(interComm, status)) ;
+        if (requests_.back().test()) 
+        {
+          processRequest(requests_.back()) ;
+          requests_.pop_back() ;
+        }
       }
     }
   }
@@ -138,9 +142,18 @@ namespace xios
   {
     if (!pendingEvents_.empty())
     {
+/*
       SPendingEvent& nextEvent = pendingEvents_.begin()->second ;
       for(auto& buffer : nextEvent.buffers ) buffer->eventLoop() ;
       if (nextEvent.nbSenders==0) pendingEvents_.erase(pendingEvents_.begin()) ;
+*/
+      for(auto it=pendingEvents_.begin() ;  it!=pendingEvents_.end() ;)
+      {
+        SPendingEvent& nextEvent = it->second ;
+        for(auto& buffer : nextEvent.buffers ) buffer->eventLoop() ;
+        if (nextEvent.nbSenders==0) it=pendingEvents_.erase(it) ;
+        else ++it ;
+      }
     }
   }
 
@@ -187,7 +200,7 @@ namespace xios
           isProcessingEvent_=true ;
           CEventServer event(this) ;
           for(auto& buffer : it->second.buffers) buffer->fillEventServer(currentTimeLine, event) ;
-
+          MPI_Barrier(intraComm) ;
           CTimer::get("Process events").resume();
           info(100)<<"Context id "<<context->getId()<<" : Process Event "<<currentTimeLine<<" of class "<<event.classId<<" of type "<<event.type<<endl ;
           dispatchEvent(event);
@@ -280,7 +293,11 @@ namespace xios
     else if (event.classId==CScalarGroup::GetType()) CScalarGroup::dispatchEvent(event);
     else if (event.classId==CGrid::GetType()) CGrid::dispatchEvent(event);
     else if (event.classId==CGridGroup::GetType()) CGridGroup::dispatchEvent(event);
-    else if (event.classId==CField::GetType()) CField::dispatchEvent(event);
+    else if (event.classId==CField::GetType()) 
+    {
+      if (event.type==CField::EVENT_ID_UPDATE_DATA) CField::dispatchEvent(event);
+      else CField::dispatchEvent(event);
+    }
     else if (event.classId==CFieldGroup::GetType()) CFieldGroup::dispatchEvent(event);
     else if (event.classId==CFile::GetType()) CFile::dispatchEvent(event);
     else if (event.classId==CFileGroup::GetType()) CFileGroup::dispatchEvent(event);
