@@ -257,8 +257,15 @@ namespace xios {
       nbDomains = setDomains.size();
 
       // create sub communicator for file
-      //createSubComFile();  // NetCDF runs now write of null data
-      MPI_Comm_dup(context->intraComm_, &fileComm) ;
+      if (type == CFile::type_attr::multiple_file)
+      {
+        createSubComFile();
+      }
+      else
+      {
+        // NetCDF runs now write of null data
+        MPI_Comm_dup(context->intraComm_, &fileComm) ;
+      }
 
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
