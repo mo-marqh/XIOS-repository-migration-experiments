@@ -2039,6 +2039,8 @@ namespace xios {
         if (nbServer<=nbClient)
         {
           // nChunkPerServer(+1) client will send to 1 server
+          if (nj_glo<nbChunk)
+              nbChunk=nj_glo;
           int nChunkPerServer = nbChunk/nbServer;
           int nServerWithAdditionalChunk = nbChunk - nChunkPerServer*nbServer;
           if (rankClient<nServerWithAdditionalChunk*(nChunkPerServer+1))
@@ -2056,9 +2058,12 @@ namespace xios {
         {
           serverRank = rank;
         }
-        auto& globalInd =  globalIndex[serverRank] ;
-        globalInd.resize(indSize) ;
-        for(size_t n = 0 ; n<indSize; n++) globalInd(n)=indStart+n ;
+        if (serverRank<client->getRemoteSize())
+        {
+          auto& globalInd =  globalIndex[serverRank] ;
+          globalInd.resize(indSize) ;
+          for(size_t n = 0 ; n<indSize; n++) globalInd(n)=indStart+n ;
+        }
       }
     }
     else if (distType==EDistributionType::COLUMNS) // Bands distribution to send to file server
