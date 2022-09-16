@@ -20,21 +20,26 @@ namespace xios
     public: 
     static const int CLIENT=0 ;
     static const int GATHERER=1 ;
-    static const int IO_SERVER=2 ;
-    static const int OUT_SERVER=3 ;
-    static const int ALL_SERVICES=4 ;
+    static const int WRITER=2 ;
+    static const int READER=3 ;
+    static const int IO_SERVER=4 ;
+    static const int OUT_SERVER=5 ;
+    static const int ALL_SERVICES=6 ;
 
+    private:
+    const int NOTIFY_NOTHING=0 ;
+    const int NOTIFY_CREATE_SERVICE=1 ;
+    const int NOTIFY_CREATE_SERVICE_ONTO=2 ;
+    
     public:
     
     CServicesManager(bool isXiosServer) ;
     ~CServicesManager() ;
     
     bool createServices(const std::string& poolId, const std::string& serviceId, int type, int size, int nbPartition, bool wait=true) ;
-    void createServicesNotify(int rank, const string& serviceId, int type, int size, int nbPartitions) ;
-    void checkCreateServicesNotification(void) ;
+    bool createServicesOnto(const std::string& poolId, const std::string& serviceId, const std::string& onServiceId, bool wait=true) ;
+    
     void eventLoop(void) ;
-    void notificationsDumpOut(CBufferOut& buffer) ;
-    void notificationsDumpIn(CBufferIn& buffer) ;
     
     void registerService(const std::string& poolId, const std::string& serviceId, const int& partitionId, int type, int size, int nbPartitions, int leader) ;
     bool getServiceInfo(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, int& size, int& nbPartition, int& leader) ;
@@ -44,7 +49,18 @@ namespace xios
     bool hasService(const std::string& poolId, const std::string& serviceId, const int& partitionId) ;
     void servicesDumpOut(CBufferOut& buffer) ;
     void servicesDumpIn(CBufferIn& buffer) ;
-    
+
+    private:
+
+    void createService(void) ;
+    void createServiceOnto(void) ;    
+    void createServicesNotify(int rank, const string& serviceId, int type, int size, int nbPartitions) ;
+    void createServicesOntoNotify(int rank, const string& serviceId, const string& OnServiceId) ;
+    void sendNotification(int rank) ;
+    void checkNotifications(void) ;
+    void notificationsDumpOut(CBufferOut& buffer) ;
+    void notificationsDumpIn(CBufferIn& buffer) ;
+
 
     private :
    
@@ -54,8 +70,10 @@ namespace xios
 
     MPI_Comm xiosComm_ ;
 
-    std::list<std::tuple<std::string, int, int, int> > notifications_;
-    
+    int notifyType_ ;
+    tuple<std::string, int, int, int> notifyCreateService_ ;
+    tuple<std::string, std::string> notifyCreateServiceOnto_ ;
+   
     std::map<tuple<std::string, std::string, int>, std::tuple<int, int, int, int> > services_ ;
 
     int managerGlobalLeader_ ;
