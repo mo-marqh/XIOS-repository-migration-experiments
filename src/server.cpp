@@ -189,6 +189,7 @@ namespace xios
         {
           ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
           servicesManager->createServices(CXios::defaultPoolId, CXios::defaultServerId, CServicesManager::IO_SERVER,nbRessources,1) ;
+          servicesManager->createServicesOnto(CXios::defaultPoolId, "default_reader", CServicesManager::READER, CXios::defaultServerId) ;
         }
         else
         {

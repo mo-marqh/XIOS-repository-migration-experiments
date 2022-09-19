@@ -341,7 +341,7 @@ namespace xios
         int intraCommSize_ ; //! context intra communicator size
         
       private:
-         CEventScheduler* eventScheduler_ ; //! The local event scheduler for context
+         shared_ptr<CEventScheduler> eventScheduler_ ; //! The local event scheduler for context
          size_t hashId_ ; //! the local hashId for scheduler
          size_t timeLine_=0 ;
          void initEventScheduler(void) ;

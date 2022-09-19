@@ -19,7 +19,7 @@ namespace xios
     const int NOTIFY_CREATE_CONTEXT=1 ;
 
     CService(MPI_Comm serviceComm, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
-             int type, int nbPartitions) ;
+             int type, int nbPartitions, shared_ptr<CEventScheduler> = nullptr) ;
     ~CService() ;
 
     bool eventLoop(bool serviceOnly=false) ;
@@ -31,13 +31,14 @@ namespace xios
     void createNewContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
     CServerContext* getServerContext(const std::string& contextId) { return contexts_[contextId]; }
     void finalizeSignal(void) ;
-    CEventScheduler* getEventScheduler(void) ;
+    shared_ptr<CEventScheduler> getEventScheduler(void) ;
 
     std::string getPoolId(void) {return poolId_;}
     std::string getServiceId(void) {return serviceId_;}
     int getPartitionId(void) {return partitionId_;}
     int getType(void) {return type_;}
     int getNbPartitions(void) {return nbPartitions_;}
+    const MPI_Comm& getCommunicator(void) { return serviceComm_ ;}
     
     private:
     void sendNotification(int rank) ;
@@ -64,7 +65,7 @@ namespace xios
 
     std::map<std::string, CServerContext*> contexts_ ;
     bool finalizeSignal_ ;
-    CEventScheduler* eventScheduler_ ;
+    shared_ptr<CEventScheduler> eventScheduler_ ;
 
     std::string poolId_ ;
     std::string serviceId_ ;

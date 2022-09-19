@@ -75,7 +75,7 @@ namespace xios
     else return false ;
   }
 
-  bool CServicesManager::createServicesOnto(const std::string& poolId, const std::string& serviceId, const std::string& OnServiceId, bool wait)
+  bool CServicesManager::createServicesOnto(const std::string& poolId, const std::string& serviceId, int type, const std::string& OnServiceId, bool wait)
   {
 
     int leader ;
@@ -95,7 +95,7 @@ namespace xios
     if (ok) 
     {
       info(40)<<"CServicesManager : create service on other, notification to leader "<<leader<<", serviceId : "<<serviceId<<", service onto : "<<OnServiceId<<endl ;
-      createServicesOntoNotify(leader, serviceId, OnServiceId) ;
+      createServicesOntoNotify(leader, serviceId, type, OnServiceId) ;
       return true ;
     }
     else return false ;
@@ -109,10 +109,10 @@ namespace xios
   }
 
 
-  void CServicesManager::createServicesOntoNotify(int rank, const string& serviceId, const string& OnServiceId)
+  void CServicesManager::createServicesOntoNotify(int rank, const string& serviceId, int type, const string& OnServiceId)
   {
     notifyType_=NOTIFY_CREATE_SERVICE_ONTO ;
-    notifyCreateServiceOnto_=make_tuple(serviceId, OnServiceId) ;
+    notifyCreateServiceOnto_=make_tuple(serviceId, type, OnServiceId) ;
     sendNotification(rank) ;
   }
 
@@ -159,8 +159,8 @@ namespace xios
 
   void CServicesManager::createServiceOnto(void)
   {
-    auto& arg=notifyCreateService_ ;
-    //CServer::getServersRessource()->getPoolRessource()->createService(get<0>(arg), get<1>(arg), get<2>(arg), get<3>(arg)) ;
+    auto& arg=notifyCreateServiceOnto_ ;
+    CServer::getServersRessource()->getPoolRessource()->createServiceOnto(get<0>(arg), get<1>(arg), get<2>(arg)) ;
   }
 
   void CServicesManager::notificationsDumpOut(CBufferOut& buffer)
@@ -176,7 +176,7 @@ namespace xios
     else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO)
     {
       auto& arg=notifyCreateServiceOnto_ ;
-      buffer << notifyType_<< get<0>(arg) << get<1>(arg)  ;
+      buffer << notifyType_<< get<0>(arg) << get<1>(arg) << get<2>(arg)  ;
     }
   }
 
@@ -194,7 +194,7 @@ namespace xios
       else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO)
       {
         auto& arg=notifyCreateServiceOnto_ ;
-        buffer >> get<0>(arg) >> get<1>(arg) ;
+        buffer >> get<0>(arg) >> get<1>(arg) >> get<2>(arg) ;
       }
     }
   }  

@@ -37,7 +37,7 @@ namespace xios
     ~CServicesManager() ;
     
     bool createServices(const std::string& poolId, const std::string& serviceId, int type, int size, int nbPartition, bool wait=true) ;
-    bool createServicesOnto(const std::string& poolId, const std::string& serviceId, const std::string& onServiceId, bool wait=true) ;
+    bool createServicesOnto(const std::string& poolId, const std::string& serviceId, int type, const std::string& onServiceId, bool wait=true) ;
     
     void eventLoop(void) ;
     
@@ -55,7 +55,7 @@ namespace xios
     void createService(void) ;
     void createServiceOnto(void) ;    
     void createServicesNotify(int rank, const string& serviceId, int type, int size, int nbPartitions) ;
-    void createServicesOntoNotify(int rank, const string& serviceId, const string& OnServiceId) ;
+    void createServicesOntoNotify(int rank, const string& serviceId, int type, const string& OnServiceId) ;
     void sendNotification(int rank) ;
     void checkNotifications(void) ;
     void notificationsDumpOut(CBufferOut& buffer) ;
@@ -72,7 +72,7 @@ namespace xios
 
     int notifyType_ ;
     tuple<std::string, int, int, int> notifyCreateService_ ;
-    tuple<std::string, std::string> notifyCreateServiceOnto_ ;
+    tuple<std::string, int, std::string> notifyCreateServiceOnto_ ;
    
     std::map<tuple<std::string, std::string, int>, std::tuple<int, int, int, int> > services_ ;
 

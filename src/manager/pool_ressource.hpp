@@ -20,27 +20,52 @@ namespace xios
 
     CWindowManager* winNotify_ ;
     
-   public:
+    private:
+    const int NOTIFY_NOTHING=0 ;
+    const int NOTIFY_CREATE_SERVICE=1 ;
+    const int NOTIFY_CREATE_SERVICE_ONTO=2 ;
+
+    public:
     CPoolRessource(MPI_Comm poolComm, const std::string& Id) ;
     ~CPoolRessource() ;
     
     void createService(const std::string& serviceId, int type, int size, int nbPartition) ;
     void createService(MPI_Comm serviceComm, const std::string& serviceId, int partitionId, int type, int nbPartitions) ; 
-    void createServiceNotify(int rank, const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
-    void createServiceDumpOut(CBufferOut& buffer) ;
-    void createServiceDumpIn(CBufferIn& buffer) ;
-    void checkCreateServiceNotification(void) ;
-    void createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
-     bool eventLoop(bool serviceOnly=false) ;
+    void createServiceOnto(const std::string& serviceId, int type, const std::string& OnServiceId) ;
+    bool eventLoop(bool serviceOnly=false) ;
     CService* getService(const std::string serviceId, int partitionId) { return services_[make_tuple(serviceId,partitionId)]; }
     void finalizeSignal(void) ;
     string getId(void) { return Id_; }
+
+  private:
+    void createServiceNotify(int rank, const string& serviceId, int type, int size, int nbPartitions, bool in) ;
+    void createServiceOntoNotify(int rank, const string& serviceId, int type, const string& onServiceId) ;
+    void sendNotification(int rank) ;
+    void checkNotifications(void) ;
+    void notificationsDumpOut(CBufferOut& buffer) ;
+    void notificationsDumpIn(CBufferIn& buffer) ;
+    void createService(void) ;
+    void createServiceOnto(void) ;
     
-   private:
+//    void createServiceNotify(int rank, const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
+//    void createServiceDumpOut(CBufferOut& buffer) ;
+//    void createServiceDumpIn(CBufferIn& buffer) ;
+//    void checkCreateServiceNotification(void) ;
+    void createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
+    void createNewServiceOnto(const std::string& serviceId, int type, const string& onServiceId) ;
+    
+    private:
     MPI_Comm poolComm_ ;
     
     std::multimap<int,int> occupancy_ ;
-    std::list<std::tuple<std::string, int, int, int, bool> > notifications_;
+
+//    std::list<std::tuple<std::string, int, int, int, bool> > notifications_;
+    
+    int notifyType_ ;
+    tuple<std::string, int, int, int, bool> notifyCreateService_ ;
+    tuple<std::string, int, std::string> notifyCreateServiceOnto_ ;
+
+
     std::map< std::tuple<std::string, int>, CService*> services_ ;
     std::string Id_ ;
     bool finalizeSignal_ ;

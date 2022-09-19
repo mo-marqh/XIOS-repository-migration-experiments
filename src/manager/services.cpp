@@ -9,8 +9,9 @@
 namespace xios
 {
   CService::CService(MPI_Comm serviceComm, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
-                     int type, int nbPartitions) : finalizeSignal_(false), eventScheduler_(nullptr), poolId_(poolId), serviceId_(serviceId),
-                                                   partitionId_(partitionId), type_(type), nbPartitions_(nbPartitions), hasNotification_(false)
+                     int type, int nbPartitions, shared_ptr<CEventScheduler> eventScheduler) 
+                         : finalizeSignal_(false), eventScheduler_(nullptr), poolId_(poolId), serviceId_(serviceId),
+                           partitionId_(partitionId), type_(type), nbPartitions_(nbPartitions), hasNotification_(false)
 
 
   {
@@ -35,7 +36,8 @@ namespace xios
       MPI_Comm_rank(serviceComm_,&commSize) ;
       CXios::getServicesManager()->registerService(poolId, serviceId, partitionId, type, commSize, nbPartitions, globalLeader_) ;
     }
-    eventScheduler_ = new CEventScheduler(serviceComm_) ;
+    if (eventScheduler) eventScheduler_ = eventScheduler ;
+    eventScheduler_ = make_shared<CEventScheduler>(serviceComm_) ;
 
     ostringstream oss;
     oss<<partitionId;
@@ -44,7 +46,6 @@ namespace xios
 
   CService::~CService()
   {
-    delete eventScheduler_ ;
     delete winNotify_ ;
     for(auto& it : contexts_) delete it.second ;
   }
@@ -261,7 +262,7 @@ namespace xios
     for(auto it=contexts_.begin();it!=contexts_.end();++it) it->second->finalizeSignal() ;
   }
 
-  CEventScheduler* CService::getEventScheduler(void)
+  shared_ptr<CEventScheduler> CService::getEventScheduler(void)
   {
     return eventScheduler_ ;
   }

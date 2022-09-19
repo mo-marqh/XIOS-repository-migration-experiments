@@ -47,7 +47,7 @@ namespace xios
       CContextClient* associatedClient_ ;
 
       size_t hashId ;
-      CEventScheduler* eventScheduler_=nullptr ;
+      shared_ptr<CEventScheduler> eventScheduler_=nullptr ;
   } ;
   
   template<>
