@@ -145,7 +145,6 @@ namespace xios
          void sendGridComponentOfEnabledFields();
 
          void sendFieldToFileServer(void) ;
-         void sendCloseDefinition(void) ;
       
       public:
          void sendFieldToCouplerOut(void) ;

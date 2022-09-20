@@ -421,7 +421,7 @@ extern "C"
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
       field->setData(data);
@@ -449,7 +449,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
@@ -479,7 +479,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
@@ -511,7 +511,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
@@ -545,7 +545,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
@@ -581,7 +581,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
@@ -616,7 +616,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
@@ -652,7 +652,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
@@ -685,7 +685,7 @@ extern "C"
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
@@ -715,7 +715,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 1> data_tmp(data_k4, shape(data_Xsize), neverDeleteData);
@@ -745,7 +745,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 2> data_tmp(data_k4, shape(data_Xsize, data_Ysize), neverDeleteData);
@@ -777,7 +777,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 3> data_tmp(data_k4, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
@@ -810,7 +810,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 4> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
@@ -846,7 +846,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 5> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
@@ -881,7 +881,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 6> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
@@ -916,7 +916,7 @@ extern "C"
       CTimer::get("XIOS send field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<float, 7> data_tmp(data_k4, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
@@ -951,7 +951,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
@@ -979,7 +979,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 1> data(data_k8, shape(data_Xsize), neverDeleteData);
@@ -1006,7 +1006,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 2>data(data_k8, shape(data_Xsize, data_Ysize), neverDeleteData);
@@ -1034,7 +1034,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 3>data(data_k8, shape(data_Xsize, data_Ysize, data_Zsize), neverDeleteData);
@@ -1064,7 +1064,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 4>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size), neverDeleteData);
@@ -1095,7 +1095,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 5>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size), neverDeleteData);
@@ -1126,7 +1126,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 6>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size), neverDeleteData);
@@ -1158,7 +1158,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 7>data(data_k8, shape(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size), neverDeleteData);
@@ -1193,7 +1193,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 1> data(data_Xsize);
@@ -1224,7 +1224,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 1> data(data_Xsize);
@@ -1256,7 +1256,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 2> data(data_Xsize, data_Ysize);
@@ -1287,7 +1287,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 3> data(data_Xsize, data_Ysize, data_Zsize);
@@ -1319,7 +1319,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 4> data(data_0size, data_1size, data_2size, data_3size);
@@ -1354,7 +1354,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 5> data(data_0size, data_1size, data_2size, data_3size, data_4size);
@@ -1388,7 +1388,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 6> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size);
@@ -1424,7 +1424,7 @@ extern "C"
       CTimer::get("XIOS recv field").resume();
 
       CContext* context = CContext::getCurrent();
-      if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//      if (!context->hasServer && !context->client->isAttachedModeEnabled())
         context->eventLoop();
 
       CArray<double, 7> data(data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size);

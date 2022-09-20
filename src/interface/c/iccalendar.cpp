@@ -14,7 +14,7 @@ extern "C"
     CTimer::get("XIOS").resume();
     CTimer::get("XIOS update calendar").resume();
     xios::CContext* context = CContext::getCurrent();
-    if (!context->hasServer && !context->client->isAttachedModeEnabled())
+//    if (!context->hasServer && !context->client->isAttachedModeEnabled())
       context->eventLoop();
 //ym      context->checkBuffersAndListen();
       

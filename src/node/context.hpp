@@ -159,12 +159,12 @@ namespace xios
 
          // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
          void distributeFiles(const std::vector<CFile*>& files);
-         void distributeFileOverBandwith(const std::vector<CFile*>& files) ;
-         void distributeFileOverMemoryBandwith(const std::vector<CFile*>& files) ;
+         void distributeFileOverOne(const vector<CFile*>& files) ; //!< Distribute files over one single server (no distribution)
+         void distributeFileOverBandwith(const std::vector<CFile*>& files) ; //!< Distribute files overs servers to balance the I/O bandwith
+         void distributeFileOverMemoryBandwith(const std::vector<CFile*>& files) ; //!< Distribute files overs servers to minimize the memory consumption
          
-         // Send context close definition
-         void sendCloseDefinition(void);
        public:
+         // Send context close definition
          void sendCloseDefinition(CContextClient* client) ;
        private:
          set<CContextClient*> sendCloseDefinition_done_ ;
@@ -222,7 +222,6 @@ namespace xios
 
        public:  
         void freeComms(void);                  //!< Free internally allcoated communicators
-        void releaseClientBuffers(void);       //! Deallocate buffers allocated by clientContexts
 
          // dispatch event
          static bool dispatchEvent(CEventServer& event);
@@ -308,8 +307,7 @@ namespace xios
          // Determine context on server or not
          bool hasServer;
 
-         CContextServer* server;    //!< Concrete context server
-         CContextClient* client;    //!< Concrete contex client
+      private:
          std::vector<CContextServer*> serverPrimServer;
          std::vector<CContextClient*> clientPrimServer;
 
@@ -320,6 +318,17 @@ namespace xios
         std::string defaultReaderId ;
         std::string defaultWriterId ;
         std::string defaultGathererId ;
+
+        std::vector<CContextClient*> writerClientOut_ ;
+        std::vector<CContextServer*> writerServerOut_ ;
+        std::vector<CContextClient*> writerClientIn_ ;
+        std::vector<CContextServer*> writerServerIn_ ;
+
+        std::vector<CContextClient*> readerClientOut_ ;
+        std::vector<CContextServer*> readerServerOut_ ;
+        std::vector<CContextClient*> readerClientIn_ ;
+        std::vector<CContextServer*> readerServerIn_ ;
+
 
         std::map<std::string, CContextClient*> clients_ ;
         std::map<std::string, CContextClient*> servers_ ;

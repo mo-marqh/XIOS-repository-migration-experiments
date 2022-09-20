@@ -1455,10 +1455,6 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-  void CField::sendCloseDefinition(void)
-  {
-    CContext::getCurrent()->sendCloseDefinition(client) ;
-  }
 
   void CField::sendFieldToFileServer(void)
   {

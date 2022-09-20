@@ -45,7 +45,6 @@ namespace xios
       : CObjectTemplate<CContext>(), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
-      , client(nullptr), server(nullptr)
       , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
 
    { /* Ne rien faire de plus */  }
@@ -54,16 +53,24 @@ namespace xios
       : CObjectTemplate<CContext>(id), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
-      , client(nullptr), server(nullptr)
       , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
    {
-     delete client;
-     delete server;
-     for (std::vector<CContextClient*>::iterator it = clientPrimServer.begin(); it != clientPrimServer.end(); it++)  delete *it;
-     for (std::vector<CContextServer*>::iterator it = serverPrimServer.begin(); it != serverPrimServer.end(); it++)  delete *it;
+     for(auto& client : writerClientOut_) delete client ;
+     for(auto& server : writerServerOut_) delete server ;
+
+     for(auto& client : writerClientIn_) delete client ;
+     for(auto& server : writerServerIn_) delete server ;
+
+     for(auto& client : readerClientOut_) delete client ;
+     for(auto& server : readerServerOut_) delete server ;
+
+     for(auto& client : readerClientIn_) delete client ;
+     for(auto& server : readerServerIn_) delete server ;
+
+
      if (registryIn!=nullptr) delete registryIn ;
      if (registryOut!=nullptr) delete registryOut ;
    }
@@ -533,11 +540,17 @@ void CContext::removeAllContexts(void)
     MPI_Comm_dup(intraComm_, &intraCommClient);
     comms.push_back(intraCommClient);
     // attached_mode=parentServerContext_->isAttachedMode() ; //ym probably inherited from source context
+
+    CContextServer* server ;
+    CContextClient* client ;
+    
     server = CContextServer::getNew(this,intraComm_, interCommServer); // check if we need to dupl. intraComm_ ?
     client = CContextClient::getNew(this,intraCommClient,interCommClient);
     client->setAssociatedServer(server) ;  
-    server->setAssociatedClient(client) ;  
+    server->setAssociatedClient(client) ;
 
+    writerServerIn_.push_back(server) ; 
+    writerClientIn_.push_back(client) ; 
   }
   CATCH_DUMP_ATTR
 
@@ -593,8 +606,8 @@ void CContext::removeAllContexts(void)
       else if (CXios::usingServer2) createServerInterComm(CXios::defaultPoolId, CXios::defaultGathererId, clientServers) ;
       else createServerInterComm(CXios::defaultPoolId, CXios::defaultServerId, clientServers) ;
       
-      client = clientServers[0].second.first ;
-      server = clientServers[0].second.second ;
+      writerClientOut_.push_back(clientServers[0].second.first) ; 
+      writerServerOut_.push_back(clientServers[0].second.second) ;
     }
     else if (serviceType_ == CServicesManager::GATHERER)
     {
@@ -603,115 +616,12 @@ void CContext::removeAllContexts(void)
       {
         primServerId_.push_back(clientServer.first) ;
         clientPrimServer.push_back(clientServer.second.first);
-        serverPrimServer.push_back(clientServer.second.second); 
+        serverPrimServer.push_back(clientServer.second.second);
+        writerClientOut_.push_back(clientServer.second.first) ; 
+        writerServerOut_.push_back(clientServer.second.second) ;
       }
     }
 
-  }
-  CATCH_DUMP_ATTR
-
-  void CContext::createServerInterComm_old(void) 
-  TRY
-  {
-   
-    MPI_Comm interCommClient, interCommServer ;
-
-    if (serviceType_ == CServicesManager::CLIENT)
-    {
-
-      int commRank ;
-      MPI_Comm_rank(intraComm_,&commRank) ;
-      if (commRank==0)
-      {
-        if (attached_mode) CXios::getContextsManager()->createServerContext(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultServerId, 0, getContextId()) ;
-        else if (CXios::usingServer2) CXios::getContextsManager()->createServerContext(CXios::defaultPoolId, CXios::defaultGathererId, 0, getContextId()) ;
-        else  CXios::getContextsManager()->createServerContext(CXios::defaultPoolId, CXios::defaultServerId, 0, getContextId()) ;
-      }
-
-      MPI_Comm interComm ;
-      
-      if (attached_mode)
-      {
-        parentServerContext_->createIntercomm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultServerId, 0, getContextId(), intraComm_, 
-                                              interCommClient, interCommServer) ;
-        int type ; 
-        if (commRank==0) CXios::getServicesManager()->getServiceType(CClient::getPoolRessource()->getId(), CXios::defaultServerId, 0, type) ;
-        MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
-        setCurrent(getId()) ; // getCurrent/setCurrent may be supress, it can cause a lot of trouble
-      }
-      else if (CXios::usingServer2)
-      { 
-//      CXios::getContextsManager()->createServerContextIntercomm(CXios::defaultPoolId, CXios::defaultGathererId, 0, getContextId(), intraComm_, interComm) ;
-        parentServerContext_->createIntercomm(CXios::defaultPoolId, CXios::defaultGathererId, 0, getContextId(), intraComm_,
-                                              interCommClient, interCommServer) ;
-        int type ; 
-        if (commRank==0) CXios::getServicesManager()->getServiceType(CXios::defaultPoolId, CXios::defaultGathererId, 0, type) ;
-        MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
-      }
-      else
-      {
-        
-        //CXios::getContextsManager()->createServerContextIntercomm(CXios::defaultPoolId, CXios::defaultServerId, 0, getContextId(), intraComm_, interComm) ;
-        parentServerContext_->createIntercomm(CXios::defaultPoolId, CXios::defaultServerId, 0, getContextId(), intraComm_,
-                                              interCommClient, interCommServer) ;
-        int type ; 
-        if (commRank==0) CXios::getServicesManager()->getServiceType(CXios::defaultPoolId, CXios::defaultServerId, 0, type) ;
-        MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
-      }
-
-        // intraComm client is not duplicated. In all the code we use client->intraComm for MPI
-        // in future better to replace it by intracommuncator associated to the context
-    
-      MPI_Comm intraCommClient, intraCommServer ;
-      intraCommClient=intraComm_ ;
-      MPI_Comm_dup(intraComm_, &intraCommServer) ;
-      client = CContextClient::getNew(this, intraCommClient, interCommClient);
-      server = CContextServer::getNew(this, intraCommServer, interCommServer);
-      client->setAssociatedServer(server) ;
-      server->setAssociatedClient(client) ;
-    }
-    
-    if (serviceType_ == CServicesManager::GATHERER)
-    {
-      int commRank ;
-      MPI_Comm_rank(intraComm_,&commRank) ;
-      
-      int nbPartitions ;
-      if (commRank==0) 
-      { 
-        CXios::getServicesManager()->getServiceNbPartitions(CXios::defaultPoolId, CXios::defaultServerId, 0, nbPartitions) ;
-        for(int i=0 ; i<nbPartitions; i++)
-          CXios::getContextsManager()->createServerContext(CXios::defaultPoolId, CXios::defaultServerId, i, getContextId()) ;
-      }      
-      MPI_Bcast(&nbPartitions, 1, MPI_INT, 0, intraComm_) ;
-      
-      MPI_Comm interComm ;
-      for(int i=0 ; i<nbPartitions; i++)
-      {
-        parentServerContext_->createIntercomm(CXios::defaultPoolId, CXios::defaultServerId, i, getContextId(), intraComm_, interCommClient, interCommServer) ;
-        int type ; 
-        if (commRank==0) CXios::getServicesManager()->getServiceType(CXios::defaultPoolId, CXios::defaultServerId, 0, type) ;
-        MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
-        primServerId_.push_back(CXios::getContextsManager()->getServerContextName(CXios::defaultPoolId, CXios::defaultServerId, i, type, getContextId())) ;
-
-        // intraComm client is not duplicated. In all the code we use client->intraComm for MPI
-        // in future better to replace it by intracommuncator associated to the context
-      
-        MPI_Comm intraCommClient, intraCommServer ;
-
-        intraCommClient=intraComm_ ;
-        MPI_Comm_dup(intraComm_, &intraCommServer) ;
-
-        CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient) ;
-        CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer) ;
-        client->setAssociatedServer(server) ;
-        server->setAssociatedClient(client) ;
-        clientPrimServer.push_back(client);
-        serverPrimServer.push_back(server);  
-
-      
-      }
-    }
   }
   CATCH_DUMP_ATTR
 
@@ -755,27 +665,17 @@ void CContext::removeAllContexts(void)
     
     setCurrent(getId()) ;
 
-    if (client!=nullptr && !finalized) client->eventLoop();
-    
-    for (int i = 0; i < clientPrimServer.size(); ++i)
+    if (!finalized)
     {
-      if (!finalized) clientPrimServer[i]->eventLoop();
-      if (!finalized) finished &= serverPrimServer[i]->eventLoop(enableEventsProcessing);
+      for(auto client : writerClientOut_) client->eventLoop();
+      for(auto server : writerServerOut_) finished &= server->eventLoop(enableEventsProcessing);
+      for(auto client : writerClientIn_) client->eventLoop();
+      for(auto server : writerServerIn_) finished &= server->eventLoop(enableEventsProcessing);
+      for(auto couplerOut : couplerOutClient_) couplerOut.second->eventLoop();
+      for(auto couplerIn : couplerInClient_) couplerIn.second->eventLoop();
+      for(auto couplerOut : couplerOutServer_) couplerOut.second->eventLoop(enableEventsProcessing);
+      for(auto couplerIn : couplerInServer_) couplerIn.second->eventLoop(enableEventsProcessing);
     }
-
-    for (auto couplerOut : couplerOutClient_)
-      if (!finalized) couplerOut.second->eventLoop();
-    
-    for (auto couplerIn : couplerInClient_)
-      if (!finalized) couplerIn.second->eventLoop();
-    
-    for (auto couplerOut : couplerOutServer_)
-      if (!finalized) couplerOut.second->eventLoop(enableEventsProcessing);
-
-    for (auto couplerIn : couplerInServer_)
-      if (!finalized) couplerIn.second->eventLoop(enableEventsProcessing);
-    
-    if (server!=nullptr) if (!finalized) finished &= server->eventLoop(enableEventsProcessing);
     setCurrent(getId()) ;
     return finalized && finished ;
   }
@@ -836,12 +736,11 @@ void CContext::removeAllContexts(void)
    TRY
    {
       registryOut->hierarchicalGatherRegistry() ;
-      if (server->getIntraCommRank()==0) CXios::getRegistryManager()->merge(*registryOut) ;
+      if (intraCommRank_==0) CXios::getRegistryManager()->merge(*registryOut) ;
 
       if (serviceType_==CServicesManager::CLIENT)
       {
 //ym        doPreTimestepOperationsForEnabledReadModeFiles(); // For now we only use server level 1 to read data
-
         triggerLateFields() ;
 
         // inform couplerIn that I am finished
@@ -856,6 +755,10 @@ void CContext::removeAllContexts(void)
           globalEventLoop() ;
         } while (!couplersInFinalized) ;
 
+
+        auto& client=writerClientOut_[0] ;
+        auto& server=writerServerOut_[0] ;
+
         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
         client->finalize();
         info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
@@ -864,7 +767,7 @@ void CContext::removeAllContexts(void)
         bool notifiedFinalized=false ;
         do
         {
-          notifiedFinalized=client->isNotifiedFinalized() ;
+          notifiedFinalized = client->isNotifiedFinalized() ;
         } while (!notifiedFinalized) ;
 
         server->releaseBuffers();
@@ -873,31 +776,31 @@ void CContext::removeAllContexts(void)
       }
       else if (serviceType_==CServicesManager::GATHERER)
       {
-         for (int i = 0; i < clientPrimServer.size(); ++i)
+         for(auto& client : writerClientOut_)
          {
-           clientPrimServer[i]->finalize();
+           client->finalize();
            bool bufferReleased;
            do
            {
-             clientPrimServer[i]->eventLoop();
-             bufferReleased = !clientPrimServer[i]->havePendingRequests();
+             client->eventLoop();
+             bufferReleased = !client->havePendingRequests();
            } while (!bufferReleased);
            
            bool notifiedFinalized=false ;
            do
            {
-             notifiedFinalized=clientPrimServer[i]->isNotifiedFinalized() ;
+             notifiedFinalized=client->isNotifiedFinalized() ;
            } while (!notifiedFinalized) ;
-           clientPrimServer[i]->releaseBuffers();
+           client->releaseBuffers();
          }
          closeAllFile();
-
+         //ym writerClientIn & writerServerIn not released here ==> to check !!
       }
       else if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)
       {
         closeAllFile();
-        client->releaseBuffers();
-        server->releaseBuffers();
+        writerClientIn_[0]->releaseBuffers();
+        writerServerIn_[0]->releaseBuffers();
       }
 
       freeComms() ;
@@ -915,16 +818,6 @@ void CContext::removeAllContexts(void)
      for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
        MPI_Comm_free(&(*it));
      comms.clear();
-   }
-   CATCH_DUMP_ATTR
-
-   //! Deallocate buffers allocated by clientContexts
-   void CContext::releaseClientBuffers(void)
-   TRY
-   {
-     client->releaseBuffers();
-     for (int i = 0; i < clientPrimServer.size(); ++i)
-       clientPrimServer[i]->releaseBuffers();
    }
    CATCH_DUMP_ATTR
 
@@ -1071,15 +964,15 @@ void CContext::removeAllContexts(void)
     for (auto field : CField::getAll() ) if (field->getModelIn()) fieldModelIn.push_back(field) ;
 
     // Distribute files between secondary servers according to the data size => assign a context to a file and then to fields
-    if (serviceType_==CServicesManager::GATHERER) distributeFiles(this->enabledWriteModeFiles);
-    else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER ) distributeFiles(this->enabledWriteModeFiles);
+    //else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
 
     // client side, assign context for file reading
-    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(client) ;
+    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(writerClientOut_[0]) ;
     
     // server side, assign context where to send file data read
     if (serviceType_==CServicesManager::CServicesManager::GATHERER || serviceType_==CServicesManager::IO_SERVER) 
-      for(auto file : this->enabledReadModeFiles) file->setContextClient(client) ;
+      for(auto file : this->enabledReadModeFiles) file->setContextClient(writerClientIn_[0]) ;
    
 
     // workflow startpoint => data from server on client side
@@ -1485,8 +1378,17 @@ void CContext::removeAllContexts(void)
      bool distFileMemory=false ;
      distFileMemory=CXios::getin<bool>("server2_dist_file_memory", distFileMemory);
 
-     if (distFileMemory) distributeFileOverMemoryBandwith(files) ;
+     int nbPools = writerClientOut_.size();
+     if (nbPools==1) distributeFileOverOne(files) ;
+     else if (distFileMemory) distributeFileOverMemoryBandwith(files) ;
      else distributeFileOverBandwith(files) ;
+   }
+   CATCH_DUMP_ATTR
+
+   void CContext::distributeFileOverOne(const vector<CFile*>& files)
+   TRY
+   {
+    for(auto& file : files) file->setContextClient(writerClientOut_[0]) ;
    }
    CATCH_DUMP_ATTR
 
@@ -1496,7 +1398,7 @@ void CContext::removeAllContexts(void)
      double eps=std::numeric_limits<double>::epsilon()*10 ;
      
      std::ofstream ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
-     int nbPools = clientPrimServer.size();
+     int nbPools = writerClientOut_.size();
 
      // (1) Find all enabled files in write mode
      // for (int i = 0; i < this->enabledFiles.size(); ++i)
@@ -1549,7 +1451,7 @@ void CContext::removeAllContexts(void)
      {
        dataSize=(*poolDataSize.begin()).first ;
        j=(*poolDataSize.begin()).second ;
-       dataSizeMap[i].second->setContextClient(clientPrimServer[j]);
+       dataSizeMap[i].second->setContextClient(writerClientOut_[j]);
        dataSize+=dataSizeMap[i].first;
        poolDataSize.erase(poolDataSize.begin()) ;
        poolDataSize.insert(std::pair<double,int>(dataSize,j)) ; 
@@ -1562,7 +1464,7 @@ void CContext::removeAllContexts(void)
    void CContext::distributeFileOverMemoryBandwith(const vector<CFile*>& filesList)
    TRY
    {
-     int nbPools = clientPrimServer.size();
+     int nbPools = writerClientOut_.size();
      double ratio=0.5 ;
      ratio=CXios::getin<double>("server2_dist_file_memory_ratio", ratio);
 
@@ -1628,7 +1530,7 @@ void CContext::removeAllContexts(void)
            serverGrids[files[i].assignedServer_].insert(files[i].assignedGrid_[j]) ;
          }
        }
-       filesList[i]->setContextClient(clientPrimServer[files[i].assignedServer_]) ;
+       filesList[i]->setContextClient(writerClientOut_[files[i].assignedServer_]) ;
        delete [] files[i].assignedGrid_ ;
      }
 
@@ -1728,35 +1630,6 @@ void CContext::removeAllContexts(void)
    }
    CATCH
 
-   //! Client side: Send a message to server to make it close
-   // ym obsolete
-   void CContext::sendCloseDefinition(void)
-   TRY
-   {
-    int nbSrvPools ;
-    if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
-    else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
-    else nbSrvPools = 0 ;
-    CContextClient* contextClientTmp ;
-
-    for (int i = 0; i < nbSrvPools; ++i)
-     {
-       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
-       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
-       CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION);
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         contextClientTmp->sendEvent(event);
-       }
-       else contextClientTmp->sendEvent(event);
-     }
-   }
-   CATCH_DUMP_ATTR
-   
    //  ! Client side: Send a message to server to make it close
    void CContext::sendCloseDefinition(CContextClient* client)
    TRY
