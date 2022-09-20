@@ -54,7 +54,7 @@ namespace xios
          {
            EVENT_ID_COLLECTIVE=100,
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
-           EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
+           EVENT_ID_CONTEXT_FINALIZE,
            EVENT_ID_CONTEXT_FINALIZE_CLIENT,
            EVENT_ID_COUPLER_IN_READY,
            EVENT_ID_COUPLER_IN_CLOSE_DEFINITION,
@@ -103,7 +103,11 @@ namespace xios
          
          void initServer(MPI_Comm intraComm, int serviceType );
          void createClientInterComm(MPI_Comm interCommClient, MPI_Comm interCommServer)  ;
+ 
          void createServerInterComm(void)  ;
+         void createServerInterComm_old(void)  ;
+         void createServerInterComm(const string& poolId, const string& serverId, vector<pair<string, pair<CContextClient*,CContextServer*>>>& clientServers ) ;
+ 
 
          bool isInitialized(void);
 
@@ -167,7 +171,6 @@ namespace xios
        public:
          // There are something to send on closing context defintion
          void sendUpdateCalendar(int step);
-         void sendCreateFileHeader(void);
          void sendEnabledFiles(const std::vector<CFile*>& activeFiles);
          void sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
          void sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles);
@@ -186,8 +189,6 @@ namespace xios
          static void recvUpdateCalendar(CEventServer& event);
          void recvUpdateCalendar(CBufferIn& buffer);
          static void recvCloseDefinition(CEventServer& event);
-         static void recvCreateFileHeader(CEventServer& event);
-         void recvCreateFileHeader(CBufferIn& buffer);
          static void recvSolveInheritanceContext(CEventServer& event);
          void recvSolveInheritanceContext(CBufferIn& buffer);
          static void recvFinalizeClient(CEventServer& event) ;
@@ -314,6 +315,15 @@ namespace xios
 
          // list of slave servers (IO server or others)
          set<CContextClient*> slaveServers_ ;
+
+      private:
+        std::string defaultReaderId ;
+        std::string defaultWriterId ;
+        std::string defaultGathererId ;
+
+        std::map<std::string, CContextClient*> clients_ ;
+        std::map<std::string, CContextClient*> servers_ ;
+
       private:
          // the map containing context client associated to it string id for coupling out ;
          std::map<std::string, CContextClient*> couplerOutClient_ ;

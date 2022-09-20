@@ -48,7 +48,7 @@ namespace xios
       , client(nullptr), server(nullptr)
       , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
 
-   { /* Ne rien faire de plus */ }
+   { /* Ne rien faire de plus */  }
 
    CContext::CContext(const StdString & id)
       : CObjectTemplate<CContext>(id), CContextAttributes()
@@ -541,7 +541,76 @@ void CContext::removeAllContexts(void)
   }
   CATCH_DUMP_ATTR
 
+  
+  void CContext::createServerInterComm(const string& poolId, const string& serverId, vector<pair<string, pair<CContextClient*,CContextServer*>>>& clientServers )
+  TRY
+  {
+    MPI_Comm interCommClient, interCommServer ;
+    int commRank ;
+    MPI_Comm_rank(intraComm_,&commRank) ;
+    
+    int nbPartitions ;
+    if (commRank==0)
+    {
+      CXios::getServicesManager()->getServiceNbPartitions(poolId, serverId, 0, nbPartitions) ;
+      for(int i=0 ; i<nbPartitions; i++) CXios::getContextsManager()->createServerContext(poolId, serverId, i, getContextId()) ;
+    }
+    setCurrent(getId()) ; // getCurrent/setCurrent may be supress, it can cause a lot of trouble (attached ???)
+    MPI_Bcast(&nbPartitions, 1, MPI_INT, 0, intraComm_) ;
+      
+    MPI_Comm interComm ;
+    for(int i=0 ; i<nbPartitions; i++)
+    {
+      parentServerContext_->createIntercomm(poolId, serverId, i, getContextId(), intraComm_, interCommClient, interCommServer) ;
+      int type ; 
+      if (commRank==0) CXios::getServicesManager()->getServiceType(poolId, serverId, 0, type) ;
+      MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
+      string fullServerId=CXios::getContextsManager()->getServerContextName(poolId, serverId, i, type, getContextId()) ;
+
+      MPI_Comm intraCommClient, intraCommServer ;
+
+      intraCommClient=intraComm_ ;
+      MPI_Comm_dup(intraComm_, &intraCommServer) ;
+
+      CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient) ;
+      CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer) ;
+      client->setAssociatedServer(server) ;
+      server->setAssociatedClient(client) ;
+      
+      clientServers.push_back({fullServerId,{client,server}}) ;
+    }
+  }
+  CATCH_DUMP_ATTR
+  
   void CContext::createServerInterComm(void) 
+  TRY
+  {
+    vector<pair<string, pair<CContextClient*,CContextServer*>>> clientServers ;
+
+    if (serviceType_ == CServicesManager::CLIENT)
+    {
+      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultServerId, clientServers) ;
+      else if (CXios::usingServer2) createServerInterComm(CXios::defaultPoolId, CXios::defaultGathererId, clientServers) ;
+      else createServerInterComm(CXios::defaultPoolId, CXios::defaultServerId, clientServers) ;
+      
+      client = clientServers[0].second.first ;
+      server = clientServers[0].second.second ;
+    }
+    else if (serviceType_ == CServicesManager::GATHERER)
+    {
+      createServerInterComm(CXios::defaultPoolId, CXios::defaultServerId, clientServers) ;
+      for(auto& clientServer : clientServers)
+      {
+        primServerId_.push_back(clientServer.first) ;
+        clientPrimServer.push_back(clientServer.second.first);
+        serverPrimServer.push_back(clientServer.second.second); 
+      }
+    }
+
+  }
+  CATCH_DUMP_ATTR
+
+  void CContext::createServerInterComm_old(void) 
   TRY
   {
    
@@ -581,6 +650,7 @@ void CContext::removeAllContexts(void)
       }
       else
       {
+        
         //CXios::getContextsManager()->createServerContextIntercomm(CXios::defaultPoolId, CXios::defaultServerId, 0, getContextId(), intraComm_, interComm) ;
         parentServerContext_->createIntercomm(CXios::defaultPoolId, CXios::defaultServerId, 0, getContextId(), intraComm_,
                                               interCommClient, interCommServer) ;
@@ -1637,10 +1707,6 @@ void CContext::removeAllContexts(void)
              recvUpdateCalendar(event);
              return true;
              break;
-           case EVENT_ID_CREATE_FILE_HEADER :
-             recvCreateFileHeader(event);
-             return true;
-             break;
            case EVENT_ID_COUPLER_IN_READY:
              recvCouplerInReady(event);
              return true;
@@ -1760,52 +1826,6 @@ void CContext::removeAllContexts(void)
    }
    CATCH_DUMP_ATTR
 
-   //! Client side: Send a message to create header part of netcdf file
-   void CContext::sendCreateFileHeader(void)
-   TRY
-   {
-     int nbSrvPools ;
-     if (serviceType_==CServicesManager::CLIENT) nbSrvPools = 1 ;
-     else if (serviceType_==CServicesManager::GATHERER) nbSrvPools = this->clientPrimServer.size() ;
-     else nbSrvPools = 0 ;
-     CContextClient* contextClientTmp ;
-
-     for (int i = 0; i < nbSrvPools; ++i)
-     {
-       if (serviceType_==CServicesManager::CLIENT) contextClientTmp = client ;
-       else if (serviceType_==CServicesManager::GATHERER ) contextClientTmp = clientPrimServer[i] ;
-       CEventClient event(getType(),EVENT_ID_CREATE_FILE_HEADER);
-
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg) ;
-         contextClientTmp->sendEvent(event);
-       }
-       else contextClientTmp->sendEvent(event);
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
-   void CContext::recvCreateFileHeader(CEventServer& event)
-   TRY
-   {
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
-      getCurrent()->recvCreateFileHeader(*buffer);
-   }
-   CATCH
-
-   //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
-   void CContext::recvCreateFileHeader(CBufferIn& buffer)
-   TRY
-   {
-      if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER) 
-        createFileHeader();
-   }
-   CATCH_DUMP_ATTR
 
    void CContext::createCouplerInterCommunicator(void)
    TRY
