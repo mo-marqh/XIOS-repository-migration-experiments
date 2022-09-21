@@ -70,6 +70,8 @@ namespace xios
      static const string defaultPoolId ;
      static const string defaultServerId ;
      static const string defaultGathererId ;
+     static const string defaultWriterId ;
+     static const string defaultReaderId ;
      static const string defaultServicesId ;
 
      static CRegistryManager* registryManager_ ;

@@ -307,12 +307,6 @@ namespace xios
          // Determine context on server or not
          bool hasServer;
 
-      private:
-         std::vector<CContextServer*> serverPrimServer;
-         std::vector<CContextClient*> clientPrimServer;
-
-         // list of slave servers (IO server or others)
-         set<CContextClient*> slaveServers_ ;
 
       private:
         std::string defaultReaderId ;
@@ -332,24 +326,25 @@ namespace xios
 
         std::map<std::string, CContextClient*> clients_ ;
         std::map<std::string, CContextClient*> servers_ ;
+        std::map<CContextClient*, std::string> clientsId_ ;
+        std::map<CContextServer*, std::string> serversId_ ;
 
-      private:
-         // the map containing context client associated to it string id for coupling out ;
-         std::map<std::string, CContextClient*> couplerOutClient_ ;
-         // the map containing context server associated to it string id for coupling out ;
-         std::map<std::string, CContextServer*> couplerOutServer_ ;
-         // the map containing context client associated to it string id for coupling in ;
-         std::map<std::string, CContextClient*> couplerInClient_ ;
-         // the map containing context server associated to it string id for coupling in ;
-         std::map<std::string, CContextServer*> couplerInServer_ ;
+        // list of slave servers (IO server or others)
+        std::vector<CContextClient*> slaveServers_ ;
+
+        // the map containing context client associated to it string id for coupling out ;
+        std::map<std::string, CContextClient*> couplerOutClient_ ;
+        // the map containing context server associated to it string id for coupling out ;
+        std::map<std::string, CContextServer*> couplerOutServer_ ;
+        // the map containing context client associated to it string id for coupling in ;
+        std::map<std::string, CContextClient*> couplerInClient_ ;
+        // the map containing context server associated to it string id for coupling in ;
+        std::map<std::string, CContextServer*> couplerInServer_ ;
       public:
          CContextClient* getCouplerInClient(const string& contextId) { return couplerInClient_[contextId] ;}
          CContextServer* getCouplerInServer(const string& contextId) { return couplerInServer_[contextId] ;}
          CContextClient* getCouplerOutClient(const string& contextId) { return couplerOutClient_[contextId] ;}
          CContextServer* getCouplerOutServer(const string& contextId) { return couplerOutServer_[contextId] ;}
-      
-  
-         std::vector<std::string> primServerId_;
 
          CRegistry* registryIn=nullptr ;    //!< input registry which is read from file
          CRegistry* registryOut=nullptr ;   //!< output registry which will be written into file at the finalize

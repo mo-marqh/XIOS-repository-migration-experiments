@@ -514,7 +514,7 @@ void CContext::removeAllContexts(void)
        hasClient=true ;
        hasServer=true ;
      }
-     else if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)
+     else if (serviceType_==CServicesManager::WRITER || serviceType_==CServicesManager::READER)
      {
        hasClient=false ;
        hasServer=true ;
@@ -548,9 +548,17 @@ void CContext::removeAllContexts(void)
     client = CContextClient::getNew(this,intraCommClient,interCommClient);
     client->setAssociatedServer(server) ;  
     server->setAssociatedClient(client) ;
-
-    writerServerIn_.push_back(server) ; 
-    writerClientIn_.push_back(client) ; 
+    
+    if (serviceType_ == CServicesManager::GATHERER || serviceType_ == CServicesManager::WRITER)
+    {  
+      writerServerIn_.push_back(server) ; 
+      writerClientIn_.push_back(client) ; 
+    }
+    else if (serviceType_ == CServicesManager::READER)
+    {
+      readerServerIn_.push_back(server) ; 
+      readerClientIn_.push_back(client) ; 
+    }
   }
   CATCH_DUMP_ATTR
 
@@ -591,6 +599,8 @@ void CContext::removeAllContexts(void)
       server->setAssociatedClient(client) ;
       
       clientServers.push_back({fullServerId,{client,server}}) ;
+      clientsId_[client] = fullServerId ;
+      serversId_[server] = fullServerId ;
     }
   }
   CATCH_DUMP_ATTR
@@ -602,21 +612,27 @@ void CContext::removeAllContexts(void)
 
     if (serviceType_ == CServicesManager::CLIENT)
     {
-      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultServerId, clientServers) ;
+      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultWriterId, clientServers) ;
       else if (CXios::usingServer2) createServerInterComm(CXios::defaultPoolId, CXios::defaultGathererId, clientServers) ;
-      else createServerInterComm(CXios::defaultPoolId, CXios::defaultServerId, clientServers) ;
+      else createServerInterComm(CXios::defaultPoolId, CXios::defaultWriterId, clientServers) ;
       
       writerClientOut_.push_back(clientServers[0].second.first) ; 
       writerServerOut_.push_back(clientServers[0].second.second) ;
+
+      clientServers.clear() ;
+   
+      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultReaderId, clientServers) ;
+      else createServerInterComm(CXios::defaultPoolId, CXios::defaultReaderId, clientServers) ;
+      readerClientOut_.push_back(clientServers[0].second.first) ; 
+      readerServerOut_.push_back(clientServers[0].second.second) ;
+
+
     }
     else if (serviceType_ == CServicesManager::GATHERER)
     {
-      createServerInterComm(CXios::defaultPoolId, CXios::defaultServerId, clientServers) ;
+      createServerInterComm(CXios::defaultPoolId, CXios::defaultWriterId, clientServers) ;
       for(auto& clientServer : clientServers)
       {
-        primServerId_.push_back(clientServer.first) ;
-        clientPrimServer.push_back(clientServer.second.first);
-        serverPrimServer.push_back(clientServer.second.second);
         writerClientOut_.push_back(clientServer.second.first) ; 
         writerServerOut_.push_back(clientServer.second.second) ;
       }
@@ -671,6 +687,10 @@ void CContext::removeAllContexts(void)
       for(auto server : writerServerOut_) finished &= server->eventLoop(enableEventsProcessing);
       for(auto client : writerClientIn_) client->eventLoop();
       for(auto server : writerServerIn_) finished &= server->eventLoop(enableEventsProcessing);
+      for(auto client : readerClientOut_) client->eventLoop();
+      for(auto server : readerServerOut_) finished &= server->eventLoop(enableEventsProcessing);
+      for(auto client : readerClientIn_) client->eventLoop();
+      for(auto server : readerServerIn_) finished &= server->eventLoop(enableEventsProcessing);
       for(auto couplerOut : couplerOutClient_) couplerOut.second->eventLoop();
       for(auto couplerIn : couplerInClient_) couplerIn.second->eventLoop();
       for(auto couplerOut : couplerOutServer_) couplerOut.second->eventLoop(enableEventsProcessing);
@@ -755,24 +775,50 @@ void CContext::removeAllContexts(void)
           globalEventLoop() ;
         } while (!couplersInFinalized) ;
 
+        CContextClient* client ;
+        CContextServer* server ;
 
-        auto& client=writerClientOut_[0] ;
-        auto& server=writerServerOut_[0] ;
-
-        info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
-        client->finalize();
-        info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
-        while (client->havePendingRequests()) client->eventLoop();
-        info(100)<<"DEBUG: context "<<getId()<<" no pending request ok"<<endl ;
-        bool notifiedFinalized=false ;
-        do
+        if (writerClientOut_.size()!=0)
         {
-          notifiedFinalized = client->isNotifiedFinalized() ;
-        } while (!notifiedFinalized) ;
+          client=writerClientOut_[0] ;
+          server=writerServerOut_[0] ;
 
-        server->releaseBuffers();
-        client->releaseBuffers();
-        info(100)<<"DEBUG: context "<<getId()<<" release client ok"<<endl ;
+          info(100)<<"DEBUG: context "<<getId()<<" Send client finalize to writer"<<endl ;
+          client->finalize();
+          info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent to writer"<<endl ;
+          while (client->havePendingRequests()) client->eventLoop();
+          info(100)<<"DEBUG: context "<<getId()<<" no pending request on writer ok"<<endl ;
+          bool notifiedFinalized=false ;
+          do
+          {
+            notifiedFinalized = client->isNotifiedFinalized() ;
+          } while (!notifiedFinalized) ;
+
+          server->releaseBuffers();
+          client->releaseBuffers();
+          info(100)<<"DEBUG: context "<<getId()<<" release client writer ok"<<endl ;
+        }
+
+        if (readerClientOut_.size()!=0)
+        {
+          client=readerClientOut_[0] ;
+          server=readerServerOut_[0] ;
+
+          info(100)<<"DEBUG: context "<<getId()<<" Send client finalize to reader"<<endl ;
+          client->finalize();
+          info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent to reader"<<endl ;
+          while (client->havePendingRequests()) client->eventLoop();
+          info(100)<<"DEBUG: context "<<getId()<<" no pending request on reader ok"<<endl ;
+          bool notifiedFinalized=false ;
+         do
+         {
+            notifiedFinalized = client->isNotifiedFinalized() ;
+         }   while (!notifiedFinalized) ;
+
+          server->releaseBuffers();
+          client->releaseBuffers();
+          info(100)<<"DEBUG: context "<<getId()<<" release client reader ok"<<endl ;
+        }
       }
       else if (serviceType_==CServicesManager::GATHERER)
       {
@@ -796,11 +842,17 @@ void CContext::removeAllContexts(void)
          closeAllFile();
          //ym writerClientIn & writerServerIn not released here ==> to check !!
       }
-      else if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)
+      else if (serviceType_==CServicesManager::WRITER)
       {
         closeAllFile();
         writerClientIn_[0]->releaseBuffers();
         writerServerIn_[0]->releaseBuffers();
+      }
+      else if (serviceType_==CServicesManager::READER)
+      {
+        closeAllFile();
+        readerClientIn_[0]->releaseBuffers();
+        readerServerIn_[0]->releaseBuffers();
       }
 
       freeComms() ;
@@ -968,11 +1020,10 @@ void CContext::removeAllContexts(void)
     //else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
 
     // client side, assign context for file reading
-    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(writerClientOut_[0]) ;
+    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(readerClientOut_[0]) ;
     
     // server side, assign context where to send file data read
-    if (serviceType_==CServicesManager::CServicesManager::GATHERER || serviceType_==CServicesManager::IO_SERVER) 
-      for(auto file : this->enabledReadModeFiles) file->setContextClient(writerClientIn_[0]) ;
+    if (serviceType_==CServicesManager::READER) for(auto file : this->enabledReadModeFiles) file->setContextClient(readerClientIn_[0]) ;
    
 
     // workflow startpoint => data from server on client side
@@ -999,7 +1050,7 @@ void CContext::removeAllContexts(void)
     }
 
     // workflow endpoint => write to file
-    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)
+    if (serviceType_==CServicesManager::WRITER)
     {
       for(auto field : fileOutField) 
       {
@@ -1008,7 +1059,7 @@ void CContext::removeAllContexts(void)
     }
     
     // workflow endpoint => Send data from server to client
-    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER)
+    if (serviceType_==CServicesManager::READER || serviceType_==CServicesManager::GATHERER)
     {
       for(auto field : fileInField) 
       {
@@ -1034,7 +1085,7 @@ void CContext::removeAllContexts(void)
     }
     
     // workflow startpoint => data from client on server side
-    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER || serviceType_==CServicesManager::OUT_SERVER)
+    if (serviceType_==CServicesManager::WRITER || serviceType_==CServicesManager::GATHERER)
     {
       for(auto field : fieldModelIn) 
       {
@@ -1055,7 +1106,7 @@ void CContext::removeAllContexts(void)
     }
 
     // workflow startpoint => data read from file on server side
-    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::GATHERER)
+    if (serviceType_==CServicesManager::READER)
     {
       for(auto field : fileInField) 
       {
@@ -1064,17 +1115,20 @@ void CContext::removeAllContexts(void)
     }
     
     // construct slave server list
+    map<string, CContextClient*> slaves ; // need an ordered list ; 
     if (serviceType_==CServicesManager::CLIENT) 
     {
-      for(auto field : fileOutField) slaveServers_.insert(field->getContextClient()) ; 
-      for(auto field : fileInField) slaveServers_.insert(field->getContextClient()) ; 
+      for(auto field : fileOutField) slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ; 
+      for(auto field : fileInField) slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ; 
     }
     else if (serviceType_==CServicesManager::GATHERER) 
-      for(auto field : fileOutField) slaveServers_.insert(field->getContextClient()) ; 
+      for(auto field : fileOutField) slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ;
+    for(auto& slave : slaves) slaveServers_.push_back(slave.second) ;   
+
 
     for(auto& slaveServer : slaveServers_) sendCloseDefinition(slaveServer) ;
 
-    if (serviceType_==CServicesManager::IO_SERVER || serviceType_==CServicesManager::OUT_SERVER)  
+    if (serviceType_==CServicesManager::WRITER)  
     {
       createFileHeader();
     }

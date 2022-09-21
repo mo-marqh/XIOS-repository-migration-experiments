@@ -25,6 +25,8 @@ namespace xios
   string CXios::serverSndFile="./xios_server2";
   const string CXios::defaultPoolId="default_pool_id" ;
   const string CXios::defaultServerId="default_server_id" ;
+  const string CXios::defaultWriterId="default_writer_id" ;
+  const string CXios::defaultReaderId="default_reader_id" ;
   const string CXios::defaultGathererId="default_gatherer_id" ;
   const string CXios::defaultServicesId="default_services_id" ;
   

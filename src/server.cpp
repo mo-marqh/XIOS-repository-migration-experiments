@@ -188,8 +188,8 @@ namespace xios
         if (!CXios::usingServer2)
         {
           ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
-          servicesManager->createServices(CXios::defaultPoolId, CXios::defaultServerId, CServicesManager::IO_SERVER,nbRessources,1) ;
-          servicesManager->createServicesOnto(CXios::defaultPoolId, "default_reader", CServicesManager::READER, CXios::defaultServerId) ;
+          servicesManager->createServices(CXios::defaultPoolId, CXios::defaultWriterId, CServicesManager::WRITER,nbRessources,1) ;
+          servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultWriterId) ;
         }
         else
         {
@@ -200,11 +200,12 @@ namespace xios
           if (nbPoolsServer2 == 0) nbPoolsServer2 = nprocsServer;
           ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
           servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
-          servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServerId, CServicesManager::OUT_SERVER, nprocsServer, nbPoolsServer2) ;
+          servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultGathererId) ;
+          servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultWriterId, CServicesManager::WRITER, nprocsServer, nbPoolsServer2) ;
 
 
         }
-        servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServicesId, CServicesManager::ALL_SERVICES, nbRessources, 1) ;
+//        servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServicesId, CServicesManager::ALL_SERVICES, nbRessources, 1) ;
       }
       CTimer::get("XIOS initialize").suspend() ;
 

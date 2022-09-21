@@ -200,7 +200,7 @@ namespace xios
           isProcessingEvent_=true ;
           CEventServer event(this) ;
           for(auto& buffer : it->second.buffers) buffer->fillEventServer(currentTimeLine, event) ;
-          MPI_Barrier(intraComm) ;
+//          MPI_Barrier(intraComm) ;
           CTimer::get("Process events").resume();
           info(100)<<"Context id "<<context->getId()<<" : Process Event "<<currentTimeLine<<" of class "<<event.classId<<" of type "<<event.type<<endl ;
           dispatchEvent(event);

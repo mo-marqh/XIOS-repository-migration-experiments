@@ -433,7 +433,8 @@ namespace xios
       MPI_Comm_size(contextComm,&commSize) ;
 
       getPoolRessource()->createService(contextComm, id, 0, CServicesManager::CLIENT, 1) ;
-      getPoolRessource()->createService(contextComm, id+"_"+CXios::defaultServerId, 0, CServicesManager::IO_SERVER, 1) ;
+      getPoolRessource()->createService(contextComm, id+"_"+CXios::defaultWriterId, 0, CServicesManager::WRITER, 1) ;
+      getPoolRessource()->createService(contextComm, id+"_"+CXios::defaultReaderId, 0, CServicesManager::READER, 1) ;
 
       if (commRank==0) while (!CXios::getServicesManager()->hasService(getPoolRessource()->getId(), id, 0)) { CXios::getDaemonsManager()->eventLoop();}
 
