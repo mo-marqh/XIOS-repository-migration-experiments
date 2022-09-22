@@ -65,6 +65,8 @@ namespace xios
     class CReorderDomainGroup;
     class CExtractDomain;
     class CExtractDomainGroup;
+    class CPoolNode ;
+    class CPoolNodeGroup ;
      
   template <typename T> inline string getStrType(void);
 
@@ -149,6 +151,8 @@ namespace xios
   macro(CReorderDomainGroup)
   macro(CExtractDomain)
   macro(CExtractDomainGroup)
+  macro(CPoolNode)
+  macro(CPoolNodeGroup)
   
 #undef macro
 }

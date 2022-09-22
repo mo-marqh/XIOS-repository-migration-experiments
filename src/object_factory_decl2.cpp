@@ -20,5 +20,6 @@ namespace xios
   macro(CReduceScalarToScalar)
   macro(CReorderDomain)
   macro(CExtractDomain)
+  macro(CPoolNode)
 }
 

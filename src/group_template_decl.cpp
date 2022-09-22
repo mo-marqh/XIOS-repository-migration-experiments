@@ -36,5 +36,6 @@ namespace xios
   macro(ReduceScalarToScalar)
   macro(ReorderDomain)
   macro(ExtractDomain)
+  macro(PoolNode)
 
 }

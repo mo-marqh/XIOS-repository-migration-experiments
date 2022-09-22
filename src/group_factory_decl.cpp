@@ -47,4 +47,6 @@ namespace xios
   macro(CReduceScalarToScalarGroup)
   macro(CReorderDomainGroup)
   macro(CExtractDomainGroup)
+  macro(CPoolNodeGroup)
+
 }

@@ -17,5 +17,6 @@ namespace xios
   macro(CInterpolateAxisGroup)
   macro(CExtractAxisGroup)
   macro(CZoomDomainGroup)
+  macro(CPoolNodeGroup)
 }
 

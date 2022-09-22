@@ -41,7 +41,9 @@ namespace xios
          eDuplicateScalarToAxis,
          eReduceScalarToScalar,
          eReorderDomain,
-         eExtractDomain
+         eExtractDomain,
+         ePoolNode,gPoolNode,
+//         eService, gService
        } ENodeType;
 
 } // namespace xios
