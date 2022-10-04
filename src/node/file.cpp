@@ -862,6 +862,7 @@ namespace xios {
      int size = this->enabledFields.size();
      std::vector<int> domainNvertices;
      std::vector<StdString> domainNames;
+     std::map<string, tuple<set<CDomain*>,set<CDomain*>,set<CDomain*>>> registeredDomains ;
 
      for (int i = 0; i < size; ++i)
      {
@@ -904,6 +905,62 @@ namespace xios {
          domainNames.push_back(domainName);
          domainNvertices.push_back(nvertex);
        }
+
+       if (nvertex==1)  std::get<0>(registeredDomains[domainName]).insert(domain[0]) ;
+       else if (nvertex==2) std::get<1>(registeredDomains[domainName]).insert(domain[0]) ;
+       else  std::get<2>(registeredDomains[domainName]).insert(domain[0]) ;
+     }
+
+     for(auto& it:registeredDomains)
+     {
+       list<CDomain*> domains ;
+       string domainName=it.first ;
+
+       for(auto& domain : std::get<0>(it.second) ) domains.push_back(domain) ;
+       for(auto& domain : std::get<1>(it.second) ) domains.push_back(domain) ;
+       for(auto& domain : std::get<2>(it.second) ) domains.push_back(domain) ;
+       
+       // for each component of a given mesh (i.e. domains with same name but different number of vertices)
+       // associate the UGRID mesh in increasing order
+       for(auto& domain : domains )
+       {
+         //domain-> computeWrittenIndex();
+         //CArray<int, 1>& indexToWrite = domain->localIndexToWriteOnServer;
+         CArray<int, 1> indexToWrite = domain->getLocalView(CElementView::WORKFLOW)->getIndex();
+         int nbWritten = indexToWrite.numElements();
+
+         CArray<double,1> writtenLat, writtenLon;
+         CArray<double,2> writtenBndsLat, writtenBndsLon;
+
+         writtenLat.resize(nbWritten);
+         writtenLon.resize(nbWritten);
+         for (int idx = 0; idx < nbWritten; ++idx)
+         {
+           writtenLat(idx) = domain->latvalue(indexToWrite(idx));
+           writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
+         }
+    
+         int nvertex = domain->nvertex, idx;
+        if (nvertex>1)
+         {
+           writtenBndsLat.resize(nvertex, nbWritten);
+           writtenBndsLon.resize(nvertex, nbWritten);
+           CArray<double,2>& boundslat = domain->bounds_latvalue;
+           CArray<double,2>& boundslon = domain->bounds_lonvalue;
+           for (idx = 0; idx < nbWritten; ++idx)
+             for (int nv = 0; nv < nvertex; ++nv)
+             {
+                writtenBndsLat(nv, idx) = boundslat(nv, int(indexToWrite(idx)));
+                writtenBndsLon(nv, idx) = boundslon(nv, int(indexToWrite(idx)));
+             }
+         }
+         domain->assignMesh(domainName, domain->nvertex);
+         //CContextServer* server=CContext::getCurrent()->server ;
+         //domain->mesh->createMeshEpsilon(server->intraComm, writtenLon, writtenLat, writtenBndsLon, writtenBndsLat);
+         MPI_Comm intraComm =CContext::getCurrent()->getIntraComm() ;
+         domain->mesh->createMeshEpsilon(intraComm, writtenLon, writtenLat, writtenBndsLon, writtenBndsLat);
+       }
+
      }
    }
    CATCH_DUMP_ATTR

@@ -491,8 +491,6 @@ namespace xios
 
       std::vector<StdString> dim0;
       StdString domainName = domain->name;
-      domain->assignMesh(domainName, domain->nvertex);
-      domain->mesh->createMeshEpsilon(context->intraComm_, domain->lonvalue, domain->latvalue, domain->bounds_lonvalue, domain->bounds_latvalue);
 
       StdString node_x = domainName + "_node_x";
       StdString node_y = domainName + "_node_y";
@@ -608,6 +606,8 @@ namespace xios
               {
                 SuperClassWriter::addAttribute("edge_coordinates", edge_x + " " + edge_y, &domainName);
                 SuperClassWriter::addAttribute("edge_node_connectivity", edge_nodes, &domainName);
+                SuperClassWriter::addAttribute("face_edge_connectivity", face_edges, &domainName);
+                SuperClassWriter::addAttribute("edge_face_connectivity", edge_faces, &domainName);
                 SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdgesGlo);
                 dim0.clear();
                 dim0.push_back(dimEdge);
@@ -627,6 +627,7 @@ namespace xios
                 SuperClassWriter::addAttribute("long_name", StdString("Maps every edge/link to two nodes that it connects."), &edge_nodes);
                 SuperClassWriter::addAttribute("start_index", 0, &edge_nodes);
               }
+              SuperClassWriter::addAttribute("face_face_connectivity", face_faces, &domainName);
               SuperClassWriter::addAttribute("face_coordinates", face_x + " " + face_y, &domainName);
               SuperClassWriter::addAttribute("face_node_connectivity", face_nodes, &domainName);
               SuperClassWriter::addDimension(dimFace, domain->ni_glo);
@@ -728,6 +729,7 @@ namespace xios
                  countEdges[0] = domain->ni;
                  startNodes[0] = domain->mesh->node_start;
                  countNodes[0] = domain->mesh->node_count;
+                 if (countNodes[0]==0) startNodes[0]=0 ; // for netcdf error
                  startEdgeNodes[0] = domain->ibegin;
                  startEdgeNodes[1] = 0;
                  countEdgeNodes[0] = domain->ni;
@@ -764,19 +766,27 @@ namespace xios
                  countFaces[0] = domain->ni ;
                  startNodes[0] = domain->mesh->node_start;
                  countNodes[0] = domain->mesh->node_count;
+                 if (countNodes[0]==0) startNodes[0]=0;
+
                  startEdges[0] = domain->mesh->edge_start;
                  countEdges[0] = domain->mesh->edge_count;
+                 if (countEdges[0]==0) startEdges[0]=0 ; // for netcdf error
+
                  startEdgeNodes[0] = domain->mesh->edge_start;
-                 startEdgeNodes[1] = 0;
                  countEdgeNodes[0] = domain->mesh->edge_count;
+                 if (countEdgeNodes[0]==0) startEdgeNodes[0]=0; // for netcdf error
+                 startEdgeNodes[1] = 0;
                  countEdgeNodes[1]= 2;
+                 
                  startEdgeFaces[0] = domain->mesh->edge_start;
-                 startEdgeFaces[1]= 0;
                  countEdgeFaces[0] = domain->mesh->edge_count;
+                 if (countEdgeFaces[0]==0) startEdgeFaces[0]=0 ; // for netcdf error
+                 startEdgeFaces[1]= 0;
                  countEdgeFaces[1]= 2;
+                 
                  startFaceConctv[0] = domain->ibegin;
-                 startFaceConctv[1] = 0;
                  countFaceConctv[0] = domain->ni;
+                 startFaceConctv[1] = 0;
                  countFaceConctv[1] = domain->nvertex;
                }
               SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
