@@ -602,6 +602,7 @@ void CContext::removeAllContexts(void)
       clientsId_[client] = fullServerId ;
       serversId_[server] = fullServerId ;
     }
+    setCurrent(getId()) ; // Back on main context
   }
   CATCH_DUMP_ATTR
   
