@@ -19,6 +19,7 @@ ${PYTHON} step1.py
 
 
 if [[ ${xios_machine_name} == "irene" ]]; then
+  export TMPDIR=/tmp
   cmd=$(ccc_msub full_job_${arch}_${mode}.sh)
   jobid="${cmd//[!0-9]/}"
 
