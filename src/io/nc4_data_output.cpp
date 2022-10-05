@@ -661,7 +661,7 @@ namespace xios
               dim0.push_back(dimEdge);
               dim0.push_back(dimTwo);
               SuperClassWriter::addVariable(edge_faces, NC_INT, dim0, compressionLevel);
-              SuperClassWriter::addAttribute("cf_role", StdString("edge_face connectivity"), &edge_faces);
+              SuperClassWriter::addAttribute("cf_role", StdString("edge_face_connectivity"), &edge_faces);
               SuperClassWriter::addAttribute("long_name", StdString("neighbor faces for edges"), &edge_faces);
               SuperClassWriter::addAttribute("start_index", 0, &edge_faces);
               SuperClassWriter::addAttribute("_FillValue", -999, &edge_faces);
@@ -670,7 +670,7 @@ namespace xios
               dim0.push_back(dimFace);
               dim0.push_back(dimVertex);
               SuperClassWriter::addVariable(face_faces, NC_INT, dim0, compressionLevel);
-              SuperClassWriter::addAttribute("cf_role", StdString("face_face connectivity"), &face_faces);
+              SuperClassWriter::addAttribute("cf_role", StdString("face_face_connectivity"), &face_faces);
               SuperClassWriter::addAttribute("long_name", StdString("Indicates which other faces neighbor each face"), &face_faces);
               SuperClassWriter::addAttribute("start_index", 0, &face_faces);
               SuperClassWriter::addAttribute("_FillValue", 999999, &face_faces);
