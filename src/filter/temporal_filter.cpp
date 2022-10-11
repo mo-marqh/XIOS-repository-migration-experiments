@@ -2,6 +2,7 @@
 #include "functor_type.hpp"
 #include "calendar_util.hpp"
 #include "workflow_graph.hpp"
+#include "mem_checker.hpp"
 
 namespace xios
 {
@@ -115,6 +116,8 @@ namespace xios
         }
         else
           packet = data[0];
+
+	CMemChecker::logMem( "CTemporalFilter::apply" );
 
         isFirstOperation = false;
         graphCycleCompleted = true;

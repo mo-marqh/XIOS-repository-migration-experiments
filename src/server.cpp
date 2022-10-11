@@ -12,6 +12,7 @@
 #include "mpi.hpp"
 #include "tracer.hpp"
 #include "timer.hpp"
+#include "mem_checker.hpp"
 #include "event_scheduler.hpp"
 #include "string_tools.hpp"
 #include "ressources_manager.hpp"
@@ -158,6 +159,8 @@ namespace xios
       
       CServer::openInfoStream(CXios::serverFile);
       CServer::openErrorStream(CXios::serverFile);
+
+      CMemChecker::logMem( "CServer::initialize" );
 
       /////////////////////////////////////////
       ///////////// PART 4 ////////////////////
@@ -430,6 +433,7 @@ namespace xios
           
       CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
 
+      CMemChecker::logMem( "CServer::finalize", true );
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) delete driver_;
@@ -439,6 +443,7 @@ namespace xios
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
+      report(100)<<CMemChecker::getAllCumulatedMem()<<endl ;
       
       CWorkflowGraph::drawWorkFlowGraph_server();
       xios::releaseStaticAllocation() ; // free memory from static allocation

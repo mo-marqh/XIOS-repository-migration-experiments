@@ -4,6 +4,7 @@
 #include "calendar_util.hpp"
 #include <limits> 
 #include "workflow_graph.hpp"
+#include "mem_checker.hpp"
 
 namespace xios
 {
@@ -36,6 +37,8 @@ namespace xios
     const double nanValue = std::numeric_limits<double>::quiet_NaN();
     packet->data.resize(connector->getDstSize()) ;
     connector->transfer(data, packet->data, nanValue) ;
+
+    CMemChecker::logMem( "CModelToClientSourceFilter::streamData" );
 
     if (hasMissingValue_)
     {

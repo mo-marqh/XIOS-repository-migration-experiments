@@ -16,6 +16,7 @@
 #include "type.hpp"
 #include "xios_spl.hpp"
 #include "timer.hpp"
+#include "mem_checker.hpp"
 #include "memtrack.hpp"
 #include <limits>
 #include <fstream>
@@ -887,6 +888,8 @@ void CContext::removeAllContexts(void)
   void CContext::closeDefinition(void)
    TRY
    {
+     CMemChecker::logMem( "CContext::closeDefinition" );
+
      CTimer::get("Context : close definition").resume() ;
      
      // create intercommunicator with servers. 
@@ -1158,8 +1161,8 @@ void CContext::removeAllContexts(void)
     // fix size for each context client
     for(auto& it : fieldBufferEvaluation) it.first->setBufferSize(it.second) ;
 
-
      CTimer::get("Context : close definition").suspend() ;
+     CMemChecker::logMem( "CContext::closeDefinition END" );
   }
   CATCH_DUMP_ATTR
 
@@ -2021,6 +2024,7 @@ void CContext::removeAllContexts(void)
 
       if (prevStep < step)
       {
+        CMemChecker::logMem( "CContext::updateCalendar_"+std::to_string(step) );
         if (serviceType_==CServicesManager::CLIENT) // For now we only use server level 1 to read data
         {
           triggerLateFields();

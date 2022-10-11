@@ -12,9 +12,13 @@ namespace xios
       CMemChecker(const std::string& name);
       void suspend(void);
       void resume(void);
+      void suspendRSS(void);
+      void resumeRSS(void);
       void reset(void);
       double getCumulatedMem(void);
       static double getMem(void);
+      static double getMemRSS(void);
+      static void logMem( std::string id, bool finalizeLog = false );
       static CMemChecker& get(std::string name);
       static std::string getAllCumulatedMem(void) ;
       static void disable(void) { enabled_=false ;}
@@ -31,6 +35,9 @@ namespace xios
       static CMemChecker dummy_ ;
       static bool first_ ;
       static bool enabled_ ;
+
+      static double vsize_init_;
+      static double time_init_;
   };
 }
 

@@ -6,12 +6,19 @@
 #include <sstream>
 #include <fstream>
 
+#include <fcntl.h>
+#include <iomanip>
+#include <unistd.h>
+#include <cstring>
+
 namespace xios
 {
   CMemChecker CMemChecker::dummy_("") ;
   std::map<std::string,CMemChecker> CMemChecker::allMemChecker_;
   bool CMemChecker::enabled_=true;
   bool CMemChecker::first_=true;
+  double CMemChecker::vsize_init_=0;
+  double CMemChecker::time_init_=0;
 
   CMemChecker::CMemChecker(const std::string& name) : name_(name) 
   { 
@@ -36,6 +43,62 @@ namespace xios
     statStream>>vsize ;
     return vsize ;
   }
+  double CMemChecker::getMemRSS(void)
+  {
+    //sleep( 1 ) ;
+    if (first_) check() ;
+    if (!enabled_) return 0;
+    std::ifstream statStream("/proc/self/stat",std::ios_base::in);
+    std::string dummy ;
+    for(int i=1;i<=23;i++) statStream>>dummy ;
+    double vsize; 
+    statStream>>vsize ;
+    if (vsize_init_==0) {
+      vsize_init_ = vsize;
+      time_init_=MPI_Wtime();
+    }
+    vsize -= vsize_init_;
+    vsize *= 4096; //getconf("PAGE_SIZE");
+    return vsize ;
+  }
+  void CMemChecker::logMem( std::string id, bool finalizeLog )
+  {
+    // function get_xios_mem_data() {
+    //   return [
+    //        ...
+    //        [ "2000-01-01 01:00:10.XXX", "XIOS close context def", 1000],
+    //        [ "2000-01-01 01:00:11.XXX", "update timestep"       , 1000],
+    //        [ "2000-01-01 01:00:15.XXX", "send field"            , 2000],
+    //        ...
+    //   ];
+    // }
+    
+    std::ofstream fout;
+    int rk = 0;
+    MPI_Comm_rank( MPI_COMM_WORLD, &rk );
+    std::string logName("mem_"+std::to_string(rk)+".js");
+    double mem = getMemRSS();
+    if (!mem) {
+      fout.open( logName );
+      fout << "function get_xios_mem_data() {" << std::endl;
+      fout << "  return [" << std::endl;
+    }
+    else
+    {
+      fout.open( logName, std::ios_base::app );
+    }
+
+    // Time format : YYYY-MM-DD HH:MM:SS.XXX -> seconds * 1000.
+    fout << "        [ " << (MPI_Wtime()-time_init_)*1000. << ", \"" << id << "\"," << mem/1000000. << "]," << std::endl;
+
+    if (finalizeLog)
+    {
+      fout << "  ];" << std::endl;
+      fout << "}" << std::endl;
+    }
+    fout.close();
+  }
+
   
   void CMemChecker::suspend(void)
   {
@@ -52,7 +115,24 @@ namespace xios
     if (suspended_) lastMem_ = getMem();
     suspended_ = false;
   }
+
+  void CMemChecker::suspendRSS(void)
+  {
+    if (first_) check() ;
+    if (!enabled_) return ;
+    if (!suspended_) cumulatedMem_ += getMemRSS() - lastMem_;
+    suspended_ = true;
+  }
   
+  void CMemChecker::resumeRSS(void)
+  {
+    if (first_) check() ;
+    if (!enabled_) return ;
+    if (suspended_) lastMem_ = getMemRSS();
+    suspended_ = false;
+  }
+  
+
   void CMemChecker::reset(void)
   {
     if (first_) check() ;

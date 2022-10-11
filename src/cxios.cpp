@@ -150,11 +150,14 @@ namespace xios
       CClient::openInfoStream();
       CClient::openErrorStream();
     }
+    CMemChecker::logMem("CXios::initClientSide");
   }
   CATCH
 
   void CXios::clientFinalize(void)
   {
+     CMemChecker::logMem("CXios::clientFinalize", true);
+
      CClient::finalize() ;
           
 #ifdef XIOS_MEMTRACK
@@ -232,7 +235,6 @@ namespace xios
 #endif
 #endif
     CMemChecker::get("xios").suspend() ;
-    report(0)<<CMemChecker::getAllCumulatedMem() ;
     CServer::closeInfoStream();
   }
 
