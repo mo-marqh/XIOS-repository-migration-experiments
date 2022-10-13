@@ -76,12 +76,11 @@ namespace xios
     std::ofstream fout;
     int rk = 0;
     MPI_Comm_rank( MPI_COMM_WORLD, &rk );
-    std::string logName("mem_"+std::to_string(rk)+".js");
+    std::string logName("xios_memory_"+std::to_string(rk)+".csv");
     double mem = getMemRSS();
     if (!mem) {
       fout.open( logName );
-      fout << "function get_xios_mem_data() {" << std::endl;
-      fout << "  return [" << std::endl;
+      fout << "time,event,memory" << std::endl;
     }
     else
     {
@@ -89,13 +88,8 @@ namespace xios
     }
 
     // Time format : YYYY-MM-DD HH:MM:SS.XXX -> seconds * 1000.
-    fout << "        [ " << (MPI_Wtime()-time_init_)*1000. << ", \"" << id << "\"," << mem/1000000. << "]," << std::endl;
+    fout << (MPI_Wtime()-time_init_)*1000. << "," << id << "," << mem/1000000. << std::endl;
 
-    if (finalizeLog)
-    {
-      fout << "  ];" << std::endl;
-      fout << "}" << std::endl;
-    }
     fout.close();
   }
 

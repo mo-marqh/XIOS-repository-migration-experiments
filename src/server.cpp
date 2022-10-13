@@ -433,7 +433,7 @@ namespace xios
           
       CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
 
-      CMemChecker::logMem( "CServer::finalize", true );
+      CMemChecker::logMem( "CServer::finalize" );
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) delete driver_;

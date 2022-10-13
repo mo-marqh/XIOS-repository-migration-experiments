@@ -156,7 +156,7 @@ namespace xios
 
   void CXios::clientFinalize(void)
   {
-     CMemChecker::logMem("CXios::clientFinalize", true);
+     CMemChecker::logMem("CXios::clientFinalize");
 
      CClient::finalize() ;
           

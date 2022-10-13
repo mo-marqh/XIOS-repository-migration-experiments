@@ -1162,7 +1162,7 @@ void CContext::removeAllContexts(void)
     for(auto& it : fieldBufferEvaluation) it.first->setBufferSize(it.second) ;
 
      CTimer::get("Context : close definition").suspend() ;
-     CMemChecker::logMem( "CContext::closeDefinition END" );
+     CMemChecker::logMem( "CContext::closeDefinition_END" );
   }
   CATCH_DUMP_ATTR
 
