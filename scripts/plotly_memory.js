@@ -71,7 +71,7 @@ function processData(xios_mem_data) {
     var layout = {
 	title: "Memory consumption",
 	xaxis: {
-	    title: "Time (ms)",
+	    title: "Time (s)",
 	},
 	yaxis: {
 	    title: "Memory (Mo)",

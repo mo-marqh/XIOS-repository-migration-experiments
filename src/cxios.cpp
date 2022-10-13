@@ -55,6 +55,7 @@ namespace xios
   bool CXios::checkEventSync=false ;
   bool CXios::checkSumRecv=false ;
   bool CXios::checkSumSend=false ;
+  bool CXios::logMemory=false ;
 
   CDaemonsManager*    CXios::daemonsManager_=nullptr ;
   CRessourcesManager* CXios::ressourcesManager_=nullptr ;
@@ -116,6 +117,8 @@ namespace xios
     
     checkSumSend = getin<bool>("checksum_send_fields", false);
     checkSumRecv = getin<bool>("checksum_recv_fields", false);
+    
+    logMemory = getin<bool>("log_memory", false);
 
     globalComm=MPI_COMM_WORLD ;
   }
@@ -156,7 +159,7 @@ namespace xios
 
   void CXios::clientFinalize(void)
   {
-     CMemChecker::logMem("CXios::clientFinalize");
+     CMemChecker::logMem("CXios::clientFinalize", true);
 
      CClient::finalize() ;
           

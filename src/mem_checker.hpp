@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <fstream>
 
 namespace xios
 {
@@ -38,6 +39,8 @@ namespace xios
 
       static double vsize_init_;
       static double time_init_;
+      static std::ofstream fout_;
+      static int flush_counter_;
   };
 }
 

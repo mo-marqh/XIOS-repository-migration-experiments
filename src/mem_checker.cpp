@@ -1,10 +1,10 @@
 #include "mem_checker.hpp"
+#include "cxios.hpp"
 #include "mpi.hpp"
 #include <string>
 #include <map>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 
 #include <fcntl.h>
 #include <iomanip>
@@ -19,7 +19,9 @@ namespace xios
   bool CMemChecker::first_=true;
   double CMemChecker::vsize_init_=0;
   double CMemChecker::time_init_=0;
-
+  std::ofstream CMemChecker::fout_;
+  int CMemChecker::flush_counter_=1;
+  
   CMemChecker::CMemChecker(const std::string& name) : name_(name) 
   { 
     if (first_) check() ;
@@ -63,34 +65,31 @@ namespace xios
   }
   void CMemChecker::logMem( std::string id, bool finalizeLog )
   {
-    // function get_xios_mem_data() {
-    //   return [
-    //        ...
-    //        [ "2000-01-01 01:00:10.XXX", "XIOS close context def", 1000],
-    //        [ "2000-01-01 01:00:11.XXX", "update timestep"       , 1000],
-    //        [ "2000-01-01 01:00:15.XXX", "send field"            , 2000],
-    //        ...
-    //   ];
-    // }
-    
-    std::ofstream fout;
+    if ( !CXios::logMemory ) return ;
+
     int rk = 0;
     MPI_Comm_rank( MPI_COMM_WORLD, &rk );
     std::string logName("xios_memory_"+std::to_string(rk)+".csv");
     double mem = getMemRSS();
     if (!mem) {
-      fout.open( logName );
-      fout << "time,event,memory" << std::endl;
-    }
-    else
-    {
-      fout.open( logName, std::ios_base::app );
+      fout_.open( logName );
+      fout_ << "time,event,memory" << std::endl;
     }
 
+    fout_.precision(4);
     // Time format : YYYY-MM-DD HH:MM:SS.XXX -> seconds * 1000.
-    fout << (MPI_Wtime()-time_init_)*1000. << "," << id << "," << mem/1000000. << std::endl;
+    fout_ << (MPI_Wtime()-time_init_) << "," << id << "," << mem/1000000. << std::endl;
 
-    fout.close();
+    if ((MPI_Wtime()-time_init_)>flush_counter_*600.)
+    {
+      fout_.flush();
+      flush_counter_++;
+    }
+    
+    if (finalizeLog)
+    {
+      fout_.close();
+    }
   }
 
   
