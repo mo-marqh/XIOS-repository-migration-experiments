@@ -2051,7 +2051,15 @@ namespace xios {
           {
             // nServerWithAdditionalChunk servers have been affected above with (nChunkPerServer+1) chunks
             // the rest will recv nChunkPerServer
-            serverRank = nServerWithAdditionalChunk+(rank-nServerWithAdditionalChunk*(nChunkPerServer+1))/nChunkPerServer;
+            if (nChunkPerServer>0)
+            {
+              serverRank = nServerWithAdditionalChunk+(rank-nServerWithAdditionalChunk*(nChunkPerServer+1))/nChunkPerServer;
+            }
+            else
+            {
+              // no chunk for all servers, current rank will not manage informations for this domain
+              serverRank = client->getRemoteSize();
+            }
           }
         }
         else // (nbServer > nbClient)
