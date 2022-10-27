@@ -2066,6 +2066,16 @@ namespace xios {
         {
           serverRank = rank;
         }
+
+        if (nbChunk<nbServer)
+        {
+            if ( (serverRank==client->getRemoteSize()) && (rankClient<nbServer) )
+            {
+                indSize = 0;
+                serverRank = rank;
+            }
+        }
+
         if (serverRank<client->getRemoteSize())
         {
           auto& globalInd =  globalIndex[serverRank] ;
