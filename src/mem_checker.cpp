@@ -24,7 +24,7 @@ namespace xios
   std::ofstream CMemChecker::fout_;
   int CMemChecker::flush_counter_=1;
   
-  CMemChecker::CMemChecker(const std::string& name) : name_(name) 
+  CMemChecker::CMemChecker(const std::string& name) : name_(name)
   { 
     if (first_) check() ;
     reset();
@@ -36,37 +36,30 @@ namespace xios
     enabled_ &= statStream.good() ;
     first_=false ;
   }
-  double CMemChecker::getMem(void)
+  
+  // Return vector of memories amount :
+  //   - vector[0] : virtual memory (vsize) from /proc/self/stat
+  //   - vector[1] : resident set size (rss) from /proc/self/stat
+  std::vector<double> CMemChecker::getMem(void)
   {
+    std::vector<double> memories(0);
+    memories.clear();
+    
     if (first_) check() ;
-    if (!enabled_) return 0;
+    if (!enabled_) return memories;
     std::ifstream statStream("/proc/self/stat",std::ios_base::in);
     std::string dummy ;
     for(int i=1;i<=22;i++) statStream>>dummy ;
     unsigned long vsize; 
     statStream>>vsize ;
-    return vsize ;
-  }
-  double CMemChecker::getMemRSS(void)
-  {
-    //sleep( 1 ) ;
-    if (first_) check() ;
-    if (!enabled_) return 0;
-    std::ifstream statStream("/proc/self/stat",std::ios_base::in);
-    std::string dummy ;
-    for(int i=1;i<=23;i++) statStream>>dummy ;
-    double vsize; 
-    statStream>>vsize ;
-    if (vsize_init_==0) {
-      vsize_init_ = vsize;
-      time_init_=MPI_Wtime();
-    }
-    vsize -= vsize_init_;
-    vsize *= 4096; //getconf("PAGE_SIZE");
-    return vsize ;
+    memories.push_back(vsize);
+    unsigned long rss;
+    statStream>>rss ;
+    memories.push_back(rss*4096);
+    return memories ;
   }
   
-  // Return vector of memories amount :
+  // Return vector of memories amount, register values (see _init) as first call as reference :
   //   - vector[0] : virtual memory (vsize) from /proc/self/stat
   //   - vector[1] : resident set size (rss) from /proc/self/stat
   //   - vector[2] : Peak resident set size (VmHWM) from /proc/self/status
@@ -81,7 +74,7 @@ namespace xios
     for(int i=1;i<=22;i++) statStream>>dummy ;
 
     // 1 - Virtual
-    double vsize; 
+    unsigned long vsize; 
     statStream>>vsize ;
     if (vsize_init_==0) {
       vsize_init_ = vsize;
@@ -91,7 +84,7 @@ namespace xios
     memories.push_back(vsize);
 
     // 2 - RSS
-    double rss;
+    unsigned long rss;
     statStream>>rss ;
     if (rss_init_==0) {
       rss_init_ = rss;
@@ -162,7 +155,15 @@ namespace xios
   {
     if (first_) check() ;
     if (!enabled_) return ;
-    if (!suspended_) cumulatedMem_ += getMem() - lastMem_;
+    if (!suspended_)
+    {
+      vector<double> mem = getMem();
+      cumulatedMem_.resize( mem.size() );
+      for (int i=0;i<mem.size() ; i++)
+      {
+        cumulatedMem_[i] += mem[i] - lastMem_[i];
+      }
+    }
     suspended_ = true;
   }
   
@@ -170,39 +171,32 @@ namespace xios
   {
     if (first_) check() ;
     if (!enabled_) return ;
-    if (suspended_) lastMem_ = getMem();
+    if (suspended_)
+    {
+      vector<double> mem = getMem();
+      lastMem_.resize( mem.size() );
+      for (int i=0;i<mem.size() ; i++)
+      {
+        lastMem_[i] = mem[i];
+      }
+    }
     suspended_ = false;
   }
-
-  void CMemChecker::suspendRSS(void)
-  {
-    if (first_) check() ;
-    if (!enabled_) return ;
-    if (!suspended_) cumulatedMem_ += getMemRSS() - lastMem_;
-    suspended_ = true;
-  }
-  
-  void CMemChecker::resumeRSS(void)
-  {
-    if (first_) check() ;
-    if (!enabled_) return ;
-    if (suspended_) lastMem_ = getMemRSS();
-    suspended_ = false;
-  }
-  
 
   void CMemChecker::reset(void)
   {
     if (first_) check() ;
     if (!enabled_) return ;
-    cumulatedMem_ = 0.;
+    cumulatedMem_.clear();
     suspended_ = true;
   }
   
-  double CMemChecker::getCumulatedMem(void)
+  std::vector<double> CMemChecker::getCumulatedMem(void)
   {
+    std::vector<double> memories;
+    memories.clear();
     if (first_) check() ;
-    if (!enabled_) return 0;
+    if (!enabled_) return memories;
     return cumulatedMem_;
   }
   
@@ -230,13 +224,16 @@ namespace xios
     const double Tb=Gb*1024 ;
     for(std::map<std::string,CMemChecker>::iterator it=allMemChecker_.begin();it!=allMemChecker_.end();++it)
     {  
-      strOut<<"MemChecker : "<<it->first<<"    -->   consumed memory : " ;
-      double mem=it->second.getCumulatedMem() ;
-      if (mem>=Tb) strOut<< mem / Tb<<" Tb"<<std::endl ;
-      else if (mem>=Gb) strOut<< mem / Gb<<" Gb"<<std::endl ;
-      else if (mem>=Mb) strOut<< mem / Mb<<" Mb"<<std::endl ;
-      else if (mem>=Kb) strOut<< mem / Kb<<" Kb"<<std::endl ;
-      else strOut<< mem <<" bytes"<<std::endl ;
+      vector<double> mem=it->second.getCumulatedMem() ;
+      if (mem.size()>0)
+      {
+        strOut<<"MemChecker : "<<it->first<<"    -->   consumed memory : " ;      
+        if ((fabs(mem[0])>=Tb)||(fabs(mem[1])>=Tb)) strOut<< mem[0] / Tb<<" Tb - "<<mem[1] / Tb<<" Tb"<<std::endl ;
+        else if ((fabs(mem[0])>=Gb)||(fabs(mem[1])>=Gb)) strOut<< mem[0] / Gb<<" Gb - "<<mem[1] / Gb<<" Gb"<<std::endl ;
+        else if ((fabs(mem[0])>=Mb)||(fabs(mem[1])>=Mb)) strOut<< mem[0] / Mb<<" Mb - "<<mem[1] / Mb<<" Mb"<<std::endl ;
+        else if ((fabs(mem[0])>=Kb)||(fabs(mem[1])>=Kb)) strOut<< mem[0] / Kb<<" Kb - "<<mem[1] / Kb<<" Kb"<<std::endl ;
+        else strOut<< mem[0] <<" bytes - "<<mem[1] <<" bytes"<<std::endl ;
+      }
     }
     return strOut.str() ;
   }

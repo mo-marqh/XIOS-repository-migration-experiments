@@ -24,6 +24,7 @@
 #include "context_client.hpp"
 #include "mpi.hpp"
 #include "timer.hpp"
+#include "mem_checker.hpp"
 #include "array_new.hpp"
 
 
@@ -118,12 +119,16 @@ extern "C"
    void cxios_context_close_definition()
    TRY
    {
+     CMemChecker::get("XIOS close definition").resume();
+     
      CTimer::get("XIOS").resume();
      CTimer::get("XIOS close definition").resume();
      CContext* context = CContext::getCurrent();
      context->closeDefinition();
      CTimer::get("XIOS close definition").suspend();
      CTimer::get("XIOS").suspend();
+
+     CMemChecker::get("XIOS close definition").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -418,6 +423,7 @@ extern "C"
    void cxios_write_data_k80_hdl(CField* field, double* data_k8, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
       CContext* context = CContext::getCurrent();
@@ -427,6 +433,7 @@ extern "C"
       field->setData(data);
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -445,6 +452,7 @@ extern "C"
    void cxios_write_data_k81_hdl(CField* field, double* data_k8, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -457,6 +465,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
    
@@ -475,6 +484,7 @@ extern "C"
    void cxios_write_data_k82_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -487,6 +497,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -507,6 +518,7 @@ extern "C"
    void cxios_write_data_k83_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -519,6 +531,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
    
@@ -541,6 +554,7 @@ extern "C"
    void cxios_write_data_k84_hdl(CField* field, double* data_k8, int data_0size, int data_1size, int data_2size, int data_3size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -553,6 +567,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -577,6 +592,7 @@ extern "C"
                              int data_3size, int data_4size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -589,6 +605,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -612,6 +629,7 @@ extern "C"
    TRY
    {
  
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -624,6 +642,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
    
@@ -648,6 +667,7 @@ extern "C"
                              int data_6size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -660,6 +680,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
    
@@ -682,6 +703,7 @@ extern "C"
    void cxios_write_data_k40_hdl(CField* field, float* data_k4, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
       CContext* context = CContext::getCurrent();
@@ -694,6 +716,7 @@ extern "C"
       field->setData(data);
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -711,6 +734,7 @@ extern "C"
    void cxios_write_data_k41_hdl(CField* field, float* data_k4, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -725,6 +749,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -741,6 +766,7 @@ extern "C"
    void cxios_write_data_k42_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -755,6 +781,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -773,6 +800,7 @@ extern "C"
    void cxios_write_data_k43_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -787,6 +815,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
    
@@ -806,6 +835,7 @@ extern "C"
                              int data_3size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -820,6 +850,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -842,6 +873,7 @@ extern "C"
                              int data_3size, int data_4size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -856,6 +888,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -877,6 +910,7 @@ extern "C"
                              int data_3size, int data_4size, int data_5size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -891,6 +925,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -912,6 +947,7 @@ extern "C"
                              int data_6size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
 
@@ -926,6 +962,7 @@ extern "C"
 
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -947,6 +984,7 @@ extern "C"
    void cxios_read_data_k80_hdl(CField* field, double* data_k8, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -959,6 +997,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -975,6 +1014,7 @@ extern "C"
    void cxios_read_data_k81_hdl(CField* field, double* data_k8, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -987,6 +1027,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1002,6 +1043,7 @@ extern "C"
    void cxios_read_data_k82_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1014,6 +1056,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1030,6 +1073,7 @@ extern "C"
    void cxios_read_data_k83_hdl(CField* field, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1042,6 +1086,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1060,6 +1105,7 @@ extern "C"
                             int data_3size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1072,6 +1118,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1091,6 +1138,7 @@ extern "C"
                             int data_3size, int data_4size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1103,6 +1151,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1122,6 +1171,7 @@ extern "C"
                             int data_3size, int data_4size, int data_5size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1134,6 +1184,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1154,6 +1205,7 @@ extern "C"
                             int data_6size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1166,6 +1218,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1189,6 +1242,7 @@ extern "C"
    void cxios_read_data_k40_hdl(CField* field, float* data_k4, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1203,6 +1257,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1220,6 +1275,7 @@ extern "C"
    void cxios_read_data_k41_hdl(CField* field, float* data_k4, int data_Xsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1234,6 +1290,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1252,6 +1309,7 @@ extern "C"
    void cxios_read_data_k42_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1266,6 +1324,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
    }
    CATCH_DUMP_STACK
 
@@ -1283,6 +1342,7 @@ extern "C"
    void cxios_read_data_k43_hdl(CField* field, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1297,6 +1357,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -1315,6 +1376,7 @@ extern "C"
                             int data_3size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1329,6 +1391,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -1350,6 +1413,7 @@ extern "C"
                             int data_3size, int data_4size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1364,6 +1428,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -1384,6 +1449,7 @@ extern "C"
                             int data_3size, int data_4size, int data_5size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1398,6 +1464,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
 
@@ -1420,6 +1487,7 @@ extern "C"
                             int data_6size)
    TRY
    {
+      CMemChecker::get("XIOS send field").resume();
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS recv field").resume();
 
@@ -1434,6 +1502,7 @@ extern "C"
 
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
+      CMemChecker::get("XIOS send field").suspend();
     }
    CATCH_DUMP_STACK
  

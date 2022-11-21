@@ -2024,7 +2024,6 @@ void CContext::removeAllContexts(void)
 
       if (prevStep < step)
       {
-        CMemChecker::logMem( "CContext::updateCalendar_"+std::to_string(step) );
         if (serviceType_==CServicesManager::CLIENT) // For now we only use server level 1 to read data
         {
           triggerLateFields();
@@ -2042,6 +2041,7 @@ void CContext::removeAllContexts(void)
           doPostTimestepOperationsForEnabledReadModeFiles();
           garbageCollector.invalidate(calendar->getCurrentDate());
         }
+        CMemChecker::logMem( "CContext::updateCalendar_"+std::to_string(step) );
       }
       else if (prevStep == step)
         info(50) << "updateCalendar: already at step " << step << ", no operation done." << endl;

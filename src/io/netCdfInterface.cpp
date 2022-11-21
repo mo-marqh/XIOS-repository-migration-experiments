@@ -9,6 +9,7 @@
 
 #include "netCdfInterface.hpp"
 #include "netCdfException.hpp"
+#include "mem_checker.hpp"
 
 namespace xios
 {
@@ -21,6 +22,7 @@ This function creates a new netcdf file and return its id
 */
 int CNetCdfInterface::create(const StdString& fileName, int cMode, int& ncId)
 {
+  CMemChecker::get("NetCDF create").resume();
   int status = nc_create(fileName.c_str(), cMode, &ncId);
   if (NC_NOERR != status)
   {
@@ -33,6 +35,7 @@ int CNetCdfInterface::create(const StdString& fileName, int cMode, int& ncId)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF create").suspend();
 
   return status;
 }
@@ -48,6 +51,7 @@ This function creates a new netcdf file on parallel file system
 */
 int CNetCdfInterface::createPar(const StdString& fileName, int cMode, MPI_Comm comm, MPI_Info info, int& ncId)
 {
+  CMemChecker::get("NetCDF create").resume();
   int status = xios::nc_create_par(fileName.c_str(), cMode, comm, info, &ncId);
   if (NC_NOERR != status)
   {
@@ -60,6 +64,7 @@ int CNetCdfInterface::createPar(const StdString& fileName, int cMode, MPI_Comm c
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF create").suspend();
 
   return status;
 }
@@ -73,6 +78,7 @@ This function opens a netcdf file, given its name and open mode, return its id
 */
 int CNetCdfInterface::open(const StdString& fileName, int oMode, int& ncId)
 {
+  CMemChecker::get("NetCDF open").resume();
   int status = nc_open(fileName.c_str(), oMode, &ncId);
   if (NC_NOERR != status)
   {
@@ -85,6 +91,7 @@ int CNetCdfInterface::open(const StdString& fileName, int oMode, int& ncId)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF open").suspend();
 
   return status;
 }
@@ -101,6 +108,7 @@ This function opens a new netcdf file on parallel file system
 */
 int CNetCdfInterface::openPar(const StdString& fileName, int oMode, MPI_Comm comm, MPI_Info info, int& ncId)
 {
+  CMemChecker::get("NetCDF open").resume();
   int status = xios::nc_open_par(fileName.c_str(), oMode, comm, info, &ncId);
   if (NC_NOERR != status)
   {
@@ -113,6 +121,7 @@ int CNetCdfInterface::openPar(const StdString& fileName, int oMode, MPI_Comm com
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF open").suspend();
 
   return status;
 }
@@ -124,6 +133,7 @@ This function closes a netcdf file, given its id
 */
 int CNetCdfInterface::close(int ncId)
 {
+  CMemChecker::get("NetCDF close").resume();
   int status = nc_close(ncId);
   if (NC_NOERR != status)
   {
@@ -135,6 +145,7 @@ int CNetCdfInterface::close(int ncId)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF close").suspend();
 
   return status;
 }
@@ -146,6 +157,7 @@ This function put a netcdf file into define mode, given its id
 */
 int CNetCdfInterface::reDef(int ncId)
 {
+  CMemChecker::get("NetCDF other").resume();
   int status = nc_redef(ncId);
   if (NC_NOERR != status)
   {
@@ -157,6 +169,7 @@ int CNetCdfInterface::reDef(int ncId)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF other").suspend();
 
   return status;
 }
@@ -168,6 +181,7 @@ This function ends a netcdf file define mode, given its id
 */
 int CNetCdfInterface::endDef(int ncId)
 {
+  CMemChecker::get("NetCDF other").resume();
   int status = nc_enddef(ncId);
   if (NC_NOERR != status)
   {
@@ -180,6 +194,7 @@ int CNetCdfInterface::endDef(int ncId)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF other").suspend();
 
   return status;
 }
@@ -772,6 +787,7 @@ Set or unset the fill mode for a NetCDF file specified by its file id.
 */
 int CNetCdfInterface::setFill(int ncid, bool fill)
 {
+  CMemChecker::get("NetCDF other").resume();
   int old_fill_mode;
   int status = nc_set_fill(ncid, fill ? NC_FILL: NC_NOFILL, &old_fill_mode);
   if (NC_NOERR != status)
@@ -785,6 +801,7 @@ int CNetCdfInterface::setFill(int ncid, bool fill)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF other").suspend();
 
   return status;
 }
@@ -800,6 +817,7 @@ given variable id and type of fill
 */
 int CNetCdfInterface::defVarFill(int ncid, int varId, int noFill, void* fillValue)
 {
+  CMemChecker::get("NetCDF other").resume();
   int status = nc_def_var_fill(ncid, varId, noFill, fillValue);
   if (NC_NOERR != status)
   {
@@ -813,6 +831,7 @@ int CNetCdfInterface::defVarFill(int ncid, int varId, int noFill, void* fillValu
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF other").suspend();
 
   return status;
 }
@@ -828,6 +847,7 @@ collectively or independently on the variable.
 */
 int CNetCdfInterface::varParAccess(int ncid, int varId, int access)
 {
+  CMemChecker::get("NetCDF other").resume();
   int status = nc_var_par_access(ncid, varId, access);
   if (NC_NOERR != status)
   {
@@ -840,6 +860,7 @@ int CNetCdfInterface::varParAccess(int ncid, int varId, int access)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF other").suspend();
 
   return status;
 }
@@ -851,6 +872,7 @@ This function makes a synchronisation of the disk copy of a netCDF dataset.
 */
 int CNetCdfInterface::sync(int ncid)
 {
+  CMemChecker::get("NetCDF other").resume();
   int status = nc_sync(ncid);
   if (NC_NOERR != status)
   {
@@ -863,6 +885,7 @@ int CNetCdfInterface::sync(int ncid)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  CMemChecker::get("NetCDF other").suspend();
 
   return status;
 }

@@ -14,12 +14,9 @@ namespace xios
       CMemChecker(const std::string& name);
       void suspend(void);
       void resume(void);
-      void suspendRSS(void);
-      void resumeRSS(void);
       void reset(void);
-      double getCumulatedMem(void);
-      static double getMem(void);
-      static double getMemRSS(void);
+      std::vector<double> getCumulatedMem(void);
+      static std::vector<double> getMem(void);
       static std::vector<double> getMemories(void);
       static void logMem( std::string id, bool finalizeLog = false );
       static CMemChecker& get(std::string name);
@@ -29,8 +26,8 @@ namespace xios
       static void release(void) {allMemChecker_.clear();}
     private:
       static void check(void) ;
-      double cumulatedMem_;
-      double lastMem_;
+      std::vector<double> cumulatedMem_;
+      std::vector<double> lastMem_;
       bool suspended_;
       std::string name_;
 

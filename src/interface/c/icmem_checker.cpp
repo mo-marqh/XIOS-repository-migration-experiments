@@ -10,7 +10,15 @@ extern "C"
 {
   void cxios_mem_checker_get(double* mem)
   {
-    *mem=CMemChecker::getMemRSS();
+    std::vector<double> memories = CMemChecker::getMem();
+    if (memories.size()>1)
+    {
+      *mem=memories[1]; //rss
+    }
+    else
+    {
+      *mem = 0.;
+    }
   }
 
   void cxios_mem_checker_log(const char* mem_id, int len_mem_id, bool* finalize)
