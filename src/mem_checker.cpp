@@ -18,6 +18,8 @@ namespace xios
   bool CMemChecker::enabled_=true;
   bool CMemChecker::first_=true;
   double CMemChecker::vsize_init_=0;
+  double CMemChecker::rss_init_=0;
+  double CMemChecker::vmhwm_init_=0;
   double CMemChecker::time_init_=0;
   std::ofstream CMemChecker::fout_;
   int CMemChecker::flush_counter_=1;
@@ -63,6 +65,65 @@ namespace xios
     vsize *= 4096; //getconf("PAGE_SIZE");
     return vsize ;
   }
+  
+  // Return vector of memories amount :
+  //   - vector[0] : virtual memory (vsize) from /proc/self/stat
+  //   - vector[1] : resident set size (rss) from /proc/self/stat
+  //   - vector[2] : Peak resident set size (VmHWM) from /proc/self/status
+  std::vector<double> CMemChecker::getMemories(void)
+  {
+    std::vector<double> memories;
+
+    if (first_) check() ;
+    if (!enabled_) return memories;
+    std::ifstream statStream("/proc/self/stat",std::ios_base::in);
+    std::string dummy ;
+    for(int i=1;i<=22;i++) statStream>>dummy ;
+
+    // 1 - Virtual
+    double vsize; 
+    statStream>>vsize ;
+    if (vsize_init_==0) {
+      vsize_init_ = vsize;
+      time_init_=MPI_Wtime();
+    }
+    vsize -= vsize_init_;
+    memories.push_back(vsize);
+
+    // 2 - RSS
+    double rss;
+    statStream>>rss ;
+    if (rss_init_==0) {
+      rss_init_ = rss;
+    }
+    rss -= rss_init_;
+    rss *= 4096; //getconf("PAGE_SIZE");    
+    memories.push_back(rss);
+
+    // 3 - Peak
+    char sbuf[1024];
+    std::ifstream file( "/proc/self/status" );
+    if( file.fail() ) {
+      return memories;
+    }
+    int fd = open( "/proc/self/status", O_RDONLY, 0 );
+    int num_read=read( fd, sbuf, ( sizeof sbuf )-1 );
+    close( fd );
+    if( !num_read ) {
+      return memories;             
+    }
+    // Peak resident set size
+    char *S=strstr( sbuf, "VmHWM:" )+6;
+    double vmhwm = ( int )atoi( S );
+    if (vmhwm_init_==0) {
+      vmhwm_init_ = vmhwm;
+    }
+    vmhwm -= vmhwm_init_;
+    memories.push_back(vmhwm);
+    
+    return memories;
+  }
+  
   void CMemChecker::logMem( std::string id, bool finalizeLog )
   {
     if ( !CXios::logMemory ) return ;
@@ -70,15 +131,19 @@ namespace xios
     int rk = 0;
     MPI_Comm_rank( MPI_COMM_WORLD, &rk );
     std::string logName("xios_memory_"+std::to_string(rk)+".csv");
-    double mem = getMemRSS();
-    if (!mem) {
+    vector<double> mem = getMemories();
+    if (!mem[0]) {
       fout_.open( logName );
-      fout_ << "time,event,memory" << std::endl;
+      fout_ << "time,event,vsize,rss,VmHWM" << std::endl;
     }
 
     fout_.precision(4);
     // Time format : YYYY-MM-DD HH:MM:SS.XXX -> seconds * 1000.
-    fout_ << (MPI_Wtime()-time_init_) << "," << id << "," << mem/1000000. << std::endl;
+    fout_ << (MPI_Wtime()-time_init_) << "," << id
+          << "," << mem[0]/1024./1024.
+          << "," << mem[1]/1024./1024.
+          << "," << mem[2]/1024.
+          << std::endl;
 
     if ((MPI_Wtime()-time_init_)>flush_counter_*600.)
     {

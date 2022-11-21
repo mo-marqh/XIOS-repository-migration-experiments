@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <fstream>
+#include <vector>
 
 namespace xios
 {
@@ -19,6 +20,7 @@ namespace xios
       double getCumulatedMem(void);
       static double getMem(void);
       static double getMemRSS(void);
+      static std::vector<double> getMemories(void);
       static void logMem( std::string id, bool finalizeLog = false );
       static CMemChecker& get(std::string name);
       static std::string getAllCumulatedMem(void) ;
@@ -38,6 +40,8 @@ namespace xios
       static bool enabled_ ;
 
       static double vsize_init_;
+      static double rss_init_;
+      static double vmhwm_init_;
       static double time_init_;
       static std::ofstream fout_;
       static int flush_counter_;
