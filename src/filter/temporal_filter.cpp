@@ -3,6 +3,7 @@
 #include "calendar_util.hpp"
 #include "workflow_graph.hpp"
 #include "file.hpp"
+#include "mem_checker.hpp"
 
 namespace xios
 {
@@ -129,7 +130,9 @@ namespace xios
         else
           packet = data[0];
 
-        isFirstOperation = false;
+        CMemChecker::logMem( "CTemporalFilter::apply" );
+
+	isFirstOperation = false;
         
         packet->field = this->field;
         

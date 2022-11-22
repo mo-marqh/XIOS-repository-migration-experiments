@@ -14,6 +14,7 @@
 #include "type.hpp"
 #include "xios_spl.hpp"
 #include "timer.hpp"
+#include "mem_checker.hpp"
 #include "memtrack.hpp"
 #include <limits>
 #include <fstream>
@@ -700,6 +701,7 @@ namespace xios {
    void CContext::closeDefinition(void)
    TRY
    {
+    CMemChecker::logMem( "CContext::closeDefinition" );
     CTimer::get("Context : close definition").resume() ;
     postProcessingGlobalAttributes();
 
@@ -728,6 +730,7 @@ namespace xios {
       if (!hasServer) startPrefetchingOfEnabledReadModeFiles();
     }
     CTimer::get("Context : close definition").suspend() ;
+    CMemChecker::logMem( "CContext::closeDefinition_END" );
    }
    CATCH_DUMP_ATTR
 
@@ -1975,6 +1978,7 @@ namespace xios {
           doPostTimestepOperationsForEnabledReadModeFiles();
           garbageCollector.invalidate(calendar->getCurrentDate());
         }
+	CMemChecker::logMem( "CContext::updateCalendar_"+std::to_string(step) );
       }
       else if (prevStep == step)
         info(50) << "updateCalendar: already at step " << step << ", no operation done." << endl;

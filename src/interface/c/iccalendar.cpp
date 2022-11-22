@@ -3,6 +3,7 @@
 #include "icdate.hpp"
 #include "exception.hpp"
 #include "timer.hpp"
+#include "mem_checker.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
 
@@ -11,6 +12,7 @@ extern "C"
   void cxios_update_calendar(int step)
   TRY
   {
+    CMemChecker::get("XIOS update calendar").resume();
     CTimer::get("XIOS").resume();
     xios::CContext* context = CContext::getCurrent();
     if (!context->hasServer && !context->client->isAttachedModeEnabled())
@@ -18,6 +20,7 @@ extern "C"
     context->updateCalendar(step);
     context->sendUpdateCalendar(step);
     CTimer::get("XIOS").suspend();
+    CMemChecker::get("XIOS update calendar").suspend();
   }
   CATCH_DUMP_STACK
 

@@ -9,6 +9,7 @@
 #include "memory.hpp"
 #include <new>
 #include "memtrack.hpp"
+#include "mem_checker.hpp"
 #include "registry.hpp"
 
 #include "graphviz.hpp"
@@ -44,6 +45,7 @@ namespace xios
   bool CXios::checkEventSync=false ;
   bool CXios::checkSumRecv=false ;
   bool CXios::checkSumSend=false ;
+  bool CXios::logMemory=false ;
  
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
@@ -96,6 +98,8 @@ namespace xios
 
     checkSumSend = getin<bool>("checksum_send_fields", false);
     checkSumRecv = getin<bool>("checksum_recv_fields", false);
+
+    logMemory = getin<bool>("log_memory", false);
  
     globalComm=MPI_COMM_WORLD ;
   }
@@ -130,11 +134,13 @@ namespace xios
       CClient::openInfoStream();
       CClient::openErrorStream();
     }
+    CMemChecker::logMem("CXios::initClientSide");
   }
   CATCH
 
   void CXios::clientFinalize(void)
   {
+     CMemChecker::logMem("CXios::clientFinalize", true);
      CClient::finalize() ;
      if (CClient::getRank()==0)
      {
@@ -205,6 +211,7 @@ namespace xios
       CServer::openInfoStream();
       CServer::openErrorStream();
     }
+    CMemChecker::logMem( "CServer::initialize" );
 
     // Enter the loop to listen message from Client
     CServer::eventLoop();

@@ -12,6 +12,7 @@
 #include "mpi.hpp"
 #include "tracer.hpp"
 #include "timer.hpp"
+#include "mem_checker.hpp"
 #include "event_scheduler.hpp"
 #include "string_tools.hpp"
 
@@ -422,6 +423,7 @@ namespace xios
 
       MPI_Comm_free(&intraComm);
 
+      CMemChecker::logMem( "CServer::finalize", true );
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();
@@ -431,6 +433,7 @@ namespace xios
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
+      report(100)<<CMemChecker::getAllCumulatedMem()<<endl ;
     }
 
      void CServer::eventLoop(void)

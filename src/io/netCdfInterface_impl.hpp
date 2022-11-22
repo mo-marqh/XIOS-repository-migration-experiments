@@ -12,6 +12,7 @@
 
 #include "netCdfInterface.hpp"
 #include "netCdfException.hpp"
+#include "mem_checker.hpp"
 
 namespace xios
 {
@@ -27,6 +28,7 @@ namespace xios
   template<typename T>
   int CNetCdfInterface::getAttType(int ncid, int varId, const StdString& attrName, T* data)
   {
+    CMemChecker::get("NetCDF get/put").resume();
     int status = ncGetAttType(ncid, varId, attrName.c_str(), data);
     if (NC_NOERR != status)
     {
@@ -38,6 +40,7 @@ namespace xios
       sstr << "Unable to read attribute " << attrName << " given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl;
       throw CNetCdfException(sstr.str());
     }
+    CMemChecker::get("NetCDF get/put").suspend();
 
     return status;
   }
@@ -56,6 +59,7 @@ namespace xios
   int CNetCdfInterface::putAttType(int ncid, int varId, const StdString& attrName,
                                    StdSize numVal, const T* data)
   {
+    CMemChecker::get("NetCDF get/put").resume();
     int status = ncPutAttType(ncid, varId, attrName.c_str(), numVal, data);
     if (NC_NOERR != status)
     {
@@ -68,6 +72,7 @@ namespace xios
            << " with " << numVal << " elements." << std::endl;
       throw CNetCdfException(sstr.str());
     }
+    CMemChecker::get("NetCDF get/put").suspend();
 
     return status;
   }
@@ -84,6 +89,7 @@ namespace xios
   template<typename T>
   int CNetCdfInterface::getVaraType(int ncid, int varId, const StdSize* start, const StdSize* count, T* data)
   {
+    CMemChecker::get("NetCDF get/put").resume();
     int status = ncGetVaraType(ncid, varId, start, count, data);
     if (NC_NOERR != status)
     {
@@ -95,6 +101,7 @@ namespace xios
       sstr << "Unable to read data given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl;
       throw CNetCdfException(sstr.str());
     }
+    CMemChecker::get("NetCDF get/put").suspend();
 
     return status;
   }
@@ -111,6 +118,7 @@ namespace xios
   template<typename T>
   int CNetCdfInterface::putVaraType(int ncid, int varId, const StdSize* start, const StdSize* count, const T* data)
   {
+    CMemChecker::get("NetCDF get/put").resume();
     int status = ncPutVaraType(ncid, varId, start, count, data);
     if (NC_NOERR != status)
     {
@@ -122,7 +130,8 @@ namespace xios
       sstr << "Unable to write data given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl;
       throw CNetCdfException(sstr.str());
     }
-
+    CMemChecker::get("NetCDF get/put").suspend();
+    
     return status;
   }
 }
