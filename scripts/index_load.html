@@ -1,0 +1,75 @@
+
+<head>
+  <script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-base.min.js" type="text/javascript"></script>
+  <script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-stock.min.js"></script>
+
+</head>
+
+<body>
+  <!--
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+  <div id="container" >
+    <div class="row">
+      <label class="btn btn-primary" for="file">
+        <input type="file" id="file" style="display:none" onchange="$('#upload-file-info').html(this.files[0].name)">
+        Load a JS XIOS memory file
+      </label>
+      <button type="button" class="btn btn-default disabled" id="upload-file-info">...</button>
+    </div>
+  </div>
+  -->
+
+  <div id="container" ></div>
+  <script src="mem_4.js" ></script>
+
+  <script>
+    anychart.onDocumentLoad(function () {
+
+      
+        
+    // create a data table using this data
+    var dataTable = anychart.data.table();
+    dataTable.addData(get_xios_mem_data());
+ 
+    mapping_mem = dataTable.mapAs();
+    mapping_mem.addField('value', 2);
+    mapping_event = dataTable.mapAs();
+    mapping_event.addField('value', 1);
+ 
+    // create a stock chart
+    var chart = anychart.stock();
+
+    // create a plot on the chart
+    var plot = chart.plot(0);		
+	
+    // create a line series
+    var lineSeries2 = plot.line(mapping_event);
+    lineSeries2.name("Event");
+    var lineSeries1 = plot.line(mapping_mem);
+    lineSeries1.name("Mo");
+	
+    // set the container id
+    chart.container("container");
+ 
+    // initiate drawing the chart
+    chart.draw();
+
+
+
+	
+    });
+  </script>
+  
+</body>
