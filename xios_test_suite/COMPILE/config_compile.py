@@ -56,6 +56,7 @@ def generate_compile_job_jeanzay(revision):
         f.write("#SBATCH -e error.err \n") 
         f.write("#SBATCH -A "+user_acct+"\n")
         f.write("#SBATCH --job-name=XIOS_rev"+revision+"\n")
+        f.write("#SBATCH --qos=qos_cpu-dev\n")
         f.write("cd ${SLURM_SUBMIT_DIR}\n")
         f.write("cmake .\n")
         f.write("ctest -V\n")

@@ -17,6 +17,8 @@ if [[ ${xios_machine_name} == "jeanzay" ]]; then
   echo "#SBATCH -e compile.err ">> compile.sh
   echo "#SBATCH --account="$user_account  >> compile.sh
   echo "#SBATCH --job-name=XIOS_rev"$svnR >> compile.sh
+  echo "#SBATCH --qos=qos_cpu-dev " >> compile.sh
+  echo "#SBATCH --exclusive " >> compile.sh
   echo "cd \${SLURM_SUBMIT_DIR}">> compile.sh
   echo "ulimit -c 0">> compile.sh
   echo "cd ../.. ">> compile.sh
