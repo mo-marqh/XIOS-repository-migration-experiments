@@ -574,16 +574,16 @@ namespace xios
         {
           for(auto& it : dataSize) 
           {
-            if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second+headerSize ;
-            else bufferSize[it.first]+=it.second+headerSize ;
+            if (bufferSize.count(it.first)==0) bufferSize[it.first]=sizeof(double)*it.second+headerSize ;
+            else bufferSize[it.first]+=sizeof(double)*it.second+headerSize ;
           }
         }
         else
         {
           for(auto& it : dataSize) 
           {
-              if (bufferSize.count(it.first)==0) bufferSize[it.first]=it.second+headerSize ;
-              else bufferSize[it.first]=std::max(bufferSize[it.first],(size_t)(it.second+headerSize)) ;
+              if (bufferSize.count(it.first)==0) bufferSize[it.first]=sizeof(double)*it.second+headerSize ;
+              else bufferSize[it.first]=std::max(bufferSize[it.first],(size_t)(sizeof(double)*it.second+headerSize)) ;
           }
         }
         evaluateBuffer[client] = bufferSize ;

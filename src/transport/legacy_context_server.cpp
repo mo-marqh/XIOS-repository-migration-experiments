@@ -282,7 +282,7 @@ namespace xios
         newBuffer>>newSize>>winAdress[0]>>winAdress[1] ;
         buffers[rank]->freeBuffer(count) ;
         delete buffers[rank] ;
-        buffers[rank] = new CServerBuffer(windows_[rank], winAdress, 0, 2*newSize) ;
+        buffers[rank] = new CServerBuffer(windows_[rank], winAdress, 0, newSize) ;
         info(100)<<"Context id "<<context->getId()<<" : Receive ChangeBufferSize from client rank "<<rank
                  <<"  newSize : "<<newSize<<" Address : "<<winAdress[0]<<" & "<<winAdress[1]<<endl ;
       }
