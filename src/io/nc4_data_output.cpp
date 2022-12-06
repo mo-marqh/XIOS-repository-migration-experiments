@@ -1157,7 +1157,7 @@ namespace xios
               SuperClassWriter::addAttribute("formula", axis->formula.getValue(), &axisid);
 
             if (!axis->formula_term.isEmpty())
-              SuperClassWriter::addAttribute("formula_term", axis->formula_term.getValue(), &axisid);
+              SuperClassWriter::addAttribute("formula_terms", axis->formula_term.getValue(), &axisid);
               
             axisBoundsId = (axis->bounds_name.isEmpty()) ? axisid + "_bounds" : axis->bounds_name;
             if (!axis->bounds.isEmpty() && axis->label.isEmpty())
@@ -1176,7 +1176,7 @@ namespace xios
                 SuperClassWriter::addAttribute("formula", axis->formula_bounds.getValue(), &axisBoundsId);
 
               if (!axis->formula_term_bounds.isEmpty())
-                SuperClassWriter::addAttribute("formula_term", axis->formula_term_bounds.getValue(), &axisBoundsId);
+                SuperClassWriter::addAttribute("formula_terms", axis->formula_term_bounds.getValue(), &axisBoundsId);
             }
           }
 
