@@ -60,7 +60,6 @@ namespace xios
       if (initialized) is_MPI_Initialized=true ;
       else is_MPI_Initialized=false ;
       MPI_Comm globalComm=CXios::getGlobalComm() ;
-      CTimer::get("XIOS server").resume() ;
       /////////////////////////////////////////
       ///////////// PART 1 ////////////////////
       /////////////////////////////////////////
@@ -105,6 +104,7 @@ namespace xios
       MPI_Comm_dup(serverComm, &intraComm_);
       
       CTimer::get("XIOS").resume() ;
+      CTimer::get("XIOS server").resume() ;
       CTimer::get("XIOS initialize").resume() ;
  
       /////////////////////////////////////////
