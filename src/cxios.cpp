@@ -14,6 +14,7 @@
 #include "services_manager.hpp"
 #include "servers_ressource.hpp"
 #include "mem_checker.hpp"
+#include <unistd.h>
 
 namespace xios
 {
@@ -70,8 +71,18 @@ namespace xios
   void CXios::initialize()
   {
     set_new_handler(noMemory);
+    char startPath[256];
+    getcwd(startPath, sizeof(startPath));
+    if(const char* userPath = std::getenv("XIOS_IODEF_PATH"))
+    {
+      if ( chdir( userPath ) != 0)
+      {
+        ERROR("CXios::initialize()", << "XIOS_IODEF_PATH not defined correctly : " << userPath << endl );
+      }
+    }
     parseFile(rootFile);
     parseXiosConfig();
+    chdir( startPath );
   }
 
   /*!
@@ -198,8 +209,18 @@ namespace xios
     set_new_handler(noMemory);
     std::set<StdString> parseList;
     parseList.insert("xios");
+    char startPath[256];
+    getcwd(startPath, sizeof(startPath));
+    if(const char* userPath = std::getenv("XIOS_IODEF_PATH"))
+    {
+      if ( chdir( userPath ) != 0)
+      {
+        ERROR("CXios::initialize()", << "XIOS_IODEF_PATH not defined correctly : " << userPath << endl );
+      }
+    }
     xml::CXMLParser::ParseFile(rootFile, parseList);
     parseXiosConfig();
+    chdir( startPath );
   }
 
   //! Initialize server then put it into listening state
