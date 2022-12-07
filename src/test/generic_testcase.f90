@@ -1414,6 +1414,7 @@ CONTAINS
     INTEGER :: ibegin,jbegin
     INTEGER :: nbp,nbp_glo, offset
     DOUBLE PRECISION, ALLOCATABLE :: lon_glo(:), lat_glo(:), lon(:), lat(:)
+    DOUBLE PRECISION, ALLOCATABLE :: bounds_lon_glo(:,:), bounds_lat_glo(:,:), bounds_lon(:,:), bounds_lat(:,:)
     LOGICAL,ALLOCATABLE :: mask(:)
     LOGICAL,ALLOCATABLE :: dom_mask(:)
     INTEGER :: i,j
@@ -1443,21 +1444,51 @@ CONTAINS
     offset=offset-jbegin*ni
     
     ALLOCATE(lon(0:ni-1), lat(0:nj-1), mask(0:ni*nj-1), dom_mask(0:ni*nj-1))
+    ALLOCATE(bounds_lon(2,0:ni-1), bounds_lat(2,0:nj-1))
     mask(:)=.FALSE.
     mask(offset:offset+nbp-1)=.TRUE.
     
     ALLOCATE(lon_glo(0:ni_glo-1), lat_glo(0:nj_glo-1))
-    
+    ALLOCATE(bounds_lon_glo(2,0:ni_glo-1), bounds_lat_glo(2,0:nj_glo-1))
+
     DO i=0,ni_glo-1
       lon_glo(i)=-180+(i+0.5)*(360./ni_glo)
+    ENDDO
+
+    DO i=0,ni_glo-1
+      IF (i==0) THEN
+        bounds_lon_glo(1,0) = (lon_glo(ni_glo-1)-360 + lon_glo(i))/2
+      ELSE
+        bounds_lon_glo(1,i)=(lon_glo(i-1) + lon_glo(i))/2
+      ENDIF
+      IF (i==ni_glo-1) THEN
+        bounds_lon_glo(2,ni_glo-1) = (lon_glo(ni_glo-1) + lon_glo(0)+360)/2
+      ELSE
+        bounds_lon_glo(2,i)=(lon_glo(i+1) + lon_glo(i))/2
+      ENDIF
     ENDDO
 
     DO j=0,nj_glo-1
       lat_glo(j)=-90+(j+0.5)*(180./nj_glo)
     ENDDO
-     
+  
+    DO j=0,nj_glo-1
+      IF (j==0) THEN
+        bounds_lat_glo(1,0) = -90
+      ELSE
+        bounds_lat_glo(1,j)=(lat_glo(j-1) + lat_glo(j))/2
+      ENDIF
+      IF (j==nj_glo-1) THEN
+        bounds_lat_glo(2,nj_glo-1) = 90
+      ELSE
+        bounds_lat_glo(2,j)=(lat_glo(j+1) + lat_glo(j))/2
+      ENDIF
+    ENDDO
+
     lon(:)=lon_glo(:)
     lat(:)=lat_glo(jbegin:jbegin+nj-1)
+    bounds_lon(:,:)=bounds_lon_glo(:,:)
+    bounds_lat(:,:)=bounds_lat_glo(:,jbegin:jbegin+nj-1)
 
     ALLOCATE(return_lon(0:ni*nj-1))
     ALLOCATE(return_lat(0:ni*nj-1))
@@ -1508,6 +1539,7 @@ CONTAINS
       CALL xios_set_domain_attr(TRIM(domain_id), type="rectilinear", ni_glo=ni_glo, ibegin=ibegin, ni=ni, nj_glo=nj_glo, &
                                 jbegin=jbegin, nj=nj)
       CALL xios_set_domain_attr(TRIM(domain_id), data_dim=2, lonvalue_1d=lon, latvalue_1d=lat, mask_1d=return_mask)
+      CALL xios_set_domain_attr(TRIM(domain_id), bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
     ENDIF
     
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN

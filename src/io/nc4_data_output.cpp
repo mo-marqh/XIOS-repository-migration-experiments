@@ -141,7 +141,9 @@ namespace xios
              break;
          }
 
-         StdString dimVertId = StdString("nvertex").append(appendDomid);
+         StdString dimVertId ;
+         if (domain->type==CDomain::type_attr::rectilinear)  dimVertId=StdString("domain_nbounds").append(appendDomid);
+         else dimVertId=StdString("nvertex").append(appendDomid);
 
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
@@ -180,13 +182,15 @@ namespace xios
 
            if (domain->hasBounds)
            {         
-             int nvertex = domain->nvertex, idx;
-             writtenBndsLat.resize(nvertex, nbWritten);
-             writtenBndsLon.resize(nvertex, nbWritten);
+             int idx;
+             int nvertexValue = (domain->type==CDomain::type_attr::rectilinear || type==CDomain::type_attr::curvilinear) ? 4 : domain->nvertex ;
+
+             writtenBndsLat.resize(nvertexValue, nbWritten);
+             writtenBndsLon.resize(nvertexValue, nbWritten);
              CArray<double,2>& boundslat = domain->bounds_latvalue;
              CArray<double,2>& boundslon = domain->bounds_lonvalue;   
              for (idx = 0; idx < nbWritten; ++idx)
-               for (int nv = 0; nv < nvertex; ++nv)
+               for (int nv = 0; nv < nvertexValue; ++nv)
                {
                  if (indexToWrite(idx) < 0)
                  {
@@ -243,7 +247,12 @@ namespace xios
                  SuperClassWriter::addDimension(dimYid, domain->nj);
 
                  if (domain->hasBounds)
-                   SuperClassWriter::addDimension(dimVertId, domain->nvertex);
+                 {  
+                   
+                   if (domain->type==CDomain::type_attr::rectilinear) SuperClassWriter::addDimension(dimVertId,2);
+                   else if (domain->type==CDomain::type_attr::curvilinear) SuperClassWriter::addDimension(dimVertId,4);
+                   else SuperClassWriter::addDimension(dimVertId, domain->nvertex);
+                 }
 
                  int commRank ;
                  int commSize ;
@@ -289,19 +298,30 @@ namespace xios
                      SuperClassWriter::addAttribute("bounds", bounds_lonid, &lonid);
                      SuperClassWriter::addAttribute("bounds", bounds_latid, &latid);
 
-                     dim0.clear();
-                     dim0.push_back(dimYid);
-                     dim0.push_back(dimXid);
-                     dim0.push_back(dimVertId);
-                     SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0, compressionLevel);
-                     SuperClassWriter::addVariable(bounds_latid, typePrec, dim0, compressionLevel);
+                     if (domain->type==CDomain::type_attr::curvilinear)
+                     {
+                       dim0.clear();
+                       dim0.push_back(dimYid);
+                       dim0.push_back(dimXid);
+                       dim0.push_back(dimVertId);
+                       SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0, compressionLevel);
+                       SuperClassWriter::addVariable(bounds_latid, typePrec, dim0, compressionLevel);
+                     }
+                     else if(domain->type==CDomain::type_attr::rectilinear)
+                     {
+                       dim0.clear();
+                       dim0.push_back(dimXid);
+                       dim0.push_back(dimVertId);
+                       SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0, compressionLevel);
+                       dim0.clear();
+                       dim0.push_back(dimYid);
+                       dim0.push_back(dimVertId);
+                       SuperClassWriter::addVariable(bounds_latid, typePrec, dim0, compressionLevel);
+                     }
+
                    }
                  }
-
-                 dim0.clear();
-                 dim0.push_back(dimYid);
-                 dim0.push_back(dimXid);
-
+                
 
   // supress mask               if (server->intraCommSize > 1)
   // supress mask               {
@@ -333,19 +353,25 @@ namespace xios
                      case CDomain::type_attr::curvilinear :                       
                        SuperClassWriter::writeData(writtenLat, latid, isCollective, 0);
                        SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0);
+                       if (domain->hasBounds)
+                       {
+                          SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0);
+                          SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0);
+                       }
                        break;
                      case CDomain::type_attr::rectilinear :
                        CArray<double,1> lat = writtenLat(Range(fromStart,toEnd,domain->ni)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
                        CArray<double,1> lon = writtenLon(Range(0,domain->ni-1)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
+                       if (domain->hasBounds)
+                       {
+                          CArray<double,2> BoundsLon = writtenBndsLon(Range(0,1),Range(0,domain->ni-1));
+                          CArray<double,2> BoundsLat = writtenBndsLat(Range(1,2),Range(fromStart,toEnd,domain->ni));
+                          SuperClassWriter::writeData(BoundsLon.copy(), bounds_lonid, isCollective, 0);
+                          SuperClassWriter::writeData(BoundsLat.copy(), bounds_latid, isCollective, 0);
+                       }
                        break;
-                   }
-
-                   if (domain->hasBounds)
-                   {
-                     SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0);
-                     SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0);
                    }
                  }
 
@@ -364,7 +390,12 @@ namespace xios
                 SuperClassWriter::addDimension(dimYid, domain->nj_glo);
 
                  if (domain->hasBounds)
-                   SuperClassWriter::addDimension(dimVertId, domain->nvertex);
+                 {  
+                   
+                   if (domain->type==CDomain::type_attr::rectilinear) SuperClassWriter::addDimension(dimVertId,2);
+                   else if (domain->type==CDomain::type_attr::curvilinear) SuperClassWriter::addDimension(dimVertId,4);
+                   else SuperClassWriter::addDimension(dimVertId, domain->nvertex);
+                 }
 
                  if (domain->hasLonLat)
                  {
@@ -402,13 +433,32 @@ namespace xios
                      SuperClassWriter::addAttribute("bounds", bounds_lonid, &lonid);
                      SuperClassWriter::addAttribute("bounds", bounds_latid, &latid);
 
-                     dim0.clear();
-                     dim0.push_back(dimYid);
-                     dim0.push_back(dimXid);
-                     dim0.push_back(dimVertId);
-                     SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0, compressionLevel);
-                     SuperClassWriter::addVariable(bounds_latid, typePrec, dim0, compressionLevel);
+                     if (domain->type==CDomain::type_attr::curvilinear)
+                     {
+                       dim0.clear();
+                       dim0.push_back(dimYid);
+                       dim0.push_back(dimXid);
+                       dim0.push_back(dimVertId);
+                       SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0, compressionLevel);
+                       SuperClassWriter::addVariable(bounds_latid, typePrec, dim0, compressionLevel);
+                     }
+                     else if(domain->type==CDomain::type_attr::rectilinear)
+                     {
+                       dim0.clear();
+                       dim0.push_back(dimXid);
+                       dim0.push_back(dimVertId);
+                       SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0, compressionLevel);
+                       dim0.clear();
+                       dim0.push_back(dimYid);
+                       dim0.push_back(dimVertId);
+                       SuperClassWriter::addVariable(bounds_latid, typePrec, dim0, compressionLevel);
+                     }
+
                    }
+
+
+
+
                  }
 
                  if (domain->hasArea)
@@ -447,10 +497,31 @@ namespace xios
                        SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
                        SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
                      }
-                     break;
-                   }
-                   case CDomain::type_attr::rectilinear :
-                   {
+                     if (domain->hasBounds)
+                     {
+                       std::vector<StdSize> start(3);
+                       std::vector<StdSize> count(3);
+                      //  if (domain->isEmpty())
+                      //  {
+                      //   start[2] = start[1] = start[0] = 0;
+                      //   count[2] = count[1] = count[0] = 0;
+                      // }
+                      // else
+                       {
+                         start[2] = 0;
+                         start[1] = domain->ibegin;
+                         start[0] = domain->jbegin;
+                         count[2] = 4;
+                         count[1] = domain->ni;
+                         count[0] = domain->nj;
+                        }
+                        SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0, &start, &count);
+                        SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0, &start, &count);
+                      }
+                    break;
+                  }
+                  case CDomain::type_attr::rectilinear :
+                  {
                      if (domain->hasLonLat)
                      {
                        std::vector<StdSize> start(1) ;
@@ -475,31 +546,37 @@ namespace xios
                          SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
                        }
                      }
+                    
+                     if (domain->hasBounds)
+                     {
+                       std::vector<StdSize> start(2);
+                       std::vector<StdSize> count(2);
+                       if (domain->isEmpty())
+                       {
+                         start[1] = start[0] = 0;
+                         count[1] = count[0] = 0;
+                         SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0,&start,&count);
+                         SuperClassWriter::writeData(writtenBndsLon, bounds_latid, isCollective, 0,&start,&count);
+                       }
+                       else
+                       {
+                         start[1]=0 ;
+                         count[1]=2 ;
+                         start[0]=domain->jbegin;
+                         count[0]=domain->nj;
+                         CArray<double,2> BoundsLat = writtenBndsLat(Range(1,2),Range(fromStart,toEnd,domain->ni));
+                         SuperClassWriter::writeData(CArray<double,2>(BoundsLat.copy()), bounds_latid, isCollective, 0,&start,&count);
+                         
+                         start[1]=0 ;
+                         count[1]=2 ;
+                         start[0]=domain->ibegin;
+                         count[0]=domain->ni;
+                         CArray<double,2> BoundsLon = writtenBndsLon(Range(0,1),Range(0,domain->ni-1));
+                         SuperClassWriter::writeData(CArray<double,2>(BoundsLon.copy()), bounds_lonid, isCollective, 0,&start,&count);
+                       }
+                     }
                      break;
                    }
-                 }
-
-                 if (domain->hasBounds)
-                 {
-                   std::vector<StdSize> start(3);
-                   std::vector<StdSize> count(3);
-                   if (domain->isEmpty())
-                   {
-                     start[2] = start[1] = start[0] = 0;
-                     count[2] = count[1] = count[0] = 0;
-                   }
-                   else
-                   {
-                     start[2] = 0;
-                     start[1] = domain->ibegin;
-                     start[0] = domain->jbegin;
-                     count[2] = domain->nvertex;
-                     count[1] = domain->ni;
-                     count[0] = domain->nj;
-                   }
-                 
-                   SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0, &start, &count);
-                   SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0, &start, &count);
                  }
 
                  if (domain->hasArea)
