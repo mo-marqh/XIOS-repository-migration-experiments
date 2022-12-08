@@ -34,7 +34,6 @@
 #include "contexts_manager.hpp"
 #include <chrono>
 #include <random>
-#include <unistd.h>
 
 namespace xios
 {
@@ -162,55 +161,11 @@ namespace xios
 
       if (attributes.end() != attributes.find("src"))
       {
-         string srcString = attributes["src"].c_str();
-
-         // check if environment variables
-         string srcKey;         
-         if (srcString.find("${") == 0) // src start wit
-         {
-           size_t envVarStart = srcString.find("${")+2; // +2 for ${
-           if (srcString.find("}") != std::string::npos)
-           {
-             size_t envVarEnd = srcString.find("}")-2;  // -2 (start @ srcString begining, not after ${
-             if(const char* var_path = std::getenv( srcString.substr( envVarStart, envVarEnd ).c_str() ) )
-             {
-               srcKey=string(var_path)+"/"+srcString.substr( srcString.find("}")+1, srcString.size()-srcString.find("}") );
-             }
-             else
-             {
-               ERROR("void CContext::parse(xml::CXMLNode & node)",
-                     <<endl<< "The src key " << attributes["src"].c_str()<< " contains an undefined variable." );
-             }
-           }
-           else
-           {
-             ERROR("void CContext::parse(xml::CXMLNode & node)",
-                   <<endl<< "The src key " << attributes["src"].c_str()<< " not defined correctly." );
-           }
-         }
-         else if (srcString.find("${") != 0)
-         {
-           ERROR("void CContext::parse(xml::CXMLNode & node)",
-                   <<endl<< "The src key " << attributes["src"].c_str()<< " should start with $" );
-         }
-         else if (srcString.find("$") != std::string::npos)
-         {
-           ERROR("void CContext::parse(xml::CXMLNode & node)",
-                   <<endl<< "The src key " << attributes["src"].c_str()<< " need { and }." );
-         }
-         else // standard behavor, without environment variable
-         {
-           srcKey = attributes["src"].c_str();
-         }
-         
-         StdIFStream ifs ( srcKey , StdIFStream::in );
+         StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
          if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
          {
-            char currentPath[256];
-            getcwd(currentPath, sizeof(currentPath));
             ERROR("void CContext::parse(xml::CXMLNode & node)",
-                  <<endl<< "Can not open <"<<attributes["src"].c_str()<<"> file "
-                  << "from iodef path : " << currentPath );
+                  <<endl<< "Can not open <"<<attributes["src"].c_str()<<"> file" );
          }
          if (!ifs.good())
             ERROR("CContext::parse(xml::CXMLNode & node)",
