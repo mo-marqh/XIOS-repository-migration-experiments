@@ -124,7 +124,7 @@ TRY
   int localDomainSrcSize = domainSrc_->i_index.numElements();
   int niSrc = domainSrc_->ni.getValue(), njSrc = domainSrc_->nj.getValue();
   bool hasBoundSrc = domainSrc_->hasBounds;
-  if (hasBoundSrc) nVertexSrc = domainSrc_->nvertex.getValue();
+  if ((hasBoundSrc) && (!domainSrc_->nvertex.isEmpty())) nVertexSrc = domainSrc_->nvertex.getValue(); // default is constNVertex = 4
   CArray<double,2> boundsLonSrc(nVertexSrc,localDomainSrcSize);
   CArray<double,2> boundsLatSrc(nVertexSrc,localDomainSrcSize);
   CArray<double,1> areaSrc;
@@ -196,7 +196,7 @@ TRY
   int localDomainDestSize = domainDest_->i_index.numElements();
   int niDest = domainDest_->ni.getValue(), njDest = domainDest_->nj.getValue();
   bool hasBoundDest = domainDest_->hasBounds;
-  if (hasBoundDest) nVertexDest = domainDest_->nvertex.getValue();
+  if ((hasBoundDest) && (!domainDest_->nvertex.isEmpty())) nVertexDest = domainDest_->nvertex.getValue(); // default is constNVertex = 4
   CArray<double,2> boundsLonDest(nVertexDest,localDomainDestSize);
   CArray<double,2> boundsLatDest(nVertexDest,localDomainDestSize);
   CArray<double,1> areaDest;

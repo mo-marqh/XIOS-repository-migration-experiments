@@ -1539,7 +1539,7 @@ CONTAINS
       CALL xios_set_domain_attr(TRIM(domain_id), type="rectilinear", ni_glo=ni_glo, ibegin=ibegin, ni=ni, nj_glo=nj_glo, &
                                 jbegin=jbegin, nj=nj)
       CALL xios_set_domain_attr(TRIM(domain_id), data_dim=2, lonvalue_1d=lon, latvalue_1d=lat, mask_1d=return_mask)
-      CALL xios_set_domain_attr(TRIM(domain_id), bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
+      !CALL xios_set_domain_attr(TRIM(domain_id), bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
     ENDIF
     
     IF (xios_is_valid_axis(TRIM(domain_id)//"_X")) THEN

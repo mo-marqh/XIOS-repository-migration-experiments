@@ -4,6 +4,7 @@
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
 #include "attribute_template.hpp"
+#include "type.hpp"
 
 namespace xios {
 CGenericAlgorithmTransformation* CDomainAlgorithmZoom::create(CGrid* gridDst, CGrid* gridSrc,
@@ -145,7 +146,7 @@ TRY
 
   if (domainSrc_->hasBounds)
   {
-    nvertex = domainSrc_->nvertex;
+    nvertex = ( domainSrc_->type==CDomain::type_attr::rectilinear || domainSrc_->type==CDomain::type_attr::curvilinear) ? 4 : domainSrc_->nvertex ;
     domainDest_->nvertex.setValue(nvertex);
     if (!domainSrc_->bounds_lon_1d.isEmpty())
     {
