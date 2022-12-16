@@ -6,6 +6,7 @@
 #include "domain.hpp"
 #include "axis.hpp"
 #include "scalar.hpp"
+#include "type.hpp"
 
 namespace xios
 {
@@ -142,7 +143,23 @@ namespace xios
 
     // Verify the compatibility of dimension of declared grid and real grid in file
     int realGridDim = 1;
-    bool isUnstructuredGrid = ((gridDim < 2) ? false :  SuperClassWriter::isUnstructured(fieldId));
+    bool isUnstructuredGrid;
+    bool domainNotExplicitelyDefined(false);
+    for (int idom=0;idom<domainP.size();idom++)
+    {
+      if ( (!domainP[idom]->type.isEmpty())&& (!domainP[idom]->type.getValue()!=CDomain::type_attr::unstructured))
+      {
+        isUnstructuredGrid = false;
+      }
+      else if (domainP[idom]->type.isEmpty())
+      {
+        domainNotExplicitelyDefined = true;
+      }
+    }
+    if (domainNotExplicitelyDefined)
+    {
+      isUnstructuredGrid = ((gridDim < 2) ? false :  SuperClassWriter::isUnstructured(fieldId));
+    }
     std::map<StdString, StdSize> dimSizeMap = SuperClassWriter::getDimensions(&fieldId);
     std::list<StdString> dimList = SuperClassWriter::getDimensionsList(&fieldId);
 
