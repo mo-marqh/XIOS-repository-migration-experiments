@@ -143,11 +143,11 @@ namespace xios
 
     // Verify the compatibility of dimension of declared grid and real grid in file
     int realGridDim = 1;
-    bool isUnstructuredGrid;
+    bool isUnstructuredGrid(true);
     bool domainNotExplicitelyDefined(false);
     for (int idom=0;idom<domainP.size();idom++)
     {
-      if ( (!domainP[idom]->type.isEmpty())&& (!domainP[idom]->type.getValue()!=CDomain::type_attr::unstructured))
+      if ( (!domainP[idom]->type.isEmpty())&& (domainP[idom]->type.getValue()!=CDomain::type_attr::unstructured))
       {
         isUnstructuredGrid = false;
       }
