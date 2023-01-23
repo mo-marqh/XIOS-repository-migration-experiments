@@ -9,7 +9,7 @@
 #include "oasis_cinterface.hpp"
 #include "mpi.hpp"
 #include "timer.hpp"
-#include "mem_checker.hpp" 
+#include "mem_checker.hpp"
 #include "buffer_client.hpp"
 #include "string_tools.hpp"
 
