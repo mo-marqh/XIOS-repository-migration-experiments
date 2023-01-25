@@ -18,5 +18,6 @@ namespace xios
   macro(CExtractAxisGroup)
   macro(CZoomDomainGroup)
   macro(CPoolNodeGroup)
+  macro(CServiceNodeGroup)
 }
 

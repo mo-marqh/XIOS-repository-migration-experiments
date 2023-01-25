@@ -10,6 +10,7 @@
 #include <map>
 #include "window_manager.hpp"
 #include "pool_ressource.hpp"
+#include "token_manager.hpp"
 
 
 
@@ -44,20 +45,27 @@ namespace xios
 
     int  getRessourcesSize(void) ;
     int  getFreeRessourcesSize(void) ;
-    bool getPoolInfo(const string& poolId, int& size, int& leader) ;
+    bool getPoolInfo(const string& poolId, int& size, int& freeSize, int& leader) ;
     bool getPoolLeader(const string& poolId, int& leader) ;
     bool getPoolSize(const string& poolId, int& size) ;
+    bool getPoolFreeSize(const string& poolId, int& freeSize) ;
     bool hasPool(const string& poolId) ;
+    bool decreasePoolFreeSize(const string& poolId, int size) ;
+    void waitPoolRegistration(const string& poolId) ;
+    
 
     void registerServerLeader(int leaderRank) ;
     void registerRessourcesSize(int size) ;
-    void registerPool(const std::string& poolId,int size,int leader) ;
+    void registerPoolClient(const std::string& poolId,int size,int leader) ;
+    void registerPoolServer(const std::string& poolId,int size,int leader) ;
+    CTokenManager* getTokenManager(void) {return tokenManager_ ;} 
 
     int managerGlobalLeader_ ;
 
     CWindowManager* winRessources_ ;
 
     CWindowManager* winNotify_ ;
+    CTokenManager* tokenManager_ ;
 
     const size_t maxBufferSize_=1024*1024 ;
 
@@ -66,7 +74,7 @@ namespace xios
     int notifyType_ ;
     tuple<std::string, int> notifyCreatePool_ ;
 
-    std::map<std::string, std::tuple<int,int>> pools_ ;
+    std::map<std::string, std::tuple<int,int,int>> pools_ ;
     int serverLeader_ ;
     int ressourcesSize_ ;
     int freeRessourcesSize_ ;

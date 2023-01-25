@@ -53,22 +53,23 @@ namespace xios
   {
 
     int leader ;
-    int poolSize ;
+    int poolSize, poolFreeSize ;
     
     info(40)<<"CServicesManager : waiting for pool info : "<<poolId<<endl ; ;
-    bool ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, leader) ;
+    bool ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, poolFreeSize, leader) ;
     if (wait)
     {
       while (!ok) 
       {
         CXios::getDaemonsManager()->eventLoop() ;
-        ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, leader) ;
+        ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, poolFreeSize, leader) ;
       }
     }
 
     if (ok) 
     {
       info(40)<<"CServicesManager : create service notification to leader "<<leader<<", serviceId : "<<serviceId<<", size : "<<size<<endl ;
+      CXios::getRessourcesManager()->decreasePoolFreeSize(poolId ,size) ;
       createServicesNotify(leader, serviceId, type, size, nbPartitions) ;
       return true ;
     }
@@ -80,15 +81,16 @@ namespace xios
 
     int leader ;
     int poolSize ;
+    int poolFreeSize ;
     
     info(40)<<"CServicesManager : waiting for pool info : "<<poolId<<endl ; ;
-    bool ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, leader) ;
+    bool ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, poolFreeSize, leader) ;
     if (wait)
     {
       while (!ok) 
       {
         CXios::getDaemonsManager()->eventLoop() ;
-        ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, leader) ;
+        ok=CXios::getRessourcesManager()->getPoolInfo(poolId, poolSize, poolFreeSize, leader) ;
       }
     }
 
@@ -250,7 +252,7 @@ namespace xios
   }
 
   bool CServicesManager::getServiceInfo(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, 
-                                        int& size, int& nbPartitions, int& leader)
+                                        int& size, int& nbPartitions, int& leader, bool wait)
   {
     
     winServices_->lockWindowShared(managerGlobalLeader_) ;
@@ -258,9 +260,10 @@ namespace xios
     winServices_->unlockWindow(managerGlobalLeader_) ;
 
     auto it=services_.find(std::tuple<std::string,std::string,int>(poolId,serviceId,partitionId)) ;
-    if ( it == services_.end()) return false ;
+    if ( it == services_.end() && !wait) return false ;
     else
     {
+      if (wait) waitServiceRegistration(poolId, serviceId, partitionId) ;
       type= std::get<0>(it->second); 
       size= std::get<1>(it->second); 
       nbPartitions = std::get<2>(it->second); 
@@ -269,7 +272,7 @@ namespace xios
     }
   }
 
-  bool CServicesManager::getServiceLeader(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& leader)
+  bool CServicesManager::getServiceLeader(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& leader, bool wait)
   {
     int type;
     int size ;
@@ -277,7 +280,7 @@ namespace xios
     return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
   }
 
-  bool CServicesManager::getServiceType(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type)
+  bool CServicesManager::getServiceType(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, bool wait)
   {
     int size ;
     int nbPartitions;
@@ -285,7 +288,7 @@ namespace xios
     return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
   }
 
-  bool CServicesManager::getServiceNbPartitions(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& nbPartitions)
+  bool CServicesManager::getServiceNbPartitions(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& nbPartitions, bool wait)
   {
     int size ;
     int type;
@@ -301,6 +304,11 @@ namespace xios
     auto it=services_.find(std::tuple<std::string, std::string, int>(poolId, serviceId, partitionId)) ;
     if ( it == services_.end()) return false ;
     else return true ;
+  }
+ 
+  void CServicesManager::waitServiceRegistration(const std::string& poolId, const std::string& serviceId, const int& partitionId)
+  {
+    while(!hasService(poolId,serviceId,partitionId)) CXios::getDaemonsManager()->servicesEventLoop() ;
   }
 
 }

@@ -33,6 +33,7 @@ namespace xios
       void fixBufferSize(size_t bufferSize) { newBufferSize_=bufferSize ; isGrowableBuffer_=false ; resizingBufferStep_=1 ;}
       void fixBuffer(void) { isGrowableBuffer_=false ;}
       void attachWindows(vector<MPI_Win>& windows) ;
+      bool isAttachedWindows(void) { return isAttachedWindows_ ;}
     private:
        void resizeBuffer(size_t newSize) ;
        void resizeBufferNotify(void) ;
@@ -68,8 +69,8 @@ namespace xios
       CBufferOut* retBuffer;
       const MPI_Comm interComm;
       std::vector<MPI_Win> windows_ ;
-      bool hasWindows ;
-
+      bool hasWindows=false ;
+      bool isAttachedWindows_=false ;
       double latency_=0 ;
       double lastCheckedWithNothing_=0 ;
       double lastCheckedNotify_=0 ;

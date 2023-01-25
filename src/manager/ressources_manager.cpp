@@ -1,6 +1,7 @@
 #include "ressources_manager.hpp"
 #include "server.hpp"
 #include "servers_ressource.hpp"
+#include "token_manager.hpp"
 #include "timer.hpp"
 
 
@@ -20,6 +21,8 @@ namespace xios
     MPI_Comm_rank(xiosComm_, &commRank) ;
     if (commRank==0 && isXiosServer) MPI_Comm_rank(xiosComm_, &commRank) ; 
     else commRank=0 ;
+    tokenManager_ = new CTokenManager(xiosComm_,commRank) ;
+
     MPI_Allreduce(&commRank, &managerGlobalLeader_, 1, MPI_INT, MPI_SUM, xiosComm_) ;
 
     MPI_Comm_rank(xiosComm_, &commRank) ;
@@ -162,13 +165,13 @@ namespace xios
     
     buffer.realloc(maxBufferSize_) ;
     
-    buffer<<serverLeader_ ;  
+    buffer<<ressourcesSize_<<freeRessourcesSize_<<serverLeader_ ;  
     buffer<<(int) pools_.size();
     for(auto it=pools_.begin();it!=pools_.end(); ++it)
     { 
       auto key = it->first ;
       auto val = it->second ; 
-      buffer << key<<std::get<0>(val) << std::get<1>(val)  ;
+      buffer << key<<std::get<0>(val)  << std::get<1>(val)  << std::get<2>(val);
     }
   }
 
@@ -176,16 +179,17 @@ namespace xios
   {
     std::string poolId ;
     int size ;
+    int freeSize ;
     int leader ;
    
-    buffer>>serverLeader_ ;
+    buffer>>ressourcesSize_>>freeRessourcesSize_>>serverLeader_ ;
     pools_.clear() ;
     int nbPools ;
     buffer>>nbPools ;
     for(int i=0;i<nbPools;i++) 
     {
-      buffer>>poolId>>size>>leader ;
-      pools_[poolId]=std::make_tuple(size,leader) ;
+      buffer>>poolId>>size>>freeSize>>leader ;
+      pools_[poolId]=std::make_tuple(size, freeSize, leader) ;
     }
   }
   
@@ -209,18 +213,26 @@ namespace xios
   }
 
  
-  void CRessourcesManager::registerPool(const string& poolId, int size, int leader)
+  void CRessourcesManager::registerPoolClient(const string& poolId, int size, int leader)
   {
     winRessources_->lockWindow(managerGlobalLeader_,0) ;
     winRessources_->updateFromWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpIn) ;
-    pools_[poolId] = make_tuple(size,leader) ;
+    pools_[poolId] = make_tuple(size, size, leader) ;
+    winRessources_->updateToWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpOut) ;
+    winRessources_->unlockWindow(managerGlobalLeader_,0) ;    
+  }
+
+  void CRessourcesManager::registerPoolServer(const string& poolId, int size, int leader)
+  {
+    winRessources_->lockWindow(managerGlobalLeader_,0) ;
+    winRessources_->updateFromWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpIn) ;
+    pools_[poolId] = make_tuple(size, size, leader) ;
     freeRessourcesSize_-=size ;
     winRessources_->updateToWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpOut) ;
     winRessources_->unlockWindow(managerGlobalLeader_,0) ;    
   }
 
-
-  bool CRessourcesManager::getPoolInfo(const string& poolId, int& size, int& leader)
+  bool CRessourcesManager::getPoolInfo(const string& poolId, int& size, int& freeSize, int& leader)
   {
     winRessources_->lockWindow(managerGlobalLeader_,0) ;
     winRessources_->updateFromWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpIn) ;
@@ -231,9 +243,32 @@ namespace xios
     else
     {
       size=get<0>(it->second) ;
-      leader=get<1>(it->second) ;
+      freeSize=get<1>(it->second) ;
+      leader=get<2>(it->second) ;
       return true ;
     }
+  }
+
+  bool CRessourcesManager::decreasePoolFreeSize(const string& poolId, int size)
+  {
+    bool ret ;
+
+    winRessources_->lockWindow(managerGlobalLeader_,0) ;
+    winRessources_->updateFromWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpIn) ;
+   
+
+    auto it=pools_.find(poolId) ;
+    
+    if ( it == pools_.end()) ret=false ;
+    else 
+    {
+      get<1>(it->second)-=size ;
+      ret=true ;
+    }
+    winRessources_->updateToWindow(managerGlobalLeader_, this, &CRessourcesManager::ressourcesDumpOut) ;
+    winRessources_->unlockWindow(managerGlobalLeader_,0) ; 
+
+    return ret ;   
   }
 
   int CRessourcesManager::getRessourcesSize(void)
@@ -256,19 +291,30 @@ namespace xios
 
   bool CRessourcesManager::getPoolLeader(const string& poolId, int& leader)
   {
-    int size ;
-    return getPoolInfo(poolId, size, leader) ;
+    int size, freeSize ;
+    return getPoolInfo(poolId, size, freeSize, leader) ;
   }
 
   bool CRessourcesManager::getPoolSize(const string& poolId, int& size)
   {
-    int leader ;
-    return getPoolInfo(poolId, size, leader) ;
+    int leader,freeSize ;
+    return getPoolInfo(poolId, size, freeSize, leader) ;
+  }
+
+  bool CRessourcesManager::getPoolFreeSize(const string& poolId, int& freeSize)
+  {
+    int leader,size ;
+    return getPoolInfo(poolId, size, freeSize, leader) ;
   }
 
   bool CRessourcesManager::hasPool(const string& poolId)
   {
-    int leader,size ;
-    return getPoolInfo(poolId, size, leader) ;
+    int leader,size,freeSize ;
+    return getPoolInfo(poolId, size, freeSize, leader) ;
+  }
+
+  void CRessourcesManager::waitPoolRegistration(const string& poolId)
+  {
+    while(!hasPool(poolId)) CXios::getDaemonsManager()->servicesEventLoop() ;
   }
 }

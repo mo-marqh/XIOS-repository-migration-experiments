@@ -44,8 +44,9 @@ namespace xios
     private:
 
       // Functions to set/get buffers
-      bool getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers, bool nonBlocking = false);
+      void getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers);
       void newBuffer(int rank);
+      void checkAttachWindows(CClientBuffer* buffer , int rank) ;
       bool checkBuffers(list<int>& ranks);
       bool checkBuffers(void);
       void callGlobalEventLoop() ;

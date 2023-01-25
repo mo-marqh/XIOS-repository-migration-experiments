@@ -20,6 +20,7 @@
 #include "contexts_manager.hpp"
 #include "servers_ressource.hpp"
 #include "services.hpp"
+#include "pool_node.hpp"
 #include <cstdio>
 #include "workflow_graph.hpp"
 #include "release_static_allocation.hpp"
@@ -187,29 +188,48 @@ namespace xios
 
       if (serversRessource->isServerLeader())
       {
-        int nbRessources = ressourcesManager->getRessourcesSize() ;
-        if (!CXios::usingServer2)
+        // creating pool
+        CPoolNodeGroup::get("xios","pool_definition")->solveDescInheritance(true) ;
+        vector<CPoolNode*> pools = CPoolNodeGroup::get("xios","pool_definition")->getAllChildren();
+        for(auto& pool : pools) pool->allocateRessources() ;
+        
+        int nbRessources = ressourcesManager->getFreeRessourcesSize() ;
+        if (nbRessources>0)
         {
-          ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
-          servicesManager->createServices(CXios::defaultPoolId, CXios::defaultWriterId, CServicesManager::WRITER,nbRessources,1) ;
-          servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultWriterId) ;
-        }
-        else
-        {
-          int nprocsServer = nbRessources*CXios::ratioServer2/100.;
-          int nprocsGatherer = nbRessources - nprocsServer ;
+          if (!CXios::usingServer2)
+          {
+            ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
+            ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
+            servicesManager->createServices(CXios::defaultPoolId, CXios::defaultWriterId, CServicesManager::WRITER,nbRessources,1) ;
+            servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultWriterId) ;
+          }
+          else
+          {
+            int nprocsServer = nbRessources*CXios::ratioServer2/100.;
+            int nprocsGatherer = nbRessources - nprocsServer ;
           
-          int nbPoolsServer2 = CXios::nbPoolsServer2 ;
-          if (nbPoolsServer2 == 0) nbPoolsServer2 = nprocsServer;
-          ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
-          servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
-          servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultGathererId) ;
-          servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultWriterId, CServicesManager::WRITER, nprocsServer, nbPoolsServer2) ;
-
-
+            int nbPoolsServer2 = CXios::nbPoolsServer2 ;
+            if (nbPoolsServer2 == 0) nbPoolsServer2 = nprocsServer;
+            ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
+            ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
+            servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
+            servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultGathererId) ;
+            servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultWriterId, CServicesManager::WRITER, nprocsServer, nbPoolsServer2) ;
+          }
         }
 //        servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServicesId, CServicesManager::ALL_SERVICES, nbRessources, 1) ;
       }
+/*
+      MPI_Request req ;
+      MPI_Status status ;
+      MPI_Ibarrier(xiosGlobalComm,&req) ; // be sure that all services are created now, could be remove later if more asynchronisity
+      int ok=false ;
+      while (!ok)
+      {
+        daemonsManager->eventLoop() ;
+        MPI_Test(&req,&ok,&status) ;
+      }
+*/
       CTimer::get("XIOS initialize").suspend() ;
 
       /////////////////////////////////////////

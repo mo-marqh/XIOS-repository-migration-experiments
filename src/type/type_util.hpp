@@ -67,7 +67,9 @@ namespace xios
     class CExtractDomainGroup;
     class CPoolNode ;
     class CPoolNodeGroup ;
-     
+    class CServiceNode ;
+    class CServiceNodeGroup ;
+      
   template <typename T> inline string getStrType(void);
 
 #define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T); }
@@ -153,6 +155,8 @@ namespace xios
   macro(CExtractDomainGroup)
   macro(CPoolNode)
   macro(CPoolNodeGroup)
+  macro(CServiceNode)
+  macro(CServiceNodeGroup)
   
 #undef macro
 }

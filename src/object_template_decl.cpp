@@ -36,6 +36,7 @@ namespace xios
   template class CObjectTemplate<CReorderDomain>;
   template class CObjectTemplate<CExtractDomain>;
   template class CObjectTemplate<CPoolNode>;
+  template class CObjectTemplate<CServiceNode>;
   
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -68,5 +69,6 @@ namespace xios
   template class CObjectTemplate<CReorderDomainGroup>;
   template class CObjectTemplate<CExtractDomainGroup>;
   template class CObjectTemplate<CPoolNodeGroup>;
+  template class CObjectTemplate<CServiceNodeGroup>;
 
 }

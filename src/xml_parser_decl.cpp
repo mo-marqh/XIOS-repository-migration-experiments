@@ -42,5 +42,6 @@ namespace xios
     macro( ReorderDomain )
     macro( ExtractDomain )
     macro( PoolNode )
+    macro( ServiceNode )
   }
 }

@@ -26,7 +26,7 @@ namespace xios
     const int NOTIFY_CREATE_SERVICE_ONTO=2 ;
 
     public:
-    CPoolRessource(MPI_Comm poolComm, const std::string& Id) ;
+    CPoolRessource(MPI_Comm poolComm, const std::string& Id, bool isServer) ;
     ~CPoolRessource() ;
     
     void createService(const std::string& serviceId, int type, int size, int nbPartition) ;

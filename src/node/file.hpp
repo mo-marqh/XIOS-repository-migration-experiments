@@ -127,11 +127,16 @@ namespace xios {
          CFieldGroup* addFieldGroup(const string& id = "");
          CVariable* addVariable(const string& id = "");
          CVariableGroup* addVariableGroup(const string& id = "");
+         
+         
+         void getWriterServicesId(bool defaultUsingServer2_, const string& defaultPoolWriterId_, const string& defaultWriterId_, const string& defaultPoolGathererId_, const string& defaultGathererId_,
+                                  bool& usingServer2, string& poolWriterId, string& writerId, string& poolGathererId, string& gathererId) ;
+         void getReaderServicesId(const string& defaultPoolReaderId_, const string& defaultReaderId_, string& poolReaderId, string& readerId) ;
+ 
+
+         void setContextClient(const string& defaultPoolId, const string& defaultServiceId, int partitionId) ;
          void setContextClient(CContextClient* newContextClient);
          CContextClient* getContextClient();
-
-         void setReadContextClient(CContextClient* newContextClient);
-         CContextClient* getReadContextClient();
 
          // Send info to server         
          void sendEnabledFields(CContextClient* client);         
@@ -191,7 +196,6 @@ namespace xios {
       private :
          /// Propriétés privées ///
          CContextClient* client;
-         CContextClient* read_client; // Context client for reading (channel between server 1 and client)
          CFieldGroup* vFieldGroup;
          CVariableGroup* vVariableGroup;
          std::shared_ptr<CDataOutput> data_out;

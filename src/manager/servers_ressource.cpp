@@ -49,13 +49,14 @@ namespace xios
 
     bool isPartOf ;
 
-    for(int i=0; i<freeRessourcesRank_.size();i++) 
+    for(int i=0, j=0; i<freeRessourcesRank_.size();i++) 
     {
        if (i<size) isPartOf=true ;
        else 
        {
          isPartOf=false ;
-         newFreeRessourcesRank[i]=freeRessourcesRank_[i] ;
+         newFreeRessourcesRank[j]=freeRessourcesRank_[i] ;
+         j++ ;
        }
        
        notifyOutType_=NOTIFY_CREATE_POOL ;
@@ -164,7 +165,7 @@ namespace xios
     
     if (isPartOf)
     {  
-      poolRessource_ = new CPoolRessource(poolComm, poolId) ;
+      poolRessource_ = new CPoolRessource(poolComm, poolId, true) ;
       MPI_Comm_free(&poolComm) ;
     }
     else 

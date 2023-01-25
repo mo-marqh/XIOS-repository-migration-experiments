@@ -93,6 +93,7 @@ namespace xios
 
   void CClientBuffer::attachWindows(vector<MPI_Win>& windows)
   {
+    isAttachedWindows_=true ;
     windows_=windows ;
     if (windows_[0]==MPI_WIN_NULL && windows_[1]==MPI_WIN_NULL) hasWindows=false ;
     else hasWindows=true ;
@@ -169,7 +170,8 @@ namespace xios
 
   bool CClientBuffer::isBufferFree(StdSize size)
   {
-  
+    if (!isAttachedWindows_) return false;
+
     lockBuffer();
     count=*bufferCount[current] ;
     

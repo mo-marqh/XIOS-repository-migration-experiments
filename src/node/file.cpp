@@ -25,7 +25,7 @@ namespace xios {
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-      , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
+      , isOpen(false),  checkRead(false), allZoneEmpty(false)
    {
      setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
      setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
@@ -34,7 +34,7 @@ namespace xios {
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-      , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
+      , isOpen(false), checkRead(false), allZoneEmpty(false)
     {
       setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
       setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
@@ -1116,6 +1116,41 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   void CFile::getWriterServicesId(bool defaultUsingServer2_, const string& defaultPoolWriterId_, const string& defaultWriterId_, const string& defaultPoolGathererId_, const string& defaultGathererId_,
+                                   bool& usingServer2, string& poolWriterId, string& writerId, string& poolGathererId, string& gathererId)
+   {
+     usingServer2 = defaultUsingServer2_ ;
+     poolWriterId = defaultPoolWriterId_ ;
+     writerId = defaultWriterId_ ;
+     poolGathererId = defaultPoolGathererId_ ;
+     gathererId = defaultGathererId_ ;
+
+     if (!using_server2.isEmpty()) usingServer2 = using_server2;
+     if (!pool_writer.isEmpty()) poolWriterId = pool_writer ;
+     if (!writer.isEmpty()) writerId = writer;
+     if (!pool_gatherer.isEmpty()) poolGathererId = pool_gatherer;
+     if (!gatherer.isEmpty()) gathererId = gatherer;
+   }
+
+   void CFile::getReaderServicesId(const string& defaultPoolReaderId_, const string& defaultReaderId_, string& poolReaderId, string& readerId)
+   {
+     poolReaderId = defaultPoolReaderId_ ;
+     readerId = defaultReaderId_ ;
+    
+     if (!pool_reader.isEmpty()) poolReaderId = pool_reader ;
+     if (!reader.isEmpty()) readerId = reader;
+   }
+
+   void CFile::setContextClient(const string& defaultPoolId, const string& defaultServiceId, int partitionId)
+   TRY
+   {
+     CContext* context = CContext::getCurrent();
+     vector<CContextClient*> clients = context->getContextClient(defaultPoolId, defaultServiceId) ;
+     setContextClient(clients[partitionId]) ;
+   }
+   CATCH_DUMP_ATTR
+
+
    void CFile::setContextClient(CContextClient* newContextClient)
    TRY
    {
@@ -1135,20 +1170,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CFile::setReadContextClient(CContextClient* readContextclient)
-   TRY
-   {
-     read_client = readContextclient;
-   }
-   CATCH_DUMP_ATTR
-
-   CContextClient* CFile::getReadContextClient()
-   TRY
-   {
-     return read_client;
-   }
-   CATCH_DUMP_ATTR
-
+   
    /*!
    \brief Send a message to create a field on server side
    \param[in] id String identity of field that will be created on server

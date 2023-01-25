@@ -9,6 +9,7 @@
 #include "object_template.hpp"
 #include "group_factory.hpp"
 #include "declare_group.hpp"
+#include "service_node.hpp"
 
 
 namespace xios
@@ -57,6 +58,13 @@ namespace xios
       static ENodeType GetType(void)     { return ePoolNode; }
     public:
       virtual void parse(xml::CXMLNode & node);
+      void allocateRessources(void) ;
+
+    private:
+      std::vector<CServiceNode*> getAllServiceNodes(void) const {return this->vServiceNodeGroup->getAllChildren();}
+      CServiceNodeGroup* getVirtualServiceNodeGroup(void) const {return this->vServiceNodeGroup; }
+      void setVirtualServiceNodeGroup(CServiceNodeGroup* newVServiceNodeGroup) { this->vServiceNodeGroup = newVServiceNodeGroup; }
+      CServiceNodeGroup* vServiceNodeGroup;
 
   }; // class CPoolNode
   ///--------------------------------------------------------------

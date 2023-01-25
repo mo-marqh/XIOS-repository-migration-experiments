@@ -187,12 +187,22 @@ namespace xios
       /////////////////////////////////////////
      
       CXios::launchDaemonsManager(false) ;
-      poolRessource_ = new CPoolRessource(clientComm, codeId) ;
+      poolRessource_ = new CPoolRessource(clientComm, codeId, false) ;
 
       /////////////////////////////////////////
       ///////////// PART 4 ////////////////////
       /////////////////////////////////////////      
-      
+/*
+      MPI_Request req ;
+      MPI_Status status ;
+      MPI_Ibarrier(xiosGlobalComm,&req) ; // be sure that all services are created now, could be remove later if more asynchronisity
+      int ok=false ;
+      while (!ok)
+      {
+        CXios::getDaemonsManager()->eventLoop() ;
+        MPI_Test(&req,&ok,&status) ;
+      }
+*/      
       returnComm = clientComm ;
     }
 

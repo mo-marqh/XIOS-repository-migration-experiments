@@ -576,7 +576,7 @@ void CContext::removeAllContexts(void)
     int nbPartitions ;
     if (commRank==0)
     {
-      CXios::getServicesManager()->getServiceNbPartitions(poolId, serverId, 0, nbPartitions) ;
+      CXios::getServicesManager()->getServiceNbPartitions(poolId, serverId, 0, nbPartitions, true) ;
       for(int i=0 ; i<nbPartitions; i++) CXios::getContextsManager()->createServerContext(poolId, serverId, i, getContextId()) ;
     }
     setCurrent(getId()) ; // getCurrent/setCurrent may be supress, it can cause a lot of trouble (attached ???)
@@ -587,7 +587,7 @@ void CContext::removeAllContexts(void)
     {
       parentServerContext_->createIntercomm(poolId, serverId, i, getContextId(), intraComm_, interCommClient, interCommServer) ;
       int type ; 
-      if (commRank==0) CXios::getServicesManager()->getServiceType(poolId, serverId, 0, type) ;
+      if (commRank==0) CXios::getServicesManager()->getServiceType(poolId, serverId, 0, type, true) ;
       MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
       string fullServerId=CXios::getContextsManager()->getServerContextName(poolId, serverId, i, type, getContextId()) ;
 
@@ -609,6 +609,8 @@ void CContext::removeAllContexts(void)
   }
   CATCH_DUMP_ATTR
   
+  
+  // obsolete
   void CContext::createServerInterComm(void) 
   TRY
   {
@@ -644,6 +646,44 @@ void CContext::removeAllContexts(void)
 
   }
   CATCH_DUMP_ATTR
+
+  
+  void CContext::getServerInterComm(const string& poolId, const string& serviceId,  vector<pair<CContextClient*,CContextServer*>>& clientServers)
+  {
+    vector<pair<string, pair<CContextClient*,CContextServer*>>> retClientServers ;
+
+    auto it=serversMap_.find(make_pair(poolId,serviceId)) ;
+    if (it!=serversMap_.end()) clientServers=it->second ;
+    else
+    {
+      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+serviceId, retClientServers) ;
+      else createServerInterComm(poolId, serviceId, retClientServers) ;
+      for(auto& retClientServer : retClientServers)  clientServers.push_back(retClientServer.second) ;
+      
+      int serviceType ;
+      if (intraCommRank_==0) CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType) ;
+      MPI_Bcast(&serviceType,1,MPI_INT,0,intraComm_) ;
+      
+      for(auto& clientServer : clientServers)     
+      {
+        if (serviceType==CServicesManager::WRITER) { writerClientOut_.push_back(clientServer.first)      ; writerServerOut_.push_back(clientServer.second) ; }
+        else if (serviceType==CServicesManager::READER) { readerClientOut_.push_back(clientServer.first) ; readerServerOut_.push_back(clientServer.second) ; }
+        else if (serviceType==CServicesManager::GATHERER) { writerClientOut_.push_back(clientServer.first) ; writerServerOut_.push_back(clientServer.second) ; }
+      }
+      serversMap_.insert(make_pair(make_pair(poolId,serviceId),clientServers)) ;
+    }
+
+  }
+
+  vector<CContextClient*> CContext::getContextClient(const string& poolId, const string& serviceId)
+  {
+    vector<pair<CContextClient*,CContextServer*>> clientServers ;
+    getServerInterComm(poolId, serviceId, clientServers ) ;
+    vector<CContextClient*> ret ;
+    for(auto& clientServer : clientServers) ret.push_back(clientServer.first) ;
+    return ret ;
+  }
+
 
   void CContext::globalEventLoop(void)
   {
@@ -697,8 +737,10 @@ void CContext::removeAllContexts(void)
       for(auto server : readerServerIn_) finished &= server->eventLoop(enableEventsProcessing);
       for(auto couplerOut : couplerOutClient_) couplerOut.second->eventLoop();
       for(auto couplerIn : couplerInClient_) couplerIn.second->eventLoop();
-      for(auto couplerOut : couplerOutServer_) couplerOut.second->eventLoop(enableEventsProcessing);
-      for(auto couplerIn : couplerInServer_) couplerIn.second->eventLoop(enableEventsProcessing);
+      //for(auto couplerOut : couplerOutServer_) couplerOut.second->eventLoop(enableEventsProcessing);
+      //for(auto couplerIn : couplerInServer_) couplerIn.second->eventLoop(enableEventsProcessing);
+      for(auto couplerOut : couplerOutServer_) couplerOut.second->eventLoop();
+      for(auto couplerIn : couplerInServer_) couplerIn.second->eventLoop();
     }
     setCurrent(getId()) ;
     return finalized && finished ;
@@ -782,6 +824,7 @@ void CContext::removeAllContexts(void)
         CContextClient* client ;
         CContextServer* server ;
 
+        /*
         if (writerClientOut_.size()!=0)
         {
           client=writerClientOut_[0] ;
@@ -802,6 +845,34 @@ void CContext::removeAllContexts(void)
           client->releaseBuffers();
           info(100)<<"DEBUG: context "<<getId()<<" release client writer ok"<<endl ;
         }
+        */
+
+        for(int n=0; n<writerClientOut_.size() ; n++)
+        {
+          client=writerClientOut_[n] ;
+          server=writerServerOut_[n] ;
+
+          info(100)<<"DEBUG: context "<<getId()<<" Send client finalize to writer"<<endl ;
+          client->finalize();
+          info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent to writer"<<endl ;
+          bool bufferReleased;
+          do
+          {
+            client->eventLoop();
+            bufferReleased = !client->havePendingRequests();
+          } while (!bufferReleased);
+          info(100)<<"DEBUG: context "<<getId()<<" no pending request on writer ok"<<endl ;
+
+          bool notifiedFinalized=false ;
+          do
+          {
+            notifiedFinalized=client->isNotifiedFinalized() ;
+          } while (!notifiedFinalized) ;
+          server->releaseBuffers();
+          client->releaseBuffers();
+          info(100)<<"DEBUG: context "<<getId()<<" release client writer ok"<<endl ;
+        }
+        
 
         if (readerClientOut_.size()!=0)
         {
@@ -878,6 +949,26 @@ void CContext::removeAllContexts(void)
    CATCH_DUMP_ATTR
 
    
+   void CContext::setDefaultServices(void)
+   {
+     defaultPoolWriterId_ = CXios::defaultPoolId ;
+     defaultPoolReaderId_ = CXios::defaultPoolId ;
+     defaultPoolGathererId_ = CXios::defaultPoolId ;
+     defaultWriterId_ = CXios::defaultWriterId ;
+     defaultReaderId_ = CXios::defaultReaderId ;
+     defaultGathererId_ = CXios::defaultGathererId ;
+     defaultUsingServer2_ = CXios::usingServer2 ;
+     
+     if (!default_pool.isEmpty())  defaultPoolWriterId_ = defaultPoolReaderId_= defaultPoolGathererId_= default_pool ;
+     if (!default_pool_writer.isEmpty()) defaultPoolWriterId_ = default_pool_writer ;
+     if (!default_pool_reader.isEmpty()) defaultPoolReaderId_ = default_pool_reader ;
+     if (!default_pool_gatherer.isEmpty()) defaultPoolGathererId_ = default_pool_gatherer ;
+     if (!default_writer.isEmpty()) defaultWriterId_ = default_writer ;
+     if (!default_reader.isEmpty()) defaultWriterId_ = default_reader ;
+     if (!default_gatherer.isEmpty()) defaultGathererId_ = default_gatherer ;
+     if (!default_using_server2.isEmpty()) defaultUsingServer2_ = default_using_server2 ;
+   }
+
    /*!
    \brief Close all the context defintion and do processing data
       After everything is well defined on client side, they will be processed and sent to server
@@ -893,10 +984,10 @@ void CContext::removeAllContexts(void)
      CMemChecker::logMem( "CContext::closeDefinition" );
 
      CTimer::get("Context : close definition").resume() ;
-     
+          
      // create intercommunicator with servers. 
      // not sure it is the good place to be called here 
-     createServerInterComm() ;
+     //createServerInterComm() ;
 
 
      // After xml is parsed, there are some more works with post processing
@@ -915,7 +1006,7 @@ void CContext::removeAllContexts(void)
     // Résolution des héritages descendants (càd des héritages de groupes)
     // pour chacun des contextes.
     solveDescInheritance(true);
- 
+    setDefaultServices() ;
     // Check if some axis, domains or grids are eligible to for compressed indexed output.
     // Warning: This must be done after solving the inheritance and before the rest of post-processing
     // --> later ????    checkAxisDomainsGridsEligibilityForCompressedOutput();      
@@ -1022,12 +1113,27 @@ void CContext::removeAllContexts(void)
     for (auto field : CField::getAll() ) if (field->getModelIn()) fieldModelIn.push_back(field) ;
 
     // Distribute files between secondary servers according to the data size => assign a context to a file and then to fields
-    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER ) distributeFiles(this->enabledWriteModeFiles);
-    //else if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledWriteModeFiles) file->setContextClient(client) ;
+    
+    if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) distributeFiles(this->enabledWriteModeFiles) ;
+    /*
+    if (serviceType_==CServicesManager::CLIENT )
+    {   
+      if (CXios::usingServer2) distributeFiles(this->enabledWriteModeFiles, defaultPoolGathererId_, defaultGathererId_);
+      else distributeFiles(this->enabledWriteModeFiles, defaultPoolWriterId_, defaultWriterId_);
+    }
+    if (serviceType_==CServicesManager::GATHERER ) distributeFiles(this->enabledWriteModeFiles, defaultPoolWriterId_, defaultWriterId_);
+    */
 
     // client side, assign context for file reading
-    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(readerClientOut_[0]) ;
-    
+//    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) file->setContextClient(readerClientOut_[0]) ;
+    if (serviceType_==CServicesManager::CLIENT) for(auto file : this->enabledReadModeFiles) 
+    {
+      string poolReaderId ;
+      string readerId ;
+      file->getReaderServicesId(defaultPoolReaderId_, defaultReaderId_, poolReaderId, readerId) ;
+      file->setContextClient(poolReaderId, readerId, 0) ;
+    }
+
     // server side, assign context where to send file data read
     if (serviceType_==CServicesManager::READER) for(auto file : this->enabledReadModeFiles) file->setContextClient(readerClientIn_[0]) ;
    
@@ -1162,6 +1268,7 @@ void CContext::removeAllContexts(void)
     
     // fix size for each context client
     for(auto& it : fieldBufferEvaluation) it.first->setBufferSize(it.second) ;
+
 
      CTimer::get("Context : close definition").suspend() ;
      CMemChecker::logMem( "CContext::closeDefinition_END" );
@@ -1435,30 +1542,56 @@ void CContext::removeAllContexts(void)
    void CContext::distributeFiles(const vector<CFile*>& files)
    TRY
    {
+     map< pair<string,string>, vector<CFile*>> fileMaps ;
+     for(auto& file : files)
+     {
+       string poolWriterId ;
+       string poolGathererId ;
+       string writerId  ;
+       string gathererId  ;
+       bool usingServer2 ;
+
+       file->getWriterServicesId(defaultUsingServer2_, defaultPoolWriterId_, defaultWriterId_, defaultPoolGathererId_, defaultGathererId_,
+                                 usingServer2, poolWriterId, writerId, poolGathererId, gathererId) ;
+       if (serviceType_==CServicesManager::CLIENT && usingServer2) fileMaps[make_pair(poolGathererId,gathererId)].push_back(file) ;
+       else fileMaps[make_pair(poolWriterId,writerId)].push_back(file) ;
+     }
+     for(auto& it : fileMaps) distributeFilesOnSameService(it.second, it.first.first, it.first.second) ;
+   }
+   CATCH_DUMP_ATTR
+
+
+   void CContext::distributeFilesOnSameService(const vector<CFile*>& files, const string& poolId, const string& serviceId)
+   TRY
+   {
      bool distFileMemory=false ;
      distFileMemory=CXios::getin<bool>("server2_dist_file_memory", distFileMemory);
 
-     int nbPools = writerClientOut_.size();
-     if (nbPools==1) distributeFileOverOne(files) ;
-     else if (distFileMemory) distributeFileOverMemoryBandwith(files) ;
-     else distributeFileOverBandwith(files) ;
+     auto writers = getContextClient(poolId, serviceId) ;
+     int  nbPools = writers.size() ;
+     
+     if (nbPools==1) distributeFileOverOne(files, poolId, serviceId) ;
+     else if (distFileMemory) distributeFileOverMemoryBandwith(files, poolId, serviceId) ;
+     else distributeFileOverBandwith(files, poolId, serviceId) ;
    }
    CATCH_DUMP_ATTR
 
-   void CContext::distributeFileOverOne(const vector<CFile*>& files)
+   void CContext::distributeFileOverOne(const vector<CFile*>& files, const string& poolId, const string& serviceId)
    TRY
    {
-    for(auto& file : files) file->setContextClient(writerClientOut_[0]) ;
+     for(auto& file : files) file->setContextClient(poolId, serviceId,0) ;
    }
    CATCH_DUMP_ATTR
 
-   void CContext::distributeFileOverBandwith(const vector<CFile*>& files)
+   void CContext::distributeFileOverBandwith(const vector<CFile*>& files, const string& poolId, const string& serviceId)
    TRY
    {
      double eps=std::numeric_limits<double>::epsilon()*10 ;
      
      std::ofstream ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
-     int nbPools = writerClientOut_.size();
+     auto writers = getContextClient(poolId, serviceId) ;
+     int nbPools = writers.size();
+     //int nbPools = writerClientOut_.size();
 
      // (1) Find all enabled files in write mode
      // for (int i = 0; i < this->enabledFiles.size(); ++i)
@@ -1511,7 +1644,7 @@ void CContext::removeAllContexts(void)
      {
        dataSize=(*poolDataSize.begin()).first ;
        j=(*poolDataSize.begin()).second ;
-       dataSizeMap[i].second->setContextClient(writerClientOut_[j]);
+       dataSizeMap[i].second->setContextClient(poolId, serviceId, j);
        dataSize+=dataSizeMap[i].first;
        poolDataSize.erase(poolDataSize.begin()) ;
        poolDataSize.insert(std::pair<double,int>(dataSize,j)) ; 
@@ -1521,10 +1654,12 @@ void CContext::removeAllContexts(void)
    }
    CATCH_DUMP_ATTR
 
-   void CContext::distributeFileOverMemoryBandwith(const vector<CFile*>& filesList)
+   void CContext::distributeFileOverMemoryBandwith(const vector<CFile*>& filesList, const string& poolId, const string& serviceId)
    TRY
    {
-     int nbPools = writerClientOut_.size();
+     auto writers = getContextClient(poolId, serviceId) ;
+     int nbPools = writers.size();
+    
      double ratio=0.5 ;
      ratio=CXios::getin<double>("server2_dist_file_memory_ratio", ratio);
 
@@ -1590,7 +1725,7 @@ void CContext::removeAllContexts(void)
            serverGrids[files[i].assignedServer_].insert(files[i].assignedGrid_[j]) ;
          }
        }
-       filesList[i]->setContextClient(writerClientOut_[files[i].assignedServer_]) ;
+       filesList[i]->setContextClient(poolId, serviceId, files[i].assignedServer_) ;
        delete [] files[i].assignedGrid_ ;
      }
 

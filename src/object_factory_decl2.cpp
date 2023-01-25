@@ -21,5 +21,6 @@ namespace xios
   macro(CReorderDomain)
   macro(CExtractDomain)
   macro(CPoolNode)
+  macro(CServiceNode)
 }
 

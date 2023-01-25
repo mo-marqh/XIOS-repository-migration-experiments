@@ -43,6 +43,7 @@ namespace xios
          eReorderDomain,
          eExtractDomain,
          ePoolNode,gPoolNode,
+         eServiceNode,gServiceNode,
 //         eService, gService
        } ENodeType;
 

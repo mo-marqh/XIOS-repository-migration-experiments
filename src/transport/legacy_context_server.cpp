@@ -94,7 +94,7 @@ namespace xios
     bool okLoop;
 
     traceOff();
-    MPI_Improbe(MPI_ANY_SOURCE, 20,interComm,&flag,&message, &status);
+    MPI_Improbe(MPI_ANY_SOURCE, 20, interComm,&flag,&message, &status);
     traceOn();
     if (flag==true) listenPendingRequest(message, status) ;
   }

@@ -102,13 +102,7 @@ namespace xios
          void initClient(MPI_Comm intraComm, int serviceType);
          
          void initServer(MPI_Comm intraComm, int serviceType );
-         void createClientInterComm(MPI_Comm interCommClient, MPI_Comm interCommServer)  ;
- 
-         void createServerInterComm(void)  ;
-         void createServerInterComm_old(void)  ;
-         void createServerInterComm(const string& poolId, const string& serverId, vector<pair<string, pair<CContextClient*,CContextServer*>>>& clientServers ) ;
- 
-
+         
          bool isInitialized(void);
 
          StdString dumpClassAttributes(void);
@@ -122,7 +116,6 @@ namespace xios
          void finalize(void);
 
          bool isFinalized(void);
-
          void closeDefinition(void);
 
          // to be removed     
@@ -158,10 +151,11 @@ namespace xios
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
 
          // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
-         void distributeFiles(const std::vector<CFile*>& files);
-         void distributeFileOverOne(const vector<CFile*>& files) ; //!< Distribute files over one single server (no distribution)
-         void distributeFileOverBandwith(const std::vector<CFile*>& files) ; //!< Distribute files overs servers to balance the I/O bandwith
-         void distributeFileOverMemoryBandwith(const std::vector<CFile*>& files) ; //!< Distribute files overs servers to minimize the memory consumption
+         void distributeFiles(const vector<CFile*>& files) ;
+         void distributeFilesOnSameService(const vector<CFile*>& files, const string& poolId, const string& serviceId) ;
+         void distributeFileOverOne(const vector<CFile*>& files, const string& poolId, const string& serviceId) ; //!< Distribute files over one single server (no distribution)
+         void distributeFileOverBandwith(const std::vector<CFile*>& files, const string& poolId, const string& serviceId) ; //!< Distribute files overs servers to balance the I/O bandwith
+         void distributeFileOverMemoryBandwith(const std::vector<CFile*>& files, const string& poolId, const string& serviceId) ; //!< Distribute files overs servers to minimize the memory consumption
          
        public:
          // Send context close definition
@@ -270,10 +264,7 @@ namespace xios
          bool isProcessingEvent(void) {return isProcessingEvent_;}
          bool setProcessingEvent(void) {isProcessingEvent_=true ;}
          bool unsetProcessingEvent(void) {isProcessingEvent_=false ;}
-         MPI_Comm getIntraComm(void) {return intraComm_ ;}
-         int getIntraCommRank(void) {return intraCommRank_;}
-         int getIntraCommSize(void) {return intraCommSize_;}
-
+         
          void addCouplingChanel(const std::string& contextId, bool out) ;
 
       public :
@@ -309,9 +300,17 @@ namespace xios
 
 
       private:
-        std::string defaultReaderId ;
-        std::string defaultWriterId ;
-        std::string defaultGathererId ;
+        std::string defaultPoolWriterId_ ;
+        std::string defaultPoolReaderId_ ;
+        std::string defaultPoolGathererId_ ;
+        std::string defaultWriterId_ ;
+        std::string defaultReaderId_ ;
+        std::string defaultGathererId_ ;
+        bool defaultUsingServer2_ ;
+        void setDefaultServices(void) ;
+
+
+        std::map<std::pair<string,string>,std::vector<pair<CContextClient*,CContextServer*>>> serversMap_ ;
 
         std::vector<CContextClient*> writerClientOut_ ;
         std::vector<CContextServer*> writerServerOut_ ;
@@ -341,19 +340,30 @@ namespace xios
         // the map containing context server associated to it string id for coupling in ;
         std::map<std::string, CContextServer*> couplerInServer_ ;
       public:
+         void createClientInterComm(MPI_Comm interCommClient, MPI_Comm interCommServer)  ;
+         void createServerInterComm(void)  ; // obsolete
+         void createServerInterComm_old(void)  ;
+         void createServerInterComm(const string& poolId, const string& serverId, vector<pair<string, pair<CContextClient*,CContextServer*>>>& clientServers ) ;
+         void getServerInterComm(const string& poolId, const string& serviceId,  vector<pair<CContextClient*,CContextServer*>>& clientServers) ;
+         vector<CContextClient*> getContextClient(const string& poolId, const string& serviceId) ;
          CContextClient* getCouplerInClient(const string& contextId) { return couplerInClient_[contextId] ;}
          CContextServer* getCouplerInServer(const string& contextId) { return couplerInServer_[contextId] ;}
          CContextClient* getCouplerOutClient(const string& contextId) { return couplerOutClient_[contextId] ;}
          CContextServer* getCouplerOutServer(const string& contextId) { return couplerOutServer_[contextId] ;}
-
-         CRegistry* registryIn=nullptr ;    //!< input registry which is read from file
-         CRegistry* registryOut=nullptr ;   //!< output registry which will be written into file at the finalize
+       
+       public: // must be privatize using accessors
+        
+        CRegistry* registryIn=nullptr ;    //!< input registry which is read from file
+        CRegistry* registryOut=nullptr ;   //!< output registry which will be written into file at the finalize
 
 
         MPI_Comm intraComm_ ; //! context intra communicator
         int intraCommRank_ ; //! context intra communicator rank
         int intraCommSize_ ; //! context intra communicator size
-        
+       public: 
+        MPI_Comm getIntraComm(void) {return intraComm_ ;}
+        int getIntraCommRank(void) {return intraCommRank_;}
+        int getIntraCommSize(void) {return intraCommSize_;}
       private:
          shared_ptr<CEventScheduler> eventScheduler_ ; //! The local event scheduler for context
          size_t hashId_ ; //! the local hashId for scheduler

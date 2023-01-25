@@ -12,6 +12,7 @@
 #include "cxios.hpp"
 #include "server.hpp"
 #include "services.hpp"
+#include "ressources_manager.hpp"
 #include <boost/functional/hash.hpp>
 #include <random>
 #include <chrono>
@@ -109,6 +110,18 @@ namespace xios
         while (CXios::getDaemonsManager()->isScheduledContext(hashId_)) callGlobalEventLoop() ;
       }
       
+      MPI_Request req ;
+      MPI_Status status ;
+      MPI_Ibarrier(intraComm,&req) ;
+      int flag ;
+      MPI_Test(&req,&flag,&status) ;
+      while(!flag) 
+      {
+        callGlobalEventLoop() ;
+        MPI_Test(&req,&flag,&status) ;
+      }
+
+
       timeLine++;
     }
 
@@ -125,22 +138,26 @@ namespace xios
      * \param [in] nonBlocking whether this function should be non-blocking
      * \return whether the already allocated buffers could be used
     */
-    bool CLegacyContextClient::getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers,
-                                    bool nonBlocking /*= false*/)
+    void CLegacyContextClient::getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers)
     {
       list<int>::const_iterator itServer, itSize;
       list<CClientBuffer*> bufferList;
       map<int,CClientBuffer*>::const_iterator it;
       list<CClientBuffer*>::iterator itBuffer;
       bool areBuffersFree;
-
+     
       for (itServer = serverList.begin(); itServer != serverList.end(); itServer++)
       {
         it = buffers.find(*itServer);
         if (it == buffers.end())
         {
+          CTokenManager* tokenManager = CXios::getRessourcesManager()->getTokenManager() ;
+          size_t token = tokenManager->getToken() ;
+          while (!tokenManager->lockToken(token)) callGlobalEventLoop() ;
           newBuffer(*itServer);
           it = buffers.find(*itServer);
+          checkAttachWindows(it->second,it->first) ;
+          tokenManager->unlockToken(token) ;
         }
         bufferList.push_back(it->second);
       }
@@ -176,15 +193,11 @@ namespace xios
           callGlobalEventLoop() ;
         }
 
-      } while (!areBuffersFree && !nonBlocking);
+      } while (!areBuffersFree);
       CTimer::get("Blocking time").suspend();
 
-      if (areBuffersFree)
-      {
-        for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
-          retBuffers.push_back((*itBuffer)->getBuffer(timeLine, *itSize));
-      }
-      return areBuffersFree;
+      for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
+        retBuffers.push_back((*itBuffer)->getBuffer(timeLine, *itSize));
    }
 
    void CLegacyContextClient::eventLoop(void)
@@ -224,7 +237,7 @@ namespace xios
       info(100)<<"CLegacyContextClient::newBuffer : rank "<<rank<<" winAdress[0] "<<buffers[rank]->getWinAddress(0)<<" winAdress[1] "<<buffers[rank]->getWinAddress(1)<<endl;
       bufOut->put(sendBuff, 4); 
       buffer->checkBuffer(true);
-      
+/*
        // create windows dynamically for one-sided
       if (!isAttachedModeEnabled())
       { 
@@ -253,9 +266,48 @@ namespace xios
       }
       buffer->attachWindows(windows_[rank]) ;
       if (!isAttachedModeEnabled()) MPI_Barrier(winComm_[rank]) ;
-       
+  */     
    }
 
+   void CLegacyContextClient::checkAttachWindows(CClientBuffer* buffer, int rank)
+   {
+      if (!buffer->isAttachedWindows())
+      {
+           // create windows dynamically for one-sided
+        if (!isAttachedModeEnabled())
+        { 
+          CTimer::get("create Windows").resume() ;
+          MPI_Comm interComm ;
+          MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, 0, &interComm) ;
+          MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+          CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
+          MPI_Comm_free(&interComm) ;
+          windows_[rank].resize(2) ;
+      
+          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
+          CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;
+      
+          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);   
+          CXios::getMpiGarbageCollector().registerWindow(windows_[rank][1]) ;
+
+          CTimer::get("create Windows").suspend() ;
+          buffer->attachWindows(windows_[rank]) ;
+          MPI_Barrier(winComm_[rank]) ;
+        }
+        else
+        {
+          winComm_[rank] = MPI_COMM_NULL ;
+          windows_[rank].resize(2) ;
+          windows_[rank][0] = MPI_WIN_NULL ;
+          windows_[rank][1] = MPI_WIN_NULL ;
+          buffer->attachWindows(windows_[rank]) ;
+        }
+
+      }
+    }
+
+
+  
    /*!
    Verify state of buffers. Buffer is under pending state if there is no message on it
    \return state of buffers, pending(true), ready(false)

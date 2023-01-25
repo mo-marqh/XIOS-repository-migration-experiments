@@ -9,7 +9,7 @@
 
 namespace xios
 {
-  CPoolRessource::CPoolRessource(MPI_Comm poolComm, const std::string& Id) : Id_(Id), finalizeSignal_(false)
+  CPoolRessource::CPoolRessource(MPI_Comm poolComm, const std::string& Id, bool isServer) : Id_(Id), finalizeSignal_(false)
   {
     int commRank, commSize ;
     MPI_Comm_dup(poolComm, &poolComm_) ;
@@ -22,7 +22,7 @@ namespace xios
       for(int i=0; i<commSize;i++) occupancy_.insert(std::pair<char,int>(0,i)) ; 
       int globalLeaderRank ;
       MPI_Comm_rank(CXios::getXiosComm(),&globalLeaderRank) ;
-      CXios::getRessourcesManager()->registerPool(Id, commSize, globalLeaderRank) ;
+      if (isServer) CXios::getRessourcesManager()->registerPoolServer(Id, commSize, globalLeaderRank) ;
     }
     
     winNotify_->lockWindow(commRank,0) ;

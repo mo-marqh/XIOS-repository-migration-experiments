@@ -42,13 +42,16 @@ namespace xios
     void eventLoop(void) ;
     
     void registerService(const std::string& poolId, const std::string& serviceId, const int& partitionId, int type, int size, int nbPartitions, int leader) ;
-    bool getServiceInfo(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, int& size, int& nbPartition, int& leader) ;
-    bool getServiceLeader(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& leader) ;
-    bool getServiceType(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type) ;
-    bool getServiceNbPartitions(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& nbPartition) ;
+    bool getServiceInfo(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, int& size, int& nbPartition, int& leader, bool wait=false) ;
+    bool getServiceLeader(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& leader, bool wait=false) ;
+    bool getServiceType(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, bool wait=false) ;
+    bool getServiceNbPartitions(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& nbPartition, bool wait=false) ;
     bool hasService(const std::string& poolId, const std::string& serviceId, const int& partitionId) ;
+    void waitServiceRegistration(const std::string& poolId, const std::string& serviceId, const int& partitionId);
     void servicesDumpOut(CBufferOut& buffer) ;
     void servicesDumpIn(CBufferIn& buffer) ;
+    int  getRessourcesSize(const std::string& poolId) ;
+    int  getFreeRessourcesSize(const std::string& poolId) ;
 
     private:
 

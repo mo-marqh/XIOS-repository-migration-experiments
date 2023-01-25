@@ -48,5 +48,6 @@ namespace xios
   macro(CReorderDomainGroup)
   macro(CExtractDomainGroup)
   macro(CPoolNodeGroup)
+  macro(CServiceNodeGroup)
 
 }
