@@ -18,8 +18,9 @@ namespace xios
         MPI_Comm_rank(comm, &commRank) ;
         MPI_Aint size = 0 ;
         if (leader_== commRank) size = sizeof(size_t) ;
-        MPI_Win_create(&currentToken_, size, sizeof(size_t), MPI_INFO_NULL, comm, &winCurrentToken_) ;
-        MPI_Win_create(&retrievedToken_, size, sizeof(size_t), MPI_INFO_NULL, comm, &winRetrievedToken_) ;
+        const MPI_Aint windowSize=sizeof(size_t);
+        MPI_Win_allocate(windowSize, 1, MPI_INFO_NULL, comm, &winBufferCurrent_,   &winCurrentToken_) ;
+        MPI_Win_allocate(windowSize, 1, MPI_INFO_NULL, comm, &winBufferRetrieved_, &winRetrievedToken_) ;
       }
 
       size_t getToken(void)
@@ -57,7 +58,9 @@ namespace xios
     private:
 
       MPI_Win winCurrentToken_ ;
+      void* winBufferCurrent_ ;
       MPI_Win winRetrievedToken_ ;
+      void* winBufferRetrieved_ ;
       
       int leader_ ;
 
