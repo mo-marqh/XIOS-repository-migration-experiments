@@ -8,7 +8,7 @@
 #include "grid.hpp"
 #include "timer.hpp"
 #include "array_new.hpp"
-
+#include <cfloat>
 
 namespace xios {
 
