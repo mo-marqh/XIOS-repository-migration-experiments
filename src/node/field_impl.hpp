@@ -10,7 +10,7 @@
 #include "array_new.hpp"
 #include "source_filter.hpp"
 #include "store_filter.hpp"
-
+#include <cfloat>
 
 namespace xios {
 
