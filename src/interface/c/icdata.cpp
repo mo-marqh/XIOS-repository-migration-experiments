@@ -65,16 +65,22 @@ extern "C"
 
       if (!cstr2string(client_id, len_client_id, str)) return;
 
-      CTimer::get("XIOS").resume();
-      CTimer::get("XIOS init").resume();
       int initialized;
       MPI_Initialized(&initialized);
-      if (initialized) local_comm=MPI_Comm_f2c(*f_local_comm);
+      if (initialized)
+      {
+        CTimer::get("XIOS").resume();
+        CTimer::get("XIOS init").resume();
+        local_comm=MPI_Comm_f2c(*f_local_comm);
+      }
       else local_comm=MPI_COMM_NULL;
       CXios::initClientSide(str, local_comm, return_comm);
       *f_return_comm=MPI_Comm_c2f(return_comm);
-      CTimer::get("XIOS init").suspend();
-      CTimer::get("XIOS").suspend();
+      if (initialized)
+      {
+        CTimer::get("XIOS init").suspend();
+        CTimer::get("XIOS").suspend();
+      }
    }
    CATCH_DUMP_STACK
 

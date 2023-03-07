@@ -401,7 +401,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName() << "_";
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -451,7 +451,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName() << "_";
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -501,7 +501,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName() << "_";
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -551,7 +551,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -586,7 +586,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -613,7 +613,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -648,7 +648,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -675,7 +675,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -710,7 +710,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -737,7 +737,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -775,7 +775,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -802,7 +802,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -840,7 +840,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -867,7 +867,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
@@ -905,7 +905,7 @@ namespace xios
            if (it->second->isPublic())
            {
              oss << ", " << it->second->getName();
-             if (oss.tellp() - startPos > 90)
+             if ((long)oss.tellp() - startPos > 90)
              {
                oss << "  &" << iendl;
                startPos = oss.tellp();
