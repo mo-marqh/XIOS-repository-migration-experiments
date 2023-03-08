@@ -302,8 +302,8 @@ namespace xios
         // Vérification de la valeur du jour.
         if (date.getDay() < 1)
         { isValid = false; date.setDay(1); }
-        else if (date.getDay() > getMonthLength(*this))
-        { isValid = false; date.setDay(getMonthLength(*this)); }
+        else if (date.getDay() > getMonthLength(date))
+        { isValid = false; date.setDay(getMonthLength(date)); }
 
         // Vérification de la valeur de l'heure.
         if (date.getHour() < 0)
