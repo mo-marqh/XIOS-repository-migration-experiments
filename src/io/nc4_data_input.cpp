@@ -156,7 +156,7 @@ namespace xios
         domainNotExplicitelyDefined = true;
       }
     }
-    if (domainNotExplicitelyDefined)
+    if ((domainNotExplicitelyDefined)||(domainP.size()==0))
     {
       isUnstructuredGrid = ((gridDim < 2) ? false :  SuperClassWriter::isUnstructured(fieldId));
     }
