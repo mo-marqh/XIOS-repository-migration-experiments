@@ -313,10 +313,6 @@ namespace xios
          std::vector<int> dimids;
          std::vector<StdSize> dimsizes;
          int dimSize = dim.size();
-         
-         StdSize size;
-         StdSize totalSize;
-         StdSize maxSize = 1024 * 1024 * 256; // == 2GB/8 if output double
 
          int grpid = this->getCurrentGroup();
 
@@ -326,23 +322,171 @@ namespace xios
          {
             const StdString& dimid = *it;
             dimids.push_back(this->getDimension(dimid));
-            CNetCdfInterface::inqDimLen(grpid, this->getDimension(dimid), size);
-            if (size == NC_UNLIMITED) size = 1;
-            dimsizes.push_back(size);
          }
 
          CNetCdfInterface::defVar(grpid, name, type, dimids.size(), &dimids[0], varid);
+         
+         return varid;
+      }
+
+      //---------------------------------------------------------------
+
+      int CONetCDF4::addChunk(CField* field, nc_type type,
+                              const std::vector<StdString>& dim, int compressionLevel)
+      {
+         const StdString& name = field->getFieldOutputName();
+         int varid = 0;
+         std::vector<StdSize> dimsizes;
+         int dimSize = dim.size();
+         
+         StdSize size;
+         StdSize totalSize;
+
+         // default chunk size         
+         StdSize maxSize = 1024 * 1024 * 20; // = 20 Mo (exp using large NEMO like grids)
+         StdSize targetSize = maxSize;
+         if (!field->chunking_blocksize_target.isEmpty())
+         {
+           targetSize = field->chunking_blocksize_target.getValue()*1024*1024;
+         }
+         StdSize recordSize = 1; //sizeof(type);
+         if (field->prec.isEmpty()) recordSize *= 4;
+         else recordSize *= field->prec;
+
+         int grpid = this->getCurrentGroup();
+
+         std::vector<StdString>::const_iterator it = dim.begin(), end = dim.end();
+
+         for (int idx = 0; it != end; it++, ++idx)
+         {
+            const StdString& dimid = *it;
+            CNetCdfInterface::inqDimLen(grpid, this->getDimension(dimid), size);
+            if (size == NC_UNLIMITED) size = 1;
+            recordSize *= size;
+            dimsizes.push_back(size);
+         }
+         double chunkingRatio = (double)recordSize / (double)targetSize;
+
+         varid = this->getVariable(name);
 
          // The classic NetCDF format does not support chunking nor fill parameters
          if (!useClassicFormat)
          {
-            // set chunksize : size of one record
-            // but must not be > 2GB (netcdf or HDF5 problem)
-            totalSize = 1;
-            for (vector<StdSize>::reverse_iterator it = dimsizes.rbegin(); it != dimsizes.rend(); ++it)
+            // Browse field's elements (domain, axis) and NetCDF meta-data to retrieve corresponding chunking coefficients
+            //   in the file order !
+            CGrid* grid = field->getGrid();
+            std::vector<CDomain*> domains = grid->getDomains();
+            std::vector<CAxis*> axis = grid->getAxis();
+
+            std::vector<double> userChunkingWeights; // store chunking coefficients defined by users
+	    std::vector<StdString>::const_reverse_iterator itId = dim.rbegin(); // NetCDF is fed using dim, see this::addVariable()
+            int elementIdx(0);
+            int outerAxis(-1), outerDomJ(-1), outerDomI(-1);
+            for (vector<StdSize>::reverse_iterator itDim = dimsizes.rbegin(); itDim != dimsizes.rend(); ++itDim, ++itId, ++elementIdx)
             {
-              totalSize *= *it;
-              if (totalSize >= maxSize) *it = 1;
+              bool isAxis(false);
+              for ( auto ax : axis )
+              {
+                StdString axisDim;
+                // Rebuild axis name from axis before comparing
+                if (ax->dim_name.isEmpty()) axisDim = ax->getAxisOutputName();
+                else axisDim=ax->dim_name.getValue();
+                if (axisDim == *itId)
+                {
+                  if (!ax->chunking_weight.isEmpty()) userChunkingWeights.push_back( ax->chunking_weight.getValue() );
+                  else userChunkingWeights.push_back( 0. );
+                  isAxis = true;
+                  outerAxis = elementIdx; // Going backward in dimsizes, overwriting will keep outer
+                  break;
+                }
+              } // end scanning axis
+              bool isDomain(false);
+              for ( auto dom : domains )
+              {
+                StdString axisDim;
+                // Rebuild axis I name from domain before comparing
+                if (!dom->dim_i_name.isEmpty()) axisDim = dom->dim_i_name.getValue();
+                else
+                {
+                  if (dom->type==CDomain::type_attr::curvilinear)  axisDim="x";
+                  if (dom->type==CDomain::type_attr::unstructured) axisDim="cell";
+                  if (dom->type==CDomain::type_attr::rectilinear)  axisDim="lon";
+                }
+                if (axisDim == *itId)
+                {
+                  if (!dom->chunking_weight_i.isEmpty()) userChunkingWeights.push_back( dom->chunking_weight_i.getValue() );
+                  else userChunkingWeights.push_back( 0. );
+                  isDomain = true;
+                  outerDomI = elementIdx; // Going backward in dimsizes, overwriting will keep outer
+                  break;
+                }
+                // Rebuild axis J name from domain before comparing
+                if (!dom->dim_j_name.isEmpty()) axisDim = dom->dim_j_name.getValue();
+                else {
+                  if (dom->type==CDomain::type_attr::curvilinear)  axisDim="y";
+                  if (dom->type==CDomain::type_attr::rectilinear)  axisDim="lat";
+                }
+                if (axisDim == *itId)
+                {
+                  if (!dom->chunking_weight_j.isEmpty()) userChunkingWeights.push_back( dom->chunking_weight_j.getValue() );
+                  else userChunkingWeights.push_back( 0. );
+                  outerDomJ = elementIdx; // Going backward in dimsizes, overwriting will keep outer
+                  isDomain = true;
+                  break;
+                }
+              } // end scanning domain
+              // No chunking applied on scalars or time
+              if ((!isAxis)&&(!isDomain))
+              {
+                userChunkingWeights.push_back( 0. );
+              }
+            }
+
+            double sumChunkingWeights(0);
+            for (int i=0;i<userChunkingWeights.size();i++) sumChunkingWeights += userChunkingWeights[i];
+            if ( (!sumChunkingWeights) && (chunkingRatio > 1) )
+            {
+              if (outerAxis!=-1) userChunkingWeights[outerAxis] = 1;      // chunk along outer axis
+              else if (outerDomJ!=-1) userChunkingWeights[outerDomJ] = 1; // if no axis ? -> along j
+              else if (outerDomI!=-1) userChunkingWeights[outerDomI] = 1; // if no j      -> along i
+              else {;}
+            }
+
+            int countChunkingDims(0); // number of dimensions on which chunking is operated : algo uses pow(value, 1/countChunkingDims)
+            double normalizingWeight(0); // use to relativize chunking coefficients for all dimensions
+            for (int i=0;i<userChunkingWeights.size();i++)
+              if (userChunkingWeights[i]>0.)
+              {
+                countChunkingDims++;
+                normalizingWeight = userChunkingWeights[i];
+              }
+
+            std::vector<double> chunkingRatioPerDims; // will store coefficients used to compute chunk size
+            double productRatios = 1; // last_coeff = pow( shrink_ratio / (product of all ratios), 1/countChunkingDims )
+            for (int i=0;i<userChunkingWeights.size();i++)
+            {
+              chunkingRatioPerDims.push_back( userChunkingWeights[i] / normalizingWeight );
+              if (chunkingRatioPerDims[i]) productRatios *= chunkingRatioPerDims[i];
+            }
+            for (int i=0;i<userChunkingWeights.size();i++)
+            {
+              chunkingRatioPerDims[i] *= pow( chunkingRatio / productRatios, 1./countChunkingDims );
+            }
+            
+            std::vector<double>::iterator itChunkingRatios = chunkingRatioPerDims.begin();
+            //itId = dim.rbegin();
+            double correctionFromPreviousDim = 1.;
+            for (vector<StdSize>::reverse_iterator itDim = dimsizes.rbegin(); itDim != dimsizes.rend(); ++itDim, ++itChunkingRatios, ++itId)
+            {
+              *itChunkingRatios *= correctionFromPreviousDim;
+              correctionFromPreviousDim = 1;
+              if (*itChunkingRatios > 1) // else target larger than size !
+              {
+                StdSize dimensionSize = *itDim;
+                //info(0) << *itId << " " << *itDim << " " << *itChunkingRatios << " " << (*itDim)/(*itChunkingRatios) << endl;
+                *itDim = ceil( *itDim / ceil(*itChunkingRatios) );
+                correctionFromPreviousDim = *itChunkingRatios/ ((double)dimensionSize/(*itDim));
+              }
             }
             int storageType = (0 == dimSize) ? NC_CONTIGUOUS : NC_CHUNKED;
             CNetCdfInterface::defVarChunking(grpid, varid, storageType, &dimsizes[0]);

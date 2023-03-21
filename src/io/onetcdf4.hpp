@@ -49,6 +49,8 @@ namespace xios
             int addDimension(const StdString& name, const StdSize size = UNLIMITED_DIM);
             int addVariable(const StdString& name, nc_type type,
                             const std::vector<StdString>& dim, int compressionLevel=0);
+            int addChunk(CField* field, nc_type type,
+                         const std::vector<StdString>& dim, int compressionLevel=0);
 
       //----------------------------------------------------------------
          public :
