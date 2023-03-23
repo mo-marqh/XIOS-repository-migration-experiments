@@ -1809,7 +1809,7 @@ namespace xios
 
         try
         {
-           SuperClassWriter::addVariable(fieldid, type, dims);
+           SuperClassWriter::addVariable(fieldid, type, dims, false);
            SuperClassWriter::addChunk(field, type, dims);
 
            if (!field->standard_name.isEmpty())

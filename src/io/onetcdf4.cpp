@@ -307,12 +307,14 @@ namespace xios
       //---------------------------------------------------------------
 
       int CONetCDF4::addVariable(const StdString& name, nc_type type,
-                                 const std::vector<StdString>& dim, int compressionLevel)
+                                 const std::vector<StdString>& dim, bool defineChunking)
       {
          int varid = 0;
          std::vector<int> dimids;
          std::vector<StdSize> dimsizes;
          int dimSize = dim.size();
+
+         StdSize size;
 
          int grpid = this->getCurrentGroup();
 
@@ -322,9 +324,19 @@ namespace xios
          {
             const StdString& dimid = *it;
             dimids.push_back(this->getDimension(dimid));
+            CNetCdfInterface::inqDimLen(grpid, this->getDimension(dimid), size);
+            if (size == NC_UNLIMITED) size = 1;
+            dimsizes.push_back(size);
          }
 
          CNetCdfInterface::defVar(grpid, name, type, dimids.size(), &dimids[0], varid);
+
+         if (defineChunking) {
+           int storageType = (0 == dimSize) ? NC_CONTIGUOUS : NC_CHUNKED;
+           CNetCdfInterface::defVarChunking(grpid, varid, storageType, &dimsizes[0]);
+           CNetCdfInterface::defVarFill(grpid, varid, true, NULL);
+         }
+
          
          return varid;
       }
@@ -508,7 +520,6 @@ namespace xios
          if (compressionLevel && wmpi)
            ERROR("void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)",
                  "Impossible to use compression for variable \"" << varname << "\" when using parallel mode.");
-
          int grpid = this->getCurrentGroup();
          int varid = this->getVariable(varname);
          CNetCdfInterface::defVarDeflate(grpid, varid, compressionLevel);
