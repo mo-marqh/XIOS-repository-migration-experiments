@@ -37,7 +37,7 @@ namespace xios
       CXios::getServicesManager()->registerService(poolId, serviceId, partitionId, type, commSize, nbPartitions, globalLeader_) ;
     }
     if (eventScheduler) eventScheduler_ = eventScheduler ;
-    eventScheduler_ = make_shared<CEventScheduler>(serviceComm_) ;
+    else eventScheduler_ = make_shared<CEventScheduler>(serviceComm_) ;
 
     ostringstream oss;
     oss<<partitionId;
