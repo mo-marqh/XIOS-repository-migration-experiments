@@ -25,6 +25,7 @@ namespace xios
       if (isServer) CXios::getRessourcesManager()->registerPoolServer(Id, commSize, globalLeaderRank) ;
     }
     
+    notifyType_=NOTIFY_NOTHING;
     winNotify_->lockWindow(commRank,0) ;
     winNotify_->updateToWindow(commRank, this, &CPoolRessource::notificationsDumpOut) ;
     winNotify_->unlockWindow(commRank,0) ;       

@@ -661,7 +661,7 @@ void CContext::removeAllContexts(void)
       for(auto& retClientServer : retClientServers)  clientServers.push_back(retClientServer.second) ;
       
       int serviceType ;
-      if (intraCommRank_==0) CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType) ;
+      if (intraCommRank_==0) CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType, true) ;
       MPI_Bcast(&serviceType,1,MPI_INT,0,intraComm_) ;
       
       for(auto& clientServer : clientServers)     
