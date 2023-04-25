@@ -37,6 +37,7 @@ namespace xios {
    {
       SuperClass::parse(node);
       StdString id = (this->hasId()) ? this->getId() : StdString("undefined");
+      if (CContext::getCurrent()->getId()=="xios") checkInDictionary(id);
       if (!node.getContent(this->content))
       {
         xml::THashAttributes attributes = node.getAttributes();
@@ -59,6 +60,47 @@ namespace xios {
                << " ] variable is not defined !. It does not have any content. See error log for more details.");
       }
       content = boost::trim_copy(content) ;
+   }
+
+   void CVariable::checkInDictionary(StdString id)
+   {
+     // $ grep -rw getin ../src/|grep -v template|grep \"|awk -F \" '{ print $2}'|sort|uniq
+     set<StdString> dictionary_ = { 
+                                    "buffer_size_factor",
+                                    "call_oasis_enddef",
+                                    "check_event_sync",
+                                    "checksum_recv_fields",
+                                    "checksum_send_fields",
+                                    "clients_code_id",
+                                    "info_level",
+                                    "log_memory",
+                                    "log_type",
+                                    "max_buffer_size",
+                                    "memtrack_blocks",
+                                    "memtrack_size",
+                                    "min_buffer_size",
+                                    "number_pools_server2",
+                                    "optimal_buffer_size",
+                                    "print_file",
+                                    "pure_one_sided",
+                                    "ratio_server2",
+                                    "recv_field_timeout",
+                                    "server2_dist_file_memory",
+                                    "server2_dist_file_memory_ratio",
+                                    "server_puplish_timeout",
+                                    "system_stack",
+                                    "transport_protocol",
+                                    "using_oasis",
+                                    "using_server",
+                                    "using_server2",
+                                    "xios_stack"                        
+     };
+     if (dictionary_.find(id)==dictionary_.end())
+     {
+       ERROR("CVariable::checkInDictionary(StdString id)",
+              << "[ variable id = " << id
+              << " ] variable does not exist ! Check the syntax of your context id 'xios' in iodef.xml.");
+     }
    }
 
    const StdString& CVariable::getVariableOutputName(void) const

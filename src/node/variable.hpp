@@ -94,6 +94,7 @@ namespace xios
 
          private :
 
+            static void checkInDictionary(StdString id);
             StdString content;
 
       }; // class CVar

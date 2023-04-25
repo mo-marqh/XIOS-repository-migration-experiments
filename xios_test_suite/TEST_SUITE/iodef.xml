@@ -49,7 +49,7 @@
       <variable_group id="buffer">
   <variable id="min_buffer_size" type="int">10000000</variable>
   <variable id="optimal_buffer_size" type="string">performance</variable>
-  <variable id="buffer_factor_size" type="double">0.8</variable> 
+  <!--variable id="buffer_factor_size" type="double">0.8</variable-->
       </variable_group>
 
       <variable_group id="parameters" >
@@ -62,7 +62,7 @@
         <variable id="pure_one_sided" type="bool">XIOS::OneSided</variable>
         <variable id="check_event_sync" type="bool">true</variable>
       </variable_group>
-      <variable id="activate_non_distributed_transformation" type="bool">XIOS::NonDistTran</variable>
+      <!--variable id="activate_non_distributed_transformation" type="bool">XIOS::NonDistTran</variable-->
     </variable_definition>
   </context>
 
