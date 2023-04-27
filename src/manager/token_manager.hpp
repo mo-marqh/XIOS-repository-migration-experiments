@@ -21,6 +21,10 @@ namespace xios
         const MPI_Aint windowSize=sizeof(size_t);
         MPI_Win_allocate(windowSize, 1, MPI_INFO_NULL, comm, &winBufferCurrent_,   &winCurrentToken_) ;
         MPI_Win_allocate(windowSize, 1, MPI_INFO_NULL, comm, &winBufferRetrieved_, &winRetrievedToken_) ;
+        if (leader_== commRank) {
+          memset(   winBufferCurrent_, 0, windowSize );
+          memset( winBufferRetrieved_, 0, windowSize );
+        }
       }
 
       size_t getToken(void)

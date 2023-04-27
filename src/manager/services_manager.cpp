@@ -278,7 +278,8 @@ namespace xios
     int type;
     int size ;
     int nbPartitions;
-    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
+    //return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
+    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
   }
 
   bool CServicesManager::getServiceType(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, bool wait)
@@ -286,7 +287,8 @@ namespace xios
     int size ;
     int nbPartitions;
     int leader;
-    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
+    //return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
+    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
   }
 
   bool CServicesManager::getServiceNbPartitions(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& nbPartitions, bool wait)
@@ -294,7 +296,8 @@ namespace xios
     int size ;
     int type;
     int leader;
-    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
+    //return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
+    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
   }
 
   bool CServicesManager::hasService(const std::string& poolId, const std::string& serviceId, const int& partitionId)
