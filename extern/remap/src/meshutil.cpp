@@ -60,7 +60,7 @@ void computePolygonGeometry(Elt& a, const Coord &pole, double& area, Coord& bary
 
   bary = exact_barycentre(dstPolygon.data(),na) ;
   
-  // check signed area
+  // check signed area of polygons on gnomonic plan => if <0 then switch barycenter and invert vertex numbering 
   double signedArea = 0 ;
   for(int n=0; n<na;n++) signedArea+= a_gno[n].x*a_gno[(n+1)%na].y-a_gno[(n+1)%na].x*a_gno[n].y ;
   if (signedArea<0) 
