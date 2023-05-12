@@ -17,24 +17,28 @@ using namespace std;
    but only if it is required!
   (because computing intersection area requires both polygons to have same orientation)
 */
+
 void orient(int N, Coord *vertex, Coord *edge, double *d, const Coord &g)
 {
   Coord ga = vertex[0] - g;
   Coord gb = vertex[1] - g;
   Coord vertical = crossprod(ga, gb);
   if (N > 2 && scalarprod(g, vertical) < 0)  // (GAxGB).G
-  {
-    for (int i = 0; i < N/2; i++)
-      swap(vertex[i], vertex[N-1-i]);
-
-    for (int i = 0; i < (N-1)/2; i++)
-    {
-      swap(edge[N-2-i], edge[i]);
-      swap(d[i], d[N-2-i]);
-    }
-  }
+    switchOrientation(N, vertex, edge, d) ;
+  
 }
 
+void switchOrientation(int N, Coord *vertex, Coord *edge, double *d)
+{
+  for (int i = 0; i < N/2; i++) swap(vertex[i], vertex[N-1-i]);
+
+  for (int i = 0; i < (N-1)/2; i++)
+  {
+    swap(edge[N-2-i], edge[i]);
+    swap(d[i], d[N-2-i]);
+  }
+  
+}
 
 void normals(Coord *x, int n, Coord *a)
 {
@@ -93,11 +97,35 @@ Coord exact_barycentre(const Coord *x, int n)
   if (n >= 3)
   {
     return  proj(gc_normalintegral(x, n));
+    //return new_barycentre(x,n) ;
   }
   else if (n == 0) return ORIGIN;
   else if (n == 2) return midpoint(x[0], x[1]);
   else if (n == 1) return x[0];
 }
+
+/* other methode to compute barycenter of spherical polygon
+   for a spherical polygon, the moment is half the sum of (a x b) / ||a x b|| * (angle between a and b) 
+   for each pair of consecutive vertices a,b.
+*/ 
+
+Coord new_barycentre(const Coord *x, int n)
+{
+  if (n >= 3)
+  {
+    Coord sum=ORIGIN ;
+    for (int i = 0; i < n; i++)
+    { 
+      sum=sum+crossprod(x[i],x[(i+1)%n])*(1./norm(crossprod(x[i],x[(i+1)%n]))*2.*atan2(norm(x[i]-x[(i+1)%n]),norm(x[i]+x[(i+1)%n]))) ; 
+    }
+    return proj(sum) ; 
+  }
+  else if (n == 0) return ORIGIN;
+  else if (n == 2) return midpoint(x[0], x[1]);
+  else if (n == 1) return x[0];
+}
+
+
 
 Coord sc_gc_moon_normalintegral(Coord a, Coord b, Coord pole)
 {

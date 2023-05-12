@@ -10,7 +10,7 @@ namespace sphereRemap {
 
 using namespace std;
 
-double computePolygoneArea(Elt& a, const Coord &pole)
+void computePolygonGeometry(Elt& a, const Coord &pole, double& area, Coord& bary)
 {
   using N = uint32_t;
   using Point = array<double, 2>;
@@ -48,32 +48,46 @@ double computePolygoneArea(Elt& a, const Coord &pole)
   polyline.push_back(vect_points);
   vector<N> indices_a_gno = mapbox::earcut<N>(polyline);
   
-  double area_a_gno=0 ;
+  area=0 ;
   for(int i=0;i<indices_a_gno.size()/3;++i)
     {
       Coord x0 = Ox * polyline[0][indices_a_gno[3*i]][0] + Oy* polyline[0][indices_a_gno[3*i]][1] + Oz ;
       Coord x1 = Ox * polyline[0][indices_a_gno[3*i+1]][0] + Oy* polyline[0][indices_a_gno[3*i+1]][1] + Oz ;
       Coord x2 = Ox * polyline[0][indices_a_gno[3*i+2]][0] + Oy* polyline[0][indices_a_gno[3*i+2]][1] + Oz ;
-      area_a_gno+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
+      area+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
     }
 
+
+  bary = exact_barycentre(dstPolygon.data(),na) ;
+  
+  // check signed area
+  double signedArea = 0 ;
+  for(int n=0; n<na;n++) signedArea+= a_gno[n].x*a_gno[(n+1)%na].y-a_gno[(n+1)%na].x*a_gno[n].y ;
+  if (signedArea<0) 
+  {
+    bary = bary * (-1.) ;
+    switchOrientation(a.n, a.vertex,a.edge,a.d) ;
+  }
+  
   vect_points.clear();
   polyline.clear();
   indices_a_gno.clear();
-  return area_a_gno ;
+
 }
 
 
 void cptEltGeom(Elt& elt, const Coord &pole)
 {
-  orient(elt.n, elt.vertex, elt.edge, elt.d, elt.x);
-  normals(elt, pole);
-  Coord gg;
-  elt.area = airbar(elt.n, elt.vertex, elt.edge, elt.d, pole, gg);
-  elt.x = gg;
+   orient(elt.n, elt.vertex, elt.edge, elt.d, elt.x);
+   normals(elt, pole);
+//  Coord gg;
+//  elt.area = airbar(elt.n, elt.vertex, elt.edge, elt.d, pole, gg);
+//  elt.x = gg;
 // overwrite area computation 
 
-  elt.area =  computePolygoneArea(elt, pole) ;
+   computePolygonGeometry(elt, pole, elt.area, elt.x) ;
+   normals(elt, pole);
+
 }
 
 
