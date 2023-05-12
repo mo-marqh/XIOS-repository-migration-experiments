@@ -147,7 +147,8 @@ namespace xios
     bool domainNotExplicitelyDefined(false);
     for (int idom=0;idom<domainP.size();idom++)
     {
-      if ( (!domainP[idom]->type.isEmpty())&& (domainP[idom]->type.getValue()!=CDomain::type_attr::unstructured))
+      if ( (!domainP[idom]->type.isEmpty())&& 
+           !(domainP[idom]->type.getValue()==CDomain::type_attr::unstructured || domainP[idom]->type.getValue()==CDomain::type_attr::gaussian))
       {
         isUnstructuredGrid = false;
       }
