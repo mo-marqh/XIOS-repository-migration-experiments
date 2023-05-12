@@ -59,7 +59,8 @@ namespace xios
      static bool checkSumSend; //!< For debugging, compute a checksum of fields sent by the model to the XIOS client (very expensive !)
      static bool checkSumRecv; //!< For debugging, compute a checksum of fields received by the model through the XIOS client
 
-     static bool logMemory; //!< Activate memory monitoring for all XIOS process
+     static bool logMemory; //!< Activate memory monitoring for all XIOS process (generate CSV file for https://forge.ipsl.jussieu.fr/ioserver/chrome/site/XIOS_TOOLS/xios_memory.html)
+     static bool reportMemory; //!< Activate memory reporting for all XIOS process (report in log files)
 
     public:
      //! Setting xios to use server mode

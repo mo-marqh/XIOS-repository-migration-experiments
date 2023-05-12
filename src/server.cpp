@@ -433,7 +433,11 @@ namespace xios
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
       report(100)<<CTimer::getAllCumulatedTime()<<endl ;
-      report(100)<<CMemChecker::getAllCumulatedMem()<<endl ;
+      if (CXios::reportMemory)
+      {
+        report(100)<<CMemChecker::getAllCumulatedMem()<<endl ;
+      }
+
     }
 
      void CServer::eventLoop(void)
