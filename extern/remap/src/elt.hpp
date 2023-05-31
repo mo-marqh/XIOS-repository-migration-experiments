@@ -2,8 +2,9 @@
 #define __ELT_H__
 #include <list>
 #include "triple.hpp"
+#include <vector>
 
-#define NMAX 10 /**< maximum number of vertices for polygons */
+#define NMAX 0 /**< maximum number of vertices for polygons */
 
 #define NOT_FOUND -1
 
@@ -57,6 +58,7 @@ struct Elt : Polyg
 	Elt(const double *bounds_lon, const double *bounds_lat, int max_num_vert)
 	{
 		int k = 0;
+                vertex.resize(max_num_vert) ;
 		vertex[k++] = xyz(bounds_lon[0], bounds_lat[0]);
 		for (int i = 1; i < max_num_vert; i++)
 		{
@@ -71,9 +73,21 @@ struct Elt : Polyg
 				/* cout << "Removed edge " << k << " due to zero length (coinciding endpoints)." << endl */ ;
 		}
 		n = k;
-		x = barycentre(vertex, n);
-	}
+    vertex.resize(n) ;
+    vertex.shrink_to_fit();
+	  allocate() ;
 
+		x = barycentre(vertex.data(), n);
+	}
+  void allocate(void)
+  {
+    vertex.resize(n) ;
+    neighbour.resize(n) ;
+    d.resize(n) ;
+    edge.resize(n) ;
+    gradNeigh.resize(n) ;
+    neighId.resize(n) ;
+  }
 	Elt& operator=(const Elt& rhs)
 	{
 		id    = rhs.id;
@@ -86,14 +100,11 @@ struct Elt : Polyg
 		grad = rhs.grad;
 		is   = rhs.is;
 
-		for(int i = 0; i < NMAX; i++)
-		{
-			neighbour[i] = rhs.neighbour[i];
-			d[i]         = rhs.d[i];
-			edge[i]      = rhs.edge[i];
-			vertex[i]    = rhs.vertex[i];
-			gradNeigh[i] = rhs.gradNeigh[i];
-		}
+         	neighbour = rhs.neighbour;
+		d         = rhs.d;
+		edge      = rhs.edge;
+		vertex    = rhs.vertex;
+		gradNeigh = rhs.gradNeigh;
 		return *this;
 	}
 
@@ -108,6 +119,13 @@ struct Elt : Polyg
 
   void insert_vertex(int i, const Coord& v)
   {
+    vertex.resize(n+1) ;
+    edge.resize(n+1) ;
+    d.resize(n+1) ;
+    neighbour.resize(n+1) ;
+    gradNeigh.resize(n+1) ;
+    neighId.resize(n+1) ;
+
     for(int j=n; j > i ; j--)
     {
       vertex[j]=vertex[j-1] ;
@@ -119,14 +137,14 @@ struct Elt : Polyg
     n++ ;
   }
   
-	int neighbour[NMAX];
-	double d[NMAX]; /**< distance of centre of small circle to origin, zero if great circle */
+	std::vector<int> neighbour;
+	std::vector<double> d; /**< distance of centre of small circle to origin, zero if great circle */
 	double val;     /**< value (sample if src element, interpolated if dest element) */
-	Coord vertex[NMAX];
-	Coord edge[NMAX]; /**< edge normals: if great circle tangential to sphere, if small circle parallel to pole */
+	std::vector<Coord> vertex;
+	std::vector<Coord> edge; /**< edge normals: if great circle tangential to sphere, if small circle parallel to pole */
 	Coord grad;    /**< gradient of the reconstructed linear function over this element */
-	Coord gradNeigh[NMAX]; /**< for weight computation: gradients for val=1 at individual neighbours */
-	struct GloId neighId[NMAX]; /**< weight computation needs to know global IDs for all sources with "link" */
+	std::vector<Coord> gradNeigh; /**< for weight computation: gradients for val=1 at individual neighbours */
+	std::vector<struct GloId> neighId; /**< weight computation needs to know global IDs for all sources with "link" */
 	std::list<Polyg*> is; /**< intersections */
 };
 

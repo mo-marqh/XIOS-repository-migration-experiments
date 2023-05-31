@@ -23,7 +23,7 @@ void computePolygonGeometry(Elt& a, const Coord &pole, double& area, Coord& bary
   int na=dstPolygon.size() ;
   Coord *a_gno   = new Coord[na];
   
-  Coord OC=barycentre(a.vertex,a.n) ;
+  Coord OC=barycentre(a.vertex.data(),a.n) ;
   Coord Oz=OC ;
   Coord Ox=crossprod(Coord(0,0,1),Oz) ;
 // choose Ox not too small to avoid rounding error
@@ -66,7 +66,7 @@ void computePolygonGeometry(Elt& a, const Coord &pole, double& area, Coord& bary
   if (signedArea<0) 
   {
     bary = bary * (-1.) ;
-    switchOrientation(a.n, a.vertex,a.edge,a.d) ;
+    switchOrientation(a.n, a.vertex.data(),a.edge.data(),a.d.data()) ;
   }
   
   vect_points.clear();
@@ -78,7 +78,7 @@ void computePolygonGeometry(Elt& a, const Coord &pole, double& area, Coord& bary
 
 void cptEltGeom(Elt& elt, const Coord &pole)
 {
-   orient(elt.n, elt.vertex, elt.edge, elt.d, elt.x);
+   orient(elt.n, elt.vertex.data(), elt.edge.data(), elt.d.data(), elt.x);
    normals(elt, pole);
 //  Coord gg;
 //  elt.area = airbar(elt.n, elt.vertex, elt.edge, elt.d, pole, gg);
@@ -204,9 +204,11 @@ void computeGradients(Elt **elts, int N)
   for (int j = 0; j < N; j++)
     elts[j]->val = 0;
 
-  Elt *neighbours[NMAX];
+//  Elt *neighbours[NMAX];
   for (int j = 0; j < N; j++)
   {
+    vector<Elt*> neighbours(elts[j]->n) ;
+
     for (int i = 0; i < elts[j]->n; i++) 
       if ( elts[j]->neighbour[i]== NOT_FOUND) neighbours[i]=NULL ; // no neighbour
       else if (elts[elts[j]->neighbour[i]]->is.size() == 0) neighbours[i]=NULL ; // neighbour has none supermesh cell 
@@ -222,7 +224,7 @@ void computeGradients(Elt **elts, int N)
         elts[j]->neighId[i] = neighbours[i]->src_id;
         /* for weight computation all values are always kept zero and only set to one when used .. */
         neighbours[i]->val = 1;
-        elts[j]->gradNeigh[i] = gradient(*(elts[j]), neighbours);
+        elts[j]->gradNeigh[i] = gradient(*(elts[j]), neighbours.data());
         /* .. and right after zeroed again */
         neighbours[i]->val = 0;
       }
@@ -233,15 +235,17 @@ void computeGradients(Elt **elts, int N)
       }
     }
 
+/*  not needed anymore
     for(int i = elts[j]->n ; i < NMAX; i++)
     {
       elts[j]->neighId[i].rank = -1; // mark end
       elts[j]->neighId[i].ind = -1; // mark end
     }
+*/
     /* For the most naive algorithm the case where the element itself is one must also be considered.
        Thomas says this can later be optimized out. */
     elts[j]->val = 1;
-    elts[j]->grad = gradient(*(elts[j]), neighbours);
+    elts[j]->grad = gradient(*(elts[j]), neighbours.data());
     elts[j]->val = 0;
   }
 }

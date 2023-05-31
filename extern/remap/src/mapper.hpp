@@ -40,13 +40,13 @@ public:
        void getWeights(vector<double>& weights, vector<double>& sourceInd, vector<double>& targetInd) ;
 */
        /* where weights are returned after call to `computeWeights` */
-       double *remapMatrix;
-       int *srcAddress;
-       int *srcRank;
-       int *dstAddress;
+       std::vector<double> remapMatrix;
+       std::vector<int> srcAddress;
+       std::vector<int> srcRank;
+       std::vector<int> dstAddress;
        int nWeights;
-       long int* sourceWeightId ;
-       long int* targetWeightId ;
+       std::vector<long int> sourceWeightId ;
+       std::vector<long int> targetWeightId ;
 
 private:
        /** @return number of weights (local to cpu) */
