@@ -9,12 +9,11 @@
       static bool first = true ;
       if (!first) return ;
       bool ret ;
-      std::cout<<"register Transformation"<<std::endl ;
       ret=CScalarAlgorithmReduceAxis::registerTrans();
       ret=CScalarAlgorithmExtractAxis::registerTrans();
       ret=CScalarAlgorithmReduceDomain::registerTrans();
       ret=CScalarAlgorithmReduceScalar::registerTrans();
-
+      ret=CScalarAlgorithmRedistribute::registerTrans() ;
       //! Axis
       ret=CAxisAlgorithmZoom::registerTrans();
       ret=CAxisAlgorithmExtractDomain::registerTrans();
@@ -26,6 +25,7 @@
       ret=CAxisAlgorithmReduceAxis::registerTrans();
       ret=CAxisAlgorithmTemporalSplitting::registerTrans();
       ret=CAxisAlgorithmDuplicateScalar::registerTrans();
+      ret=CAxisAlgorithmRedistribute::registerTrans() ;
 
       //! Domain
       ret=CDomainAlgorithmComputeConnectivity::registerTrans();
@@ -35,6 +35,7 @@
       ret=CDomainAlgorithmReorder::registerTrans();
       ret=CDomainAlgorithmExtract::registerTrans();
       ret=CDomainAlgorithmGenerateRectilinear::registerTrans() ;
+      ret=CDomainAlgorithmRedistribute::registerTrans() ;
       first=false ;
     }
   }

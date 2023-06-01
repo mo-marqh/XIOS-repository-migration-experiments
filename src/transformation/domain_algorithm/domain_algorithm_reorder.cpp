@@ -127,8 +127,8 @@ TRY
    }
    else if (!domainSource->lonvalue_2d.isEmpty() )
    {
-     domainDestination->latvalue_2d.resize( domainSource->latvalue_2d.numElements() );
-     domainDestination->lonvalue_2d.resize( domainSource->lonvalue_2d.numElements() );
+     domainDestination->latvalue_2d.resize( domainSource->latvalue_2d.shape() );
+     domainDestination->lonvalue_2d.resize( domainSource->lonvalue_2d.shape() );
      domainDestination->latvalue_2d = domainSource->latvalue_2d;
      domainDestination->lonvalue_2d = domainSource->lonvalue_2d;
    }
@@ -144,17 +144,23 @@ TRY
    }
    else if (!domainSource->bounds_lon_2d.isEmpty() )
    {
-     domainDestination->bounds_lon_2d.resize( domainSource->bounds_lon_2d.numElements() );
-     domainDestination->bounds_lat_2d.resize( domainSource->bounds_lat_2d.numElements() );
+     domainDestination->bounds_lon_2d.resize( domainSource->bounds_lon_2d.shape() );
+     domainDestination->bounds_lat_2d.resize( domainSource->bounds_lat_2d.shape() );
      domainDestination->bounds_lon_2d = domainSource->bounds_lon_2d;
      domainDestination->bounds_lat_2d = domainSource->bounds_lat_2d;
    }
    // set area
-   if (!domainSource->area.isEmpty() )
+   if (!domainSource->area_1d.isEmpty() )
    {
-     domainDestination->area.resize( domainSource->area.numElements() );
-     domainDestination->area = domainSource->area;    
+     domainDestination->area_1d.resize( domainSource->area_1d.numElements() );
+     domainDestination->area_1d = domainSource->area_1d;    
    }
+   else if (!domainSource->area_2d.isEmpty() )
+   {
+     domainDestination->area_2d.resize( domainSource->area_2d.shape() );
+     domainDestination->area_2d = domainSource->area_2d;    
+   }
+
    if (!domainSource->radius.isEmpty() )
      domainDestination->radius = domainSource->radius;
 

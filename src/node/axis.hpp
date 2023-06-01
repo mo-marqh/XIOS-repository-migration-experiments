@@ -174,10 +174,14 @@ namespace xios
       ////////////////////////////
          bool isEqual(CAxis* axis);
 
-      public: 
-        bool hasValue;        
-        bool hasBounds;
-        bool hasLabel;
+      private: 
+        bool hasValue_= false;        
+        bool hasBounds_= false;
+        bool hasLabel_= false;
+      public:
+        bool hasValue(void) { return hasValue_ ;}
+        bool hasBounds(void) { return hasBounds_ ;}
+        bool hasLabel(void) { return hasLabel_ ;}
 
       private:
          bool checkData(bool generateError);

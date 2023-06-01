@@ -25,7 +25,10 @@ namespace xios
         TRANS_REDUCE_SCALAR_TO_SCALAR = 16,
         TRANS_REORDER_DOMAIN = 17,
         TRANS_EXTRACT_DOMAIN = 18,
-        TRANS_EXTRACT_AXIS = 19
+        TRANS_EXTRACT_AXIS = 19,
+        TRANS_REDISTRIBUTE_DOMAIN = 20,
+        TRANS_REDISTRIBUTE_AXIS = 21,
+        TRANS_REDISTRIBUTE_SCALAR = 22
       } ETranformationType;
 
 } // namespace xios

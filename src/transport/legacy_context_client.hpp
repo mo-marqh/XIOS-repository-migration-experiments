@@ -30,6 +30,7 @@ namespace xios
       CLegacyContextClient(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0);
 
       // Send event to server
+      ETransport getType(void) {return legacy ;}
       void sendEvent(CEventClient& event);
       void eventLoop(void) ;
       void releaseBuffers(void);

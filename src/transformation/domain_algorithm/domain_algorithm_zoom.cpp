@@ -172,8 +172,11 @@ TRY
       domainDest_->bounds_lat_2d.resize(nvertex, niDest, njDest);
     }
   }
-  if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
-
+  if (domainSrc_->hasArea)
+  {
+    if (!domainSrc_->area_1d.isEmpty()) domainDest_->area_1d.resize(niDest*njDest);
+    else if (!domainSrc_->area_2d.isEmpty()) domainDest_->area_2d.resize(niDest,njDest);
+  }
 
   for (int iDest = 0; iDest < niDest; iDest++)
   {
@@ -195,7 +198,10 @@ TRY
       domainDest_->domainMask(indLocDest) = domainSrc_->domainMask(indLocSrc);
 
       if (domainSrc_->hasArea)
-        domainDest_->area(iDest,jDest) = domainSrc_->area(iSrc,jSrc);
+      {  
+         if (!domainSrc_->area_1d.isEmpty())      domainDest_->area_1d(indLocDest)  = domainSrc_->area_1d(ind);
+         else if (!domainSrc_->area_2d.isEmpty()) domainDest_->area_2d(iDest,jDest) = domainSrc_->area_2d(iSrc,jSrc);
+      }
 
       if (domainSrc_->hasLonLat)
       {

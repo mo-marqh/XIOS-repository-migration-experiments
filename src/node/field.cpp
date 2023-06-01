@@ -19,7 +19,9 @@
 #include "lex_parser.hpp"
 #include "temporal_filter.hpp"
 #include "server_from_client_source_filter.hpp"
+#include "client_online_reader_filter.hpp"
 #include "file_reader_source_filter.hpp"
+#include "grid_redistribute_filter.hpp"
 #include "tracer.hpp"
 #include "graph_package.hpp"
 
@@ -204,7 +206,9 @@ namespace xios
   bool CField::sendReadDataRequest(const CDate& tsDataRequested)
   TRY
   {
-    return clientFromServerSourceFilter_->sendReadDataRequest(tsDataRequested) ;
+    if (clientFromServerSourceFilter_) return clientFromServerSourceFilter_->sendReadDataRequest(tsDataRequested) ;
+    else if (clientOnlineReaderFilter_) return clientOnlineReaderFilter_->sendReadDataRequest(tsDataRequested) ;
+    else ERROR("bool CField::sendReadDataRequest(const CDate& tsDataRequested)", << "uninitialized source filter");
   }
   CATCH_DUMP_ATTR
  
@@ -216,7 +220,9 @@ namespace xios
   bool CField::sendReadDataRequestIfNeeded(void)
   TRY
   {
-    return clientFromServerSourceFilter_->sendReadDataRequestIfNeeded() ;
+    if (clientFromServerSourceFilter_) return clientFromServerSourceFilter_->sendReadDataRequestIfNeeded() ;
+    else if (clientOnlineReaderFilter_) return clientOnlineReaderFilter_->sendReadDataRequestIfNeeded() ;
+    else ERROR("bool CField::sendReadDataRequestIfNeeded(void)", << "uninitialized source filter");
   }
   CATCH_DUMP_ATTR
 
@@ -303,7 +309,9 @@ namespace xios
   void CField::checkForLateDataFromServer(void)
   TRY
   {
-    clientFromServerSourceFilter_->checkForLateData() ;
+    if (clientFromServerSourceFilter_) return clientFromServerSourceFilter_->checkForLateData() ;
+    else if (clientOnlineReaderFilter_) return clientOnlineReaderFilter_->checkForLateData() ;
+    else ERROR("void CField::checkForLateDataFromServer(void)", << "uninitialized source filter");
   }
   CATCH_DUMP_ATTR 
   
@@ -314,7 +322,8 @@ namespace xios
     if (hasFileIn()) 
     {
       checkForLateDataFromServer() ;
-      clientFromServerSourceFilter_->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate()) ;
+      if (clientFromServerSourceFilter_) clientFromServerSourceFilter_->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate()) ;
+      else if (clientOnlineReaderFilter_) clientOnlineReaderFilter_->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate()) ;
     } 
     else if (hasCouplerIn())
     {
@@ -324,22 +333,7 @@ namespace xios
   }
   CATCH_DUMP_ATTR
 
-
-  void CField::checkIfMustAutoTrigger(void)
-  TRY
-  {
-    mustAutoTrigger = clientFromServerSourceFilter_ ? clientFromServerSourceFilter_->mustAutoTrigger() : false;
-  }
-  CATCH_DUMP_ATTR
-
-  void CField::autoTriggerIfNeeded(void)
-  TRY
-  {
-    if (mustAutoTrigger)
-      clientFromServerSourceFilter_->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate());
-  }
-  CATCH_DUMP_ATTR
-
+  
 
   //----------------------------------------------------------------
 
@@ -505,9 +499,9 @@ namespace xios
                                               map<CContextClient*,map<int,size_t>>& maxEventSize, 
                                               bool bufferForWriting)
   {
-    auto& contextBufferSize = bufferSize[client] ;
-    auto& contextMaxEventSize = maxEventSize[client] ;
-    const std::map<int, size_t> mapSize = grid_->getDataBufferSize(client, getId(), bufferForWriting);
+    auto& contextBufferSize = bufferSize[client_] ;
+    auto& contextMaxEventSize = maxEventSize[client_] ;
+    const std::map<int, size_t> mapSize = grid_->getDataBufferSize(client_, getId(), bufferForWriting);
     for(auto& it : mapSize )
     {
       // If contextBufferSize[it.first] does not exist, it will be zero-initialized
@@ -524,9 +518,9 @@ namespace xios
                                                    map<CContextClient*,map<int,size_t>>& maxEventSize, 
                                                    bool bufferForWriting)
   {
-    auto& contextBufferSize = bufferSize[client] ;
-    auto& contextMaxEventSize = maxEventSize[client] ;
-    const std::map<int, size_t> mapSize = grid_->getAttributesBufferSize(client, bufferForWriting);
+    auto& contextBufferSize = bufferSize[client_] ;
+    auto& contextMaxEventSize = maxEventSize[client_] ;
+    const std::map<int, size_t> mapSize = grid_->getAttributesBufferSize(client_, bufferForWriting);
     for(auto& it : mapSize )
     {
       // If contextBufferSize[it.first] does not exist, it will be zero-initialized
@@ -796,7 +790,7 @@ namespace xios
   void CField::connectToFileServer(CGarbageCollector& gc)
   {
     // insert temporal filter before sending to files
-    clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client));
+    clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client_));
     // insert temporal filter before sending to files
     getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(clientToServerStoreFilter_, 0);
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
@@ -808,10 +802,56 @@ namespace xios
     }
   } 
 
+/*
+  void CField::connectToOnlineWriter(CGarbageCollector& gc)
+  {
+    // insert temporal filter before sending to files
+    CField* fieldOut ;
+    redistributeFilter_ = std::shared_ptr<CGridRedistributeFilter>(new CGridRedistributeFilter(gc, this, fieldOut));
+    fieldOut->setFileOut(this->getFileOut());
+    fileOut_->replaceEnabledFields(this, fieldOut) ;
+    // insert temporal filter before sending to files
+    getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(redistributeFilter_, 0);
+    fieldOut->inputFilter = std::shared_ptr<CPassThroughFilter>(new CPassThroughFilter(gc)); 
+    fieldOut->instantDataFilter = fieldOut->inputFilter ;
+    redistributeFilter_->connectOutput(fieldOut->inputFilter, 0);
+    fieldOut->connectToFileWriter(gc) ;
+    fieldOut->solveServerOperation() ; // might not be called, create a new time functor.... find a better solution later
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+  
+    if(buildGraph_) 
+    {
+      clientToServerStoreFilter_->graphPackage = new CGraphPackage;
+      clientToServerStoreFilter_->graphEnabled = true;
+      clientToServerStoreFilter_->graphPackage->inFields.push_back(this);
+    }
+  } 
+*/
+  void CField::connectToOnlineWriter(CGarbageCollector& gc)
+  {
+    // insert temporal filter before sending to files
+    clientOnlineWriterFilter_ = std::shared_ptr<CClientOnlineWriterFilter>(new CClientOnlineWriterFilter(gc,this)) ;
+    getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(clientOnlineReaderFilter_, 0);
+   
+    const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
+  
+    if(buildGraph_) 
+    {
+      // to do
+    }
+  } 
+
+  void CField::connectToOnlineReader(CGarbageCollector& gc)
+  {
+    // insert temporal filter before sending to files
+    clientOnlineReaderFilter_ = std::shared_ptr<CClientOnlineReaderFilter>(new CClientOnlineReaderFilter(gc,this)) ;
+    clientOnlineReaderFilter_ -> connectOutput(inputFilter,0) ;
+  } 
+
   void CField::connectToCouplerOut(CGarbageCollector& gc)
   {
     // insert temporal filter before sending to files
-    clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client));
+    clientToServerStoreFilter_ = std::shared_ptr<CClientToServerStoreFilter>(new CClientToServerStoreFilter(gc, this, client_));
     instantDataFilter->connectOutput(clientToServerStoreFilter_, 0);
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_) 
@@ -950,7 +990,7 @@ namespace xios
  
   void CField::connectToServerToClient(CGarbageCollector& gc)
   {
-    serverToClientStoreFilter_ = std::shared_ptr<CServerToClientStoreFilter>(new CServerToClientStoreFilter(gc, this, client));
+    serverToClientStoreFilter_ = std::shared_ptr<CServerToClientStoreFilter>(new CServerToClientStoreFilter(gc, this, client_));
     instantDataFilter->connectOutput(serverToClientStoreFilter_, 0);
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
     if(buildGraph_)
@@ -1434,19 +1474,20 @@ namespace xios
   TRY
   {
     CContext* context = CContext::getCurrent();
-    client = contextClient;
+    client_ = contextClient;
   
     // A grid is sent by a client (both for read or write) or by primary server (write only)
     if (context->getServiceType()==CServicesManager::GATHERER)
     {
       if (getRelFile()->mode.isEmpty() || (!getRelFile()->mode.isEmpty() && getRelFile()->mode == CFile::mode_attr::write))
-        grid_->setContextClient(contextClient);
+        /*grid_->setContextClient(contextClient) */; // => nothing to do with thats now, to remove...
     }
     else if (context->getServiceType()==CServicesManager::CLIENT)
     {
       if (grid_)
-        grid_->setContextClient(contextClient);
+        /*grid_->setContextClient(contextClient)*/; // => nothing to do with thats now, to remove...
       else
+
         ERROR( "CField::setContextClient(contextClient)",
                << "Grid not defined for " << getId()
                << " (if field is an input field, set read_access to true)"
@@ -1458,26 +1499,26 @@ namespace xios
 
   void CField::sendFieldToFileServer(void)
   {
-    CContext::getCurrent()->sendContextToFileServer(client);
-    getRelFile()->sendFileToFileServer(client);
+    CContext::getCurrent()->sendContextToFileServer(client_);
+    getRelFile()->sendFileToFileServer(client_);
     sentGrid_ = grid_-> duplicateSentGrid() ;
-    sentGrid_->sendGridToFileServer(client, false);
+    sentGrid_->sendGridToFileServer(client_, false);
     name = getFieldOutputName() ;
-    this->sendAllAttributesToServer(client);
-    this->sendAddAllVariables(client);
+    this->sendAllAttributesToServer(client_);
+    this->sendAddAllVariables(client_);
   }
 
   void CField::sendFieldToInputFileServer(void)
   {
-    CContext::getCurrent()->sendContextToFileServer(client);
-    getRelFile()->sendFileToFileServer(client);
+    CContext::getCurrent()->sendContextToFileServer(client_);
+    getRelFile()->sendFileToFileServer(client_);
     sentGrid_ = grid_-> duplicateSentGrid() ;
-    sentGrid_->sendGridToFileServer(client, true);
+    sentGrid_->sendGridToFileServer(client_, true);
     read_access=true ; // not the best solution, but on server side, the field must be a starting point of the workflow
                        // must be replace by a better solution when implementing filters for reading and send to client
                        // on server side
-    this->sendAllAttributesToServer(client);
-    this->sendAddAllVariables(client);
+    this->sendAllAttributesToServer(client_);
+    this->sendAddAllVariables(client_);
   }
 
   void CField::sendFieldToCouplerOut(void)
@@ -1485,7 +1526,7 @@ namespace xios
     if (sendFieldToCouplerOut_done_) return ;
     else sendFieldToCouplerOut_done_=true ;
     sentGrid_ = grid_-> duplicateSentGrid() ;
-    sentGrid_->sendGridToCouplerOut(client, this->getId());
+    sentGrid_->sendGridToCouplerOut(client_, this->getId());
     this->sendGridCompleted();
 
   }
@@ -1501,14 +1542,14 @@ namespace xios
    {
       CEventClient event(getType(),EVENT_ID_GRID_COMPLETED);
 
-      if (client->isServerLeader())
+      if (client_->isServerLeader())
       {
         CMessage msg;
         msg<<this->getId();
-        for (auto& rank : client->getRanksServerLeader()) event.push(rank,1,msg);
-        client->sendEvent(event);
+        for (auto& rank : client_->getRanksServerLeader()) event.push(rank,1,msg);
+        client_->sendEvent(event);
       }
-      else client->sendEvent(event);
+      else client_->sendEvent(event);
    }
    CATCH_DUMP_ATTR
 

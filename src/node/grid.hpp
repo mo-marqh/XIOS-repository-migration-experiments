@@ -278,11 +278,6 @@ namespace xios {
       public:
 
         bool isDataDistributed(void) ; 
-      private:
-
-/** Clients that have to send a grid. There can be multiple clients in case of secondary server, otherwise only one client. */
-        std::list<CContextClient*> clients;
-        std::set<CContextClient*> clientsSet;
 
       private:
         bool isChecked;
@@ -325,6 +320,8 @@ namespace xios {
      //////////////////////////////////////////////////////////////////////////////////////
      //  this part is related to distribution, element definition, views and connectors  //
      //////////////////////////////////////////////////////////////////////////////////////
+      public:
+        CGrid* redistributeGridToWriter(void) ;
       public:
        CGrid* duplicateSentGrid(void) ;
       private:
@@ -400,6 +397,13 @@ namespace xios {
       public:
          shared_ptr<CGridGathererConnector> getServerFromClientConnector(void) { if (serverFromClientConnector_==nullptr) computeServerFromClientConnector() ; return serverFromClientConnector_;}
          void computeServerFromClientConnector(void) ;
+
+      private:
+         shared_ptr<CGridTransformConnector> redistributeToWriterConnector_ = nullptr ;
+      public:
+         shared_ptr<CGridTransformConnector> getRedistributeToWriterConnector(CGrid* gridSrc) { if (redistributeToWriterConnector_==nullptr) computeRedistributeToWriterConnector(gridSrc) ; return redistributeToWriterConnector_;}
+         void computeRedistributeToWriterConnector(CGrid* gridSrc) ;
+
 
    }; // class CGrid
 

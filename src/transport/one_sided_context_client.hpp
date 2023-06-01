@@ -29,6 +29,7 @@ namespace xios
       // Contructor
       COneSidedContextClient(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0);
 
+      ETransport getType(void) {return oneSided ;}
       // Send event to server
       void sendEvent(CEventClient& event);
       bool havePendingRequests(void);

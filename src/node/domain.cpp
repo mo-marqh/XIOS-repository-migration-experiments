@@ -292,6 +292,7 @@ namespace xios {
    for interpolation from unstructured domain to rectilinear one, range of latvalue is 0-360 and lonvalue is -90 - +90
     \param [in] nbLocalDomain number of local domain on the domain destination
    */
+
    void CDomain::redistribute(int nbLocalDomain)
    TRY
    {
@@ -861,7 +862,7 @@ namespace xios {
         }
         
 
-        if (!area.isEmpty()) area.transposeSelf(1, 0); // => to be checked why is it transposed
+//        if (!area.isEmpty()) area.transposeSelf(1, 0); // => to be checked why is it transposed
      }
 
      if (ni_glo.isEmpty())
@@ -913,6 +914,39 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   void CDomain::compute2dBox(void)
+   {
+     if (i_index.numElements()==0)
+     {
+       ibeginValue_= 0 ;
+       jbeginValue_= 0 ;
+       niValue_= 0 ;
+       njValue_= 0 ;
+     }
+     else
+     {
+       int maxI=0 ;
+       int maxJ=0 ;
+       int minI=nj_glo*ni_glo ;
+       int minJ=nj_glo*ni_glo ;
+       int i,j,k,ij ;
+       for(int k=0; k<i_index.numElements(); k++)
+       {
+         ij=j_index(k)*ni_glo + i_index(k) ;
+         i=ij%ni_glo ;
+         j=ij/ni_glo ;
+         if (i<minI) minI=i;
+         if (j<minJ) minJ=j;
+         if (i>maxI) maxI=i;
+         if (j>maxJ) maxJ=j;
+       }
+       ibeginValue_=minI ;
+       jbeginValue_=minJ ;
+       niValue_=maxI-minI+1 ;
+       njValue_=maxJ-minJ+1 ;
+     }
+   }
+
    size_t CDomain::getGlobalWrittenSize(void)
    {
      return ni_glo*nj_glo ;
@@ -942,21 +976,20 @@ namespace xios {
         if (ni.isEmpty()) 
         {          
          // No information about ni
-          int minIndex = ni_glo - 1;
+          int minIndex = ni_glo*nj_glo - 1;
           int maxIndex = 0;
           for (int idx = 0; idx < i_index.numElements(); ++idx)
           {
             if (i_index(idx) < minIndex) minIndex = i_index(idx);
             if (i_index(idx) > maxIndex) maxIndex = i_index(idx);
           }
-	  if (i_index.numElements()) {
+	        if (i_index.numElements())
+          {
             ni = maxIndex - minIndex + 1; 
             minIIndex = minIndex;
           }	    
-	  else {
-            ni = 0;
-	  }
-        }
+	        else ni = 0;
+	      }
 
         // It's not so correct but if ibegin is not the first value of i_index 
         // then data on local domain has user-defined distribution. In this case, ibegin, ni have no meaning.
@@ -1009,7 +1042,7 @@ namespace xios {
         if (nj.isEmpty()) 
         {
           // No information about nj
-          int minIndex = nj_glo - 1;
+          int minIndex = ni_glo*nj_glo - 1;
           int maxIndex = 0;
           for (int idx = 0; idx < j_index.numElements(); ++idx)
           {
@@ -1388,12 +1421,12 @@ namespace xios {
          }
          else if (i_index.numElements() == lonvalue_1d.numElements() && j_index.numElements() == latvalue_1d.numElements()  && !lonlatValueExisted)
          {
-           lonvalue.reference(lonvalue_1d);
-           latvalue.reference(latvalue_1d);
-            if (hasBounds)
+           lonvalue.reference(lonvalue_1d.copy());
+           latvalue.reference(latvalue_1d.copy());
+           if (hasBounds)
            {
-             bounds_lonvalue.reference(bounds_lon_1d);
-             bounds_latvalue.reference(bounds_lat_1d);
+             bounds_lonvalue.reference(bounds_lon_1d.copy());
+             bounds_latvalue.reference(bounds_lat_1d.copy());
            }
          }
          else
@@ -1407,28 +1440,30 @@ namespace xios {
        }
        else if (type == type_attr::curvilinear || type == type_attr::unstructured  && !lonlatValueExisted)
        {
-         lonvalue.reference(lonvalue_1d);
-         latvalue.reference(latvalue_1d);
+         lonvalue.reference(lonvalue_1d.copy());
+         latvalue.reference(latvalue_1d.copy());
          if (hasBounds)
          {
-           bounds_lonvalue.reference(bounds_lon_1d);
-           bounds_latvalue.reference(bounds_lat_1d);
+           bounds_lonvalue.reference(bounds_lon_1d.copy());
+           bounds_latvalue.reference(bounds_lat_1d.copy());
          }
        }
      }
 
-     if (!area.isEmpty() && areavalue.isEmpty())
+     if (!area_2d.isEmpty() && areavalue.isEmpty())
      {
-        areavalue.resize(ni*nj);
+       areavalue.resize(ni*nj);
        for (int j = 0; j < nj; ++j)
        {
          for (int i = 0; i < ni; ++i)
          {
            int k = j * ni + i;
-           areavalue(k) = area(i,j);
+           areavalue(k) = area_2d(i,j);
          }
        }
      }
+     else if (!area_1d.isEmpty() && areavalue.isEmpty()) areavalue.reference(area_1d.copy());
+
    }
    CATCH_DUMP_ATTR
 
@@ -1635,29 +1670,27 @@ namespace xios {
    TRY
    {
      bool hasAreaValue = (!areavalue.isEmpty() && 0 != areavalue.numElements());
-     hasArea = !area.isEmpty();
+     hasArea = !area_1d.isEmpty() || !area_2d.isEmpty();
      if (hasArea && !hasAreaValue)
      {
-       if (area.extent(0) != ni || area.extent(1) != nj)
+       if (!area_2d.isEmpty() && (area_2d.extent(0) != ni || area_2d.extent(1) != nj))
        {
          ERROR("CDomain::checkArea(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "The area does not have the same size as the local domain." << std::endl
                << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
-               << "Area size is " << area.extent(0) << " x " << area.extent(1) << ".");
+               << "Area size is " << area_2d.extent(0) << " x " << area_2d.extent(1) << ".");
        }
-//       if (areavalue.isEmpty())
-//       {
-//          areavalue.resize(ni*nj);
-//         for (int j = 0; j < nj; ++j)
-//         {
-//           for (int i = 0; i < ni; ++i)
-//           {
-//             int k = j * ni + i;
-//             areavalue(k) = area(i,j);
-//           }
-//         }
-//       }
+       
+       if (!area_1d.isEmpty() && area_1d.extent(0) != ni*nj)
+       {
+         ERROR("CDomain::checkArea(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "The area does not have the same size as the local domain." << std::endl
+               << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
+               << "Area size is " << area_1d.extent(0) << " but must be ni*nj=" << ni*nj << " .");
+       }
+
      }
    }
    CATCH_DUMP_ATTR
@@ -1730,6 +1763,7 @@ namespace xios {
    {
       if (this->checkAttributes_done_) return;
       this->checkDomain();
+      this->compute2dBox() ;
       this->checkLonLat();
       this->checkBounds();
       this->checkArea();
@@ -1802,7 +1836,7 @@ namespace xios {
      // should be considered in distributed
      excludedAttr.insert(excludedAttr.end(), { "mask_1d", "mask_2d" }); // ???
      excludedAttr.insert(excludedAttr.end(), { "bounds_lon_1d", "bounds_lat_1d", "bounds_lon_2d", "bounds_lat_2d" });
-     excludedAttr.insert(excludedAttr.end(), { "area" });
+     excludedAttr.insert(excludedAttr.end(), { "area_1d", "area_2d" });
      // private
      excludedAttr.insert(excludedAttr.end(), { "lon_start", "lon_end", "lat_start", "lat_end" });
      excludedAttr.insert(excludedAttr.end(), { "bounds_lon_start", "bounds_lon_end", "bounds_lat_start", "bounds_lat_end" });
@@ -1951,41 +1985,7 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     map<int, CArray<size_t,1>> globalIndex ;
-/* old method
-    if (type==EDistributionType::BANDS) // Bands distribution to send to file server
-    {
-      int nbServer = client->getRemoteSize();
-      std::vector<int> nGlobDomain(2);
-      nGlobDomain[0] = this->ni_glo;
-      nGlobDomain[1] = this->nj_glo;
 
-      // to be changed in future, need to rewrite more simply domain distribution
-      CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
-      int distributedPosition ;
-      if (isUnstructed_) distributedPosition = 0 ;
-      else distributedPosition = 1 ;
-      
-      std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-      std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-      vector<unordered_map<size_t,vector<int>>> indexServerOnElement ;
-      CArray<int,1> axisDomainOrder(1) ; axisDomainOrder(0)=2 ;
-      auto zeroIndex=serverDescription.computeServerGlobalByElement(indexServerOnElement, context->getIntraCommRank(), context->getIntraCommSize(),
-                                                                  axisDomainOrder,distributedPosition) ;
-      // distribution is very bad => to redo
-      // convert indexServerOnElement => map<int,CArray<size_t,1>> - need to be changed later
-      map<int, vector<size_t>> vectGlobalIndex ;
-      for(auto& indexRanks : indexServerOnElement[0])
-      {
-        size_t index=indexRanks.first ;
-        auto& ranks=indexRanks.second ;
-        for(int rank : ranks) vectGlobalIndex[rank].push_back(index) ;
-      }
-      for(auto& vect : vectGlobalIndex ) globalIndex.emplace(vect.first, CArray<size_t,1>(vect.second.data(), shape(vect.second.size()),duplicateData)) ;
-    // some servers receves no index (zeroIndex array) => root process take them into account.
-      if (context->getIntraCommRank()==0) 
-        for(auto& rank : zeroIndex) globalIndex[rank] = CArray<size_t,1>() ; 
-    }
-*/    
     if (distType==EDistributionType::BANDS && isUnstructed_) distType=EDistributionType::COLUMNS ;
 
     if (distType==EDistributionType::BANDS) // Bands distribution to send to file server
@@ -2132,8 +2132,6 @@ namespace xios {
     remoteElement_[client]->addFullView() ;
   }
   CATCH
-
- 
 
   void CDomain::distributeToServer(CContextClient* client, bool inOut, map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn,
                                    shared_ptr<CScattererConnector> &scattererConnector, const string& domainId)
@@ -2408,8 +2406,8 @@ namespace xios {
     {
       CArray<double,1> value ;
       gathererConnector_->transfer(event, value, 0.); 
-      area.resize(ni,nj) ;
-      if (area.numElements()>0) area=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
+      area_2d.resize(ni,nj) ;
+      if (area_2d.numElements()>0) area_2d=CArray<double,2>(value.dataFirst(),shape(ni,nj),neverDeleteData) ; 
     }
   }
   CATCH
@@ -2490,6 +2488,7 @@ namespace xios {
     m["expand_domain"] = TRANS_EXPAND_DOMAIN;
     m["reorder_domain"] = TRANS_REORDER_DOMAIN;
     m["extract_domain"] = TRANS_EXTRACT_DOMAIN;
+    m["redistribute_domain"] = TRANS_REDISTRIBUTE_DOMAIN;
     return true;
   }
   CATCH

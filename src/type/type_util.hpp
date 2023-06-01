@@ -69,7 +69,13 @@ namespace xios
     class CPoolNodeGroup ;
     class CServiceNode ;
     class CServiceNodeGroup ;
-      
+    class CRedistributeDomain;
+    class CRedistributeDomainGroup;
+    class CRedistributeAxis;
+    class CRedistributeAxisGroup;
+    class CRedistributeScalar;
+    class CRedistributeScalarGroup;
+       
   template <typename T> inline string getStrType(void);
 
 #define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T); }
@@ -157,7 +163,13 @@ namespace xios
   macro(CPoolNodeGroup)
   macro(CServiceNode)
   macro(CServiceNodeGroup)
-  
+  macro(CRedistributeDomain)
+  macro(CRedistributeDomainGroup)  
+  macro(CRedistributeAxis)
+  macro(CRedistributeAxisGroup)  
+  macro(CRedistributeScalar)
+  macro(CRedistributeScalarGroup)  
+
 #undef macro
 }
 

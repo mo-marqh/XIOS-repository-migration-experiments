@@ -82,6 +82,7 @@ namespace xios {
          std::vector<CField* > getEnabledFields(int default_outputlevel = 5,
                                                 int default_level = 1,
                                                 bool default_enabled = true);
+         void replaceEnabledFields(CField* fieldIn, CField* fieldOut) ;
 
          StdString dumpClassAttributes(void);
 
@@ -111,9 +112,7 @@ namespace xios {
          void solveFieldRefInheritance(bool apply);
          void processEnabledFile(void);
          
-         void postProcessFilterGraph();
          void prefetchEnabledReadModeFields();
-         void doPreTimestepOperationsForEnabledReadModeFields();
          void doPostTimestepOperationsForEnabledReadModeFields();
 
          void checkGridOfEnabledFields();
@@ -211,8 +210,10 @@ namespace xios {
          void setServerSide(void) { isClientSide_=false ;}
        
        private:
-
-
+         bool isOnline_=false;
+       public:
+         bool isOnline(void) { return isOnline_ ;}
+         void setOnline(bool online=true) { isOnline_=online ;} 
       public:
         //         virtual void toBinary  (StdOStream& os) const;
         //         virtual void fromBinary(StdIStream& is);

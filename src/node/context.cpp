@@ -6,6 +6,7 @@
 #include "calendar_type.hpp"
 #include "duration.hpp"
 
+#include "online_context_client.hpp"
 #include "legacy_context_client.hpp"
 #include "legacy_context_server.hpp"
 #include "one_sided_context_client.hpp"
@@ -661,8 +662,7 @@ void CContext::removeAllContexts(void)
       for(auto& retClientServer : retClientServers)  clientServers.push_back(retClientServer.second) ;
       
       int serviceType ;
-      //if (intraCommRank_==0) CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType, true) ;
-      if (intraCommRank_==0) CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType) ;
+      if (intraCommRank_==0) CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType, true) ;
       MPI_Bcast(&serviceType,1,MPI_INT,0,intraComm_) ;
       
       for(auto& clientServer : clientServers)     
@@ -678,10 +678,15 @@ void CContext::removeAllContexts(void)
 
   vector<CContextClient*> CContext::getContextClient(const string& poolId, const string& serviceId)
   {
-    vector<pair<CContextClient*,CContextServer*>> clientServers ;
-    getServerInterComm(poolId, serviceId, clientServers ) ;
-    vector<CContextClient*> ret ;
-    for(auto& clientServer : clientServers) ret.push_back(clientServer.first) ;
+     vector<CContextClient*> ret ;
+    
+    if (serviceId=="attached") ret.push_back(onlineContextClient_) ;
+    else
+    {
+      vector<pair<CContextClient*,CContextServer*>> clientServers ;
+      getServerInterComm(poolId, serviceId, clientServers ) ;
+      for(auto& clientServer : clientServers) ret.push_back(clientServer.first) ;
+    }
     return ret ;
   }
 
@@ -807,7 +812,6 @@ void CContext::removeAllContexts(void)
 
       if (serviceType_==CServicesManager::CLIENT)
       {
-//ym        doPreTimestepOperationsForEnabledReadModeFiles(); // For now we only use server level 1 to read data
         triggerLateFields() ;
 
         // inform couplerIn that I am finished
@@ -985,6 +989,8 @@ void CContext::removeAllContexts(void)
      CMemChecker::logMem( "CContext::closeDefinition" );
 
      CTimer::get("Context : close definition").resume() ;
+
+     onlineContextClient_=CContextClient::getNew<CContextClient::online>(this,intraComm_, intraComm_);
           
      // create intercommunicator with servers. 
      // not sure it is the good place to be called here 
@@ -1145,9 +1151,12 @@ void CContext::removeAllContexts(void)
     if (serviceType_==CServicesManager::CLIENT)
     {
       for(auto field : fileInField) 
+        if (field->getContextClient()->getType() != CContextClient::online) field->sendFieldToInputFileServer() ;
+
+      for(auto field : fileInField) 
       {
-        field->sendFieldToInputFileServer() ;
-        field->connectToServerInput(garbageCollector) ; // connect the field to server filter
+        if (field->getContextClient()->getType() == CContextClient::online) field->connectToOnlineReader(garbageCollector) ;
+        else field->connectToServerInput(garbageCollector) ; // connect the field to server filter
         fileInFields_.push_back(field) ;
       }
     }
@@ -1157,9 +1166,11 @@ void CContext::removeAllContexts(void)
     {
       for(auto field : fileOutField) 
       {
-        field->connectToFileServer(garbageCollector) ; // connect the field to server filter
+        if (field->getContextClient()->getType() == CContextClient::online)  field->connectToOnlineWriter(garbageCollector) ;
+        else  field->connectToFileServer(garbageCollector) ; // connect the field to server filter
       }
-      for(auto field : fileOutField) field->sendFieldToFileServer() ;
+      for(auto field : fileOutField) 
+        if (field->getContextClient()->getType() != CContextClient::online) field->sendFieldToFileServer() ;
     }
 
     // workflow endpoint => write to file
@@ -1176,7 +1187,8 @@ void CContext::removeAllContexts(void)
     {
       for(auto field : fileInField) 
       {
-        field->connectToServerToClient(garbageCollector) ;
+        if (field->getContextClient()->getType() == CContextClient::online) field->connectToOnlineReader(garbageCollector) ;
+        else field->connectToServerToClient(garbageCollector) ;
       }
     }
 
@@ -1231,8 +1243,10 @@ void CContext::removeAllContexts(void)
     map<string, CContextClient*> slaves ; // need an ordered list ; 
     if (serviceType_==CServicesManager::CLIENT) 
     {
-      for(auto field : fileOutField) slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ; 
-      for(auto field : fileInField) slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ; 
+      for(auto field : fileOutField)
+        if (field->getContextClient()->getType()!=CContextClient::online)  slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ; 
+      for(auto field : fileInField) 
+        if (field->getContextClient()->getType()!=CContextClient::online)  slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ; 
     }
     else if (serviceType_==CServicesManager::GATHERER) 
       for(auto field : fileOutField) slaves[clientsId_[field->getContextClient()]] = field->getContextClient() ;
@@ -1241,12 +1255,11 @@ void CContext::removeAllContexts(void)
 
     for(auto& slaveServer : slaveServers_) sendCloseDefinition(slaveServer) ;
 
-    if (serviceType_==CServicesManager::WRITER)  
-    {
-      createFileHeader();
-    }
-
-    if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
+    createFileHeader();
+   
+    //if (serviceType_==CServicesManager::CLIENT) startPrefetchingOfEnabledReadModeFiles();
+    if (serviceType_==CServicesManager::CLIENT) 
+       for(auto field : fileInField) field->sendReadDataRequest(getCalendar()->getCurrentDate());  
    
     // send signal to couplerIn context that definition phasis is done
 
@@ -1355,18 +1368,6 @@ void CContext::removeAllContexts(void)
    }
    CATCH_DUMP_ATTR
 
-
-   void CContext::postProcessFilterGraph()
-   TRY
-   {
-     int size = enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-        enabledFiles[i]->postProcessFilterGraph();
-     }
-   }
-   CATCH_DUMP_ATTR
-
    void CContext::startPrefetchingOfEnabledReadModeFiles()
    TRY
    {
@@ -1374,17 +1375,6 @@ void CContext::removeAllContexts(void)
      for (int i = 0; i < size; ++i)
      {
         enabledReadModeFiles[i]->prefetchEnabledReadModeFields();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   void CContext::doPreTimestepOperationsForEnabledReadModeFiles()
-   TRY
-   {
-     int size = enabledReadModeFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-        enabledReadModeFiles[i]->doPreTimestepOperationsForEnabledReadModeFields();
      }
    }
    CATCH_DUMP_ATTR
@@ -2176,7 +2166,8 @@ void CContext::removeAllContexts(void)
 
         if (serviceType_==CServicesManager::CLIENT) // For now we only use server level 1 to read data
         {
-          doPostTimestepOperationsForEnabledReadModeFiles();
+         // doPostTimestepOperationsForEnabledReadModeFiles();
+          for(auto& field : fileInFields_) field->sendReadDataRequestIfNeeded() ;
           garbageCollector.invalidate(calendar->getCurrentDate());
         }
         CMemChecker::logMem( "CContext::updateCalendar_"+std::to_string(step) );
@@ -2201,17 +2192,11 @@ void CContext::removeAllContexts(void)
    }
    CATCH_DUMP_ATTR
 
-   //! Server side: Create header of netcdf file
+   //! Create header of netcdf file
    void CContext::createFileHeader(void)
    TRY
    {
-      vector<CFile*>::const_iterator it;
-
-      //for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
-      for (it=enabledWriteModeFiles.begin(); it != enabledWriteModeFiles.end(); it++)
-      {
-         (*it)->initWrite();
-      }
+      for(auto& file : filesToWrite_) file->initWrite();
    }
    CATCH_DUMP_ATTR
 

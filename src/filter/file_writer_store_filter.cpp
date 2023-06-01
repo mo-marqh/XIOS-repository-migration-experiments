@@ -28,6 +28,7 @@ namespace xios
     if (!field->add_offset.isEmpty()) { addOffset_ = field->add_offset ; hasAddOffset_ = true ; }
     if (!field->prec.isEmpty() && field->prec == 2) hasRounding_ = true ;
     if (!field->default_value.isEmpty()) {hasDefaultValue_=true ; defaultValue_ = field->default_value ;}
+    context->registerFileToWrite(file_) ;
   }
 
   void CFileWriterStoreFilter::onInputReady(std::vector<CDataPacketPtr> data)

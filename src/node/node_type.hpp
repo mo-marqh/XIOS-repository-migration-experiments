@@ -34,6 +34,9 @@
 #include "extract_domain.hpp"
 #include "pool_node.hpp"
 #include "service_node.hpp"
+#include "redistribute_domain.hpp"
+#include "redistribute_axis.hpp"
+#include "redistribute_scalar.hpp"
 
 
 #endif // __XIOS_NODE_TYPE__

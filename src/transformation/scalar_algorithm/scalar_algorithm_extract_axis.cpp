@@ -107,7 +107,7 @@ TRY
       scalarDestination->n.setValue( 1 );
     }
 
-    if (axisSource->hasValue)
+    if (axisSource->hasValue())
     {
       scalarDestination->value = axisSource->value(idxSrc);
     }

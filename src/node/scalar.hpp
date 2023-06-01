@@ -142,6 +142,15 @@ namespace xios
       ////////////////////////////////
 
       bool isEqual(CScalar* scalar);
+
+    public:
+      bool hasValue() { return hasValue_; }
+      bool hasBounds() { return hasBounds_; }
+      bool hasLabel() { return hasLabel_; }
+    private:
+      bool hasValue_  = false ;
+      bool hasBounds_ = false ;
+      bool hasLabel_  = false ;
     private:  
           /** Clients that have to send a scalar. There can be multiple clients in case of secondary server, otherwise only one client. */
       std::list<CContextClient*> clients;

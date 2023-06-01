@@ -31,8 +31,10 @@ namespace xios
       shared_ptr<CGathererConnector>  gathererConnector_ ;
    
     public:
+      
+
       template<typename T> 
-      void transfer(int repeat, int sizeT, const CArray<T,1>& dataIn, CArray<T,1>& dataOut)
+      void transfer(int repeat, int sizeT, const CArray<T,1>& dataIn, CArray<T,1>& dataOut, bool useMissingValue, T missingValue)
       {
         map<int,CArray<T,1>> tmpArrayIn ;
         scattererConnector_->transfer(repeat, sizeT, dataIn, tmpArrayIn) ;
@@ -57,8 +59,23 @@ namespace xios
         vector<MPI_Status> status(requests.size()) ;
         MPI_Waitall(requests.size(), requests.data(),status.data()) ;
         
-        const double nanValue = std::numeric_limits<double>::quiet_NaN();
-        gathererConnector_->transfer(repeat, sizeT , tmpArrayOut, dataOut, nanValue) ;
+        if (useMissingValue) gathererConnector_->transfer(repeat, sizeT , tmpArrayOut, dataOut, missingValue) ;
+        else gathererConnector_->transfer(repeat, sizeT , tmpArrayOut, dataOut) ;
+ //       const double nanValue = std::numeric_limits<double>::quiet_NaN();
+ //       gathererConnector_->transfer(repeat, sizeT , tmpArrayOut, dataOut, nanValue) ;
+      }
+
+      template<typename T> 
+      void transfer(int repeat, int sizeT, const CArray<T,1>& dataIn, CArray<T,1>& dataOut)
+      {
+        T missingValue ;
+        transfer(1, sizeT, dataIn, dataOut, false, missingValue) ;
+      }
+
+      template<typename T> 
+      void transfer(int repeat, int sizeT, const CArray<T,1>& dataIn, CArray<T,1>& dataOut, T missingValue)
+      {
+        transfer(1, sizeT, dataIn, dataOut, true, missingValue) ;
       }
 
       template<typename T> 
@@ -66,11 +83,23 @@ namespace xios
       {
         transfer(1, sizeT, dataIn, dataOut) ;
       }
+
+      template<typename T> 
+      void transfer(int sizeT, const CArray<T,1>& dataIn, CArray<T,1>& dataOut, T missingValue)
+      {
+        transfer(1, sizeT, dataIn, dataOut, missingValue) ;
+      }
    
       template<typename T> 
       void transfer(const CArray<T,1>& dataIn, CArray<T,1>& dataOut)
       {
         transfer(1, 1, dataIn, dataOut) ;
+      }
+
+      template<typename T> 
+      void transfer(const CArray<T,1>& dataIn, CArray<T,1>& dataOut, T missingValue)
+      {
+        transfer(1, 1, dataIn, dataOut, missingValue) ;
       }
 
   };

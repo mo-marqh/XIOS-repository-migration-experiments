@@ -49,5 +49,8 @@ namespace xios
   macro(CExtractDomainGroup)
   macro(CPoolNodeGroup)
   macro(CServiceNodeGroup)
+  macro(CRedistributeDomainGroup)
+  macro(CRedistributeAxisGroup)
+  macro(CRedistributeScalarGroup)
 
 }

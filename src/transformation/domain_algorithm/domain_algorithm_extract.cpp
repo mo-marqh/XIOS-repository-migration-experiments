@@ -75,7 +75,8 @@ TRY
    domainDestination->bounds_lat_1d.reset();
    domainDestination->bounds_lon_2d.reset();
    domainDestination->bounds_lat_2d.reset();
-   domainDestination->area.reset();
+   domainDestination->area_1d.reset();
+   domainDestination->area_2d.reset();
    domainDestination->radius.reset();
    
  
@@ -174,8 +175,11 @@ TRY
       domainDest_->bounds_lat_1d.resize(domainDest_->nvertex, niDest);
     }
   }
-  if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
-
+  if (domainSrc_->hasArea) 
+  {
+    if (!domainSrc_->area_2d.isEmpty()) domainDest_->area_2d.resize(niDest,njDest);
+    else if (!domainSrc_->area_1d.isEmpty()) domainDest_->area_1d.resize(niDest*njDest);
+  }
   // Set attributes required to define domainDestination->localElement_ and associated views, full and workflow)
   CArray<size_t,1> sourceGlobalIdx = domainSource->getLocalElement()->getGlobalIndex();
   int indexSize = sourceGlobalIdx.numElements();
@@ -240,10 +244,8 @@ TRY
       int jIdxSrcLocal  = countSrc/domainSource->ni;
 
       // area
-      if (!domainSrc_->area.isEmpty())
-      {
-        domainDest_->area(iIdxDestLocal,jIdxDestLocal) = domainSrc_->area(iIdxSrcLocal,jIdxSrcLocal);
-      }
+      if (!domainSrc_->area_2d.isEmpty()) domainDest_->area_2d(iIdxDestLocal,jIdxDestLocal) = domainSrc_->area_2d(iIdxSrcLocal,jIdxSrcLocal);
+      else if (!domainSrc_->area_1d.isEmpty())  domainDest_->area_1d(countDest) = domainSrc_->area_1d(countSrc);
 
       // bounds
       if (!domainDest_->bounds_lon_1d.isEmpty())

@@ -201,26 +201,26 @@ namespace xios
                  if (!domain->bounds_lat_name.isEmpty()) bounds_latid = domain->bounds_lat_name;
                  else bounds_latid = "bounds_"+latName+appendDomid;
 
-                 SuperClassWriter::addDimension(dimXid, domain->ni);
-                 SuperClassWriter::addDimension(dimYid, domain->nj);
+                 SuperClassWriter::addDimension(dimXid, domain->niValue_);
+                 SuperClassWriter::addDimension(dimYid, domain->njValue_);
 
                  if (domain->hasBounds)
                    SuperClassWriter::addDimension(dimVertId, domain->nvertex);
 
                  if (context->intraCommSize_ > 1)
                  {
-                   this->writeLocalAttributes(domain->ibegin,
-                                              domain->ni,
-                                              domain->jbegin,
-                                              domain->nj,
+                   this->writeLocalAttributes(domain->ibeginValue_,
+                                              domain->niValue_,
+                                              domain->jbeginValue_,
+                                              domain->njValue_,
                                               appendDomid);
 
                    if (singleDomain)
                     this->writeLocalAttributes_IOIPSL(dimXid, dimYid,
-                                                      domain->ibegin,
-                                                      domain->ni,
-                                                      domain->jbegin,
-                                                      domain->nj,
+                                                      domain->ibeginValue_,
+                                                      domain->niValue_,
+                                                      domain->jbeginValue_,
+                                                      domain->njValue_,
                                                       domain->ni_glo,domain->nj_glo,
                                                       context->intraCommRank_,context->intraCommSize_);
                  }
@@ -372,9 +372,9 @@ namespace xios
                    {
                      std::vector<StdSize> start(2) ;
                      std::vector<StdSize> count(2) ;
-                     start[1]=domain->ibegin;
-                     start[0]=domain->jbegin;
-                     count[1]=domain->ni ; count[0]=domain->nj ;
+                     start[1]=domain->ibeginValue_;
+                     start[0]=domain->jbeginValue_;
+                     count[1]=domain->niValue_ ; count[0]=domain->njValue_ ;
 
                      if (domain->hasLonLat)
                      {
@@ -390,16 +390,16 @@ namespace xios
                        std::vector<StdSize> start(1) ;
                        std::vector<StdSize> count(1) ;
                        
-                       start[0]=domain->jbegin;
-                       count[0]=domain->nj;
+                       start[0]=domain->jbeginValue_;
+                       count[0]=domain->njValue_;
                        CArray<double,1> lat;
-                       lat.resize( domain->nj.getValue() );
-                       for (int j=0;j<domain->nj.getValue();j++) lat(j) = domain->latvalue(j*domain->ni.getValue());
+                       lat.resize( domain->njValue_);
+                       for (int j=0;j<domain->njValue_;j++) lat(j) = domain->latvalue(j*domain->niValue_);
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
-                       start[0]=domain->ibegin;
-                       count[0]=domain->ni;
-                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->ni-1));
+                       start[0]=domain->ibeginValue_;
+                       count[0]=domain->niValue_;
+                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->niValue_-1));
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
                      }
                      break;
@@ -418,11 +418,11 @@ namespace xios
                    else
                    {
                      start[2] = 0;
-                     start[1] = domain->ibegin;
-                     start[0] = domain->jbegin;
+                     start[1] = domain->ibeginValue_;
+                     start[0] = domain->jbeginValue_;
                      count[2] = domain->nvertex;
-                     count[1] = domain->ni;
-                     count[0] = domain->nj;
+                     count[1] = domain->niValue_;
+                     count[0] = domain->njValue_;
                    }
                  
                    SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0, &start, &count); // will probably not working for rectilinear
@@ -434,10 +434,10 @@ namespace xios
                    std::vector<StdSize> start(2);
                    std::vector<StdSize> count(2);
 
-                   start[1] = domain->ibegin;
-                   start[0] = domain->jbegin;
-                   count[1] = domain->ni;
-                   count[0] = domain->nj;
+                   start[1] = domain->ibeginValue_;
+                   start[0] = domain->jbeginValue_;
+                   count[1] = domain->niValue_;
+                   count[0] = domain->njValue_;
                    
                    SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0, &start, &count);
                  }
@@ -702,8 +702,8 @@ namespace xios
                }
                else
                {
-                 startNodes[0] = domain->ibegin;
-                 countNodes[0] = domain->ni ;
+                 startNodes[0] = domain->ibeginValue_;
+                 countNodes[0] = domain->niValue_ ;
                }
 
               SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
@@ -725,14 +725,14 @@ namespace xios
                }
                else
                {
-                 startEdges[0] = domain->ibegin;
-                 countEdges[0] = domain->ni;
+                 startEdges[0] = domain->ibeginValue_;
+                 countEdges[0] = domain->niValue_;
                  startNodes[0] = domain->mesh->node_start;
                  countNodes[0] = domain->mesh->node_count;
                  if (countNodes[0]==0) startNodes[0]=0 ; // for netcdf error
-                 startEdgeNodes[0] = domain->ibegin;
+                 startEdgeNodes[0] = domain->ibeginValue_;
                  startEdgeNodes[1] = 0;
-                 countEdgeNodes[0] = domain->ni;
+                 countEdgeNodes[0] = domain->niValue_;
                  countEdgeNodes[1] = 2;
                }
               SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
@@ -762,8 +762,8 @@ namespace xios
                }
                else
                {
-                 startFaces[0] = domain->ibegin;
-                 countFaces[0] = domain->ni ;
+                 startFaces[0] = domain->ibeginValue_;
+                 countFaces[0] = domain->niValue_ ;
                  startNodes[0] = domain->mesh->node_start;
                  countNodes[0] = domain->mesh->node_count;
                  if (countNodes[0]==0) startNodes[0]=0;
@@ -784,8 +784,8 @@ namespace xios
                  startEdgeFaces[1]= 0;
                  countEdgeFaces[1]= 2;
                  
-                 startFaceConctv[0] = domain->ibegin;
-                 countFaceConctv[0] = domain->ni;
+                 startFaceConctv[0] = domain->ibeginValue_;
+                 countFaceConctv[0] = domain->niValue_;
                  startFaceConctv[1] = 0;
                  countFaceConctv[1] = domain->nvertex;
                }
@@ -997,11 +997,11 @@ namespace xios
                  }
                  else
                  {
-                   start[0]=domain->ibegin;
-                   count[0]=domain->ni;
-                   startBounds[0]=domain->ibegin;
+                   start[0]=domain->ibeginValue_;
+                   count[0]=domain->niValue_;
+                   startBounds[0]=domain->ibeginValue_;
                    startBounds[1]=0 ;
-                   countBounds[0]=domain->ni;
+                   countBounds[0]=domain->niValue_;
                    countBounds[1]=nvertex ;
                  }
 
@@ -1109,7 +1109,7 @@ namespace xios
 
           if (!axis->label.isEmpty() && !SuperClassWriter::dimExist(strId)) SuperClassWriter::addDimension(strId, stringArrayLen);
 
-          if (axis->hasValue || !axis->label.isEmpty())
+          if (axis->hasValue() || !axis->label.isEmpty())
           {
             if (!axis->label.isEmpty()) dims.push_back(strId);
 
@@ -1498,7 +1498,7 @@ namespace xios
                 totalNbIndexes = nbIndexes ;
               }
 
-              firstGlobalIndex = domain->ibegin + domain->jbegin * domain->ni_glo;
+              firstGlobalIndex = domain->ibeginValue_ + domain->jbeginValue_ * domain->ni_glo;
 
               domain->addRelFileCompressed(this->filename);
               setWrittenCompressedDomain(domId);
@@ -2322,12 +2322,12 @@ namespace xios
                       {
                         if ((domain->type) != CDomain::type_attr::unstructured)
                         {
-                          start.push_back(domain->jbegin);
-                          count.push_back(domain->nj);
+                          start.push_back(domain->jbeginValue_);
+                          count.push_back(domain->njValue_);
                         }
                         --idx;
-                        start.push_back(domain->ibegin);
-                        count.push_back(domain->ni);
+                        start.push_back(domain->ibeginValue_);
+                        count.push_back(domain->niValue_);
                         --idx;
                       }
                       --idxDomain;
@@ -2382,13 +2382,13 @@ namespace xios
                       CDomain* domain = CDomain::get(domainList[idxDomain]);
                       if ((domain->type) != CDomain::type_attr::unstructured)
                       {
-                        start.push_back(domain->jbegin);
-                        count.push_back(domain->nj);
+                        start.push_back(domain->jbeginValue_);
+                        count.push_back(domain->njValue_);
                       }
                       --idx ;
 
-                        start.push_back(domain->ibegin);
-                        count.push_back(domain->ni);
+                        start.push_back(domain->ibeginValue_);
+                        count.push_back(domain->niValue_);
                       --idx ;
                       --idxDomain;
                     }

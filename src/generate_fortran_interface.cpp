@@ -52,6 +52,10 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CReduceDomainToScalar reduceDomainToScalar;
   CDuplicateScalarToAxis duplicateScalarToAxis;
   CReduceScalarToScalar reduceScalarToScalar;
+
+  CRedistributeDomain redistributeDomain ;
+  CRedistributeAxis   redistributeAxis ;
+  CRedistributeScalar redistributeScalar ;
   
   ostringstream oss;
   ofstream file;
@@ -329,6 +333,10 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.open((path+"ireorder_domain_attr.F90").c_str());
   reorderDomain.generateFortranInterface(file);
   file.close();
+
+  file.open((path+"iredistribute_domain_attr.F90").c_str());
+  redistributeDomain.generateFortranInterface(file);
+  file.close();
   
   /*!
     Axis transformations
@@ -434,6 +442,11 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.open((path+"iduplicate_scalar_to_axis_attr.F90").c_str());
   duplicateScalarToAxis.generateFortranInterface(file);
   file.close();
+
+  file.open((path+"iredistribute_axis_attr.F90").c_str());
+  redistributeAxis.generateFortranInterface(file);
+  file.close();
+
   /*!
     Scalar transformations
   */
@@ -487,6 +500,9 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   reduceScalarToScalar.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"iredistribute_scalar_attr.F90").c_str());
+  redistributeScalar.generateFortranInterface(file);
+  file.close();
 
 
 

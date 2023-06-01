@@ -213,6 +213,10 @@ namespace xios
          CArray<double, 1> lonvalue, latvalue;
          CArray<double, 2> bounds_lonvalue, bounds_latvalue;
          CArray<double, 1> areavalue;
+         int niValue_ ;
+         int njValue_ ;
+         int ibeginValue_ ;
+         int jbeginValue_ ;
 
 
          CArray<bool, 1> domainMask; // mask_1d, mask_2d -> domainMask
@@ -240,6 +244,7 @@ namespace xios
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
+         void compute2dBox(void) ;
          
        public:
          void sendDomainToFileServer(CContextClient* client) ;

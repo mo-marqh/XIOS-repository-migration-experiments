@@ -44,7 +44,9 @@ namespace xios
          eExtractDomain,
          ePoolNode,gPoolNode,
          eServiceNode,gServiceNode,
-//         eService, gService
+         eRedistributeDomain, gRedistributeDomain,
+         eRedistributeAxis, gRedistributeAxis,
+         eRedistributeScalar, gRedistributeScalar,
        } ENodeType;
 
 } // namespace xios

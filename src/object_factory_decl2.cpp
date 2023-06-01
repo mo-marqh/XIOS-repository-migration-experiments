@@ -22,5 +22,8 @@ namespace xios
   macro(CExtractDomain)
   macro(CPoolNode)
   macro(CServiceNode)
+  macro(CRedistributeDomain)
+  macro(CRedistributeAxis)
+  macro(CRedistributeScalar)
 }
 

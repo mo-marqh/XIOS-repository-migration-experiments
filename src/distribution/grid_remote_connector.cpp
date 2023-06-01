@@ -98,9 +98,10 @@ namespace xios
       hashRank.assign(commSize,0) ; // 0 for everybody except my rank
       size_t globalIndexSize = globalIndex.numElements() ;
       
-      size_t allEqual ;
-      MPI_Allreduce(&globalIndexSize, &allEqual, 1, MPI_SIZE_T, MPI_BXOR, localComm_) ;
-      if (allEqual!=0) 
+      size_t minVal,maxVal ;
+      MPI_Allreduce(&globalIndexSize, &minVal, 1, MPI_SIZE_T, MPI_MIN, localComm_) ;
+      MPI_Allreduce(&globalIndexSize, &maxVal, 1, MPI_SIZE_T, MPI_MAX, localComm_) ;
+      if (minVal!=maxVal) 
       {
         isSrcViewDistributed_[i]=true ;
         break ;
@@ -109,8 +110,9 @@ namespace xios
       // warning : jenkins hash : 0 --> 0 : need to compare number of element for each ranks
       size_t hashValue=0 ;
       for(size_t ind=0;ind<globalIndexSize;ind++) hashValue += hashGlobalIndex(globalIndex(ind)) ;
-      MPI_Allreduce(&hashValue, &allEqual, 1, MPI_SIZE_T, MPI_BXOR, localComm_) ;
-      if (allEqual!=0) isSrcViewDistributed_[i]=true ;
+      MPI_Allreduce(&hashValue, &minVal, 1, MPI_SIZE_T, MPI_MIN, localComm_) ;
+      MPI_Allreduce(&hashValue, &maxVal, 1, MPI_SIZE_T, MPI_MAX, localComm_) ;
+      if (minVal!=maxVal) isSrcViewDistributed_[i]=true ;
       else isSrcViewDistributed_[i]=false ;
     }
 

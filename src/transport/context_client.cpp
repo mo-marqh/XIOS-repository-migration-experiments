@@ -17,6 +17,8 @@
 #include <chrono>
 #include "one_sided_context_client.hpp"
 #include "legacy_context_client.hpp"
+#include "online_context_client.hpp"
+
 
 namespace xios
 {
@@ -60,6 +62,7 @@ namespace xios
       string defaultProtocol = CXios::getin<string>("transport_protocol", "default") ;
       if (defaultProtocol=="one_sided") return getNew<CContextClient::oneSided>(parent, intraComm, interComm) ;
       else if  (defaultProtocol=="legacy") return getNew<CContextClient::legacy>(parent, intraComm, interComm) ;
+      else if  (defaultProtocol=="online") return getNew<CContextClient::online>(parent, intraComm, interComm) ;
       else if  (defaultProtocol=="default") return getNew<CContextClient::legacy>(parent, intraComm, interComm) ;
       else ERROR("CContextClient* CContextClient::getNew<CContextClient::generic>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer)",
                 <<"Protocol name <"<<defaultProtocol<<"> is undefined,  must be <default>, <one_sided> or <legacy>" ) ;  
@@ -75,6 +78,12 @@ namespace xios
     CContextClient* CContextClient::getNew<CContextClient::legacy>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer)
     { 
       return new CLegacyContextClient(parent, intraComm, interComm, parentServer); 
+    }
+
+    template<>
+    CContextClient* CContextClient::getNew<CContextClient::online>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer)
+    { 
+      return new COnlineContextClient(parent, intraComm, interComm, parentServer); 
     }
 
     void CContextClient::computeLeader(int clientRank, int clientSize, int serverSize,

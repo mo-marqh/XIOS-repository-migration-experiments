@@ -322,6 +322,7 @@ namespace xios
         if (!scheduled && !isAttachedModeEnabled()) // Skip event scheduling for attached mode and reception on client side
         {
           eventScheduler_->registerEvent(currentTimeLine,hashId);
+          info(100)<<"Context id "<<context->getId()<<"Schedule event : "<< currentTimeLine <<"  "<<hashId<<endl ;
           scheduled=true;
         }
         else if (isAttachedModeEnabled() || eventScheduler_->queryEvent(currentTimeLine,hashId) )
@@ -341,6 +342,24 @@ namespace xios
             MPI_Test(&processEventRequest_, &flag, &status) ;
             if (!flag) return ;
             eventScheduled_=false ;
+          }
+          
+          if (CXios::checkEventSync)
+          {
+            int typeId, classId, typeId_in, classId_in;
+            long long timeLine_out;
+            long long timeLine_in( currentTimeLine );
+            typeId_in=event->type ;
+            classId_in=event->classId ;
+   //        MPI_Allreduce(&timeLine,&timeLine_out, 1, MPI_UINT64_T, MPI_SUM, intraComm) ; // MPI_UINT64_T standardized by MPI 3
+            MPI_Allreduce(&timeLine_in,&timeLine_out, 1, MPI_LONG_LONG_INT, MPI_SUM, intraComm) ; 
+            MPI_Allreduce(&typeId_in,&typeId, 1, MPI_INT, MPI_SUM, intraComm) ;
+            MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm) ;
+            if (typeId/intraCommSize!=event->type || classId/intraCommSize!=event->classId || timeLine_out/intraCommSize!=currentTimeLine)
+            {
+               ERROR("void CLegacyContextClient::sendEvent(CEventClient& event)",
+                  << "Event are not coherent between client for timeline = "<<currentTimeLine);
+            }
           }
 
           if (!isAttachedModeEnabled()) eventScheduler_->popEvent() ;

@@ -140,9 +140,7 @@ namespace xios
          void createFileHeader(void);
          void initReadFiles(void);
          void prepareTimeseries(void);
-         void postProcessFilterGraph();
          void startPrefetchingOfEnabledReadModeFiles();
-         void doPreTimestepOperationsForEnabledReadModeFiles();
          void doPostTimestepOperationsForEnabledReadModeFiles();
          void findFieldsWithReadAccess(void);
          void triggerLateFields(void) ;
@@ -297,9 +295,14 @@ namespace xios
 
          // Determine context on server or not
          bool hasServer;
-
+      public:
+        void registerFileToWrite(CFile* file) { filesToWrite_.insert(file); } // Add a file that need to be write for example to create headers
+      private:  
+        std::set<CFile*> filesToWrite_ ;  
 
       private:
+        CContextClient* onlineContextClient_=nullptr ;
+        
         std::string defaultPoolWriterId_ ;
         std::string defaultPoolReaderId_ ;
         std::string defaultPoolGathererId_ ;

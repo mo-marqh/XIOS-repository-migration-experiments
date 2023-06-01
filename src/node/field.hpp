@@ -27,6 +27,8 @@
 #include "file_writer_store_filter.hpp"
 #include "client_to_server_store_filter.hpp"
 #include "file_reader_source_filter.hpp"
+#include "client_online_reader_filter.hpp"
+#include "client_online_writer_filter.hpp"
 
 
 
@@ -55,6 +57,7 @@ namespace xios
    class COutputPin;
    class CSourceFilter;
    class CServerToClientFilter;
+   class CGridRedistributeFilter;
    ///--------------------------------------------------------------
 
    // Declare/Define CFieldAttribute
@@ -198,8 +201,6 @@ namespace xios
         void checkForLateDataFromServer(void);
         void checkForLateDataFromCoupler(void) ;
 
-        void checkIfMustAutoTrigger(void); // ym obsolete
-        void autoTriggerIfNeeded(void); //ym obsolete
         void triggerLateField(void) ;
 
         void parse(xml::CXMLNode& node);
@@ -236,6 +237,8 @@ namespace xios
         void connectToModelOutput(CGarbageCollector& gc);
         void connectToFileReader(CGarbageCollector& gc) ;
         void connectToServerToClient(CGarbageCollector& gc) ;
+        void connectToOnlineWriter(CGarbageCollector& gc) ;
+        void connectToOnlineReader(CGarbageCollector& gc) ;
 
         void setContextClientDataBufferSize(map<CContextClient*,map<int,size_t>>& bufferSize, 
                                         map<CContextClient*,map<int,size_t>>& maxEventSize, 
@@ -266,6 +269,7 @@ namespace xios
 
          CGrid*  grid_=nullptr;
          CGrid* getGrid(void) { return grid_; } 
+         void setGrid(CGrid* grid) { grid_=grid; } 
       
       private:
          CGrid* sentGrid_=nullptr ;
@@ -326,10 +330,10 @@ namespace xios
          DECLARE_REF_FUNC(Field,field)
         
       private:
-         CContextClient* client;
+         CContextClient* client_;
       public:
          void setContextClient(CContextClient* newContextClient);
-         CContextClient* getContextClient(void) {return client;}
+         CContextClient* getContextClient(void) {return client_;}
 
       private:
 
@@ -371,8 +375,6 @@ namespace xios
          //! The output pin of the filter providing the instant data for self references
          std::shared_ptr<COutputPin> selfReferenceFilter; // probably redondant with inputFilter
 
-         //! The source filter for data provided by the client
-//         std::shared_ptr<CSourceFilter> clientSourceFilter; // obsolete to remove
  
          //! The source filter for data provided by the model to enter the client workflow
          std::shared_ptr<CModelToClientSourceFilter> modelToClientSourceFilter_;
@@ -392,9 +394,6 @@ namespace xios
          //! The source filter for data read from file on server side 
          std::shared_ptr<CFileReaderSourceFilter> fileReaderSourceFilter_;
 
-         //! The source filter for data provided by the server
-//         std::shared_ptr<CSourceFilter> serverSourceFilter; // obsolete to remove
-        
          //! The terminal filter which send data to server for writing
          std::shared_ptr<CClientToServerStoreFilter> clientToServerStoreFilter_;
         
@@ -403,6 +402,15 @@ namespace xios
 
          //! The terminal filter which send data from server to client
          std::shared_ptr<CServerToClientStoreFilter> serverToClientStoreFilter_;
+
+         //! the filter to redistribute data before to call the fileWriterStoreFilter ==> to remove
+         std::shared_ptr<CGridRedistributeFilter>  redistributeFilter_ ;
+
+          //! the filter to connect to online reader
+         std::shared_ptr<CClientOnlineReaderFilter>  clientOnlineReaderFilter_ ;
+
+          //! the filter to connect to online writer
+         std::shared_ptr<CClientOnlineWriterFilter>  clientOnlineWriterFilter_ ;
 
 
    }; // class CField

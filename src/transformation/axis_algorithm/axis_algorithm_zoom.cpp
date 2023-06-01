@@ -78,9 +78,9 @@ TRY
   axisDest_->data_index.resize(nDest);
 
   axisDest_->mask.resize(nDest);
-  if (axisSrc_->hasValue) axisDest_->value.resize(nDest);
-  if (axisSrc_->hasLabel) axisDest_->label.resize(nDest);
-  if (axisSrc_->hasBounds) axisDest_->bounds.resize(2,nDest);
+  if (axisSrc_->hasValue()) axisDest_->value.resize(nDest);
+  if (axisSrc_->hasLabel()) axisDest_->label.resize(nDest);
+  if (axisSrc_->hasBounds()) axisDest_->bounds.resize(2,nDest);
 
   auto& transMap = this->transformationMapping_;
 
@@ -91,11 +91,11 @@ TRY
     axisDest_->data_index(iDest) = axisSrc_->data_index(iSrc) - beginDestLoc;
     axisDest_->mask(iDest) = axisSrc_->mask(iSrc);
 
-    if (axisSrc_->hasValue)
+    if (axisSrc_->hasValue())
       axisDest_->value(iDest) = axisSrc_->value(iSrc);
-    if (axisSrc_->hasLabel)
+    if (axisSrc_->hasLabel())
       axisDest_->label(iDest) = axisSrc_->label(iSrc);
-    if (axisSrc_->hasBounds)
+    if (axisSrc_->hasBounds())
     {
       axisDest_->bounds(0,iDest) = axisSrc_->bounds(0,iSrc);
       axisDest_->bounds(1,iDest) = axisSrc_->bounds(1,iSrc);

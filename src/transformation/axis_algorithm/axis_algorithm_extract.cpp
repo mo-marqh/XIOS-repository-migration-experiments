@@ -91,9 +91,9 @@ TRY
     axisDest_->begin.setValue( 0 );
   }
 
-  if (axisSrc_->hasValue) axisDest_->value.resize(nDest);
-  if (axisSrc_->hasLabel) axisDest_->label.resize(nDest);
-  if (axisSrc_->hasBounds) axisDest_->bounds.resize(2,nDest);
+  if (axisSrc_->hasValue()) axisDest_->value.resize(nDest);
+  if (axisSrc_->hasLabel()) axisDest_->label.resize(nDest);
+  if (axisSrc_->hasBounds()) axisDest_->bounds.resize(2,nDest);
 
   auto& transMap = this->transformationMapping_;
 
@@ -141,15 +141,15 @@ TRY
       }
       // -----------------------------------------------------------------------------
 
-      if (axisSrc_->hasValue)
+      if (axisSrc_->hasValue())
       {
         axisDest_->value(countDest) = axisSrc_->value(countSrc);
       }
-      if (axisSrc_->hasLabel)
+      if (axisSrc_->hasLabel())
       {
         axisDest_->label(countDest) = axisSrc_->label(countSrc);
       }
-      if (axisSrc_->hasBounds)
+      if (axisSrc_->hasBounds())
       {
         axisDest_->bounds(0,countDest) = axisSrc_->bounds(0,countSrc);
         axisDest_->bounds(1,countDest) = axisSrc_->bounds(1,countSrc);

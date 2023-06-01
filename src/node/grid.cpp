@@ -28,6 +28,10 @@
 #include "grid_algorithm_generic.hpp"
 #include "generic_algorithm_transformation.hpp"
 #include "algo_types.hpp"
+#include "redistribute_domain.hpp"
+#include "redistribute_axis.hpp"
+#include "redistribute_scalar.hpp"
+
 
 #include <regex>
 
@@ -47,7 +51,6 @@ namespace xios
 	    , isCompressible_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), order_()
-      , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
      setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
@@ -65,7 +68,6 @@ namespace xios
 	    , isCompressible_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), order_()
-      , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
      setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
@@ -1468,6 +1470,61 @@ namespace xios
     distributeGridToServer(client, false, fieldId) ;
   }
 
+  CGrid* CGrid::redistributeGridToWriter(void)
+  {
+    CContext* context = CContext::getCurrent();
+    CGrid* redistributedGrid ;
+    string redistributeGridId="redistributedToWriter__"+getId() ;
+    if (has(redistributeGridId)) redistributedGrid = get(redistributeGridId) ;
+    else
+    {
+      redistributedGrid = CGrid::create(redistributeGridId) ;
+      // simple Distribution for now 
+      // distribute over the fisrt element except if it is a scalar
+      auto& elements = getElements() ;
+      int posDistributed = 0 ;
+      for(auto& element : elements)
+      {
+        if (element.type==TYPE_DOMAIN) break ;
+        else if (element.type==TYPE_AXIS) break ;
+        else if (element.type==TYPE_SCALAR) posDistributed++ ;
+      }
+      if (posDistributed==elements.size()) posDistributed=0 ; // grid composed only of scalar
+    
+      for(int i=0 ; i<elements.size() ; i++)
+      {
+        if (elements[i].type==TYPE_DOMAIN) 
+        {
+          CDomain* domain = redistributedGrid->addDomain() ;
+          domain->domain_ref=elements[i].domain->getId() ;
+          domain->name = elements[i].domain->getDomainOutputName() ;
+          CRedistributeDomain* redistributeDomain = dynamic_cast<CRedistributeDomain *>(domain->addTransformation(TRANS_REDISTRIBUTE_DOMAIN, "")) ;
+          redistributeDomain->type.setValue(posDistributed==i ? CRedistributeDomain::type_attr::bands : CRedistributeDomain::type_attr::full);
+        }
+        else if (elements[i].type==TYPE_AXIS)      
+        {
+          CAxis* axis = redistributedGrid->addAxis() ;
+          axis->axis_ref=elements[i].axis->getId() ;
+          axis->name = elements[i].axis->getAxisOutputName() ;
+          CRedistributeAxis* redistributeAxis = dynamic_cast<CRedistributeAxis *>(axis->addTransformation(TRANS_REDISTRIBUTE_AXIS, "")) ;
+          redistributeAxis->type.setValue(posDistributed==i ? CRedistributeAxis::type_attr::bands : CRedistributeAxis::type_attr::full);
+        }
+        else if (elements[i].type==TYPE_SCALAR)      
+        {
+          CScalar* scalar = redistributedGrid->addScalar() ;
+          scalar->scalar_ref=elements[i].scalar->getId() ;
+          scalar->name = elements[i].scalar->getScalarOutputName() ;
+          CRedistributeScalar* redistributeScalar = dynamic_cast<CRedistributeScalar *>(scalar->addTransformation(TRANS_REDISTRIBUTE_SCALAR, "")) ;
+          redistributeScalar->type.setValue(posDistributed==i ? CRedistributeScalar::type_attr::root : CRedistributeScalar::type_attr::full);
+        }
+      }
+    }
+
+    return redistributedGrid ; 
+  }
+
+
+
 
   void CGrid::distributeGridToServer(CContextClient* client, bool inOut, const string& fieldId)
   {
@@ -2368,15 +2425,9 @@ namespace xios
   void CGrid::setContextClient(CContextClient* contextClient)
   TRY
   {
-    if (clientsSet.find(contextClient)==clientsSet.end())
-    {
-      clients.push_back(contextClient) ;
-      clientsSet.insert(contextClient);
-    }
     for (auto domain : getDomains()) domain->setContextClient(contextClient);
     for (auto axis : getAxis()) axis->setContextClient(contextClient);
     for (auto scalar : getScalars()) scalar->setContextClient(contextClient);
-   
   }
   CATCH_DUMP_ATTR
 
@@ -2472,5 +2523,29 @@ namespace xios
     clientFromClientConnector_ = make_shared<CGridGathererConnector>(connectors) ;
   }
 
+  void CGrid::computeRedistributeToWriterConnector(CGrid* gridSrc)
+  {
+    CContext* context = CContext::getCurrent();
+
+    vector<shared_ptr<CLocalView>> srcViews ;
+    vector<shared_ptr<CLocalView>> dstViews ;
+        
+    for(auto& element : gridSrc->getElements())
+    {
+      if (element.type==TYPE_DOMAIN) srcViews.push_back(element.domain->getLocalView(CElementView::WORKFLOW)) ;
+      else if (element.type==TYPE_AXIS) srcViews.push_back(element.axis->getLocalView(CElementView::WORKFLOW)) ; 
+      else if (element.type==TYPE_SCALAR) srcViews.push_back(element.scalar->getLocalView(CElementView::WORKFLOW)) ; 
+    }
+
+    for(auto& element : this->getElements())
+    {
+      if (element.type==TYPE_DOMAIN) dstViews.push_back(element.domain->getLocalView(CElementView::WORKFLOW)) ;
+      else if (element.type==TYPE_AXIS) dstViews.push_back(element.axis->getLocalView(CElementView::WORKFLOW)) ; 
+      else if (element.type==TYPE_SCALAR) dstViews.push_back(element.scalar->getLocalView(CElementView::WORKFLOW)) ; 
+    }
+
+    redistributeToWriterConnector_ = make_shared<CGridTransformConnector>(srcViews, dstViews, context->getIntraComm()) ;
+    redistributeToWriterConnector_ -> computeConnector(true) ;
+  }
   
 } // namespace xios

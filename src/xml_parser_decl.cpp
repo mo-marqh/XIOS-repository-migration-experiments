@@ -43,5 +43,9 @@ namespace xios
     macro( ExtractDomain )
     macro( PoolNode )
     macro( ServiceNode )
+    macro( RedistributeDomain )
+    macro( RedistributeAxis )
+    macro( RedistributeScalar )
+
   }
 }

@@ -122,7 +122,7 @@ TRY
 
   }
 
-  if (axisSrc_->hasValue)
+  if (axisSrc_->hasValue())
   {
     axisDestination->value.resize(indexSize);
     for (size_t i = 0; i < indexSize ; ++i)
@@ -131,7 +131,7 @@ TRY
     }
   }
 
-  if (axisSrc_->hasBounds)
+  if (axisSrc_->hasBounds())
   {
     axisDestination->bounds.resize(2,indexSize);
     for (int i = 0; i < indexSize ; ++i)

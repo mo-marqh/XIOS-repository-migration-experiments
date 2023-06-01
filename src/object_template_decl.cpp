@@ -37,6 +37,10 @@ namespace xios
   template class CObjectTemplate<CExtractDomain>;
   template class CObjectTemplate<CPoolNode>;
   template class CObjectTemplate<CServiceNode>;
+  template class CObjectTemplate<CRedistributeDomain>;
+  template class CObjectTemplate<CRedistributeAxis>;
+  template class CObjectTemplate<CRedistributeScalar>;
+
   
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -70,5 +74,8 @@ namespace xios
   template class CObjectTemplate<CExtractDomainGroup>;
   template class CObjectTemplate<CPoolNodeGroup>;
   template class CObjectTemplate<CServiceNodeGroup>;
+  template class CObjectTemplate<CRedistributeDomainGroup>;
+  template class CObjectTemplate<CRedistributeAxisGroup>;
+  template class CObjectTemplate<CRedistributeScalarGroup>;
 
 }

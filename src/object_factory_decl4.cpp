@@ -18,5 +18,8 @@ namespace xios
   macro(CReduceScalarToScalarGroup)
   macro(CReorderDomainGroup)
   macro(CExtractDomainGroup)
+  macro(CRedistributeDomainGroup)
+  macro(CRedistributeAxisGroup)
+  macro(CRedistributeScalarGroup)
 }
 

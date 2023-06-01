@@ -29,7 +29,7 @@ namespace xios
        * \param inputPin the input pin to connect
        * \param inputSlot the input slot number
        */
-      void connectOutput(std::shared_ptr<CInputPin> inputPin, size_t inputSlot);
+      void virtual connectOutput(std::shared_ptr<CInputPin> inputPin, size_t inputSlot);
 
       /*!
        * Triggers the output of any buffered packet for the specified timestamp.

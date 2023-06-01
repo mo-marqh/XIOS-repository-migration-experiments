@@ -27,7 +27,7 @@ namespace xios
   class CContextClient
   {
     public:
-      enum ETransport { generic, legacy, oneSided}  ;
+      enum ETransport { generic, legacy, oneSided, online}  ;
       
       template<ETransport transport=generic> 
       static CContextClient* getNew(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0) ;
@@ -55,6 +55,7 @@ namespace xios
       
 
 
+      virtual ETransport getType(void) = 0 ;
       // Send event to server
       virtual void sendEvent(CEventClient& event)=0;
       virtual void eventLoop(void)=0 ;
@@ -67,7 +68,8 @@ namespace xios
 
       virtual void setBufferSize(const std::map<int,StdSize>& mapSize)=0;
 
-
+      public: 
+        static CContextClient* ONLINE(void) { return reinterpret_cast<CContextClient*>(0xdeaddead);}
     protected:
 
       CContext* context_; //!< Context for client
@@ -102,6 +104,9 @@ namespace xios
 
   template<>
   CContextClient* CContextClient::getNew<CContextClient::legacy>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer) ;
+
+  template<>
+  CContextClient* CContextClient::getNew<CContextClient::online>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer) ;
 
 
 }

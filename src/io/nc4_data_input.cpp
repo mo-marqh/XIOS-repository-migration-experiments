@@ -80,11 +80,11 @@ namespace xios
             CDomain* domain = CDomain::get(domainList[idxDomain]);
             if ((domain->type) != CDomain::type_attr::unstructured)
             {
-              start.push_back(domain->jbegin);
-              count.push_back(domain->nj);
+              start.push_back(domain->jbeginValue_);
+              count.push_back(domain->njValue_);
             }
-            start.push_back(domain->ibegin);
-            count.push_back(domain->ni);
+            start.push_back(domain->ibeginValue_);
+            count.push_back(domain->niValue_);
             --idxDomain;
           }
           else if (1 == axisDomainOrder(i))
@@ -130,7 +130,7 @@ namespace xios
 
     // Verify the compatibility of dimension of declared grid and real grid in file
     int realGridDim = 1;
-    bool isUnstructuredGrid = ((gridDim < 2) ? false :  SuperClassWriter::isUnstructured(fieldId));
+    bool isUnstructuredGrid = ((gridDim < 2 || domainP.size()==0) ? false :  SuperClassWriter::isUnstructured(fieldId));
     std::map<StdString, StdSize> dimSizeMap = SuperClassWriter::getDimensions(&fieldId);
     std::list<StdString> dimList = SuperClassWriter::getDimensionsList(&fieldId);
 

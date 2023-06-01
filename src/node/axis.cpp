@@ -23,8 +23,8 @@ namespace xios {
    CAxis::CAxis(void)
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles()
-      , hasBounds(false), isCompressible_(false)
-      , transformationMap_(), hasValue(false), hasLabel(false)
+      , hasBounds_(false), isCompressible_(false)
+      , transformationMap_()
       , clients()
    {
    }
@@ -32,8 +32,8 @@ namespace xios {
    CAxis::CAxis(const StdString & id)
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles()
-      , hasBounds(false), isCompressible_(false)
-      , transformationMap_(), hasValue(false), hasLabel(false)
+      , hasBounds_(false), isCompressible_(false)
+      , transformationMap_()
       , clients()
    {
    }
@@ -55,6 +55,8 @@ namespace xios {
      m["extract_domain"] = TRANS_EXTRACT_DOMAIN_TO_AXIS;
      m["temporal_splitting"] = TRANS_TEMPORAL_SPLITTING;
      m["duplicate_scalar"] = TRANS_DUPLICATE_SCALAR_TO_AXIS;
+     m["redistribute_axis"] = TRANS_REDISTRIBUTE_AXIS;
+
      return true;
    }
    CATCH
@@ -164,9 +166,9 @@ namespace xios {
          size += CArray<int,1>::size(n_glo);
          size += CArray<bool,1>::size(n_glo);
          size += CArray<double,1>::size(n_glo);
-         if (hasBounds)
+         if (hasBounds_)
            size += CArray<double,2>::size(2*n_glo);
-         if (hasLabel)
+         if (hasLabel_)
           size += CArray<StdString,1>::size(n_glo);
        }
        size += CEventClient::headerSize + getId().size() + sizeof(size_t);
@@ -197,9 +199,9 @@ namespace xios {
          size += CArray<int,1>::size(it->second.size());
          size += CArray<bool,1>::size(it->second.size());
          size += CArray<double,1>::size(it->second.size());
-         if (hasBounds)
+         if (hasBounds_)
            size += CArray<double,2>::size(2 * it->second.size());
-         if (hasLabel)
+         if (hasLabel_)
            size += CArray<StdString,1>::size(it->second.size());
 
          size += CEventClient::headerSize + getId().size() + sizeof(size_t);
@@ -456,7 +458,7 @@ namespace xios {
                                    << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
                                    << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").")
           else return false ; 
-        this->hasValue = true;
+        this->hasValue_ = true;
       }
 
       if (!this->checkBounds(generateError)) return false;
@@ -566,9 +568,9 @@ namespace xios {
                                << "Axis size is " << n.getValue() << "." << std::endl
                                << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".")
          else return false ;
-       hasBounds = true;
+       hasBounds_ = true;
      }
-     else hasBounds = false;
+     else hasBounds_ = false;
      return true ;
    }
    CATCH_DUMP_ATTR
@@ -584,9 +586,9 @@ namespace xios {
                               << "Axis size is " << n.getValue() << "." << std::endl
                               << "label size is "<< label.extent(0)<<  " .")
         else return false ;
-      hasLabel = true;
+      hasLabel_ = true;
     }
-    else hasLabel = false;
+    else hasLabel_ = false;
     return true ;
   }
   CATCH_DUMP_ATTR
@@ -1162,7 +1164,7 @@ namespace xios {
     string serverAxisId = axisId.empty() ? this->getId() : axisId ;
     CContext* context = CContext::getCurrent();
 
-    if (hasValue)
+    if (hasValue_)
     {
       { // send level value
         CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
@@ -1172,7 +1174,7 @@ namespace xios {
       }
     }
 
-    if (hasBounds)
+    if (hasBounds_)
     {
       { // send bounds level value
         CEventClient event(getType(), EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE);
@@ -1182,7 +1184,7 @@ namespace xios {
       }
     }
 
-    if (hasLabel)
+    if (hasLabel_)
     {
       { // send label
         // need to transform array of string (no fixed size for string) into array of array of char

@@ -226,14 +226,18 @@ namespace xios
     int nbPartitions ;
     int leader ;
 
-    services_.clear() ;
     int nbServices ;
     buffer>>nbServices ;
+    bool newServices = nbServices != services_.size() ; 
+
+    services_.clear() ;
 
     for(int i=0;i<nbServices;i++) 
     {
       buffer>>poolId>>serviceId>>partitionId>>type>>size>>nbPartitions>>leader ;
       services_[std::tuple<std::string,std::string,int>(poolId,serviceId,partitionId)]=std::make_tuple(type,size,nbPartitions,leader) ;
+      if (newServices)
+        info(40)<<"Receive new services informations : "<<poolId<<"::"<<serviceId<<"::"<<partitionId<<" => type : "<<type<<"  size : "<<size<<"  nbPartitions : "<<nbPartitions<<"  leader : "<<leader<<endl ;
     }
   }
 
@@ -255,16 +259,15 @@ namespace xios
   bool CServicesManager::getServiceInfo(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, 
                                         int& size, int& nbPartitions, int& leader, bool wait)
   {
-    
     winServices_->lockWindowShared(managerGlobalLeader_) ;
     winServices_->updateFromLockedWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpIn) ;
     winServices_->unlockWindow(managerGlobalLeader_) ;
-
+    
+    if (wait) waitServiceRegistration(poolId, serviceId, partitionId) ;
     auto it=services_.find(std::tuple<std::string,std::string,int>(poolId,serviceId,partitionId)) ;
-    if ( it == services_.end() && !wait) return false ;
+    if ( it == services_.end()) return false ;
     else
     {
-      if (wait) waitServiceRegistration(poolId, serviceId, partitionId) ;
       type= std::get<0>(it->second); 
       size= std::get<1>(it->second); 
       nbPartitions = std::get<2>(it->second); 
@@ -278,8 +281,7 @@ namespace xios
     int type;
     int size ;
     int nbPartitions;
-    //return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
-    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
+    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
   }
 
   bool CServicesManager::getServiceType(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, bool wait)
@@ -287,8 +289,7 @@ namespace xios
     int size ;
     int nbPartitions;
     int leader;
-    //return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
-    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
+    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
   }
 
   bool CServicesManager::getServiceNbPartitions(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& nbPartitions, bool wait)
@@ -296,15 +297,14 @@ namespace xios
     int size ;
     int type;
     int leader;
-    //return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
-    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader) ;
+    return getServiceInfo(poolId, serviceId, partitionId, type, size, nbPartitions, leader, wait) ;
   }
 
   bool CServicesManager::hasService(const std::string& poolId, const std::string& serviceId, const int& partitionId)
   {
-    winServices_->lockWindow(managerGlobalLeader_,0) ;
-    winServices_->updateFromWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpIn) ;
-    winServices_->unlockWindow(managerGlobalLeader_,0) ;
+    winServices_->lockWindowShared(managerGlobalLeader_) ;
+    winServices_->updateFromLockedWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpIn) ;
+    winServices_->unlockWindow(managerGlobalLeader_) ;
     auto it=services_.find(std::tuple<std::string, std::string, int>(poolId, serviceId, partitionId)) ;
     if ( it == services_.end()) return false ;
     else return true ;

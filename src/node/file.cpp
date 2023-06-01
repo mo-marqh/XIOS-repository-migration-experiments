@@ -180,6 +180,13 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
+   void CFile::replaceEnabledFields(CField* fieldIn, CField* fieldOut)
+   TRY
+   {
+     for(auto& enableField : enabledFields) if (enableField==fieldIn) enableField=fieldOut ;
+   }
+   CATCH_DUMP_ATTR
+
    //----------------------------------------------------------------
    //! Change virtual field group to a new one
    void CFile::setVirtualFieldGroup(CFieldGroup* newVFieldGroup)
@@ -978,20 +985,6 @@ namespace xios {
 
 
    /*!
-    * Post-process the filter graph for each active field.
-    */
-   void CFile::postProcessFilterGraph()
-   TRY
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->checkIfMustAutoTrigger();
-     }
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
      Prefetching the data for enabled fields read from file.
    */
    void CFile::prefetchEnabledReadModeFields(void)
@@ -1003,26 +996,6 @@ namespace xios {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
        this->enabledFields[i]->sendReadDataRequest(CContext::getCurrent()->getCalendar()->getCurrentDate());
-   }
-   CATCH_DUMP_ATTR
-
-   /*!
-     Do all pre timestep operations for enabled fields in read mode:
-      - Check that the data excepted from server has been received
-      - Check if some filters must auto-trigger
-   */
-   void CFile::doPreTimestepOperationsForEnabledReadModeFields(void)
-   TRY
-   {
-     if (mode.isEmpty() || mode.getValue() != mode_attr::read)
-       return;
-
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->checkForLateDataFromServer();
-       this->enabledFields[i]->autoTriggerIfNeeded();
-     }
    }
    CATCH_DUMP_ATTR
 

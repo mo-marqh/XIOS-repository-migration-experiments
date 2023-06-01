@@ -13,6 +13,7 @@
 #include "scalar_algorithm_extract_axis.hpp"
 #include "scalar_algorithm_reduce_domain.hpp"
 #include "scalar_algorithm_reduce_scalar.hpp"
+#include "scalar_algorithm_redistribute.hpp"
 
 #include "axis_algorithm_inverse.hpp"
 #include "axis_algorithm_zoom.hpp"
@@ -24,7 +25,7 @@
 #include "axis_algorithm_extract_domain.hpp"
 #include "axis_algorithm_temporal_splitting.hpp"
 #include "axis_algorithm_duplicate_scalar.hpp"
-
+#include "axis_algorithm_redistribute.hpp"
 
 #include "domain_algorithm_zoom.hpp"
 #include "domain_algorithm_interpolate.hpp"
@@ -33,6 +34,7 @@
 #include "domain_algorithm_expand.hpp"
 #include "domain_algorithm_reorder.hpp"
 #include "domain_algorithm_extract.hpp"
+#include "domain_algorithm_redistribute.hpp"
 
 namespace xios
 {

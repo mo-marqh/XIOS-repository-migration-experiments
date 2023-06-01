@@ -39,6 +39,7 @@ namespace xios
       timeLine = 1;
     }
 
+    CContextClient::ETransport getType(void) {return CContextClient::legacy ;}
 
     /*!
     In case of attached mode, the current context must be reset to context for client
