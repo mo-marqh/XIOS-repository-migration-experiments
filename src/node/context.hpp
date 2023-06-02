@@ -14,7 +14,7 @@
 #include "services_manager.hpp"
 #include "server_context.hpp"
 #include "event_scheduler.hpp"
-
+#include "file.hpp"
 
 namespace xios
 {
@@ -298,7 +298,7 @@ namespace xios
       public:
         void registerFileToWrite(CFile* file) { filesToWrite_.insert(file); } // Add a file that need to be write for example to create headers
       private:  
-        std::set<CFile*> filesToWrite_ ;  
+        std::set<CFile*,FilePtrCompare> filesToWrite_ ;  
 
       private:
         CContextClient* onlineContextClient_=nullptr ;

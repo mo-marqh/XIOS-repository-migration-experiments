@@ -227,6 +227,11 @@ namespace xios {
 
    ///--------------------------------------------------------------
 
+   struct FilePtrCompare {
+     bool operator() (CFile const *l, CFile const *r) const {
+       return l->getFileOutputName() < r->getFileOutputName();
+     }
+   };
 } // namespace xios
 
 #endif // __XIOS_CFile__
