@@ -134,13 +134,13 @@ TRY
   {
     if (!domainSrc_->bounds_lon_2d.isEmpty())
     {
-      domainDest_->bounds_lon_2d.resize(domainSrc_->bounds_lon_2d.shape()[0], niDest, njDest);
-      domainDest_->bounds_lon_2d.resize(domainSrc_->bounds_lon_2d.shape()[0], niDest, njDest);
+      domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
+      domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
     }
     else if (!domainSrc_->bounds_lon_1d.isEmpty())
     {
-      domainDest_->bounds_lon_1d.resize(domainSrc_->bounds_lon_1d.shape()[0], niDest);
-      domainDest_->bounds_lon_1d.resize(domainSrc_->bounds_lon_1d.shape()[0], niDest);
+      domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
+      domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
     }
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
@@ -176,7 +176,7 @@ TRY
       {
         if (!domainSrc_->bounds_lon_2d.isEmpty())
         {
-          for (int n = 0; n < domainSrc_->bounds_lon_2d.shape()[0]; ++n)
+          for (int n = 0; n < domainSrc_->nvertex; ++n)
           {
             domainDest_->bounds_lon_2d(n,iDest,jDest) = domainSrc_->bounds_lon_2d(n,iSrc,jSrc);
             domainDest_->bounds_lat_2d(n,iDest,jDest) = domainSrc_->bounds_lat_2d(n,iSrc,jSrc);
@@ -184,7 +184,7 @@ TRY
         }
         else if (!domainSrc_->bounds_lon_1d.isEmpty())
         {
-          for (int n = 0; n < domainSrc_->bounds_lon_1d.shape()[0]; ++n)
+          for (int n = 0; n < domainSrc_->nvertex; ++n)
           {
             domainDest_->bounds_lon_1d(n,iDest) = domainSrc_->bounds_lon_1d(n,iSrc);
             domainDest_->bounds_lat_1d(n,iDest) = domainSrc_->bounds_lat_1d(n,iSrc);

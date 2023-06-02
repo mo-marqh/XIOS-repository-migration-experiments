@@ -186,12 +186,7 @@ namespace xios {
        // size estimation for sendLonLat
        size_t sizeLonLatEvent = CArray<double,1>::size(idxCount);
        if (hasBounds)
-       {
-         int nvertexValue ;
-         if (type==type_attr::rectilinear || type==type_attr::curvilinear) nvertexValue=4 ;
-         else nvertexValue=nvertex ;
-         sizeLonLatEvent += CArray<double,2>::size(nvertexValue * idxCount);
-       }
+         sizeLonLatEvent += CArray<double,2>::size(nvertex * idxCount);
 
        size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeLonLatEvent);
        if (size > attributesSizes[rank])
@@ -1432,8 +1427,8 @@ namespace xios {
            latvalue.resize(ni * nj);
            if (hasBounds)
            {
-             bounds_lonvalue.resize(4, ni * nj);
-             bounds_latvalue.resize(4, ni * nj);
+             bounds_lonvalue.resize(nvertex, ni * nj);
+             bounds_latvalue.resize(nvertex, ni * nj);
            }
 
            for (int j = 0; j < nj; ++j)
@@ -1447,14 +1442,11 @@ namespace xios {
 
                if (hasBounds)
                {
-                  bounds_lonvalue(0,k) = bounds_lon_1d(0,i);
-                  bounds_latvalue(0,k) = bounds_lat_1d(0,j);
-                  bounds_lonvalue(1,k) = bounds_lon_1d(1,i);
-                  bounds_latvalue(1,k) = bounds_lat_1d(0,j);
-                  bounds_lonvalue(2,k) = bounds_lon_1d(1,i);
-                  bounds_latvalue(2,k) = bounds_lat_1d(1,j);
-                  bounds_lonvalue(3,k) = bounds_lon_1d(0,i);
-                  bounds_latvalue(3,k) = bounds_lat_1d(1,j);
+                 for (int n = 0; n < nvertex; ++n)
+                 {
+                   bounds_lonvalue(n,k) = bounds_lon_1d(n,i);
+                   bounds_latvalue(n,k) = bounds_lat_1d(n,j);
+                 }
                }
              }
            }
@@ -1552,8 +1544,8 @@ namespace xios {
            latvalue.resize(ni * nj);
            if (hasBounds)
            {
-             bounds_lonvalue.resize(4, ni * nj);
-             bounds_latvalue.resize(4, ni * nj);
+             bounds_lonvalue.resize(nvertex, ni * nj);
+             bounds_latvalue.resize(nvertex, ni * nj);
            }
 
            for (int j = 0; j < nj; ++j)
@@ -1567,14 +1559,11 @@ namespace xios {
 
                if (hasBounds)
                {
-                  bounds_lonvalue(0,k) = bounds_lon_1d(0,i);
-                  bounds_latvalue(0,k) = bounds_lat_1d(0,j);
-                  bounds_lonvalue(1,k) = bounds_lon_1d(1,i);
-                  bounds_latvalue(1,k) = bounds_lat_1d(0,j);
-                  bounds_lonvalue(2,k) = bounds_lon_1d(1,i);
-                  bounds_latvalue(2,k) = bounds_lat_1d(1,j);
-                  bounds_lonvalue(3,k) = bounds_lon_1d(0,i);
-                  bounds_latvalue(3,k) = bounds_lat_1d(1,j);
+                 for (int n = 0; n < nvertex; ++n)
+                 {
+                   bounds_lonvalue(n,k) = bounds_lon_1d(n,i);
+                   bounds_latvalue(n,k) = bounds_lat_1d(n,j);
+                 }
                }
              }
            }
@@ -1615,100 +1604,95 @@ namespace xios {
    void CDomain::checkBounds(void)
    TRY
    {
-     int nvertexValue ; 
      bool hasBoundValues = (0 != bounds_lonvalue.numElements()) || (0 != bounds_latvalue.numElements());
-     if (hasBoundValues) 
+     if (!nvertex.isEmpty() && nvertex > 0 && !hasBoundValues)
      {
-       hasBounds=true ;
-       return ;
-      }
+       if (!bounds_lon_1d.isEmpty() && !bounds_lon_2d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Only one longitude boundary attribute can be used but both 'bounds_lon_1d' and 'bounds_lon_2d' are defined." << std::endl
+               << "Define only one longitude boundary attribute: 'bounds_lon_1d' or 'bounds_lon_2d'.");
 
-     if (type_attr::rectilinear == type) nvertexValue=2 ;
-     else if (type_attr::curvilinear == type) nvertexValue=4 ;
-     else if (!nvertex.isEmpty() && nvertex>0) nvertexValue = nvertex ;
-     else 
-     {
-       hasBounds=false ;
-       return ;
+       if (!bounds_lat_1d.isEmpty() && !bounds_lat_2d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Only one latitude boundary attribute can be used but both 'bounds_lat_1d' and 'bounds_lat_2d' are defined." << std::endl
+               << "Define only one latitude boundary attribute: 'bounds_lat_1d' or 'bounds_lat_2d'.");
+
+       if ((!bounds_lon_1d.isEmpty() && bounds_lat_1d.isEmpty()) || (bounds_lon_1d.isEmpty() && !bounds_lat_1d.isEmpty()))
+       {
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Only 'bounds_lon_1d' or 'bounds_lat_1d' is defined." << std::endl
+               << "Please define either both attributes or none.");
+       }
+
+       if ((!bounds_lon_2d.isEmpty() && bounds_lat_2d.isEmpty()) || (bounds_lon_2d.isEmpty() && !bounds_lat_2d.isEmpty()))
+       {
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Only 'bounds_lon_2d' or 'bounds_lat_2d' is defined." << std::endl
+               << "Please define either both attributes or none.");
+       }
+
+       if (!bounds_lon_1d.isEmpty() && nvertex.getValue() != bounds_lon_1d.extent(0))
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "'bounds_lon_1d' dimension is not compatible with 'nvertex'." << std::endl
+               << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(0)
+               << " but nvertex is " << nvertex.getValue() << ".");
+
+       if (!bounds_lon_2d.isEmpty() && nvertex.getValue() != bounds_lon_2d.extent(0))
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "'bounds_lon_2d' dimension is not compatible with 'nvertex'." << std::endl
+               << "'bounds_lon_2d' dimension is " << bounds_lon_2d.extent(0)
+               << " but nvertex is " << nvertex.getValue() << ".");
+
+       if (!bounds_lon_1d.isEmpty() && lonvalue_1d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Since 'bounds_lon_1d' is defined, 'lonvalue_1d' must be defined too." << std::endl);
+
+       if (!bounds_lon_2d.isEmpty() && lonvalue_2d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Since 'bounds_lon_2d' is defined, 'lonvalue_2d' must be defined too." << std::endl);
+
+       if (!bounds_lat_1d.isEmpty() && nvertex.getValue() != bounds_lat_1d.extent(0))
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "'bounds_lat_1d' dimension is not compatible with 'nvertex'." << std::endl
+               << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(0)
+               << " but nvertex is " << nvertex.getValue() << ".");
+
+       if (!bounds_lat_2d.isEmpty() && nvertex.getValue() != bounds_lat_2d.extent(0))
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "'bounds_lat_2d' dimension is not compatible with 'nvertex'." << std::endl
+               << "'bounds_lat_2d' dimension is " << bounds_lat_2d.extent(0)
+               << " but nvertex is " << nvertex.getValue() << ".");
+
+       if (!bounds_lat_1d.isEmpty() && latvalue_1d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Since 'bounds_lat_1d' is defined, 'latvalue_1d' must be defined too." << std::endl);
+
+       if (!bounds_lat_2d.isEmpty() && latvalue_2d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+               << "Since 'bounds_lat_2d' is defined, 'latvalue_2d' must be defined too." << std::endl);
+
+       // In case of reading UGRID bounds values are not required
+       hasBounds = (!bounds_lat_1d.isEmpty() || !bounds_lat_2d.isEmpty() );
      }
-    
-      if (!bounds_lon_1d.isEmpty() && !bounds_lon_2d.isEmpty())
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "Only one longitude boundary attribute can be used but both 'bounds_lon_1d' and 'bounds_lon_2d' are defined." << std::endl
-              << "Define only one longitude boundary attribute: 'bounds_lon_1d' or 'bounds_lon_2d'.");
-
-      if (!bounds_lat_1d.isEmpty() && !bounds_lat_2d.isEmpty())
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "Only one latitude boundary attribute can be used but both 'bounds_lat_1d' and 'bounds_lat_2d' are defined." << std::endl
-              << "Define only one latitude boundary attribute: 'bounds_lat_1d' or 'bounds_lat_2d'.");
-
-      if ((!bounds_lon_1d.isEmpty() && bounds_lat_1d.isEmpty()) || (bounds_lon_1d.isEmpty() && !bounds_lat_1d.isEmpty()))
-      {
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "Only 'bounds_lon_1d' or 'bounds_lat_1d' is defined." << std::endl
-              << "Please define either both attributes or none.");
-      }
-
-      if ((!bounds_lon_2d.isEmpty() && bounds_lat_2d.isEmpty()) || (bounds_lon_2d.isEmpty() && !bounds_lat_2d.isEmpty()))
-      {
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "Only 'bounds_lon_2d' or 'bounds_lat_2d' is defined." << std::endl
-              << "Please define either both attributes or none.");
-      }
-
-      if (!bounds_lon_1d.isEmpty() && nvertexValue != bounds_lon_1d.extent(0))
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "'bounds_lon_1d' dimension is not compatible with 'nvertex'." << std::endl
-              << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(0)
-              << " but nvertex is " << nvertexValue << ".");
-
-      if (!bounds_lon_2d.isEmpty() && nvertexValue != bounds_lon_2d.extent(0))
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "'bounds_lon_2d' dimension is not compatible with 'nvertex'." << std::endl
-              << "'bounds_lon_2d' dimension is " << bounds_lon_2d.extent(0)
-              << " but nvertex is " << nvertexValue << ".");
-
-      if (!bounds_lon_1d.isEmpty() && lonvalue_1d.isEmpty())
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "Since 'bounds_lon_1d' is defined, 'lonvalue_1d' must be defined too." << std::endl);
-
-      if (!bounds_lon_2d.isEmpty() && lonvalue_2d.isEmpty())
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "Since 'bounds_lon_2d' is defined, 'lonvalue_2d' must be defined too." << std::endl);
-
-      if (!bounds_lat_1d.isEmpty() && nvertexValue != bounds_lat_1d.extent(0))
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "'bounds_lat_1d' dimension is not compatible with 'nvertex'." << std::endl
-              << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(0)
-              << " but nvertex is " << nvertexValue << ".");
-
-      if (!bounds_lat_2d.isEmpty() && nvertex.getValue() != bounds_lat_2d.extent(0))
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "'bounds_lat_2d' dimension is not compatible with 'nvertex'." << std::endl
-              << "'bounds_lat_2d' dimension is " << bounds_lat_2d.extent(0)
-              << " but nvertex is " << nvertexValue << ".");
-
-      if (!bounds_lat_1d.isEmpty() && latvalue_1d.isEmpty())
-        ERROR("CDomain::checkBounds(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "Since 'bounds_lat_1d' is defined, 'latvalue_1d' must be defined too." << std::endl);
-
-      if (!bounds_lat_2d.isEmpty() && latvalue_2d.isEmpty())
-        ERROR("CDomain::checkBounds(void)",
-              << "Since 'bounds_lat_2d' is defined, 'latvalue_2d' must be defined too." << std::endl);
-
-      // In case of reading UGRID bounds values are not required
-      hasBounds = (!bounds_lat_1d.isEmpty() || !bounds_lat_2d.isEmpty() );
+     else if (hasBoundValues)
+     {
+       hasBounds = true;       
+     }
+     else
+     {
+       hasBounds = false;
+     }
    }
    CATCH_DUMP_ATTR
 
@@ -2466,11 +2450,8 @@ namespace xios {
 
         if (hasBounds)
         {
-          int nvertexValue ;
-          if (type==type_attr::rectilinear || type==type_attr::curvilinear) nvertexValue=4 ;
-          else nvertexValue=nvertex ;
-          list_boundslon.push_back(CArray<double,2>(nvertexValue, nbData));
-          list_boundslat.push_back(CArray<double,2>(nvertexValue, nbData));
+          list_boundslon.push_back(CArray<double,2>(nvertex, nbData));
+          list_boundslat.push_back(CArray<double,2>(nvertex, nbData));
         }
 
         CArray<double,1>& lon = list_lon.back();
@@ -2487,12 +2468,8 @@ namespace xios {
           {
             CArray<double,2>& boundslon = list_boundslon.back();
             CArray<double,2>& boundslat = list_boundslat.back();
-            
-            int nvertexValue ;
-            if (type==type_attr::rectilinear || type==type_attr::curvilinear) nvertexValue=4 ;
-            else nvertexValue=nvertex ;
-            
-            for (nv = 0; nv < nvertexValue; ++nv)
+
+            for (nv = 0; nv < nvertex; ++nv)
             {
               boundslon(nv, n) = bounds_lonvalue(nv, localInd);
               boundslat(nv, n) = bounds_latvalue(nv, localInd);
@@ -2839,8 +2816,7 @@ namespace xios {
       lonvalue.resize(nbLonInd);
       if (hasBounds)
       {
-        int nvertexValue = (type==type_attr::rectilinear || type==type_attr::curvilinear) ? 4 : nvertex ;
-        bounds_lonvalue.resize(nvertexValue,nbLonInd);
+        bounds_lonvalue.resize(nvertex,nbLonInd);
         bounds_lonvalue = 0.;
       }
 
@@ -2855,9 +2831,8 @@ namespace xios {
           lonvalue(lInd) = tmp(ind); 
            if (hasBounds)
            {          
-              int nvertexValue = (type==type_attr::rectilinear || type==type_attr::curvilinear) ? 4 : nvertex ;
-              for (int nv = 0; nv < nvertexValue; ++nv)
-                bounds_lonvalue(nv, lInd) = recvBoundsLonValue[i](nv, ind);
+            for (int nv = 0; nv < nvertex; ++nv)
+              bounds_lonvalue(nv, lInd) = recvBoundsLonValue[i](nv, ind);
            }                  
         }
       }       
@@ -2929,9 +2904,7 @@ namespace xios {
       latvalue.resize(nbLatInd);
       if (hasBounds)
       {
-        int nvertexValue = (type==type_attr::rectilinear || type==type_attr::curvilinear) ? 4 : nvertex ;
-        
-        bounds_latvalue.resize(nvertexValue,nbLatInd);
+        bounds_latvalue.resize(nvertex,nbLatInd);
         bounds_latvalue = 0. ;
       }
 
@@ -2946,11 +2919,9 @@ namespace xios {
           latvalue(lInd) = tmp(ind);    
            if (hasBounds)
            {
-             int nvertexValue = (type==type_attr::rectilinear || type==type_attr::curvilinear) ? 4 : nvertex ;
-
-             CArray<double,2>& boundslat = recvBoundsLatValue[i];
-             for (int nv = 0; nv < nvertexValue; ++nv)
-             bounds_latvalue(nv, lInd) = boundslat(nv, ind);
+            CArray<double,2>& boundslat = recvBoundsLatValue[i];
+            for (int nv = 0; nv < nvertex; ++nv)
+              bounds_latvalue(nv, lInd) = boundslat(nv, ind);
            }   
           ++nbLatInd;
         }
