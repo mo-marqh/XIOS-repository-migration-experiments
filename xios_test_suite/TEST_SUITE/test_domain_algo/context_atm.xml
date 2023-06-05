@@ -370,7 +370,7 @@
        <field id="field2D_reorder" field_ref="field2D" grid_ref="grid2D_reorder" />
     </file>
 
-   <file id="atm_output_domain_transformation_expand" output_freq="12ts" type="one_file" enabled="false">
+   <file id="atm_output_domain_transformation_expand" output_freq="12ts" type="one_file" enabled="true">
        <field id="field2D_expand" field_ref="field2D" grid_ref="grid2D_expand" />
     </file>
 
