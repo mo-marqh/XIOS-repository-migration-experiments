@@ -159,9 +159,7 @@ namespace xios
   
   void CServerContext::sendNotification(int rank)
   {
-    winNotify_->lockWindowExclusive(rank) ;
-    winNotify_->pushToLockedWindow(rank, this, &CServerContext::notificationsDumpOut) ;
-    winNotify_->unlockWindow(rank) ;
+    winNotify_->pushToExclusiveWindow(rank, this, &CServerContext::notificationsDumpOut) ;
   }
 
   
@@ -200,10 +198,8 @@ namespace xios
       {
         int commRank ;
         MPI_Comm_rank(contextComm_, &commRank) ;
-        winNotify_->lockWindowExclusive(commRank) ;
-        winNotify_->popFromLockedWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
-        winNotify_->unlockWindow(commRank) ;
-      
+        winNotify_->popFromExclusiveWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
+       
         if (notifyInType_!= NOTIFY_NOTHING)
         {
           hasNotification_=true ;

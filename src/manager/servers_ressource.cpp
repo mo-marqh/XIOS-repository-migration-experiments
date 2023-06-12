@@ -80,9 +80,7 @@ namespace xios
 
   void CServersRessource::sendNotification(int rank)
   {
-    winNotify_->lockWindow(rank,0) ;
-    winNotify_->pushToWindow(rank, this, &CServersRessource::notificationsDumpOut) ;
-    winNotify_->unlockWindow(rank,0) ;
+    winNotify_->pushToExclusiveWindow(rank, this, &CServersRessource::notificationsDumpOut) ;
   }
 
 
@@ -145,9 +143,7 @@ namespace xios
   {
     int commRank ;
     MPI_Comm_rank(serverComm_, &commRank) ;
-    winNotify_->lockWindow(commRank,0) ;
-    winNotify_->popFromWindow(commRank, this, &CServersRessource::notificationsDumpIn) ;
-    winNotify_->unlockWindow(commRank,0) ;
+    winNotify_->popFromExclusiveWindow(commRank, this, &CServersRessource::notificationsDumpIn) ;
     if (notifyInType_==NOTIFY_CREATE_POOL) createPool() ;
     else if (notifyInType_==NOTIFY_FINALIZE) finalizeSignal() ;
   }

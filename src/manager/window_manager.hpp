@@ -6,21 +6,22 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 #include "message.hpp"
+#include "window_base.hpp"
 
 namespace xios
 {
 
 
-  class CWindowManager
+  class CWindowManager : public CWindowBase 
   {
 
     private :
-    const MPI_Aint OFFSET_LOCK=0 ;
-    const int SIZE_LOCK=sizeof(int) ;
-    const MPI_Aint OFFSET_BUFFER_SIZE=OFFSET_LOCK+SIZE_LOCK ;
-    const int SIZE_BUFFER_SIZE=sizeof(size_t) ;
-    const MPI_Aint OFFSET_BUFFER=OFFSET_BUFFER_SIZE+SIZE_BUFFER_SIZE ;
-    const int WINDOWS_LOCKED=-1 ;
+    static const MPI_Aint OFFSET_LOCK=0 ;
+    static const int SIZE_LOCK=sizeof(int) ;
+    static const MPI_Aint OFFSET_BUFFER_SIZE=OFFSET_LOCK+SIZE_LOCK ;
+    static const int SIZE_BUFFER_SIZE=sizeof(size_t) ;
+    static const MPI_Aint OFFSET_BUFFER=OFFSET_BUFFER_SIZE+SIZE_BUFFER_SIZE ;
+    static const int WINDOWS_LOCKED=-1 ;
 
     MPI_Win window_ ;
     void * winBuffer_ ;
@@ -29,18 +30,16 @@ namespace xios
 
     public :
 
-    CWindowManager(MPI_Comm winComm, size_t bufferSize)
+    CWindowManager(MPI_Comm winComm, size_t bufferSize) : CWindowBase(winComm, bufferSize + OFFSET_BUFFER_SIZE)
     {
-      const MPI_Aint windowSize=bufferSize+OFFSET_BUFFER ;
-      MPI_Win_allocate(windowSize, 1, MPI_INFO_NULL, winComm, &winBuffer_, &window_) ;
       int lock=0 ;
       size_t size=0 ;
       int commRank ;
       MPI_Comm_rank(winComm, &commRank) ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, commRank, 0, window_) ;
-      MPI_Put(&lock, SIZE_LOCK, MPI_CHAR, commRank, OFFSET_LOCK, SIZE_LOCK, MPI_CHAR, window_) ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, commRank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_unlock(commRank, window_) ;
+      lockExclusive(commRank) ;
+      put(&lock, SIZE_LOCK, MPI_CHAR, commRank, OFFSET_LOCK, SIZE_LOCK, MPI_CHAR) ;
+      put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, commRank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR) ;
+      unlockExclusive(commRank) ;
       MPI_Barrier(winComm) ;
     }
     
@@ -62,9 +61,8 @@ namespace xios
         while(time-lastTime < latency_) time=MPI_Wtime() ;
         int flag ;
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-        MPI_Compare_and_swap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK, window_) ;
-        MPI_Win_unlock(rank, window_) ;
+        compareAndSwap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK) ;
+        flush(rank) ;
         lastTime=MPI_Wtime() ;
       } while (lock!=state) ;
       
@@ -89,75 +87,75 @@ namespace xios
         while(time-lastTime < latency_) time=MPI_Wtime() ;
         int flag ;
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-        MPI_Compare_and_swap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK, window_) ;
-        MPI_Win_unlock(rank, window_) ;
+        lockExclusive(rank) ;
+        compareAndSwap(&WINDOWS_LOCKED, &state, &lock, MPI_INT, rank, OFFSET_LOCK) ;
+        unlockExclusive(rank) ;
         lastTime=MPI_Wtime() ;
       } while (lock!=state) ;
     }
 
     void lockWindowExclusive(int rank)
     {
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
+      lockExclusive(rank) ;
     }
 
     void lockWindowShared(int rank)
     {
-      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
+      lockShared(rank) ;
     }
 
+    void unlockWindowExclusive(int rank)
+    {
+      unlockExclusive(rank) ;
+    }
+
+    void unlockWindowShared(int rank)
+    {
+      unlockShared(rank) ;
+    }
+
+    void lockWindow(int rank)
+    {
+      lockWindowExclusive(rank) ;
+    }
+    
     void unlockWindow(int rank)
     {
-      MPI_Win_unlock(rank, window_) ;
+      unlockWindowExclusive(rank) ;
     }
 
     void flushWindow(int rank)
     {
-      MPI_Win_flush(rank, window_) ;
+      flush(rank) ;
     }
 
     void unlockWindow(int rank, int state )
     {
       int lock ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Compare_and_swap(&state, &WINDOWS_LOCKED, &lock, MPI_INT, rank, OFFSET_LOCK, window_) ;
-      MPI_Win_unlock(rank, window_) ;
+      compareAndSwap(&state, &WINDOWS_LOCKED, &lock, MPI_INT, rank, OFFSET_LOCK) ;
+      flush(rank) ;
     }
     
     template< class T >
     void updateToWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
     {
-      CBufferOut buffer ;
-      (object->*dumpOut)(buffer) ;
-      size_t size=buffer.count() ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
+      updateToExclusiveWindow(rank, object, dumpOut) ;
     }
 
     template< class T >
     void updateToExclusiveWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
     {
-      CBufferOut buffer ;
-      (object->*dumpOut)(buffer) ;
-      size_t size=buffer.count() ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
-    }
+      lockExclusive(rank) ;
+      updateToLockedWindow(rank, object, dumpOut) ;
+      unlockExclusive(rank) ;
+     }
 
     template< class T >
     void updateTosharedWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
     {
-      CBufferOut buffer ;
-      (object->*dumpOut)(buffer) ;
-      size_t size=buffer.count() ;
-      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
+      lockShared(rank) ;
+      updateToLockedWindow(rank, object, dumpOut) ;
+      unlockShared(rank) ;
     }
 
     template< class T >
@@ -166,207 +164,133 @@ namespace xios
       CBufferOut buffer ;
       (object->*dumpOut)(buffer) ;
       size_t size=buffer.count() ;
-//      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank, window_) ;
-//      MPI_Win_unlock(rank, window_) ;
+
+      put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR) ;
+      put(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR) ;
+      flush(rank) ;
     }
 
     template< typename T >
     void updateFromWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
-      size_t size ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
-      (object->*dumpIn)(buffer) ;
+      updateFromExclusiveWindow(rank,object, dumpIn) ;
     }
 
     template< typename T >
     void updateFromExclusiveWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
       size_t size ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
-      (object->*dumpIn)(buffer) ;
+      lockExclusive(rank) ;
+      updateFromLockedWindow(rank,object, dumpIn) ;
+      unlockExclusive(rank) ;
     }
 
     template< typename T >
     void updateFromSharedWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
       size_t size ;
-      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
-      (object->*dumpIn)(buffer) ;
+      lockShared(rank) ;
+      updateFromLockedWindow(rank,object, dumpIn) ;
+      unlockShared(rank) ;
     }
 
     template< typename T >
     void updateFromLockedWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
       size_t size ;
-//      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
+
+      get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR) ;
+      flush(rank) ;
       CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-//      MPI_Win_unlock(rank, window_) ;
-      MPI_Win_flush(rank, window_) ;
+      get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR) ;
+      flush(rank) ;
+
       (object->*dumpIn)(buffer) ;
     }
+
 
 
     template< class T >
     void pushToWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
     {
-      size_t size ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferOut buffer ;
-      (object->*dumpOut)(buffer) ;
-      size_t bufferSize=buffer.count() ;
-      size_t newSize = size + bufferSize;
-      MPI_Put(&newSize, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), bufferSize, MPI_CHAR, rank, OFFSET_BUFFER+size, bufferSize, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
+      pushToExclusiveWindow(rank, object, dumpOut) ;
     }
 
     template< class T >
     void pushToExclusiveWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
     {
-      size_t size ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferOut buffer ;
-      (object->*dumpOut)(buffer) ;
-      size_t bufferSize=buffer.count() ;
-      size_t newSize = size + bufferSize;
-      MPI_Put(&newSize, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), bufferSize, MPI_CHAR, rank, OFFSET_BUFFER+size, bufferSize, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
+      lockExclusive(rank) ;
+      pushToLockedWindow(rank, object, dumpOut) ;
+      unlockExclusive(rank) ;
     }
 
     template< class T >
     void pushToSharedWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
     {
-      size_t size ;
-      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferOut buffer ;
-      (object->*dumpOut)(buffer) ;
-      size_t bufferSize=buffer.count() ;
-      size_t newSize = size + bufferSize;
-      MPI_Put(&newSize, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), bufferSize, MPI_CHAR, rank, OFFSET_BUFFER+size, bufferSize, MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
+      lockShared(rank) ;
+      pushToLockedWindow(rank, object, dumpOut) ;
+      unlockShared(rank) ;
     }
 
     template< class T >
     void pushToLockedWindow(int rank, T* object, void (T::*dumpOut)(CBufferOut&) )
     {
       size_t size ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
+      get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR) ;
+      flush(rank) ;
       CBufferOut buffer ;
       (object->*dumpOut)(buffer) ;
       size_t bufferSize=buffer.count() ;
       size_t newSize = size + bufferSize;
-      MPI_Put(&newSize, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.start(), bufferSize, MPI_CHAR, rank, OFFSET_BUFFER+size, bufferSize, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank, window_) ;
+      put(&newSize, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR) ;
+      put(buffer.start(), bufferSize, MPI_CHAR, rank, OFFSET_BUFFER+size, bufferSize, MPI_CHAR) ;
+      flush(rank) ;
     }
+
+
 
     template< typename T >
     void popFromWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
-      size_t size ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      (object->*dumpIn)(buffer) ;
-      
-      size=buffer.remain() ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.ptr(),buffer.remain(), MPI_CHAR, rank, OFFSET_BUFFER, buffer.remain(), MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
-      
+      popFromExclusiveWindow(rank,object, dumpIn) ; 
     }
 
     template< typename T >
     void popFromExclusiveWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
-      size_t size ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      (object->*dumpIn)(buffer) ;
-      
-      size=buffer.remain() ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.ptr(),buffer.remain(), MPI_CHAR, rank, OFFSET_BUFFER, buffer.remain(), MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
+      lockExclusive(rank) ;
+      popFromLockedWindow(rank,object, dumpIn) ; 
+      unlockExclusive(rank) ;
       
     }
 
     template< typename T >
     void popFromSharedWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
-      size_t size ;
-      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, window_) ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
-      (object->*dumpIn)(buffer) ;
-      
-      size=buffer.remain() ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.ptr(),buffer.remain(), MPI_CHAR, rank, OFFSET_BUFFER, buffer.remain(), MPI_CHAR, window_) ;
-      MPI_Win_unlock(rank, window_) ;
-      
+      lockShared(rank) ;
+      popFromLockedWindow(rank,object, dumpIn) ; 
+      unlockShared(rank) ;
     }
 
     template< typename T >
     void popFromLockedWindow(int rank, T* object, void (T::*dumpIn)(CBufferIn&) ) 
     {
       size_t size ;
-      MPI_Get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
+      get(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR) ;
+      flush(rank) ;
       CBufferIn buffer(size) ;
-      MPI_Get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR, window_) ;
-      MPI_Win_flush(rank,window_) ;
+      get(buffer.start(), size, MPI_CHAR, rank,OFFSET_BUFFER, size, MPI_CHAR) ;
+      flush(rank) ;
       (object->*dumpIn)(buffer) ;
       
       size=buffer.remain() ;
-      MPI_Put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR, window_) ;
-      MPI_Put(buffer.ptr(),buffer.remain(), MPI_CHAR, rank, OFFSET_BUFFER, buffer.remain(), MPI_CHAR, window_) ;
-      MPI_Win_flush(rank, window_) ;
+      put(&size, SIZE_BUFFER_SIZE, MPI_CHAR, rank, OFFSET_BUFFER_SIZE, SIZE_BUFFER_SIZE, MPI_CHAR) ;
+      put(buffer.ptr(),buffer.remain(), MPI_CHAR, rank, OFFSET_BUFFER, buffer.remain(), MPI_CHAR) ;
+      flush(rank) ;
     }
 
     ~CWindowManager()
     {
-      MPI_Win_free(&window_) ;
     }
   } ;
 }

@@ -30,15 +30,11 @@ namespace xios
 
     MPI_Comm_rank(xiosComm_, &commRank) ;
     winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
-    winNotify_->lockWindow(commRank,0) ;
-    winNotify_->updateToWindow(commRank, this, &CServicesManager::notificationsDumpOut) ;
-    winNotify_->unlockWindow(commRank,0) ;
+    winNotify_->updateToExclusiveWindow(commRank, this, &CServicesManager::notificationsDumpOut) ;
 
     winServices_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
-    winServices_->lockWindow(commRank,0) ;
-    winServices_->updateToWindow(commRank, this, &CServicesManager::servicesDumpOut) ;
-    winServices_->unlockWindow(commRank,0) ;
-
+    winServices_->updateToExclusiveWindow(commRank, this, &CServicesManager::servicesDumpOut) ;
+   
     MPI_Barrier(xiosComm_)  ;    
   }
 
@@ -120,9 +116,7 @@ namespace xios
 
   void CServicesManager::sendNotification(int rank)
   {
-    winNotify_->lockWindowExclusive(rank) ;
-    winNotify_->pushToLockedWindow(rank, this, &CServicesManager::notificationsDumpOut) ;
-    winNotify_->unlockWindow(rank) ;
+    winNotify_->pushToExclusiveWindow(rank, this, &CServicesManager::notificationsDumpOut) ;
   }
 
   
@@ -146,9 +140,7 @@ namespace xios
   {
     int commRank ;
     MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_->lockWindowExclusive(commRank) ;
-    winNotify_->popFromLockedWindow(commRank, this, &CServicesManager::notificationsDumpIn) ;
-    winNotify_->unlockWindow(commRank) ;
+    winNotify_->popFromExclusiveWindow(commRank, this, &CServicesManager::notificationsDumpIn) ;
     if (notifyType_==NOTIFY_CREATE_SERVICE) createService() ;
     else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO) createServiceOnto() ;
   }
@@ -252,16 +244,14 @@ namespace xios
     winServices_->flushWindow(managerGlobalLeader_) ;
     services_[std::tuple<std::string, std::string,int>(poolId,serviceId,partitionId)]=std::make_tuple(type,size,nbPartitions,leader) ;
     winServices_->updateToLockedWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpOut) ;
-    winServices_->unlockWindow(managerGlobalLeader_) ;
+    winServices_->unlockWindowExclusive(managerGlobalLeader_) ;
 
   }
 
   bool CServicesManager::getServiceInfo(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& type, 
                                         int& size, int& nbPartitions, int& leader, bool wait)
   {
-    winServices_->lockWindowShared(managerGlobalLeader_) ;
-    winServices_->updateFromLockedWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpIn) ;
-    winServices_->unlockWindow(managerGlobalLeader_) ;
+    winServices_->updateFromSharedWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpIn) ;
     
     if (wait) waitServiceRegistration(poolId, serviceId, partitionId) ;
     auto it=services_.find(std::tuple<std::string,std::string,int>(poolId,serviceId,partitionId)) ;
@@ -302,9 +292,7 @@ namespace xios
 
   bool CServicesManager::hasService(const std::string& poolId, const std::string& serviceId, const int& partitionId)
   {
-    winServices_->lockWindowShared(managerGlobalLeader_) ;
-    winServices_->updateFromLockedWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpIn) ;
-    winServices_->unlockWindow(managerGlobalLeader_) ;
+    winServices_->updateFromSharedWindow(managerGlobalLeader_, this, &CServicesManager::servicesDumpIn) ;
     auto it=services_.find(std::tuple<std::string, std::string, int>(poolId, serviceId, partitionId)) ;
     if ( it == services_.end()) return false ;
     else return true ;

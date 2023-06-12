@@ -26,13 +26,12 @@ namespace xios
 
     MPI_Comm_rank(xiosComm_, &commRank) ;
     winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winNotify_->updateToExclusiveWindow(commRank, this, &CContextsManager::notificationsDumpOut) ;
    
 
     winContexts_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
-    winContexts_->lockWindow(commRank,0) ;
-    winContexts_->updateToWindow(commRank, this, &CContextsManager::contextsDumpOut) ;
-    winContexts_->unlockWindow(commRank,0) ;
-
+    winContexts_->updateToExclusiveWindow(commRank, this, &CContextsManager::contextsDumpOut) ;
+  
     MPI_Barrier(xiosComm_)  ;    
   }
 
@@ -110,7 +109,7 @@ namespace xios
   {
     winNotify_->lockWindowExclusive(rank) ;
     winNotify_->pushToLockedWindow(rank, this, &CContextsManager::notificationsDumpOut) ;
-    winNotify_->unlockWindow(rank) ;
+    winNotify_->unlockWindowExclusive(rank) ;
   }
 
   
@@ -169,9 +168,7 @@ namespace xios
   {
     int commRank ;
     MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_->lockWindowExclusive(commRank) ;
-    winNotify_->popFromLockedWindow(commRank, this, &CContextsManager::notificationsDumpIn) ;
-    winNotify_->unlockWindow(commRank) ;
+    winNotify_->popFromExclusiveWindow(commRank, this, &CContextsManager::notificationsDumpIn) ;
     if (notifyType_==NOTIFY_CREATE_CONTEXT) createServerContext() ;
     else if (notifyType_==NOTIFY_CREATE_INTERCOMM) createServerContextIntercomm() ;
 
@@ -214,7 +211,7 @@ namespace xios
     winContexts_->flushWindow(managerGlobalLeader_) ;
     contexts_[fullContextId] = contextInfo ;
     winContexts_->updateToLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpOut) ;
-    winContexts_->unlockWindow(managerGlobalLeader_) ;
+    winContexts_->unlockWindowExclusive(managerGlobalLeader_) ;
   }
 
   bool CContextsManager::getContextInfo(const string& fullContextId, SRegisterContextInfo& contextInfo, MPI_Comm comm)
@@ -226,9 +223,7 @@ namespace xios
     if (commRank==0)
     {
 
-      winContexts_->lockWindowShared(managerGlobalLeader_) ;
-      winContexts_->updateFromLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
-      winContexts_->unlockWindow(managerGlobalLeader_) ;
+      winContexts_->updateFromSharedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
 
       auto it=contexts_.find(fullContextId) ;
       if ( it == contexts_.end()) ret=false ;
