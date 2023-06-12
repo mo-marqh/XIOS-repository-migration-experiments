@@ -51,7 +51,7 @@ namespace xios
         *  If the event is scheduled next, it is remove from the `eventStack` queue list  
         */    
        bool queryEvent(const size_t timeLine, const size_t contextHashId) ;
-       void popEvent() { eventStack.pop() ; }
+       void popEvent() { eventStack_.pop() ; }
 
 
        //! Public interface to give the hand to the instance to check pending or incoming message.
@@ -154,22 +154,22 @@ namespace xios
          MPI_Request request ;   /*!< pending MPI request */ 
        } ;
        
-       MPI_Comm communicator ;  /*!< Internal MPI communicator */ 
-       int mpiRank ;            /*!< Rank in the communicator */
-       int mpiSize ;            /*!< Size of the communicator */
+       MPI_Comm communicator_ ;  /*!< Internal MPI communicator */ 
+       int mpiRank_ ;            /*!< Rank in the communicator */
+       int mpiSize_ ;            /*!< Size of the communicator */
  
-       queue< pair<size_t, size_t> > eventStack ;          
-       queue<SPendingRequest* > pendingSentParentRequest ;   /*!< Pending request sent to parent   */
-       queue<SPendingRequest*>  pendingRecvParentRequest ;   /*!< Pending request recv from parent */    
-       list<SPendingRequest* >  pendingRecvChildRequest ;    /*!< Pending request recv from child  */
-       list<SPendingRequest*>   pendingSentChildRequest ;    /*!< Pending request sent to child    */
-       map< SEvent, int > recvEvent ;                        /*!< list of event received from children. Contains the currnet number children that have already post the same event */
+       queue< pair<size_t, size_t> > eventStack_ ;          
+       queue<SPendingRequest* > pendingSentParentRequest_ ;   /*!< Pending request sent to parent   */
+       queue<SPendingRequest*>  pendingRecvParentRequest_ ;   /*!< Pending request recv from parent */    
+       list<SPendingRequest* >  pendingRecvChildRequest_ ;    /*!< Pending request recv from child  */
+       list<SPendingRequest*>   pendingSentChildRequest_ ;    /*!< Pending request sent to child    */
+       map< SEvent, int > recvEvent_ ;                        /*!< list of event received from children. Contains the currnet number children that have already post the same event */
        
        
-       int level ;                   /*!< Number of hierachical level for communication */
-       vector<int> parent ;          /*!< Parent rank for each level */ 
-       vector<vector<int> >  child ; /*!< List of child rank for each level */
-       vector<int> nbChild ;         /*!< Number of child for each level */    
+       int level_ ;                   /*!< Number of hierachical level for communication */
+       vector<int> parent_ ;          /*!< Parent rank for each level */ 
+       vector<vector<int> >  child_ ; /*!< List of child rank for each level */
+       vector<int> nbChild_ ;         /*!< Number of child for each level */    
 
     } ;
 }

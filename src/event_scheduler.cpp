@@ -9,9 +9,9 @@ namespace xios
  
   CEventScheduler::CEventScheduler(const MPI_Comm& comm) 
   {
-    MPI_Comm_dup(comm, &communicator) ;
-    MPI_Comm_size(communicator,&mpiSize) ;
-    MPI_Comm_rank(communicator,&mpiRank);
+    MPI_Comm_dup(comm, &communicator_) ;
+    MPI_Comm_size(communicator_,&mpiSize_) ;
+    MPI_Comm_rank(communicator_,&mpiRank_);
 
 
     int maxChild=1 ;
@@ -22,46 +22,46 @@ namespace xios
       m=1 ;
       maxChild=maxChild+1 ;
       for(int i=0;i<maxChild;i++) m=m*maxChild ;
-     } while(m<mpiSize) ;
+     } while(m<mpiSize_) ;
     
     
     int maxLevel=0 ;
-    for(int size=1; size<=mpiSize; size*=maxChild) maxLevel++ ; 
+    for(int size=1; size<=mpiSize_; size*=maxChild) maxLevel++ ; 
 
     int begin, end, nb ;
     int pos, n ;
  
-    parent=vector<int>(maxLevel+1) ;
-    child=vector<vector<int> >(maxLevel+1,vector<int>(maxChild)) ;
-    nbChild=vector<int> (maxLevel+1) ;
+    parent_=vector<int>(maxLevel+1) ;
+    child_=vector<vector<int> >(maxLevel+1,vector<int>(maxChild)) ;
+    nbChild_=vector<int> (maxLevel+1) ;
    
-    level=0 ;
+    level_=0 ;
     begin=0 ;
-    end=mpiSize-1 ;     
+    end=mpiSize_-1 ;     
     nb=end-begin+1 ;
      
     do
     {
       n=0 ;
       pos=begin ;
-      nbChild[level]=0 ;
-      parent[level+1]=begin ;
+      nbChild_[level_]=0 ;
+      parent_[level_+1]=begin ;
       for(int i=0;i<maxChild && i<nb ;i++)
       {
         if (i<nb%maxChild) n = nb/maxChild + 1 ;
         else n = nb/maxChild ;
       
-        if (mpiRank>=pos && mpiRank<pos+n)
+        if (mpiRank_>=pos && mpiRank_<pos+n)
         {
           begin=pos ;
           end=pos+n-1 ;
         }
-        child[level][i]=pos ;
+        child_[level_][i]=pos ;
         pos=pos+n ;
-        nbChild[level]++ ;
+        nbChild_[level_]++ ;
       } 
       nb=end-begin+1 ;
-      level=level+1 ;
+      level_=level_+1 ;
     } while (nb>1) ;
 
     
@@ -69,7 +69,7 @@ namespace xios
 
   CEventScheduler::~CEventScheduler()
   {
-    while (!pendingSentParentRequest.empty() || !pendingRecvParentRequest.empty() || !pendingRecvChildRequest.empty() ||  !pendingSentChildRequest.empty())
+    while (!pendingSentParentRequest_.empty() || !pendingRecvParentRequest_.empty() || !pendingRecvChildRequest_.empty() ||  !pendingSentChildRequest_.empty())
     {
       checkEvent() ;
     } 
@@ -77,7 +77,7 @@ namespace xios
 
   void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId)
   {
-    registerEvent(timeLine, contextHashId, level) ;
+    registerEvent(timeLine, contextHashId, level_) ;
     checkEvent() ;
   }
   
@@ -90,17 +90,17 @@ namespace xios
     sentRequest->buffer[1]=contextHashId ;
     sentRequest->buffer[2]=lev-1 ;
 
-    pendingSentParentRequest.push(sentRequest) ;
-    MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, parent[lev], 0, communicator, &sentRequest->request) ;
+    pendingSentParentRequest_.push(sentRequest) ;
+    MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, parent_[lev], 0, communicator_, &sentRequest->request) ;
     traceOn() ;
   } 
 
   bool CEventScheduler::queryEvent(const size_t timeLine, const size_t contextHashId)
   {
     checkEvent() ;
-    if (! eventStack.empty() && eventStack.front().first==timeLine && eventStack.front().second==contextHashId)
+    if (! eventStack_.empty() && eventStack_.front().first==timeLine && eventStack_.front().second==contextHashId)
     {
-      //eventStack.pop() ;
+      //eventStack_.pop() ;
       return true ;
     }
     else return false ; 
@@ -124,13 +124,13 @@ namespace xios
     completed=true ;
     
     // check sent request to parent
-    while (! pendingSentParentRequest.empty() && completed)
+    while (! pendingSentParentRequest_.empty() && completed)
     {
-      MPI_Test( & pendingSentParentRequest.front()->request, &completed, &status) ;
+      MPI_Test( & pendingSentParentRequest_.front()->request, &completed, &status) ;
       if (completed) 
       {
-        delete pendingSentParentRequest.front() ;
-        pendingSentParentRequest.pop() ;
+        delete pendingSentParentRequest_.front() ;
+        pendingSentParentRequest_.pop() ;
       }
     }
     
@@ -138,20 +138,20 @@ namespace xios
     received=true ;
     while(received)
     {
-      MPI_Iprobe(MPI_ANY_SOURCE,1,communicator,&received, &status) ;
+      MPI_Iprobe(MPI_ANY_SOURCE,1,communicator_,&received, &status) ;
       if (received)
       {
         recvRequest=new SPendingRequest ;
-        MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 1, communicator, &(recvRequest->request)) ;
-        pendingRecvParentRequest.push(recvRequest) ;
+        MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 1, communicator_, &(recvRequest->request)) ;
+        pendingRecvParentRequest_.push(recvRequest) ;
       }
     }
     
      // check sent request from parent
     completed=true ;
-    while (! pendingRecvParentRequest.empty() && completed)
+    while (! pendingRecvParentRequest_.empty() && completed)
     {
-      recvRequest=pendingRecvParentRequest.front() ;
+      recvRequest=pendingRecvParentRequest_.front() ;
       MPI_Test( &(recvRequest->request), &completed, &status) ;
       if (completed) 
       {
@@ -159,9 +159,9 @@ namespace xios
         size_t hashId=recvRequest->buffer[1] ;
         size_t lev=recvRequest->buffer[2] ;
         delete recvRequest ;
-        pendingRecvParentRequest.pop() ;       
+        pendingRecvParentRequest_.pop() ;       
  
-        if (lev==level) eventStack.push(pair<size_t,size_t>(timeLine,hashId)) ;
+        if (lev==level_) eventStack_.push(pair<size_t,size_t>(timeLine,hashId)) ;
         else  bcastEvent(timeLine, hashId, lev) ;
       }
     }   
@@ -180,18 +180,18 @@ namespace xios
     // check for posted requests and make the corresponding receive
     while(received)
     {
-      MPI_Iprobe(MPI_ANY_SOURCE,0,communicator,&received, &status) ;
+      MPI_Iprobe(MPI_ANY_SOURCE,0,communicator_,&received, &status) ;
       if (received)
       {
         recvRequest=new SPendingRequest ;
-        MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 0, communicator, &recvRequest->request) ;
-        pendingRecvChildRequest.push_back(recvRequest) ;
+        MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 0, communicator_, &recvRequest->request) ;
+        pendingRecvChildRequest_.push_back(recvRequest) ;
       }
     }
     
     // check if receive request is achieved
     
-    for(list<SPendingRequest*>::iterator it=pendingRecvChildRequest.begin(); it!=pendingRecvChildRequest.end() ; )
+    for(list<SPendingRequest*>::iterator it=pendingRecvChildRequest_.begin(); it!=pendingRecvChildRequest_.end() ; )
     {
       MPI_Test(&((*it)->request),&received,&status) ;
       if (received)
@@ -202,26 +202,26 @@ namespace xios
         
         SEvent event={timeLine,hashId,lev} ;
         delete *it ; // free mem
-        it=pendingRecvChildRequest.erase(it) ; // get out of the list
+        it=pendingRecvChildRequest_.erase(it) ; // get out of the list
         
-        map< SEvent,int>::iterator itEvent=recvEvent.find(event) ;
-        if (itEvent==recvEvent.end()) 
+        map< SEvent,int>::iterator itEvent=recvEvent_.find(event) ;
+        if (itEvent==recvEvent_.end()) 
         {
-          itEvent=(recvEvent.insert(pair< SEvent ,int > (event,1))).first ;
+          itEvent=(recvEvent_.insert(pair< SEvent ,int > (event,1))).first ;
  
         }
         else (itEvent->second)++ ;
-        if (itEvent->second==nbChild[lev])
+        if (itEvent->second==nbChild_[lev])
         {
           if (lev==0)
           {
             bcastEvent(timeLine,hashId,lev) ;
-            recvEvent.erase(itEvent) ;
+            recvEvent_.erase(itEvent) ;
           }
           else
           {
             registerEvent( timeLine,hashId,lev) ;
-            recvEvent.erase(itEvent) ;
+            recvEvent_.erase(itEvent) ;
           }
         }
       }
@@ -230,13 +230,13 @@ namespace xios
     
     // check if bcast request is achieved
 
-    for(list<SPendingRequest*>::iterator it=pendingSentChildRequest.begin(); it!=pendingSentChildRequest.end() ; )
+    for(list<SPendingRequest*>::iterator it=pendingSentChildRequest_.begin(); it!=pendingSentChildRequest_.end() ; )
     {
       MPI_Test(&(*it)->request,&received,&status) ;
       if (received)
       {
         delete *it ;    // free memory
-        it = pendingSentChildRequest.erase(it) ;          // get out of the list
+        it = pendingSentChildRequest_.erase(it) ;          // get out of the list
 
       }
       else ++it ;
@@ -249,14 +249,14 @@ namespace xios
     SPendingRequest* sentRequest ;
      
     
-    for(int i=0; i<nbChild[lev];i++)
+    for(int i=0; i<nbChild_[lev];i++)
     {
       sentRequest=new SPendingRequest ;
       sentRequest->buffer[0]=timeLine ;
       sentRequest->buffer[1]=contextHashId ;
       sentRequest->buffer[2]=lev+1 ;
-      MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, child[lev][i], 1, communicator, & sentRequest->request) ;
-      pendingSentChildRequest.push_back(sentRequest) ;
+      MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, child_[lev][i], 1, communicator_, & sentRequest->request) ;
+      pendingSentChildRequest_.push_back(sentRequest) ;
     }
   }
    
