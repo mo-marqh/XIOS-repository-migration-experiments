@@ -775,6 +775,7 @@ CONTAINS
       ts=ts+1
     ENDDO
    
+    CALL wait_us(int(10*1.e6))   ! micro-secondes
     CALL xios_context_finalize()
     CALL MPI_COMM_FREE(comm, ierr)
     

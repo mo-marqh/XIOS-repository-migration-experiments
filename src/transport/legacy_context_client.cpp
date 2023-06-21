@@ -225,7 +225,7 @@ namespace xios
         maxEventSizes[rank] = CXios::minBufferSize;
       }
       
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxEventSizes[rank]);
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interCommMerged_, clientSize+rank, mapBufferSize_[rank], maxEventSizes[rank]);
       if (isGrowableBuffer_) buffer->setGrowableBuffer(1.2) ;
       else buffer->fixBuffer() ;
       // Notify the server
