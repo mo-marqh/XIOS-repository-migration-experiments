@@ -48,6 +48,7 @@ namespace xios
     bool getServiceNbPartitions(const std::string& poolId, const std::string& serviceId, const int& partitionId, int& nbPartition, bool wait=false) ;
     bool hasService(const std::string& poolId, const std::string& serviceId, const int& partitionId) ;
     void waitServiceRegistration(const std::string& poolId, const std::string& serviceId, const int& partitionId);
+    void waitServiceRegistration(const std::string& poolId, const std::string& serviceId);
     void servicesDumpOut(CBufferOut& buffer) ;
     void servicesDumpIn(CBufferIn& buffer) ;
     int  getRessourcesSize(const std::string& poolId) ;
@@ -73,7 +74,7 @@ namespace xios
 
     MPI_Comm xiosComm_ ;
 
-    int notifyType_ ;
+    int notifyType_ = NOTIFY_NOTHING ;
     tuple<std::string, int, int, int> notifyCreateService_ ;
     tuple<std::string, int, std::string> notifyCreateServiceOnto_ ;
    

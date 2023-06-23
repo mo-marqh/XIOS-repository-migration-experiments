@@ -187,7 +187,8 @@ namespace xios
       /////////////////////////////////////////
      
       CXios::launchDaemonsManager(false) ;
-      poolRessource_ = new CPoolRessource(clientComm, codeId, false) ;
+      shared_ptr<CEventScheduler> eventScheduler ;
+      poolRessource_ = new CPoolRessource(clientComm, eventScheduler, codeId, false) ;
 
       /////////////////////////////////////////
       ///////////// PART 4 ////////////////////
@@ -195,7 +196,7 @@ namespace xios
 /*
       MPI_Request req ;
       MPI_Status status ;
-      MPI_Ibarrier(xiosGlobalComm,&req) ; // be sure that all services are created now, could be remove later if more asynchronisity
+      MPI_Ibarrier(CXios::getXiosComm(),&req) ; // be sure that all services are created now, could be remove later if more asynchronisity
       int ok=false ;
       while (!ok)
       {
@@ -442,10 +443,14 @@ namespace xios
       int commRank, commSize ;
       MPI_Comm_rank(contextComm,&commRank) ;
       MPI_Comm_size(contextComm,&commSize) ;
-
-      getPoolRessource()->createService(contextComm, id, 0, CServicesManager::CLIENT, 1) ;
-      getPoolRessource()->createService(contextComm, id+"_"+CXios::defaultWriterId, 0, CServicesManager::WRITER, 1) ;
-      getPoolRessource()->createService(contextComm, id+"_"+CXios::defaultReaderId, 0, CServicesManager::READER, 1) ;
+      
+      shared_ptr<CEventScheduler> eventScheduler ;
+      
+      getPoolRessource()->createService(contextComm, eventScheduler, id, 0, CServicesManager::CLIENT, 1) ;
+//      getPoolRessource()->createService(contextComm, eventScheduler, id+"_"+CXios::defaultWriterId, 0, CServicesManager::WRITER, 1) ;
+      getPoolRessource()->createNewServiceOnto(id+"_"+CXios::defaultWriterId, CServicesManager::WRITER, id) ;
+//      getPoolRessource()->createService(contextComm, eventScheduler, id+"_"+CXios::defaultReaderId, 0, CServicesManager::READER, 1) ;
+      getPoolRessource()->createNewServiceOnto(id+"_"+CXios::defaultReaderId, CServicesManager::READER, id) ;
 
       if (commRank==0) while (!CXios::getServicesManager()->hasService(getPoolRessource()->getId(), id, 0)) { CXios::getDaemonsManager()->eventLoop();}
 

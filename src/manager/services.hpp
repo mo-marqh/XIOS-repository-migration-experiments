@@ -18,8 +18,8 @@ namespace xios
     const int NOTIFY_NOTHING=0 ;
     const int NOTIFY_CREATE_CONTEXT=1 ;
 
-    CService(MPI_Comm serviceComm, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
-             int type, int nbPartitions, shared_ptr<CEventScheduler> = nullptr) ;
+    CService(MPI_Comm serviceComm, shared_ptr<CEventScheduler>, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
+             int type, int nbPartitions) ;
     ~CService() ;
 
     bool eventLoop(bool serviceOnly=false) ;

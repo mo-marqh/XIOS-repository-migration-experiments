@@ -201,7 +201,9 @@ namespace xios
             ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
             ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
             servicesManager->createServices(CXios::defaultPoolId, CXios::defaultWriterId, CServicesManager::WRITER,nbRessources,1) ;
+            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
             servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultWriterId) ;
+            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
           }
           else
           {
@@ -213,16 +215,32 @@ namespace xios
             ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
             ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
             servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
+            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultGathererId) ;
             servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultGathererId) ;
+            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
             servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultWriterId, CServicesManager::WRITER, nprocsServer, nbPoolsServer2) ;
+            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
           }
         }
 //        servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServicesId, CServicesManager::ALL_SERVICES, nbRessources, 1) ;
       }
+
+      MPI_Request req ;
+      MPI_Status status ;
+      MPI_Ibarrier(getServersRessource()->getCommunicator(),&req) ; // be sure that all services are created now, could be remove later if more asynchronisity
+      int ok=false ;
+      while (!ok)
+      {
+        daemonsManager->eventLoop() ;
+        MPI_Test(&req,&ok,&status) ;
+      }
+
+
+      testingEventScheduler() ;
 /*
       MPI_Request req ;
       MPI_Status status ;
-      MPI_Ibarrier(xiosGlobalComm,&req) ; // be sure that all services are created now, could be remove later if more asynchronisity
+      MPI_Ibarrier(CXios::getXiosComm(),&req) ; // be sure that all services are created now, could be remove later if more asynchronisity
       int ok=false ;
       while (!ok)
       {
@@ -251,7 +269,72 @@ namespace xios
     }
 
 
+    void CServer::testingEventScheduler(void)
+    {
+      CXios::getPoolRessource()->getEventScheduler()->registerEvent(1,10) ;
+      CXios::getPoolRessource()->getEventScheduler()->registerEvent(2,10) ;
+      if (CXios::getPoolRessource()->hasService(CXios::defaultGathererId,0))
+      {
+        CXios::getPoolRessource()->getService(CXios::defaultGathererId,0)-> getEventScheduler()->registerEvent(1,100) ;
+        CXios::getPoolRessource()->getService(CXios::defaultGathererId,0)-> getEventScheduler()->registerEvent(2,100) ;
+        CXios::getPoolRessource()->getService(CXios::defaultGathererId,0)-> getEventScheduler()->registerEvent(3,100) ;
+      }
+      if (CXios::getPoolRessource()->hasService(CXios::defaultWriterId,0))
+      {
+        CXios::getPoolRessource()->getService(CXios::defaultWriterId,0)-> getEventScheduler()->registerEvent(1,1000) ;
+        CXios::getPoolRessource()->getService(CXios::defaultWriterId,0)-> getEventScheduler()->registerEvent(2,1000) ;
+      }
+      CXios::getPoolRessource()->getEventScheduler()->registerEvent(3,10) ;
+      CXios::getPoolRessource()->getEventScheduler()->registerEvent(4,10) ;
+      
+      if (CXios::getPoolRessource()->hasService(CXios::defaultGathererId,0))
+      {
+        CXios::getPoolRessource()->getService(CXios::defaultGathererId,0)-> getEventScheduler()->registerEvent(4,100) ;
+        CXios::getPoolRessource()->getService(CXios::defaultGathererId,0)-> getEventScheduler()->registerEvent(5,100) ;
+      }
+      if (CXios::getPoolRessource()->hasService(CXios::defaultWriterId,0))
+      {
+        CXios::getPoolRessource()->getService(CXios::defaultWriterId,0)-> getEventScheduler()->registerEvent(3,1000) ;
+        CXios::getPoolRessource()->getService(CXios::defaultWriterId,0)-> getEventScheduler()->registerEvent(4,1000) ;
+        CXios::getPoolRessource()->getService(CXios::defaultWriterId,0)-> getEventScheduler()->registerEvent(5,1000) ;
+      }
+      CXios::getPoolRessource()->getEventScheduler()->registerEvent(5,10) ;
+      CXios::getPoolRessource()->getEventScheduler()->registerEvent(6,10) ;
+      
+      int numEvents=0 ;
+      int poolEvent=1 ;
+      int gatherEvent=1 ;
+      int writerEvent=1 ;
+      do
+      {
+        if (CXios::getPoolRessource()->getEventScheduler()->queryEvent(poolEvent,10))
+        {
+          CXios::getPoolRessource()->getEventScheduler()->popEvent() ;
+          MPI_Barrier(CXios::getPoolRessource()->getCommunicator());
+          poolEvent++ ;
+          numEvents++;
+        }
+        
+        if (CXios::getPoolRessource()->getEventScheduler()->queryEvent(gatherEvent,100))
+        {
+          CXios::getPoolRessource()->getEventScheduler()->popEvent() ;
+          MPI_Barrier(CXios::getPoolRessource()->getService(CXios::defaultGathererId,0)->getCommunicator());
+          gatherEvent++ ;
+          numEvents++;
+        }
 
+        if (CXios::getPoolRessource()->getEventScheduler()->queryEvent(writerEvent,1000))
+        {
+          CXios::getPoolRessource()->getEventScheduler()->popEvent() ;
+          MPI_Barrier(CXios::getPoolRessource()->getService(CXios::defaultWriterId,0)->getCommunicator());
+          writerEvent++ ;
+          numEvents++;
+        }
+
+        
+      } while (numEvents!=11) ;
+
+    }
 
 
     void  CServer::xiosGlobalCommByFileExchange(MPI_Comm serverComm)
@@ -409,9 +492,10 @@ namespace xios
        {
          boost::hash<string> hashString;
          size_t hashId = hashString("oasis_enddef");
-         if (CXios::getPoolRessource()->getService(CXios::defaultServicesId,0)->getEventScheduler()->queryEvent(0,hashId))
+
+         if (CXios::getPoolRessource()->getEventScheduler()->queryEvent(0,hashId))
          {
-           CXios::getPoolRessource()->getService(CXios::defaultServicesId,0)->getEventScheduler()->popEvent() ;
+           CXios::getPoolRessource()->getEventScheduler()->popEvent() ;
            driver_->endSynchronizedDefinition() ;
            eventSent=false ;
          }
@@ -425,7 +509,7 @@ namespace xios
            MPI_Recv(&msg,1,MPI_INT,root,5,intraComm_,&status) ; // tags oasis_endded = 5
            boost::hash<string> hashString;
            size_t hashId = hashString("oasis_enddef");
-           CXios::getPoolRessource()->getService(CXios::defaultServicesId,0)->getEventScheduler()->registerEvent(0,hashId);
+           CXios::getPoolRessource()->getEventScheduler()->registerEvent(0,hashId);
            eventSent=true ;
        }
      }

@@ -74,7 +74,7 @@ namespace xios
 
     MPI_Comm xiosComm_ ;
 
-    int notifyType_ ;
+    int notifyType_ = NOTIFY_NOTHING ;
     tuple<std::string, std::string, int, std::string> notifyCreateContext_ ;
     tuple<std::string, std::string, int, std::string, int, std::string> notifyCreateIntercomm_ ;
 

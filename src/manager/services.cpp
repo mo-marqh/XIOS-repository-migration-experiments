@@ -8,8 +8,8 @@
 
 namespace xios
 {
-  CService::CService(MPI_Comm serviceComm, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
-                     int type, int nbPartitions, shared_ptr<CEventScheduler> eventScheduler) 
+  CService::CService(MPI_Comm serviceComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
+                     int type, int nbPartitions) 
                          : finalizeSignal_(false), eventScheduler_(nullptr), poolId_(poolId), serviceId_(serviceId),
                            partitionId_(partitionId), type_(type), nbPartitions_(nbPartitions), hasNotification_(false)
 
@@ -190,7 +190,7 @@ namespace xios
           std::hash<string> hashString ;
           size_t hashId = hashString(name_) ;
           size_t currentTimeLine=0 ;
-          info(40)<<"CService::checkNotifications(void) : receive notification => event scheduler"<<endl ;
+          info(40)<<"CService::checkNotifications(void) : receive notification => event scheduler : timeLine : "<<currentTimeLine<<"  hashId : "<<hashId<<endl ;
           eventScheduler_->registerEvent(currentTimeLine,hashId); 
         }
         lastEventLoop_=time ;
@@ -202,7 +202,7 @@ namespace xios
       std::hash<string> hashString ;
       size_t hashId = hashString(name_) ;
       size_t currentTimeLine=0 ;
-      info(40)<<"CService::checkNotifications(void) : receive notification => event scheduler : eventIsReceived ?"<<endl ;
+//      info(40)<<"CService::checkNotifications(void) : receive notification => event scheduler : eventIsReceived ?"<<endl ;
       if (eventScheduler_->queryEvent(currentTimeLine,hashId))
       {
         eventScheduler_->popEvent() ;

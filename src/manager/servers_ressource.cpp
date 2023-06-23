@@ -2,11 +2,13 @@
 #include "window_manager.hpp"
 #include "ressources_manager.hpp"
 #include "pool_ressource.hpp"
+#include "event_scheduler.hpp"
 #include "cxios.hpp"
 #include "mpi.hpp"
 #include "timer.hpp"
 #include <vector>
 #include <string>
+
 
 
 
@@ -38,7 +40,8 @@ namespace xios
     }
 
     MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ; 
-
+    eventScheduler_ = make_shared<CEventScheduler>(freeRessourcesComm_) ;
+    freeRessourceEventScheduler_ = eventScheduler_ ;
   }
 
   void CServersRessource::createPool(const string& poolId, const int size)
@@ -159,13 +162,20 @@ namespace xios
     MPI_Comm_rank(freeRessourcesComm_,&commRank) ;
     MPI_Comm_split(freeRessourcesComm_, isPartOf, commRank, &poolComm) ;
     
+    shared_ptr<CEventScheduler> parentScheduler, childScheduler ;
+    freeRessourceEventScheduler_->splitScheduler(poolComm, parentScheduler, childScheduler) ;
+    
+    if (isFirstSplit_) eventScheduler_ = parentScheduler ; 
+    isFirstSplit_ = false ;
+
     if (isPartOf)
     {  
-      poolRessource_ = new CPoolRessource(poolComm, poolId, true) ;
+      poolRessource_ = new CPoolRessource(poolComm, childScheduler, poolId, true) ;
       MPI_Comm_free(&poolComm) ;
     }
     else 
     {
+      freeRessourceEventScheduler_ = childScheduler ;
       MPI_Comm_free(&freeRessourcesComm_) ;
       freeRessourcesComm_=poolComm ;
     }

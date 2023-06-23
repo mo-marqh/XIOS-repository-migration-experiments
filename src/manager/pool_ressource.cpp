@@ -6,10 +6,11 @@
 #include "type.hpp"
 #include "cxios.hpp"
 #include "timer.hpp"
+#include "event_scheduler.hpp"
 
 namespace xios
 {
-  CPoolRessource::CPoolRessource(MPI_Comm poolComm, const std::string& Id, bool isServer) : Id_(Id), finalizeSignal_(false)
+  CPoolRessource::CPoolRessource(MPI_Comm poolComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& Id, bool isServer) : Id_(Id), finalizeSignal_(false)
   {
     int commRank, commSize ;
     MPI_Comm_dup(poolComm, &poolComm_) ;
@@ -28,6 +29,9 @@ namespace xios
     notifyType_=NOTIFY_NOTHING;
     winNotify_->updateToExclusiveWindow(commRank, this, &CPoolRessource::notificationsDumpOut) ;
     MPI_Barrier(poolComm_) ;
+    if (eventScheduler) eventScheduler_=eventScheduler ;
+    else eventScheduler_= make_shared<CEventScheduler>(poolComm) ;
+    freeRessourceEventScheduler_ = eventScheduler_ ;
   }
 
   void CPoolRessource::createService(const std::string& serviceId, int type, int size, int nbPartitions)
@@ -35,6 +39,11 @@ namespace xios
     // for now suppose nbPartitions=1
     
     auto it=occupancy_.begin() ;
+
+    // ym obsolete, service cannot overlap, only created on separate ressource or matching excatly existing service
+    // occupancy management must not be used anymore => simplification
+    // for now raise a message error when no ressources are availables
+    
     int commSize ;
     MPI_Comm_size(poolComm_, &commSize) ;
     vector<bool> procs_in(commSize,false) ;
@@ -42,11 +51,14 @@ namespace xios
 
     for(int i=0; i<size; i++) 
     {
+      if (it->first != 0) ERROR("void CPoolRessource::createService(const std::string& serviceId, int type, int size, int nbPartitions)",
+                                 << "No enough free ressources on pool id="<<getId()<<" to launch service id="<<serviceId);
       procs_in[it->second]=true ;
       procs_update.push_back(std::pair<int,int>(it->first+1,it->second)) ;
       ++it ;
     }
-    
+
+
     occupancy_.erase(occupancy_.begin(),it) ;
     occupancy_.insert(procs_update.begin(),procs_update.end()) ;
     
@@ -246,41 +258,69 @@ namespace xios
   void CPoolRessource::createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in)
   {
      
-     info(40)<<"CPoolRessource::createNewService  : receive createService notification ; serviceId : "<<serviceId<<endl ;
-     MPI_Comm serviceComm, newServiceComm ;
-     int commRank ;
-     MPI_Comm_rank(poolComm_,&commRank) ;
-     MPI_Comm_split(poolComm_, in, commRank, &serviceComm) ;
-     if (in)
-     {
-       int serviceCommSize ;
-       int serviceCommRank ;
-       MPI_Comm_size(serviceComm,&serviceCommSize) ;
-       MPI_Comm_rank(serviceComm,&serviceCommRank) ;
+    info(40)<<"CPoolRessource::createNewService  : receive createService notification ; serviceId : "<<serviceId<<endl ;
+    MPI_Comm serviceComm, newServiceComm, freeComm ;
+    int commRank ;
+     
+    int color;
+    if (!services_.empty()) color = 0 ;
+    else color=1 ; 
+    MPI_Comm_rank(poolComm_,&commRank) ;
+    MPI_Comm_split(poolComm_, color, commRank, &freeComm) ;  // workaround
+    
+    if (services_.empty()) 
+    {
+      MPI_Comm_rank(freeComm,&commRank) ;
+      MPI_Comm_split(freeComm, in, commRank, &serviceComm) ;
 
-       info(10)<<"Service  "<<serviceId<<" created "<<"  service size : "<<serviceCommSize<< "   service rank : "<<serviceCommRank 
-                            <<" on rank pool "<<commRank<<endl ;
-       
-       int partitionId ; 
-       if ( serviceCommRank >= (serviceCommSize/nbPartitions+1)*(serviceCommSize%nbPartitions) )
-       {
-         int rank =  serviceCommRank - (serviceCommSize/nbPartitions+1)*(serviceCommSize%nbPartitions) ;
-         partitionId = serviceCommSize%nbPartitions +  rank / (serviceCommSize/nbPartitions) ;
-       }
-       else  partitionId = serviceCommRank / (serviceCommSize/nbPartitions + 1) ;
+      // temporary for event scheduler, we must using hierarchical split of free ressources communicator.
+      // we hope for now that spliting using occupancy make this match
 
-       MPI_Comm_split(serviceComm, partitionId, commRank, &newServiceComm) ;
+      if (in)
+      {
+        int serviceCommSize ;
+        int serviceCommRank ;
+        MPI_Comm_size(serviceComm,&serviceCommSize) ;
+        MPI_Comm_rank(serviceComm,&serviceCommRank) ;
+
+        info(10)<<"Service  "<<serviceId<<" created "<<"  service size : "<<serviceCommSize<< "   service rank : "<<serviceCommRank 
+                              <<" on rank pool "<<commRank<<endl ;
        
-       MPI_Comm_size(newServiceComm,&serviceCommSize) ;
-       MPI_Comm_rank(newServiceComm,&serviceCommRank) ;
-       info(10)<<"Service  "<<serviceId<<" created "<<"  partition : " <<partitionId<<" service size : "<<serviceCommSize
-               << " service rank : "<<serviceCommRank <<" on rank pool "<<commRank<<endl ;
+        int partitionId ; 
+        if ( serviceCommRank >= (serviceCommSize/nbPartitions+1)*(serviceCommSize%nbPartitions) )
+        {
+          int rank =  serviceCommRank - (serviceCommSize/nbPartitions+1)*(serviceCommSize%nbPartitions) ;
+          partitionId = serviceCommSize%nbPartitions +  rank / (serviceCommSize/nbPartitions) ;
+        }
+        else  partitionId = serviceCommRank / (serviceCommSize/nbPartitions + 1) ;
+
+        MPI_Comm_split(serviceComm, partitionId, commRank, &newServiceComm) ;
+
+        MPI_Comm_size(newServiceComm,&serviceCommSize) ;
+        MPI_Comm_rank(newServiceComm,&serviceCommRank) ;
+        info(10)<<"Service  "<<serviceId<<" created "<<"  partition : " <<partitionId<<" service size : "<<serviceCommSize
+                << " service rank : "<<serviceCommRank <<" on rank pool "<<commRank<<endl ;
       
-       services_[std::make_tuple(serviceId,partitionId)] = new CService(newServiceComm, Id_, serviceId, partitionId, type, nbPartitions) ;
+        shared_ptr<CEventScheduler> parentScheduler, childScheduler ;
+        freeRessourceEventScheduler_->splitScheduler(newServiceComm, parentScheduler, childScheduler) ;
+        if (isFirstSplit_) eventScheduler_ = parentScheduler ;
+        isFirstSplit_=false ;
+
+        services_[std::make_tuple(serviceId,partitionId)] = new CService(newServiceComm, childScheduler, Id_, serviceId, partitionId, type, nbPartitions) ;
        
-       MPI_Comm_free(&newServiceComm) ;
-     }
-     MPI_Comm_free(&serviceComm) ;
+        MPI_Comm_free(&newServiceComm) ;
+      }
+      else
+      {
+        shared_ptr<CEventScheduler> parentScheduler, childScheduler ;
+        freeRessourceEventScheduler_->splitScheduler(serviceComm, parentScheduler, childScheduler) ;
+        if (isFirstSplit_) eventScheduler_ = parentScheduler ;
+        freeRessourceEventScheduler_ = childScheduler ;
+        isFirstSplit_=false ;
+      }
+      MPI_Comm_free(&serviceComm) ;
+    }
+    MPI_Comm_free(&freeComm) ;
   }
   
   void CPoolRessource::createNewServiceOnto(const std::string& serviceId, int type, const std::string& onServiceId)
@@ -299,16 +339,16 @@ namespace xios
         int partitionId = service.second->getPartitionId() ;
         shared_ptr<CEventScheduler>  eventScheduler = service.second->getEventScheduler() ;
         info(40)<<"CPoolRessource::createNewServiceOnto ; found onServiceId : "<<onServiceId<<endl  ;
-        services_[std::make_tuple(serviceId,partitionId)] = new CService(newServiceComm, Id_, serviceId, partitionId, type,
-                                                                         nbPartitions, eventScheduler) ;       
+        services_[std::make_tuple(serviceId,partitionId)] = new CService(newServiceComm, eventScheduler, Id_, serviceId, partitionId, type,
+                                                                         nbPartitions) ;       
       }
     }
     
   }
 
-  void CPoolRessource::createService(MPI_Comm serviceComm, const std::string& serviceId, int partitionId, int type, int nbPartitions) // for clients & attached
+  void CPoolRessource::createService(MPI_Comm serviceComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& serviceId, int partitionId, int type, int nbPartitions) // for clients & attached
   {
-    services_[std::make_tuple(serviceId,partitionId)] = new CService(serviceComm, Id_, serviceId, partitionId, type, nbPartitions) ;
+    services_[std::make_tuple(serviceId,partitionId)] = new CService(serviceComm, eventScheduler, Id_, serviceId, partitionId, type, nbPartitions) ;
   }
 
 

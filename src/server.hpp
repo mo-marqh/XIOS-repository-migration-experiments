@@ -42,7 +42,8 @@ namespace xios
 
         static void listenRootOasisEnddef(void);
         static void listenOasisEnddef(void);
-
+        static void testingEventScheduler(void);
+        
         static void finalize(void);
         static void eventLoop(void);
         

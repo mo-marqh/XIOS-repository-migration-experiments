@@ -71,7 +71,7 @@ namespace xios
 
     MPI_Comm xiosComm_ ;
 
-    int notifyType_ ;
+    int notifyType_ = NOTIFY_NOTHING;
     tuple<std::string, int> notifyCreatePool_ ;
 
     std::map<std::string, std::tuple<int,int,int>> pools_ ;

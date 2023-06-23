@@ -4,6 +4,7 @@
 #include "mpi.hpp"
 #include "window_manager.hpp"
 #include "services_manager.hpp"
+#include "event_scheduler.hpp"
 
 
 namespace xios
@@ -26,16 +27,18 @@ namespace xios
     const int NOTIFY_CREATE_SERVICE_ONTO=2 ;
 
     public:
-    CPoolRessource(MPI_Comm poolComm, const std::string& Id, bool isServer) ;
+    CPoolRessource(MPI_Comm poolComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& Id, bool isServer) ;
     ~CPoolRessource() ;
     
     void createService(const std::string& serviceId, int type, int size, int nbPartition) ;
-    void createService(MPI_Comm serviceComm, const std::string& serviceId, int partitionId, int type, int nbPartitions) ; 
+    void createService(MPI_Comm serviceComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& serviceId, int partitionId, int type, int nbPartitions) ; 
     void createServiceOnto(const std::string& serviceId, int type, const std::string& OnServiceId) ;
     bool eventLoop(bool serviceOnly=false) ;
+    bool hasService(const std::string serviceId, int partitionId) {return services_.count(make_tuple(serviceId,partitionId))>0 ;}
     CService* getService(const std::string serviceId, int partitionId) { return services_[make_tuple(serviceId,partitionId)]; }
     void finalizeSignal(void) ;
     string getId(void) { return Id_; }
+    const MPI_Comm& getCommunicator(void) { return poolComm_ ;}
 
   private:
     void createServiceNotify(int rank, const string& serviceId, int type, int size, int nbPartitions, bool in) ;
@@ -52,6 +55,7 @@ namespace xios
 //    void createServiceDumpIn(CBufferIn& buffer) ;
 //    void checkCreateServiceNotification(void) ;
     void createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
+  public:
     void createNewServiceOnto(const std::string& serviceId, int type, const string& onServiceId) ;
     
     private:
@@ -72,6 +76,14 @@ namespace xios
     
     const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;
+
+    private:
+      shared_ptr<CEventScheduler> eventScheduler_ ;
+      shared_ptr<CEventScheduler> freeRessourceEventScheduler_ ;
+      bool isFirstSplit_=true ;
+    public:
+      shared_ptr<CEventScheduler> getEventScheduler(void) { return eventScheduler_ ;}
+
   };
 
 }

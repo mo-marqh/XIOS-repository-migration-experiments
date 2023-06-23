@@ -303,4 +303,11 @@ namespace xios
     while(!hasService(poolId,serviceId,partitionId)) CXios::getDaemonsManager()->servicesEventLoop() ;
   }
 
+  void CServicesManager::waitServiceRegistration(const std::string& poolId, const std::string& serviceId)
+  {
+    int nbPartition ;
+    getServiceNbPartitions(poolId,serviceId,0,nbPartition, true) ;
+    for(int n=1;n<nbPartition;n++) waitServiceRegistration(poolId, serviceId, n) ;
+
+  }
 }
