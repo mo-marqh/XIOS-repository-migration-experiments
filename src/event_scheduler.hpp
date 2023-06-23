@@ -26,7 +26,7 @@ namespace xios
         *  @param[in] comm : MPI communicator du duplicate for internal use
         */
        CEventScheduler(const MPI_Comm& comm) ;
-
+       CEventScheduler(const MPI_Comm& comm, size_t schedulerLevel) ;
 
        //! Destructor
        ~CEventScheduler() ;
@@ -39,9 +39,11 @@ namespace xios
         *  @param[in] contextHashId : Hashed id of the context
         */
        void registerEvent(const size_t timeLine, const size_t contextHashId) ;
+       
+       private:
+       CEventScheduler* getBaseScheduler(void) { if (childScheduler_== nullptr) return this; else return childScheduler_->getBaseScheduler();}
 
-
-
+       public:
        //! public interface for query if the event defined by timeLine and hashId is sheduled next
        /*!
         *  @param[in] timeLine : Time line id of the event
@@ -50,19 +52,25 @@ namespace xios
         *
         *  If the event is scheduled next, it is remove from the `eventStack` queue list  
         */    
-       bool queryEvent(const size_t timeLine, const size_t contextHashId) ;
-       void popEvent() { eventStack_.pop() ; }
-
+       bool queryEvent(const size_t timeLine, const size_t contextHashId) { return getBaseScheduler()->queryEvent_(timeLine, contextHashId); }
+       bool queryEvent_(const size_t timeLine, const size_t contextHashId) ;
+       void popEvent() { getBaseScheduler()->popEvent_() ; }
+       void popEvent_() { eventStack_.pop() ; }
+       bool isRoot(void) { return parent_[0]==mpiRank_ ;}
+       void setParentScheduler(shared_ptr<CEventScheduler> parentScheduler) { parentScheduler_ = parentScheduler ;}
+       void setChildScheduler(shared_ptr<CEventScheduler> childScheduler) { childScheduler_ = childScheduler ;}
+       void splitScheduler(const MPI_Comm& splittedComm, shared_ptr<CEventScheduler>& parent, shared_ptr<CEventScheduler>& child) ;
 
        //! Public interface to give the hand to the instance to check pending or incoming message.
        /*!
         * Must be called periodicaly. Call `checkParentRequest` and `checkChildRequest` private method.
         */
-       void checkEvent(void) ;
+       void checkEvent(void) { getBaseScheduler()->checkEvent_(); } 
+       void checkEvent_(void) ;
 
        private:
-
-
+         void initialize(const MPI_Comm& comm) ;
+       
        //! Send an event to the parent of level `lev+1`
        /*!
         *  @param[in] timeLine : Time line id of the event
@@ -70,7 +78,9 @@ namespace xios
         *  @param[in] lev : actual level of the child in the hierarchy
         *  The event is sent by an asynchrounous MPI_ISend
         */
-       void registerEvent(const size_t timeLine, const size_t contextHashId, const size_t lev) ;
+      
+       void registerEvent(const size_t timeLine, const size_t contextHashId, const size_t schedulerLevel) ;
+       void registerEvent(const size_t timeLine, const size_t contextHashId, const size_t schedulerLevel, const size_t lev) ;
 
 
 
@@ -107,7 +117,7 @@ namespace xios
         *  @param[in] lev : actual level of the child in the hierarchy
         * Asynchronus MPI_ISend is used.
         */
-       void bcastEvent(const size_t timeLine, const size_t contextHashId, const size_t lev) ;
+       void bcastEvent(const size_t timeLine, const size_t contextHashId, const size_t schedulerLevel ,const size_t lev) ;
        
 
 
@@ -117,6 +127,7 @@ namespace xios
        {
          size_t timeLine ; /*!< Time line id of the event in the context */
          size_t hashId ; /*!< hassh id of the context */
+         size_t schedulerLevel ; /*!< hierarchical level of scherduler */
          size_t level ;  /*!<hierarchical level of the communication*/
 
          //! Definition of the == operator : needed to order the object in a map container
@@ -126,7 +137,7 @@ namespace xios
          */
          bool operator==(const SEvent& e) const
          { 
-           if (timeLine == e.timeLine && hashId == e.hashId && level==e.level) return true ;
+           if (timeLine == e.timeLine && hashId == e.hashId && level==e.level && schedulerLevel==e.schedulerLevel) return true ;
            else return false ;
          } ;
         
@@ -141,16 +152,16 @@ namespace xios
          { 
            if (timeLine < e.timeLine) return true ;
            else if (timeLine == e.timeLine && hashId < e.hashId) return true ;
-           else if (timeLine == e.timeLine && hashId == e.hashId && level<e.level) return true ;
+           else if (timeLine == e.timeLine && hashId == e.hashId && schedulerLevel<e.schedulerLevel) return true ;
+           else if (timeLine == e.timeLine && hashId == e.hashId && schedulerLevel==e.schedulerLevel && level<e.level) return true ;
            else return false ;
          } ;
        } ;       
-        
-
+       
        //! Pending request struture. It keep send or receive buffer from asynchronous communication while the request is not complete.
        struct SPendingRequest
        {
-         size_t buffer[3] ;      /*!< communication buffer : timeLine, hashId, level */
+         size_t buffer[4] ;      /*!< communication buffer : timeLine, hashId, level */
          MPI_Request request ;   /*!< pending MPI request */ 
        } ;
        
@@ -170,6 +181,11 @@ namespace xios
        vector<int> parent_ ;          /*!< Parent rank for each level */ 
        vector<vector<int> >  child_ ; /*!< List of child rank for each level */
        vector<int> nbChild_ ;         /*!< Number of child for each level */    
+       
+       shared_ptr<CEventScheduler> parentScheduler_ ;
+       shared_ptr<CEventScheduler> childScheduler_ ;
+       bool hasParentScheduler_=false ;
+       size_t schedulerLevel_ ;
 
     } ;
 }

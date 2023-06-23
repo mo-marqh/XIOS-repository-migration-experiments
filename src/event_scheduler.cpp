@@ -9,6 +9,22 @@ namespace xios
  
   CEventScheduler::CEventScheduler(const MPI_Comm& comm) 
   {
+     schedulerLevel_=0 ;
+     parentScheduler_.reset();
+     childScheduler_.reset();
+     initialize(comm) ;
+  }
+  
+  CEventScheduler::CEventScheduler(const MPI_Comm& comm, size_t schedulerLevel) 
+  {
+     schedulerLevel_=schedulerLevel ;
+     parentScheduler_.reset();
+     childScheduler_.reset();
+     initialize(comm) ;
+  }
+  
+  void CEventScheduler::initialize(const MPI_Comm& comm) 
+  {
     MPI_Comm_dup(comm, &communicator_) ;
     MPI_Comm_size(communicator_,&mpiSize_) ;
     MPI_Comm_rank(communicator_,&mpiRank_);
@@ -71,43 +87,74 @@ namespace xios
   {
     while (!pendingSentParentRequest_.empty() || !pendingRecvParentRequest_.empty() || !pendingRecvChildRequest_.empty() ||  !pendingSentChildRequest_.empty())
     {
-      checkEvent() ;
+      checkEvent_() ;
     } 
   } 
 
+  void CEventScheduler::splitScheduler(const MPI_Comm& splittedComm, shared_ptr<CEventScheduler>& parent, shared_ptr<CEventScheduler>& child)
+  {
+    int color ;
+    MPI_Comm newComm ;
+    child = make_shared<CEventScheduler>(splittedComm, schedulerLevel_+ 1) ;
+    if (child->isRoot()) color=1 ;
+    else color=0 ;
+    MPI_Comm_split(communicator_, color, mpiRank_, &newComm) ;
+
+    parent = make_shared<CEventScheduler>(newComm , schedulerLevel_) ;
+    child->setParentScheduler(parent) ;
+    parent->setChildScheduler(child) ;
+    if (parentScheduler_) 
+    {
+      parentScheduler_->setChildScheduler(parent) ;
+      parent->setParentScheduler(parentScheduler_) ;
+    }
+
+  }
+
   void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId)
   {
-    registerEvent(timeLine, contextHashId, level_) ;
-    checkEvent() ;
+    getBaseScheduler()->registerEvent(timeLine, contextHashId, schedulerLevel_) ;
+    checkEvent_() ;
   }
   
-  void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId, const size_t lev)
+  void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId, const size_t schedulerLevel)
+  {
+    registerEvent(timeLine, contextHashId, schedulerLevel, level_) ;
+    checkEvent_() ;
+  }
+
+  void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId, const size_t schedulerLevel, const size_t lev)
   {
        
     traceOff() ;
     SPendingRequest* sentRequest=new SPendingRequest ;
     sentRequest->buffer[0]=timeLine ;
     sentRequest->buffer[1]=contextHashId ;
-    sentRequest->buffer[2]=lev-1 ;
+    sentRequest->buffer[2]=schedulerLevel ;
+    sentRequest->buffer[3]=lev-1 ;
 
     pendingSentParentRequest_.push(sentRequest) ;
-    MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, parent_[lev], 0, communicator_, &sentRequest->request) ;
+//    info(100)<<"CEventScheduler::registerEvent => send event to parent "<<parent_[lev]<<" of level" <<lev-1<<endl ;
+    MPI_Isend(sentRequest->buffer,4, MPI_UNSIGNED_LONG, parent_[lev], 0, communicator_, &sentRequest->request) ;
     traceOn() ;
   } 
 
-  bool CEventScheduler::queryEvent(const size_t timeLine, const size_t contextHashId)
+  
+  bool CEventScheduler::queryEvent_(const size_t timeLine, const size_t contextHashId)
   {
-    checkEvent() ;
+    checkEvent_() ;
+
     if (! eventStack_.empty() && eventStack_.front().first==timeLine && eventStack_.front().second==contextHashId)
     {
-      //eventStack_.pop() ;
       return true ;
     }
     else return false ; 
   } 
  
-  void CEventScheduler::checkEvent(void)
+  void CEventScheduler::checkEvent_(void)
   {
+   
+    if (parentScheduler_) parentScheduler_->checkEvent_() ;
     traceOff() ;
     checkChildRequest() ;
     checkParentRequest() ;
@@ -142,7 +189,7 @@ namespace xios
       if (received)
       {
         recvRequest=new SPendingRequest ;
-        MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 1, communicator_, &(recvRequest->request)) ;
+        MPI_Irecv(recvRequest->buffer, 4, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 1, communicator_, &(recvRequest->request)) ;
         pendingRecvParentRequest_.push(recvRequest) ;
       }
     }
@@ -153,16 +200,36 @@ namespace xios
     {
       recvRequest=pendingRecvParentRequest_.front() ;
       MPI_Test( &(recvRequest->request), &completed, &status) ;
+
       if (completed) 
       {
         size_t timeLine=recvRequest->buffer[0] ;
         size_t hashId=recvRequest->buffer[1] ;
-        size_t lev=recvRequest->buffer[2] ;
+        size_t schedulerLevel=recvRequest->buffer[2] ;
+        size_t lev=recvRequest->buffer[3] ;
         delete recvRequest ;
         pendingRecvParentRequest_.pop() ;       
- 
-        if (lev==level_) eventStack_.push(pair<size_t,size_t>(timeLine,hashId)) ;
-        else  bcastEvent(timeLine, hashId, lev) ;
+        
+//        info(100)<<"CEventScheduler::checkParentRequest => receive event from parent "<< status.MPI_SOURCE<<"at level"<< lev<< endl ;
+        
+        if (lev==level_) 
+        {
+          if (childScheduler_)
+          {
+//            info(100)<<"CEventScheduler::checkParentRequest => bcast event to child scheduler "<<endl;
+            childScheduler_->bcastEvent(timeLine, hashId, schedulerLevel, 0) ;
+          }
+          else
+          { 
+//            info(100)<<"CEventScheduler::checkParentRequest => put event to stack : timeLine : "<<timeLine<<"  hashId : "<<hashId<<endl;
+            eventStack_.push(pair<size_t,size_t>(timeLine,hashId)) ;
+          }
+        }
+        else  
+        {
+//          info(100)<<"CEventScheduler::checkParentRequest => bcast event to child process "<<endl;
+          bcastEvent(timeLine, hashId, schedulerLevel, lev) ;
+        }
       }
     }   
     
@@ -184,7 +251,7 @@ namespace xios
       if (received)
       {
         recvRequest=new SPendingRequest ;
-        MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 0, communicator_, &recvRequest->request) ;
+        MPI_Irecv(recvRequest->buffer, 4, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 0, communicator_, &recvRequest->request) ;
         pendingRecvChildRequest_.push_back(recvRequest) ;
       }
     }
@@ -198,9 +265,12 @@ namespace xios
       {
         size_t timeLine=(*it)->buffer[0] ;
         size_t hashId=(*it)->buffer[1] ;
-        size_t lev=(*it)->buffer[2] ;
+        size_t schedulerLevel=(*it)->buffer[2] ;
+        size_t lev=(*it)->buffer[3] ;
         
-        SEvent event={timeLine,hashId,lev} ;
+//        info(100)<<"CEventScheduler::checkChildRequest => received event from child "<<status.MPI_SOURCE<<" at level "<<lev<<endl;
+
+        SEvent event={timeLine, hashId, schedulerLevel, lev} ;
         delete *it ; // free mem
         it=pendingRecvChildRequest_.erase(it) ; // get out of the list
         
@@ -215,12 +285,22 @@ namespace xios
         {
           if (lev==0)
           {
-            bcastEvent(timeLine,hashId,lev) ;
+            if (schedulerLevel==schedulerLevel_) 
+            {  
+//              info(100)<<"CEventScheduler::checkChildRequest => bcastEvent to child"<<endl ;
+              bcastEvent(timeLine, hashId, schedulerLevel, lev) ;
+            }
+            else 
+            { 
+//              info(100)<<"CEventScheduler::checkChildRequest => register event to parent scheduler"<<endl ; 
+              parentScheduler_->registerEvent(timeLine, hashId, schedulerLevel) ;
+            }
             recvEvent_.erase(itEvent) ;
           }
           else
           {
-            registerEvent( timeLine,hashId,lev) ;
+//            info(100)<<"CEventScheduler::checkChildRequest => register event to parent process"<<endl ; 
+            registerEvent( timeLine,hashId, schedulerLevel, lev) ;
             recvEvent_.erase(itEvent) ;
           }
         }
@@ -244,7 +324,7 @@ namespace xios
     }
   }
   
-  void CEventScheduler::bcastEvent(const size_t timeLine, const size_t contextHashId, const size_t lev)
+  void CEventScheduler::bcastEvent(const size_t timeLine, const size_t contextHashId, const size_t schedulerLevel, const size_t lev)
   {
     SPendingRequest* sentRequest ;
      
@@ -254,8 +334,9 @@ namespace xios
       sentRequest=new SPendingRequest ;
       sentRequest->buffer[0]=timeLine ;
       sentRequest->buffer[1]=contextHashId ;
-      sentRequest->buffer[2]=lev+1 ;
-      MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, child_[lev][i], 1, communicator_, & sentRequest->request) ;
+      sentRequest->buffer[2]=schedulerLevel ;
+      sentRequest->buffer[3]=lev+1 ;
+      MPI_Isend(sentRequest->buffer,4, MPI_UNSIGNED_LONG, child_[lev][i], 1, communicator_, & sentRequest->request) ;
       pendingSentChildRequest_.push_back(sentRequest) ;
     }
   }
