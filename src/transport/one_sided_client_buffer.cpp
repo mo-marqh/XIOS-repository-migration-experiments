@@ -7,7 +7,7 @@ namespace xios
   
   extern CLogType logProtocol;
 
-  COneSidedClientBuffer::COneSidedClientBuffer(MPI_Comm& interComm, int serverRank, MPI_Comm& commSelf, MPI_Comm& interCommMerged, int intraServerRank) : interComm_(interComm), serverRank_(serverRank)
+  COneSidedClientBuffer::COneSidedClientBuffer(MPI_Comm& interComm, int serverRank, MPI_Comm& commSelf, MPI_Comm& interCommMerged, int intraServerRank) : interComm_(interComm), serverRank_(serverRank), interCommMerged_(interCommMerged), intraServerRank_(intraServerRank)
   {
     
     MPI_Alloc_mem(controlSize_*sizeof(MPI_Aint), MPI_INFO_NULL, &control_) ;
@@ -260,7 +260,7 @@ namespace xios
       }
     }
     if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").resume() ;
-    MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, serverRank_, 20, interComm_, &request.mpiRequest ) ;
+    MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_, &request.mpiRequest ) ;
     if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").suspend() ;
     info(logProtocol)<<outStr.str()<<endl ;
     requests_.push_back(request) ;
@@ -271,7 +271,7 @@ namespace xios
     SRequest request ;
     request.buffer = new CBufferOut(sizeof(EVENT_BUFFER_RESIZE)+sizeof(timeline)+sizeof(size)) ; 
     *(request.buffer)<<EVENT_BUFFER_RESIZE<<timeline<<size ;
-    MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, serverRank_, 20, interComm_, &request.mpiRequest ) ;
+    MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_, &request.mpiRequest ) ;
     requests_.push_back(request) ;
   }
 
@@ -279,7 +279,7 @@ namespace xios
   {
     MPI_Aint controlAddr ;
     MPI_Get_address(control_, &controlAddr) ;
-    MPI_Send(&controlAddr, 1, MPI_AINT, serverRank_, 20, interComm_) ;
+    MPI_Send(&controlAddr, 1, MPI_AINT, intraServerRank_, 20, interCommMerged_) ;
   }
 
 }

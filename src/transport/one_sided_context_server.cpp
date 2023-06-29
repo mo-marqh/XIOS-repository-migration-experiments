@@ -97,14 +97,15 @@ namespace xios
     while(flag)
     {
       traceOff();
-      MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm, &flag, &status);
+      MPI_Iprobe(MPI_ANY_SOURCE, 20,interCommMerged_, &flag, &status);
       traceOn();
       if (flag==true)
       {
-        requests_.push_back(CRequest(interComm, status)) ;
-        if (requests_.back().test()) 
+        requests_.push_back(new CRequest(interCommMerged_, status)) ;
+        if (requests_.back()->test()) 
         {
-          processRequest(requests_.back()) ;
+          processRequest(*(requests_.back())) ;
+          delete requests_.back();
           requests_.pop_back() ;
         }
       }
@@ -116,9 +117,10 @@ namespace xios
     auto it = requests_.begin() ;
     while (it != requests_.end())
     {
-      if (it->test())
+      if ((*it)->test())
       {
-        processRequest(*it) ;
+        processRequest(*(*it)) ;
+        delete (*it);
         auto it2=it ;
         ++it ;
         requests_.erase(it2) ;
