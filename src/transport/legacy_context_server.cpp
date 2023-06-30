@@ -43,6 +43,7 @@ namespace xios
     finished=false;
 
     if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
+    else interCommMerged_ = interComm_; // interComm_ is yet an intracommunicator in attached
     MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
     
     itLastTimeLine=lastTimeLine.begin() ;

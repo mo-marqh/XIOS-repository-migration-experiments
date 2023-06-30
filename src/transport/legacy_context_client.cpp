@@ -33,6 +33,7 @@ namespace xios
       if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
 
       if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
+      else interCommMerged_ = interComm_; // interComm_ is yet an intracommunicator in attached
       
       MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
 
@@ -225,7 +226,9 @@ namespace xios
         maxEventSizes[rank] = CXios::minBufferSize;
       }
       
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interCommMerged_, clientSize+rank, mapBufferSize_[rank], maxEventSizes[rank]);
+      int considerServers = 1;
+      if (isAttachedModeEnabled()) considerServers = 0;
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interCommMerged_, considerServers*clientSize+rank, mapBufferSize_[rank], maxEventSizes[rank]);
       if (isGrowableBuffer_) buffer->setGrowableBuffer(1.2) ;
       else buffer->fixBuffer() ;
       // Notify the server
