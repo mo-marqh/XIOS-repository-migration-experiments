@@ -10,6 +10,8 @@
 #include "netCdfInterface.hpp"
 #include "netCdfException.hpp"
 #include "mem_checker.hpp"
+#include <string>
+#include <sys/stat.h>
 
 namespace xios
 {
@@ -775,7 +777,51 @@ int CNetCdfInterface::defVarDeflate(int ncid, int varId, int compressionLevel)
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+  
+  return status;
+}
 
+int CNetCdfInterface::defVarFilter(int ncid, int varId, unsigned int filterId , size_t filterNbrParams, unsigned int* filterParams)
+{
+  const char* cplugin = getenv("HDF5_PLUGIN_PATH") ;
+  bool filterAvailable( false );
+  
+  StdString pluginLibName;
+  if ( filterId == 32017 ) // 32017 = SZ
+  {
+    pluginLibName = "libhdf5sz.so";
+  }
+  if (cplugin)
+  {
+    string plugin( cplugin );
+    string libsz( plugin+"/"+pluginLibName );
+    struct stat sb;
+    if (stat(libsz.c_str(), &sb) == 0) filterAvailable = true;
+  }
+  if (!filterAvailable)
+  {
+    StdStringStream sstr;
+    sstr << "Error when calling function nc_def_var_filter(...)" << std::endl;
+    sstr << "The SZ filter required for " << varId << " is not available."
+         << "Check that $HDF5_PLUGIN_PATH/"<< pluginLibName <<" exists." ;
+    StdString e = sstr.str();
+    throw CNetCdfException(e);
+  }
+ 
+  int status = nc_def_var_filter(ncid, varId, filterId, filterNbrParams, filterParams);
+  if (NC_NOERR != status)
+  {
+    StdString errormsg(nc_strerror(status));
+    StdStringStream sstr;
+    
+    sstr << "Error when calling function nc_def_var_filter(...)" << std::endl;
+    sstr << errormsg << std::endl;
+    sstr << "Unable to set the compression filter of the variable with id: " << varId
+         << " and plugin: " << filterId << std::endl;
+    StdString e = sstr.str();
+    throw CNetCdfException(e);
+  }
+  
   return status;
 }
 

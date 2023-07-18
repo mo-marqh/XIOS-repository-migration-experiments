@@ -1,6 +1,7 @@
 #include <fstream>
 
 #include "onetcdf4.hpp"
+#include "onetcdf4_plugin.hpp"
 #include "group_template.hpp"
 #include "mpi.hpp"
 #include "netcdf.hpp"
@@ -504,25 +505,47 @@ namespace xios
             CNetCdfInterface::defVarChunking(grpid, varid, storageType, &dimsizes[0]);
             CNetCdfInterface::defVarFill(grpid, varid, true, NULL);
          }
-
-         setCompressionLevel(name, compressionLevel) ;
          
          return varid;
       }
 
       //---------------------------------------------------------------
 
-      void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)
+      void CONetCDF4::setCompressionLevel(const StdString& varname, const StdString& compressionType, int compressionLevel, const CArray<double,1>& compressionParams)
       {
          if (compressionLevel < 0 || compressionLevel > 9)
            ERROR("void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)",
                  "Invalid compression level for variable \"" << varname << "\", the value should range between 0 and 9.");
-         if (compressionLevel && wmpi)
+#ifndef PARALLEL_COMPRESSION
+         if ( ((compressionLevel)||(compressionParams.numElements())) && wmpi)
            ERROR("void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)",
                  "Impossible to use compression for variable \"" << varname << "\" when using parallel mode.");
+#endif
          int grpid = this->getCurrentGroup();
          int varid = this->getVariable(varname);
-         CNetCdfInterface::defVarDeflate(grpid, varid, compressionLevel);
+         if (compressionType=="None")
+         {
+         }
+         else if (compressionType=="gzip")
+         {
+           CNetCdfInterface::defVarDeflate(grpid, varid, compressionLevel);
+         }
+         else
+         {
+           size_t cd_nelmts;
+           unsigned int* cd_values = NULL;
+           if (compressionType=="SZ")
+           {
+             CONetCDF4Plugin::interpretParametersSZ(compressionParams, &cd_nelmts, &cd_values);
+             CNetCdfInterface::defVarFilter(grpid, varid, 32017, cd_nelmts, cd_values);
+           }
+           else
+           {
+               ERROR("void CONetCDF4::setCompressionLevel(...)", "compression_type = " << compressionType << " is not managed");
+           }
+           if (cd_values!=NULL) delete [] cd_values;
+         }
+                      
       }
 
       //---------------------------------------------------------------

@@ -115,12 +115,14 @@ namespace xios
     //! Define variable compression level
     static int defVarDeflate(int ncid, int varId, int compressionLevel);
 
+    //! Define variable filter
+    static int defVarFilter(int ncid, int varId, unsigned int filterId , size_t filterNbrParams, unsigned int* filterParams );
+
     //! Set or unset the fill mode
     static int setFill(int ncid, bool fill);
 
     //! Define variable fill parameters
     static int defVarFill(int ncid, int varId, int noFill, void* fillValue);
-
 
     //! Change access type of a variable
     static int varParAccess(int ncid, int varid, int access);

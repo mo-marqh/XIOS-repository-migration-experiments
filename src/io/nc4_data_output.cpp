@@ -1947,7 +1947,13 @@ namespace xios
 
             if (field->compression_level.isEmpty())
               field->compression_level = field->getRelFile()->compression_level.isEmpty() ? 0 : field->getRelFile()->compression_level;
-            SuperClassWriter::setCompressionLevel(fieldid, field->compression_level);
+            else
+              field->compression_type.setValue( "gzip" );
+            if (field->compression_type.isEmpty())
+              field->compression_type = "None";
+            if (field->compression_params.isEmpty())
+              field->compression_params.resize( 0 );
+            SuperClassWriter::setCompressionLevel(fieldid, field->compression_type, field->compression_level, field->compression_params);
 
            {  // Ecriture des coordonnes
 

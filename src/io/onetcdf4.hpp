@@ -58,7 +58,8 @@ namespace xios
             template <class T>
                void setDefaultValue(const StdString& varname, const T* value = NULL);
 
-            void setCompressionLevel(const StdString& varname, int compressionLevel);
+            void setCompressionLevel(const StdString& varname, const StdString& compressionType, int compressionLevel, 
+                                     const CArray<double,1>& compressionParam );
 
             template <class T>  void addAttribute (const StdString& name, const T& value, const StdString* varname = NULL);
 
