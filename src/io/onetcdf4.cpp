@@ -539,6 +539,11 @@ namespace xios
              CONetCDF4Plugin::interpretParametersSZ(compressionParams, &cd_nelmts, &cd_values);
              CNetCdfInterface::defVarFilter(grpid, varid, 32017, cd_nelmts, cd_values);
            }
+           else if (compressionType=="ZFP")
+           {
+             CONetCDF4Plugin::interpretParametersZFP(compressionParams, &cd_nelmts, &cd_values);
+             CNetCdfInterface::defVarFilter(grpid, varid, 32013, cd_nelmts, cd_values);
+           }
            else
            {
                ERROR("void CONetCDF4::setCompressionLevel(...)", "compression_type = " << compressionType << " is not managed");

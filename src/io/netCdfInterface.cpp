@@ -791,6 +791,10 @@ int CNetCdfInterface::defVarFilter(int ncid, int varId, unsigned int filterId , 
   {
     pluginLibName = "libhdf5sz.so";
   }
+  else if ( filterId == 32013 ) // 32013 = ZFP
+  {
+    pluginLibName = "libh5zzfp.so";
+  }
   if (cplugin)
   {
     string plugin( cplugin );
