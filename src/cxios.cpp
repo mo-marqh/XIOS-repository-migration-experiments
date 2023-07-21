@@ -57,6 +57,7 @@ namespace xios
   bool CXios::checkSumRecv=false ;
   bool CXios::checkSumSend=false ;
   bool CXios::logMemory=false ;
+  bool CXios::reportMemory=true ;
 
   CDaemonsManager*    CXios::daemonsManager_=nullptr ;
   CRessourcesManager* CXios::ressourcesManager_=nullptr ;
@@ -128,8 +129,9 @@ namespace xios
     
     checkSumSend = getin<bool>("checksum_send_fields", false);
     checkSumRecv = getin<bool>("checksum_recv_fields", false);
-    
+
     logMemory = getin<bool>("log_memory", false);
+    reportMemory = getin<bool>("memory_report", true);
 
     globalComm=MPI_COMM_WORLD ;
   }

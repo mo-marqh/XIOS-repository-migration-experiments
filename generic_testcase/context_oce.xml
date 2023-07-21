@@ -314,9 +314,7 @@
 
  <file_definition  type="one_file" >
     
-    <file id="atm_output" output_freq="1ts" type="one_file" enabled="true">
-      <field field_ref="field3D" />
-      <field field_ref="field2D" /> 
+    <file id="oce_output" output_freq="1ts" type="one_file" enabled="true">
       <field field_ref="pressure"  /> 
       <field field_ref="field3D_resend" /> 
        
@@ -324,14 +322,14 @@
       <field field_ref="field2D"    enabled="true"/> 
       <field field_ref="field_X"    enabled="true"/>
       <field field_ref="field_Y"    enabled="true"/>
-      <field field_ref="field_XY "  enabled="true"/>
+      <field field_ref="field_XY"   enabled="true"/>
       <field field_ref="field_Z"    enabled="true"/>
       <field field_ref="field_XYZ"  enabled="true"/>
       <field field_ref="field_XZ"   enabled="true"/>
       <field field_ref="field_YZ"   enabled="true"/>
     </file>
 
-    <file id="atm_output_other" output_freq="1ts" type="one_file" enabled="false">
+    <file id="oce_output_other" output_freq="1ts" type="one_file" enabled="false">
        <field field_ref="other_field3D"   enabled="true"/>
        <field field_ref="other_field2D"   enabled="true"/> 
        <field field_ref="other_field_X"   enabled="true"/>
@@ -343,7 +341,7 @@
        <field field_ref="other_field_YZ"  enabled="true"/>
     </file>
 
-    <file id="atm_output_W" output_freq="1ts" enabled="false">
+    <file id="oce_output_W" output_freq="1ts" enabled="false">
        <field field_ref="field3D_W"  enabled="true"/>
        <field field_ref="field2D_W"  enabled="true"/> 
        <field field_ref="field_XW"   enabled="true"/>

@@ -43,6 +43,7 @@ namespace xios
   std::vector<double> CMemChecker::getMem(void)
   {
     std::vector<double> memories(0);
+    if ( !CXios::reportMemory ) return memories ;
     memories.clear();
     
     if (first_) check() ;
