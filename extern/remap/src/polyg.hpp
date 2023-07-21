@@ -6,7 +6,7 @@ namespace sphereRemap {
 Coord barycentre(const Coord *x, int n);
 
 void orient(int n, Coord *vertex, Coord *edge, double *d, const Coord &g);
-
+void switchOrientation(int N, Coord *vertex, Coord *edge, double *d) ;
 void normals(Coord *x, int n, Coord *a);
 
 double alun(double b, double d);
@@ -15,6 +15,7 @@ double airbar(int N, const Coord *x, const Coord *c, double *d, const Coord &pol
 
 double polygonarea(Coord *x, int n);
 Coord exact_barycentre(const Coord *x, int n) ;
+Coord new_barycentre(const Coord *x, int n) ;
 
 int packedPolygonSize(const Elt& e);
 void packPolygon(const Elt& e, char *buffer, int& pos);

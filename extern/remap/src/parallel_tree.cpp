@@ -100,6 +100,10 @@ static void transferRoutedNodes(CMPIRouting& MPIRoute, /*const*/ vector<NodePtr>
 	MPIRoute.init(route);
 	int nRecv = MPIRoute.getTotalSourceElement();
 	nodeRecv.resize(nRecv);
+	for (int i=0;i<nRecv;i++)
+	{
+	  nodeRecv[i] = nodeRecv[i]->create();
+	}
 	MPIRoute.transferToTarget(&nodeSend[0], &nodeRecv[0], packNode, unpackNode);
 }
 
@@ -109,6 +113,10 @@ static void transferRoutedIntersections(CMPIRouting& MPIRoute, const vector<Node
 	MPIRoute.init(route);
 	int nRecv = MPIRoute.getTotalSourceElement();
 	nodeRecv.resize(nRecv);
+	for (int i=0;i<nRecv;i++)
+	{
+	  nodeRecv[i] = nodeRecv[i]->create();
+	}
 	MPIRoute.transferToTarget((NodePtr*) &nodeSend[0], &nodeRecv[0], packNode, unpackNode);
 //cout << MPIRoute.mpiRank << " ROUTE " << nRecv << ": " << nodeSend.size() << " " << nodeRecv.size() << "    ";
 }

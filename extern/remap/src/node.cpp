@@ -759,4 +759,10 @@ bool Node::removeDeletedNodes(int assignLevel)
   }
 }
 
+
+NodePtr Node::create()
+{
+    return make_shared<Node>();
+}
+
 }

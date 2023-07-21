@@ -205,6 +205,7 @@ struct Node : public std::enable_shared_from_this<Node>
   void getNodeLevel(int level,std::list<NodePtr>& NodeList) ;
   bool removeDeletedNodes(int assignLevel) ;
   void free_descendants();
+  NodePtr create();
 };
 
 bool transferNode(NodePtr thIs, NodePtr parent, NodePtr node);
