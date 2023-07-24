@@ -46,7 +46,7 @@ double intersect_ym(Elt *a, Elt *b)
   int nb=srcPolygon.size() ;
   Coord *b_gno   = new Coord[nb];
 
-  Coord OC=barycentre(a->vertex,a->n) ;
+  Coord OC=barycentre(a->vertex.data(),a->n) ;
   Coord Oz=OC ;
   Coord Ox=crossprod(Coord(0,0,1),Oz) ;
 // choose Ox not too small to avoid rounding error

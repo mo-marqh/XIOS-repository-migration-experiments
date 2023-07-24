@@ -137,9 +137,9 @@ extern "C" void remap_get_weights(double* weights, int* src_indices, int* src_ra
 
 extern "C" void remap_get_weights(double* weights, int* src_indices, int* dst_indices)
 {
-	memcpy(weights, mapper->remapMatrix, mapper->nWeights*sizeof(double));
-	memcpy(src_indices, mapper->srcAddress, mapper->nWeights*sizeof(int));
-	memcpy(dst_indices, mapper->dstAddress, mapper->nWeights*sizeof(int));
+	memcpy(weights, mapper->remapMatrix.data(), mapper->nWeights*sizeof(double));
+	memcpy(src_indices, mapper->srcAddress.data(), mapper->nWeights*sizeof(int));
+	memcpy(dst_indices, mapper->dstAddress.data(), mapper->nWeights*sizeof(int));
 	delete mapper;
 }
 

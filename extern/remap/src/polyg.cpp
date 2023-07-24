@@ -303,7 +303,9 @@ void unpackPolygon(Elt& e, const char *buffer, int& pos)
 
   e.n = *((int *) & (buffer[pos]));
   pos += sizeof(int);
-
+  
+  e.allocate() ;
+  
   for (int i = 0; i < e.n; i++)
   {
     e.d[i] = *((double *) & (buffer[pos]));
