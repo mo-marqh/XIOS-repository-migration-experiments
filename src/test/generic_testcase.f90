@@ -58,6 +58,7 @@ PROGRAM generic_testcase
   INTEGER :: rank, size_loc
   INTEGER :: nb_procs(4)
   LOGICAL :: who_i_am(4)
+  INTEGER :: provided
    
   OPEN(unit=unit, file='param.def',status='old',iostat=ierr)
   nb_proc_atm=1
@@ -71,7 +72,8 @@ PROGRAM generic_testcase
   CLOSE(unit)
 !!! MPI Initialization
 
-  CALL MPI_INIT(ierr)
+  CALL MPI_INIT_THREAD(MPI_THREAD_SERIALIZED, provided, ierr)
+
   CALL init_wait
   CALL MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
   CALL MPI_COMM_SIZE(MPI_COMM_WORLD,size_loc,ierr)
@@ -2056,15 +2058,15 @@ CONTAINS
      value_glo(i)=1-i*dp
     ENDDO
     
-    bounds_value_glo(2,0)=value_glo(0)-(value_glo(1)-value_glo(0))/2
+    bounds_value_glo(1,0)=value_glo(0)-(value_glo(1)-value_glo(0))/2
     DO i=1,nlev_glo-1
-     bounds_value_glo(2,i)=(value_glo(i-1)+value_glo(i)) /2
+     bounds_value_glo(1,i)=(value_glo(i-1)+value_glo(i)) /2
     ENDDO
 
     DO i=0,nlev_glo-2
-     bounds_value_glo(1,i)=(value_glo(i)+value_glo(i+1)) /2
+     bounds_value_glo(2,i)=(value_glo(i)+value_glo(i+1)) /2
     ENDDO
-    bounds_value_glo(1,nlev_glo-1)=value_glo(nlev_glo-1)-(value_glo(nlev_glo-2)-value_glo(nlev_glo-1))/2
+    bounds_value_glo(2,nlev_glo-1)=value_glo(nlev_glo-1)-(value_glo(nlev_glo-2)-value_glo(nlev_glo-1))/2
 
     nlev=nlev_glo/axis_proc_size
     IF (axis_proc_rank < MOD(nlev_glo,axis_proc_size)) THEN
@@ -2085,7 +2087,7 @@ CONTAINS
     return_value=value
     return_mask=.TRUE.
     CALL set_axis_mask(params,value,return_mask)    
-    CALL xios_set_axis_attr(axis_id, n_glo=nlev_glo, begin=begin, n=nlev, value=value*100000, mask=return_mask, bounds=bounds_value*100000, unit='Pa', positive='up')    
+    CALL xios_set_axis_attr(axis_id, n_glo=nlev_glo, begin=begin, n=nlev, value=value*1000, mask=return_mask, bounds=bounds_value*1000, unit='mb', positive='up')    
    
 
     ALLOCATE(return_index(0:nlev-1))
