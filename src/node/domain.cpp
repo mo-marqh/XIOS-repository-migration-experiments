@@ -1352,6 +1352,7 @@ namespace xios {
    TRY
    {
      bool lonlatValueExisted = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
+     checkLonLat() ;
      checkBounds() ;
      checkArea() ;
 
