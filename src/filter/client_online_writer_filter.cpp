@@ -21,7 +21,7 @@ CClientOnlineWriterFilter::CClientOnlineWriterFilter(CGarbageCollector& gc, CFie
     
     fileWriterStoreFilter_ = std::shared_ptr<CFileWriterStoreFilter>(new CFileWriterStoreFilter(gc, fieldOut));
     redistributeFilter_->connectOutput(fileWriterStoreFilter_, 0);
-    connectOutput(redistributeFilter_,1) ;
+    connectOutput(redistributeFilter_,0) ;
   }
   
   CDataPacketPtr CClientOnlineWriterFilter::apply(std::vector<CDataPacketPtr> data)
