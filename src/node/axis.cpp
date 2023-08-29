@@ -417,7 +417,9 @@ namespace xios {
 
         // It's not so correct but if begin is not the first value of index 
         // then data on the local axis has user-defined distribution. In this case, begin has no meaning.
-        if (begin.isEmpty()) begin = index(0);         
+        if (begin.isEmpty()) 
+          if (n==0) begin=0 ;
+          else begin = index(0);         
       }
       else 
       {
