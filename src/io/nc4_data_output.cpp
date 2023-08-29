@@ -2212,7 +2212,7 @@ namespace xios
           
           if (field->hasTimeInstant)
           {
-            time_data(0) = time_data_bound(1) = (Time) lastWrite;
+            time_data(0) = time_data_bound(1) = (Time) currentWrite;
             time_data_bound(0) = time_data_bound(1) = (Time) currentWrite;
             if (timeCounterType==instant)
             {
