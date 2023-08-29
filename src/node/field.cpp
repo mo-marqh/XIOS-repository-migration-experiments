@@ -831,7 +831,7 @@ namespace xios
   {
     // insert temporal filter before sending to files
     clientOnlineWriterFilter_ = std::shared_ptr<CClientOnlineWriterFilter>(new CClientOnlineWriterFilter(gc,this)) ;
-    getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(clientOnlineReaderFilter_, 0);
+    getTemporalDataFilter(gc, fileOut_->output_freq)->connectOutput(clientOnlineWriterFilter_, 0);
    
     const bool buildGraph_ = !build_workflow_graph.isEmpty() && build_workflow_graph == true ;
   
@@ -844,6 +844,7 @@ namespace xios
   void CField::connectToOnlineReader(CGarbageCollector& gc)
   {
     // insert temporal filter before sending to files
+    checkTimeAttributes();
     clientOnlineReaderFilter_ = std::shared_ptr<CClientOnlineReaderFilter>(new CClientOnlineReaderFilter(gc,this)) ;
     clientOnlineReaderFilter_ -> connectOutput(inputFilter,0) ;
   } 
