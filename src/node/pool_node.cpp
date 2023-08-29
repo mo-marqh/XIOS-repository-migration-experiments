@@ -62,7 +62,7 @@ namespace xios
     else ERROR("void CPoolNode::allocateRessources(void)",<<"Pool has no name or id, attributes <id> or <name> must be specified")
     ressourcesManager->createPool(poolId, nbRessources) ;
     if (CThreadManager::isUsingThreads()) 
-      while(!ressourcesManager->hasPool(CXios::defaultPoolId)) 
+      while(!ressourcesManager->hasPool(poolId)) 
       {
         CXios::getDaemonsManager()->eventLoop() ;
         CThreadManager::yield() ;
