@@ -42,15 +42,12 @@ namespace xios
     scheduled=false;
     finished=false;
 
-    if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
-    else interCommMerged_ = interComm_; // interComm_ is yet an intracommunicator in attached
+    MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
     MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
     
     itLastTimeLine=lastTimeLine.begin() ;
 
     pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-    if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
-      
   }
  
   void CLegacyContextServer::setPendingEvent(void)
@@ -114,36 +111,35 @@ namespace xios
       MPI_Mrecv(recvBuff, 4, MPI_AINT,  &message, &status);
       remoteHashId_ = recvBuff[0] ;
       StdSize buffSize = recvBuff[1];
-      vector<MPI_Aint> winAdress(2) ;
-      winAdress[0]=recvBuff[2] ; winAdress[1]=recvBuff[3] ;
+      vector<MPI_Aint> winBufferAddress(2) ;
+      winBufferAddress[0]=recvBuff[2] ; winBufferAddress[1]=recvBuff[3] ;
       mapBufferSize_.insert(std::make_pair(rank, buffSize));
 
       // create windows dynamically for one-sided
-      if (!isAttachedModeEnabled())
-      { 
-        CTimer::get("create Windows").resume() ;
-        MPI_Comm interComm ;
-        MPI_Intercomm_create(commSelf_, 0, interCommMerged_, rank, 0 , &interComm) ;
-        MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
-        CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
-        MPI_Comm_free(&interComm) ;
-        windows_[rank].resize(2) ;
-        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
-        CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;
-        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);
-        CXios::getMpiGarbageCollector().registerWindow(windows_[rank][1]) ;
-        CTimer::get("create Windows").suspend() ;
-        MPI_Barrier(winComm_[rank]) ;
-      }
-      else
-      {
-        winComm_[rank] = MPI_COMM_NULL ;
-        windows_[rank].resize(2) ;
-        windows_[rank][0] = MPI_WIN_NULL ;
-        windows_[rank][1] = MPI_WIN_NULL ;
-      }   
+      int dummy ;
+      MPI_Send(&dummy, 0, MPI_INT, rank, 21,interCommMerged_) ;
+      CTimer::get("create Windows").resume() ;
+      MPI_Comm interComm ;
+      int tag = 0 ;
+      MPI_Intercomm_create(commSelf_, 0, interCommMerged_, rank, tag , &interComm) ;
+      MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
+      MPI_Comm_free(&interComm) ;
+      windows_[rank].resize(2) ;
+      //MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
+      //CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;
+      //MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);
+      //CXios::getMpiGarbageCollector().registerWindow(windows_[rank][1]) ;
+      windows_[rank][0] = new CWindowDynamic() ;
+      windows_[rank][1] = new CWindowDynamic() ;
+      windows_[rank][0] -> create(winComm_[rank]) ;
+      windows_[rank][1] -> create(winComm_[rank]) ;
+      windows_[rank][0] -> setWinBufferAddress(winBufferAddress[0],0) ;
+      windows_[rank][1] -> setWinBufferAddress(winBufferAddress[1],0) ;
+      CTimer::get("create Windows").suspend() ;
+      CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
+      MPI_Barrier(winComm_[rank]) ;
 
-      it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winAdress, 0, buffSize)))).first;
+      it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winBufferAddress, 0, buffSize)))).first;
       lastTimeLine[rank]=0 ;
       itLastTimeLine=lastTimeLine.begin() ;
 
@@ -229,22 +225,20 @@ namespace xios
   void CLegacyContextServer::getBufferFromClient(size_t timeLine)
   {
     CTimer::get("CLegacyContextServer::getBufferFromClient").resume() ;
-    if (!isAttachedModeEnabled()) // one sided desactivated in attached mode
-    {  
-      int rank ;
-      char *buffer ;
-      size_t count ; 
 
-      if (itLastTimeLine==lastTimeLine.end()) itLastTimeLine=lastTimeLine.begin() ;
-      for(;itLastTimeLine!=lastTimeLine.end();++itLastTimeLine)
+    int rank ;
+    char *buffer ;
+    size_t count ; 
+
+    if (itLastTimeLine==lastTimeLine.end()) itLastTimeLine=lastTimeLine.begin() ;
+    for(;itLastTimeLine!=lastTimeLine.end();++itLastTimeLine)
+    {
+      rank=itLastTimeLine->first ;
+      if (itLastTimeLine->second < timeLine &&  pendingRequest.count(rank)==0 && buffers[rank]->isBufferEmpty())
       {
-        rank=itLastTimeLine->first ;
-        if (itLastTimeLine->second < timeLine &&  pendingRequest.count(rank)==0 && buffers[rank]->isBufferEmpty())
-        {
-          if (buffers[rank]->getBufferFromClient(timeLine, buffer, count)) processRequest(rank, buffer, count);
-          if (count >= 0) ++itLastTimeLine ;
-          break ;
-        }
+        if (buffers[rank]->getBufferFromClient(timeLine, buffer, count)) processRequest(rank, buffer, count);
+        if (count >= 0) ++itLastTimeLine ;
+        break ;
       }
     }
     CTimer::get("CLegacyContextServer::getBufferFromClient").suspend() ;
@@ -279,13 +273,15 @@ namespace xios
       else if (timeLine==timelineEventChangeBufferSize)
       {
         size_t newSize ;
-        vector<MPI_Aint> winAdress(2) ;
-        newBuffer>>newSize>>winAdress[0]>>winAdress[1] ;
+        vector<MPI_Aint> winBufferAdress(2) ;
+        newBuffer>>newSize>>winBufferAdress[0]>>winBufferAdress[1] ;
         buffers[rank]->freeBuffer(count) ;
         delete buffers[rank] ;
-        buffers[rank] = new CServerBuffer(windows_[rank], winAdress, 0, newSize) ;
+        windows_[rank][0] -> setWinBufferAddress(winBufferAdress[0],0) ;
+        windows_[rank][1] -> setWinBufferAddress(winBufferAdress[1],0) ;
+        buffers[rank] = new CServerBuffer(windows_[rank], winBufferAdress, 0, newSize) ;
         info(100)<<"Context id "<<context->getId()<<" : Receive ChangeBufferSize from client rank "<<rank
-                 <<"  newSize : "<<newSize<<" Address : "<<winAdress[0]<<" & "<<winAdress[1]<<endl ;
+                 <<"  newSize : "<<newSize<<" Address : "<<winBufferAdress[0]<<" & "<<winBufferAdress[1]<<endl ;
       }
       else
       {
@@ -308,10 +304,7 @@ namespace xios
     map<size_t,CEventServer*>::iterator it;
     CEventServer* event;
     
-//    if (context->isProcessingEvent()) return ;
     if (isProcessingEvent_) return ;
-    if (isAttachedModeEnabled())
-      if (!CXios::getDaemonsManager()->isScheduledContext(remoteHashId_)) return ;
 
     it=events.find(currentTimeLine);
     if (it!=events.end())
@@ -320,13 +313,13 @@ namespace xios
 
       if (event->isFull())
       {
-        if (!scheduled && !isAttachedModeEnabled()) // Skip event scheduling for attached mode and reception on client side
+        if (!scheduled)
         {
           eventScheduler_->registerEvent(currentTimeLine,hashId);
           info(100)<<"Context id "<<context->getId()<<"Schedule event : "<< currentTimeLine <<"  "<<hashId<<endl ;
           scheduled=true;
         }
-        else if (isAttachedModeEnabled() || eventScheduler_->queryEvent(currentTimeLine,hashId) )
+        else if (eventScheduler_->queryEvent(currentTimeLine,hashId) )
         {
           if (!enableEventsProcessing && isCollectiveEvent(*event)) return ;
 
@@ -345,7 +338,7 @@ namespace xios
             eventScheduled_=false ;
           }
           
-          if (CXios::checkEventSync)
+          if (CXios::checkEventSync && context->getServiceType()!=CServicesManager::CLIENT)
           {
             int typeId, classId, typeId_in, classId_in;
             long long timeLine_out;
@@ -363,28 +356,18 @@ namespace xios
             }
           }
 
-          if (!isAttachedModeEnabled()) eventScheduler_->popEvent() ;
-          //MPI_Barrier(intraComm) ;
-         // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
-         // The best way to properly solve this problem will be to use the event scheduler also in attached mode
-         // for now just set up a MPI barrier
-//ym to be check later
-//         if (!eventScheduler_ && CXios::isServer) MPI_Barrier(intraComm) ;
-
-//         context->setProcessingEvent() ;
-         isProcessingEvent_=true ;
-         CTimer::get("Process events").resume();
-         info(100)<<"Context id "<<context->getId()<<" : Process Event "<<currentTimeLine<<" of class "<<event->classId<<" of type "<<event->type<<endl ;
-         dispatchEvent(*event);
-         CTimer::get("Process events").suspend();
-         isProcessingEvent_=false ;
-//         context->unsetProcessingEvent() ;
-         pendingEvent=false;
-         delete event;
-         events.erase(it);
-         currentTimeLine++;
-         scheduled = false;
-         if (isAttachedModeEnabled()) CXios::getDaemonsManager()->unscheduleContext() ;
+          isProcessingEvent_=true ;
+          CTimer::get("Process events").resume();
+          info(100)<<"Context id "<<context->getId()<<" : Process Event "<<currentTimeLine<<" of class "<<event->classId<<" of type "<<event->type<<endl ;
+          eventScheduler_->popEvent() ;
+          dispatchEvent(*event);
+          CTimer::get("Process events").suspend();
+          isProcessingEvent_=false ;
+          pendingEvent=false;
+          delete event;
+          events.erase(it);
+          currentTimeLine++;
+          scheduled = false;
         }
       }
       else if (pendingRequest.empty()) getBufferFromClient(currentTimeLine) ;
@@ -408,16 +391,12 @@ namespace xios
 
   void CLegacyContextServer::freeWindows()
   {
-    //if (!isAttachedModeEnabled())
-    //{
-    //  for(auto& it : winComm_)
-    //  {
-    //    int rank = it.first ;
-    //    MPI_Win_free(&windows_[rank][0]);
-    //    MPI_Win_free(&windows_[rank][1]);
-    //    MPI_Comm_free(&winComm_[rank]) ;
-    //  }
-    //}
+    for(auto& it : winComm_)
+    {
+      int rank = it.first ;
+      delete windows_[rank][0];
+      delete windows_[rank][1];
+    }
   }
 
   void CLegacyContextServer::notifyClientsFinalize(void)

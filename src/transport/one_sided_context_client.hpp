@@ -47,6 +47,8 @@ namespace xios
       bool checkBuffers(void);
       void eventLoop(void) ;
       void callGlobalEventLoop() ;
+      void yield() ;
+      void synchronize() ;
       bool havePendingRequests(list<int>& ranks) ;
 
 
@@ -80,6 +82,7 @@ namespace xios
       double latency_=0e-2 ;
 
       bool locked_ = false ; //!< The context client is locked to avoid recursive checkBuffer
+      shared_ptr<CEventScheduler> eventScheduler_ ;
   };
 }
 

@@ -1,39 +1,79 @@
-#ifndef __WINDOW_BASE_HPP__
-#define __WINDOW_BASE_HPP__
+#ifndef __WINDOW_DYNAMIC_HPP__
+#define __WINDOW_DYNAMIC_HPP__
 
 #include <map>
-#include "exception.hpp"
+//#include "exception.hpp"
 #include "mpi.hpp"
+#include "cxios.hpp"
+#include <iostream>
 
 namespace xios
 {
 
 
-  class CWindowBase
+  class CWindowDynamic
   {
     private:
       void * winBuffer_ ;   
       const MPI_Aint OFFSET_LOCK=0 ;
       const int SIZE_LOCK=sizeof(long) ;
       const MPI_Aint OFFSET_BUFFER =  SIZE_LOCK ;
+      const MPI_Aint OFFSET_BUFFER_SIZE = SIZE_LOCK   ;
       MPI_Aint bufferSize_ ;
-      MPI_Aint windowSize_ ;
       const double maxLatency_ = 1e-3 ; // 1ms latency maximum
       MPI_Win window_ ;
+      MPI_Aint windowSize_ ;
+      int winCommRank_ ;
+      map<int,MPI_Aint> winBufferAddress_ ;
+
 
     public :
 
-    CWindowBase(MPI_Comm winComm, size_t bufferSize)
+    void allocateBuffer(MPI_Aint size)
     {
-      bufferSize_ = bufferSize ;
-      windowSize_ = bufferSize_ + OFFSET_BUFFER ;
-      MPI_Win_allocate(windowSize_, 1, MPI_INFO_NULL, winComm, &winBuffer_, &window_) ;
-      MPI_Aint& lock = *((MPI_Aint*)((char*)winBuffer_+OFFSET_LOCK)) ;
+      bufferSize_ = size ;
+      windowSize_ = size+OFFSET_BUFFER_SIZE ;
+      MPI_Alloc_mem(windowSize_, MPI_INFO_NULL, &winBuffer_) ;
+      MPI_Aint& lock = *((MPI_Aint*)(static_cast<char*>(winBuffer_)+OFFSET_LOCK)) ;
       lock=0 ;
-      MPI_Win_lock_all(0, window_) ;
+    }  
+
+    void create(MPI_Comm winComm)
+    {
+      MPI_Win_create_dynamic(MPI_INFO_NULL, winComm, &window_);
+      CXios::getMpiGarbageCollector().registerWindow(window_) ;
       MPI_Barrier(winComm) ;
+      MPI_Comm_rank(winComm, &winCommRank_) ;
+      MPI_Win_lock_all(0, window_) ;
+    }
+    
+    void lockAll()
+    {
+      MPI_Win_lock_all(0, window_) ;
     }
 
+    void unlockAll()
+    {
+      MPI_Win_unlock_all(window_) ;
+    }
+
+    void setWinBufferAddress(MPI_Aint addr, int rank)
+    {
+      winBufferAddress_[rank]=addr ;
+    }
+    
+    MPI_Aint getWinBufferAddress()
+    {
+      MPI_Aint ret ;
+      MPI_Get_address(winBuffer_, &ret) ;
+      return ret ;
+    }
+
+    void* getBufferAddress()
+    {
+      return static_cast<char*>(winBuffer_)+OFFSET_BUFFER_SIZE ;
+    }
+    
     bool tryLockExclusive(int rank)
     {
       long lock = 1;
@@ -41,9 +81,10 @@ namespace xios
       long state;
 
       int flag ;
-      MPI_Compare_and_swap(&lock, &unlock, &state, MPI_LONG, rank, OFFSET_LOCK, window_) ;
+      if (rank==winCommRank_) MPI_Win_sync(window_) ;
+      MPI_Compare_and_swap(&lock, &unlock, &state, MPI_LONG, rank, winBufferAddress_[rank]+OFFSET_LOCK, window_) ;
       MPI_Win_flush(rank, window_);
-
+//      if (rank==winCommRank_) MPI_Win_sync(window_) ;
       bool locked = (state == unlock) ;
       return locked ;
     }
@@ -53,7 +94,7 @@ namespace xios
       long one = 0x100000000;
       long res;
 
-      MPI_Fetch_and_op(&one, &res, MPI_LONG, rank, OFFSET_LOCK, op, window_);
+      MPI_Fetch_and_op(&one, &res, MPI_LONG, rank, winBufferAddress_[rank]+OFFSET_LOCK, op, window_);
       MPI_Win_flush(rank, window_);
       
       bool locked =  ! (res & 1) ;
@@ -65,18 +106,24 @@ namespace xios
       int lock = 1;
       int unlock = 0;
       int state;
-
+      
+      if (rank==winCommRank_) MPI_Win_sync(window_) ;
       MPI_Win_flush(rank, window_);
-      MPI_Compare_and_swap(&unlock, &lock, &state, MPI_INT, rank, OFFSET_LOCK, window_) ;
+      MPI_Compare_and_swap(&unlock, &lock, &state, MPI_INT, rank, winBufferAddress_[rank]+OFFSET_LOCK, window_) ;
       MPI_Win_flush(rank, window_);
-      if (lock != state) ERROR("CWindowBase::unlockWindowExclusive",<<"unlockWindow failed: bad state"<<endl) ; 
+//      if (rank==winCommRank_) MPI_Win_sync(window_) ;
+      if (lock != state) 
+      {
+        info(100)<<"Bad State : "<<((long*)winBuffer_)[0]<<endl ;
+        ERROR("CWindowBase::unlockWindowExclusive",<<"unlockWindow failed: bad state"<<endl) ; 
+      }
     }
 
     void unlockShared(int rank)
     {
       int minusone = -1;
       int res;
-      MPI_Fetch_and_op(&minusone, &res, MPI_INT, rank, OFFSET_LOCK+4, MPI_SUM, window_);
+      MPI_Fetch_and_op(&minusone, &res, MPI_INT, rank, winBufferAddress_[rank]+OFFSET_LOCK+4, MPI_SUM, window_);
       MPI_Win_flush(rank, window_);
     }
 
@@ -119,6 +166,28 @@ namespace xios
         }
       }  
     }
+    
+    int attach(MPI_Aint size) 
+    {
+      windowSize_ = size+OFFSET_BUFFER_SIZE ;
+      MPI_Alloc_mem(windowSize_, MPI_INFO_NULL, &winBuffer_) ;
+      MPI_Aint& lock = *((MPI_Aint*)(static_cast<char*>(winBuffer_)+OFFSET_LOCK)) ;
+      lock=0 ;
+      MPI_Win_attach(window_, winBuffer_, size+OFFSET_BUFFER_SIZE) ;
+      setWinBufferAddress(getWinBufferAddress(),winCommRank_) ;
+    }
+    
+    int attach() 
+    {
+      MPI_Win_attach(window_, winBuffer_, windowSize_) ;
+      setWinBufferAddress(getWinBufferAddress(),winCommRank_) ;
+    }
+
+    int detach() 
+    {
+      MPI_Win_detach(window_, winBuffer_) ;
+      MPI_Free_mem(winBuffer_) ;        
+    }
 
     int flush(int rank)
     {
@@ -136,22 +205,16 @@ namespace xios
     {
       return MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, target_disp + OFFSET_BUFFER, target_count, target_datatype, window_) ;
     }
-    
-    int fetchAndOp(const void *origin_addr, void *result_addr, MPI_Datatype datatype, int target_rank, MPI_Aint target_disp, MPI_Op op)
-    {
-      return MPI_Fetch_and_op(origin_addr, result_addr, datatype, target_rank, target_disp + OFFSET_BUFFER, op, window_ ) ;
-    }
-    
+
     int compareAndSwap(const void *origin_addr, const void *compare_addr, void *result_addr, MPI_Datatype datatype,
                        int target_rank, MPI_Aint target_disp)
     {
       return MPI_Compare_and_swap(origin_addr, compare_addr, result_addr, datatype, target_rank, target_disp + OFFSET_BUFFER, window_) ;
     }
 
-    ~CWindowBase()
+    ~CWindowDynamic()
     {
-      MPI_Win_unlock_all(window_);
-      MPI_Win_free(&window_) ;
+      MPI_Win_unlock_all(window_) ;
     }
 
   } ;

@@ -25,29 +25,46 @@ namespace xios
           memset(   winBufferCurrent_, 0, windowSize );
           memset( winBufferRetrieved_, 0, windowSize );
         }
+        MPI_Win_lock_all(0, winCurrentToken_) ;
+        MPI_Win_lock_all(0, winRetrievedToken_) ;
       }
-
+      
+      ~CTokenManager()
+      {
+        MPI_Win_unlock_all(winCurrentToken_) ;
+        MPI_Win_unlock_all(winRetrievedToken_) ;
+        MPI_Win_free(&winCurrentToken_) ;
+        MPI_Win_free(&winRetrievedToken_) ;
+      }
+      
       size_t getToken(void)
       {
         size_t inc=1 ;
         size_t token ;
-        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, leader_, 0, winCurrentToken_) ;
         MPI_Fetch_and_op(&inc, &token, MPI_SIZE_T, leader_, 0, MPI_SUM, winCurrentToken_) ;
-        MPI_Win_unlock(leader_, winCurrentToken_) ;
+        MPI_Win_flush(leader_, winCurrentToken_);
         return token ;
       }
 
-      bool lockToken(size_t token)
+      bool checkToken(size_t token)
       {
         size_t tokenRead ;
-        MPI_Win_lock(MPI_LOCK_SHARED, leader_, 0, winRetrievedToken_) ;
-        MPI_Get(&tokenRead, 1, MPI_SIZE_T, leader_, 0, 1, MPI_SIZE_T, winRetrievedToken_ ) ;
-        MPI_Win_unlock(leader_, winRetrievedToken_) ;
-        if (token==tokenRead) return true ;
-        else return false ;
+        size_t inc=0 ;
+        MPI_Fetch_and_op(&inc, &tokenRead, MPI_SIZE_T, leader_, 0, MPI_NO_OP, winRetrievedToken_) ;
+        MPI_Win_flush(leader_, winRetrievedToken_);
+        return tokenRead==token ;
       }
-
-      void unlockToken(size_t token)
+      
+      void updateToken(size_t token)
+      {
+        size_t inc=1 ;
+        size_t tokenRead ;
+        MPI_Fetch_and_op(&inc, &tokenRead, MPI_SIZE_T, leader_, 0, MPI_SUM, winRetrievedToken_) ;
+        MPI_Win_flush(leader_, winRetrievedToken_);
+        if (token!=tokenRead)  ERROR("void CTokenManager::unlockToken(size_t token)",<<"Cannot release token="<<token<<
+                                     " that is not corresponding to the locked token="<<tokenRead) ;     
+      }
+/*      void unlockToken(size_t token)
       {
         size_t inc=1 ;
         size_t tokenRead ;
@@ -58,7 +75,7 @@ namespace xios
         if (token!=tokenRead)  ERROR("void CTokenManager::unlockToken(size_t token)",<<"Cannot release token="<<token<<
                                      " that is not corresponding to the locked token="<<tokenRead) ;     
       }
-
+*/
     private:
 
       MPI_Win winCurrentToken_ ;

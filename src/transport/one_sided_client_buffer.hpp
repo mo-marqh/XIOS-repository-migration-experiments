@@ -181,8 +181,8 @@ namespace xios
       MPI_Win winControl_ ;
       int serverRank_ ;
 
-      MPI_Comm interCommMerged_; 
-      int intraServerRank_ ;
+      MPI_Comm interCommMerged_;  
+      int intraServerRank_ ; 
 
       std::list<CBuffer*> buffers_ ;
       std::list<SBloc> blocs_ ;

@@ -2,12 +2,13 @@
 #include "exception.hpp"
 #include "buffer_server.hpp"
 #include "timer.hpp"
+#include "window_dynamic.hpp"
 
 
 namespace xios
 {
 
-  CServerBuffer::CServerBuffer(vector<MPI_Win>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize buffSize) 
+  CServerBuffer::CServerBuffer(vector<CWindowDynamic*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize buffSize) 
   : hasWindows(true), windows_(windows), windowsRank_(windowsRank), winAddress_(winAddress)
   {
     size = 3 * buffSize;
@@ -17,7 +18,7 @@ namespace xios
     used=0 ;
     MPI_Alloc_mem(size, MPI_INFO_NULL, &buffer) ;
     currentWindows=1 ;
-    if (windows[0]==MPI_WIN_NULL && windows[1]==MPI_WIN_NULL) hasWindows=false ;
+    if (windows[0]==nullptr && windows[1]==nullptr) hasWindows=false ;
   }
 
   CServerBuffer::~CServerBuffer()
@@ -238,29 +239,25 @@ namespace xios
     size_t clientCount ;
     bool ok=false ;
     
-    MPI_Group group ;
-    int groupSize,groupRank ;
-    MPI_Win_get_group(windows_[currentWindows], &group) ;
-    MPI_Group_size(group, &groupSize) ;
-    MPI_Group_rank(group, &groupRank) ;
-    
+   
     lockBuffer(); 
     CTimer::get("getBufferFromClient_locked").resume() ;   
 // lock is acquired
 
-    MPI_Get(&clientTimeline, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],timeLineOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT,windows_[currentWindows]) ;
-    MPI_Get(&clientCount, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],countOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT,windows_[currentWindows]) ;
-    MPI_Win_flush(windowsRank_, windows_[currentWindows]) ;
-
+    windows_[currentWindows]->get(&clientTimeline, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],timeLineOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT) ;
+    windows_[currentWindows]->get(&clientCount, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],countOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT) ;
+    windows_[currentWindows]->flush(windowsRank_) ;
+   
     if (timeLine==clientTimeline)
     {
       buffer=(char*)getBuffer(clientCount) ;
       count=clientCount ;
-      MPI_Get(buffer, clientCount, MPI_CHAR, windowsRank_, MPI_Aint_add(winAddress_[currentWindows],4*sizeof(size_t)) , clientCount, MPI_CHAR, windows_[currentWindows]) ;
+      windows_[currentWindows]->get(buffer, clientCount, MPI_CHAR, windowsRank_, MPI_Aint_add(winAddress_[currentWindows],4*sizeof(size_t)) , clientCount, MPI_CHAR) ;
+      
       clientTimeline = 0 ;
       clientCount = 0 ;
-      MPI_Put(&clientTimeline, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],timeLineOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT,windows_[currentWindows]) ;
-      MPI_Put(&clientCount, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],countOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT,windows_[currentWindows]) ;
+      windows_[currentWindows]->put(&clientTimeline, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],timeLineOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT) ;
+      windows_[currentWindows]->put(&clientCount, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows],countOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT) ;
 
 // release lock
       CTimer::get("getBufferFromClient_locked").suspend() ;   
@@ -297,13 +294,14 @@ namespace xios
   void CServerBuffer::lockBuffer(void)
   {
     if (!hasWindows) return ;
-    MPI_Win_lock(MPI_LOCK_EXCLUSIVE,windowsRank_,0,windows_[currentWindows]) ;
+    //MPI_Win_lock(MPI_LOCK_EXCLUSIVE,windowsRank_,0,windows_[currentWindows]) ;
+    windows_[currentWindows]->lockExclusive(windowsRank_) ;
   }
 
   void CServerBuffer::unlockBuffer(void)
   {
     if (!hasWindows) return ;
-    MPI_Win_unlock(windowsRank_,windows_[currentWindows]) ;
+    windows_[currentWindows]->unlockExclusive(windowsRank_) ;
   }
   
   void CServerBuffer::notifyClientFinalize(void)
@@ -312,7 +310,7 @@ namespace xios
     size_t notify=notifyFinalize_ ;
     lockBuffer(); 
 // lock is acquired
-    MPI_Put(&notify, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows], notifyOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT,windows_[currentWindows]) ;
+    windows_[currentWindows]->put(&notify, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows], notifyOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT) ;
     unlockBuffer() ;
   }
 
@@ -323,7 +321,7 @@ namespace xios
     size_t notify=notifyResizeBuffer_ ;
     lockBuffer(); 
 // lock is acquired
-    MPI_Put(&notify, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows], notifyOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT,windows_[currentWindows]) ;
+    windows_[currentWindows]->put(&notify, 1, MPI_LONG_LONG_INT, windowsRank_ , MPI_Aint_add(winAddress_[currentWindows], notifyOffset_*sizeof(size_t)), 1, MPI_LONG_LONG_INT) ;
     unlockBuffer() ;
   }
 }

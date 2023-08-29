@@ -33,6 +33,7 @@
 #include "pool_ressource.hpp"
 #include "services.hpp"
 #include "contexts_manager.hpp"
+#include "thread_manager.hpp"
 #include <chrono>
 #include <random>
 
@@ -487,10 +488,6 @@ void CContext::removeAllContexts(void)
         hasServer=false ;
       }
       contextId_ = getId() ;
-      
-      attached_mode=true ;
-      if (!CXios::isUsingServer()) attached_mode=false ;
-
 
       string contextRegistryId=getId() ;
       registryIn=new CRegistry(CXios::getRegistryManager()->getRegistryIn());
@@ -543,7 +540,6 @@ void CContext::removeAllContexts(void)
     MPI_Comm intraCommClient ;
     MPI_Comm_dup(intraComm_, &intraCommClient);
     comms.push_back(intraCommClient);
-    // attached_mode=parentServerContext_->isAttachedMode() ; //ym probably inherited from source context
 
     CContextServer* server ;
     CContextClient* client ;
@@ -577,19 +573,23 @@ void CContext::removeAllContexts(void)
     int nbPartitions ;
     if (commRank==0)
     {
-      CXios::getServicesManager()->getServiceNbPartitions(poolId, serverId, 0, nbPartitions, true) ;
-      for(int i=0 ; i<nbPartitions; i++) CXios::getContextsManager()->createServerContext(poolId, serverId, i, getContextId()) ;
+      while (! CXios::getServicesManager()->getServiceNbPartitions(poolId, serverId, 0, nbPartitions)) yield() ;
+      for(int i=0 ; i<nbPartitions; i++)  
+        while (!CXios::getContextsManager()->createServerContext(poolId, serverId, i, getContextId())) yield() ;
     }
-    setCurrent(getId()) ; // getCurrent/setCurrent may be supress, it can cause a lot of trouble (attached ???)
+    synchronize() ;
+    setCurrent(getId()) ; // getCurrent/setCurrent may be supress, it can cause a lot of trouble 
     MPI_Bcast(&nbPartitions, 1, MPI_INT, 0, intraComm_) ;
       
     MPI_Comm interComm ;
     for(int i=0 ; i<nbPartitions; i++)
     {
-      parentServerContext_->createIntercomm(poolId, serverId, i, getContextId(), intraComm_, interCommClient, interCommServer) ;
+      while (!parentServerContext_->createIntercomm(poolId, serverId, i, getContextId(), intraComm_, interCommClient, interCommServer)) yield() ;
       int type ; 
-      if (commRank==0) CXios::getServicesManager()->getServiceType(poolId, serverId, 0, type, true) ;
+      if (commRank==0) while (!CXios::getServicesManager()->getServiceType(poolId, serverId, 0, type)) yield();
+      synchronize() ;
       MPI_Bcast(&type,1,MPI_INT,0,intraComm_) ;
+
       string fullServerId=CXios::getContextsManager()->getServerContextName(poolId, serverId, i, type, getContextId()) ;
 
       MPI_Comm intraCommClient, intraCommServer ;
@@ -619,8 +619,7 @@ void CContext::removeAllContexts(void)
 
     if (serviceType_ == CServicesManager::CLIENT)
     {
-      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultWriterId, clientServers) ;
-      else if (CXios::usingServer2) createServerInterComm(CXios::defaultPoolId, CXios::defaultGathererId, clientServers) ;
+      if (CXios::usingServer2) createServerInterComm(CXios::defaultPoolId, CXios::defaultGathererId, clientServers) ;
       else createServerInterComm(CXios::defaultPoolId, CXios::defaultWriterId, clientServers) ;
       
       writerClientOut_.push_back(clientServers[0].second.first) ; 
@@ -628,8 +627,7 @@ void CContext::removeAllContexts(void)
 
       clientServers.clear() ;
    
-      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+CXios::defaultReaderId, clientServers) ;
-      else createServerInterComm(CXios::defaultPoolId, CXios::defaultReaderId, clientServers) ;
+      createServerInterComm(CXios::defaultPoolId, CXios::defaultReaderId, clientServers) ;
       readerClientOut_.push_back(clientServers[0].second.first) ; 
       readerServerOut_.push_back(clientServers[0].second.second) ;
 
@@ -657,12 +655,12 @@ void CContext::removeAllContexts(void)
     if (it!=serversMap_.end()) clientServers=it->second ;
     else
     {
-      if (attached_mode) createServerInterComm(CClient::getPoolRessource()->getId(), getContextId()+"_"+serviceId, retClientServers) ;
-      else createServerInterComm(poolId, serviceId, retClientServers) ;
+      createServerInterComm(poolId, serviceId, retClientServers) ;
       for(auto& retClientServer : retClientServers)  clientServers.push_back(retClientServer.second) ;
       
       int serviceType ;
-      if (intraCommRank_==0) CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType, true) ;
+      if (intraCommRank_==0) while(!CXios::getServicesManager()->getServiceType(poolId, serviceId, 0, serviceType)) yield(); 
+      synchronize() ;
       MPI_Bcast(&serviceType,1,MPI_INT,0,intraComm_) ;
       
       for(auto& clientServer : clientServers)     
@@ -693,12 +691,50 @@ void CContext::removeAllContexts(void)
 
   void CContext::globalEventLoop(void)
   {
-    lockContext() ;
-    CXios::getDaemonsManager()->eventLoop() ;
-    unlockContext() ;
-    setCurrent(getId()) ;
+    if (CThreadManager::isUsingThreads()) CThreadManager::yield();
+    else
+    {
+      lockContext() ;
+      CXios::getDaemonsManager()->eventLoop() ;
+      unlockContext() ;
+      setCurrent(getId()) ;
+    }
   }
 
+  void CContext::yield(void)
+  {
+    if (CThreadManager::isUsingThreads()) 
+    {
+      CThreadManager::yield();
+      setCurrent(getId()) ;
+    }
+    else
+    {
+      lockContext() ;
+      CXios::getDaemonsManager()->eventLoop() ;
+      unlockContext() ;
+      setCurrent(getId()) ;
+    }
+  }
+
+  void CContext::synchronize(void)
+  {
+    bool out, finished; 
+    size_t timeLine=timeLine_ ;
+      
+    timeLine_++ ;
+    eventScheduler_->registerEvent(timeLine, hashId_) ;
+      
+    out = eventScheduler_->queryEvent(timeLine,hashId_) ;
+    if (out) eventScheduler_->popEvent() ;
+    while (!out)
+    {
+      yield() ;
+      out = eventScheduler_->queryEvent(timeLine,hashId_) ;
+      if (out) eventScheduler_->popEvent() ;
+    }
+  }
+  
   bool CContext::scheduledEventLoop(bool enableEventsProcessing) 
   {
     bool out, finished; 
@@ -760,12 +796,13 @@ void CContext::removeAllContexts(void)
      { 
        if (couplerOutClient_.find(fullContextId)==couplerOutClient_.end()) 
        {
-         bool ok=CXios::getContextsManager()->getContextLeader(fullContextId, contextLeader, getIntraComm()) ;
+         while(!CXios::getContextsManager()->getContextLeader(fullContextId, contextLeader, getIntraComm())) yield();
+         synchronize() ;
      
          MPI_Comm interComm, interCommClient, interCommServer  ;
          MPI_Comm intraCommClient, intraCommServer ;
 
-         if (ok) MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
+         MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
 
         MPI_Comm_dup(intraComm_, &intraCommClient) ;
         MPI_Comm_dup(intraComm_, &intraCommServer) ;
@@ -782,12 +819,13 @@ void CContext::removeAllContexts(void)
     }
     else if (couplerInClient_.find(fullContextId)==couplerInClient_.end())
     {
-      bool ok=CXios::getContextsManager()->getContextLeader(fullContextId, contextLeader, getIntraComm()) ;
+      while(!CXios::getContextsManager()->getContextLeader(fullContextId, contextLeader, getIntraComm())) yield() ;
+      synchronize() ;
      
        MPI_Comm interComm, interCommClient, interCommServer  ;
        MPI_Comm intraCommClient, intraCommServer ;
 
-       if (ok) MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
+       MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
 
        MPI_Comm_dup(intraComm_, &intraCommClient) ;
        MPI_Comm_dup(intraComm_, &intraCommServer) ;
@@ -823,7 +861,8 @@ void CContext::removeAllContexts(void)
         {
           couplersInFinalized=true ;
           for(auto& couplerOutClient : couplerOutClient_) couplersInFinalized &= isCouplerInContextFinalized(couplerOutClient.second) ; 
-          globalEventLoop() ;
+          if (CThreadManager::isUsingThreads()) yield() ;
+          else globalEventLoop() ;
         } while (!couplersInFinalized) ;
 
         CContextClient* client ;
@@ -899,27 +938,37 @@ void CContext::removeAllContexts(void)
           client->releaseBuffers();
           info(100)<<"DEBUG: context "<<getId()<<" release client reader ok"<<endl ;
         }
+        closeAllFile() ;
       }
       else if (serviceType_==CServicesManager::GATHERER)
       {
-         for(auto& client : writerClientOut_)
-         {
-           client->finalize();
-           bool bufferReleased;
-           do
-           {
-             client->eventLoop();
-             bufferReleased = !client->havePendingRequests();
-           } while (!bufferReleased);
+        CContextClient* client ;
+        CContextServer* server ;
+        
+        for(int n=0; n<writerClientOut_.size() ; n++)
+        {
+          client=writerClientOut_[n] ;
+          server=writerServerOut_[n] ;
+        
+          client->finalize();
+          bool bufferReleased;
+          do
+          {
+            client->eventLoop();
+            bufferReleased = !client->havePendingRequests();
+          } while (!bufferReleased);
            
-           bool notifiedFinalized=false ;
-           do
-           {
-             notifiedFinalized=client->isNotifiedFinalized() ;
-           } while (!notifiedFinalized) ;
-           client->releaseBuffers();
+          bool notifiedFinalized=false ;
+          do
+          {
+            notifiedFinalized=client->isNotifiedFinalized() ;
+          } while (!notifiedFinalized) ;
+          server->releaseBuffers();
+          client->releaseBuffers();
          }
          closeAllFile();
+         writerClientIn_[0]->releaseBuffers();
+         writerServerIn_[0]->releaseBuffers();         
          //ym writerClientIn & writerServerIn not released here ==> to check !!
       }
       else if (serviceType_==CServicesManager::WRITER)
@@ -956,22 +1005,35 @@ void CContext::removeAllContexts(void)
    
    void CContext::setDefaultServices(void)
    {
-     defaultPoolWriterId_ = CXios::defaultPoolId ;
-     defaultPoolReaderId_ = CXios::defaultPoolId ;
-     defaultPoolGathererId_ = CXios::defaultPoolId ;
-     defaultWriterId_ = CXios::defaultWriterId ;
-     defaultReaderId_ = CXios::defaultReaderId ;
-     defaultGathererId_ = CXios::defaultGathererId ;
-     defaultUsingServer2_ = CXios::usingServer2 ;
+     if (!CXios::isUsingServer())
+     {
+       defaultPoolWriterId_ = CXios::defaultPoolId ;
+       defaultPoolReaderId_ = CXios::defaultPoolId ;
+       defaultPoolGathererId_ = CXios::defaultPoolId ;
+       defaultWriterId_ = "attached" ;
+       defaultReaderId_ = "attached" ;
+       defaultGathererId_ =  "attached" ;
+       defaultUsingServer2_ = false;
+     }
+     else
+     {
+       defaultPoolWriterId_ = CXios::defaultPoolId ;
+       defaultPoolReaderId_ = CXios::defaultPoolId ;
+       defaultPoolGathererId_ = CXios::defaultPoolId ;
+       defaultWriterId_ = CXios::defaultWriterId ;
+       defaultReaderId_ = CXios::defaultReaderId ;
+       defaultGathererId_ = CXios::defaultGathererId ;
+       defaultUsingServer2_ = CXios::usingServer2 ;
      
-     if (!default_pool.isEmpty())  defaultPoolWriterId_ = defaultPoolReaderId_= defaultPoolGathererId_= default_pool ;
-     if (!default_pool_writer.isEmpty()) defaultPoolWriterId_ = default_pool_writer ;
-     if (!default_pool_reader.isEmpty()) defaultPoolReaderId_ = default_pool_reader ;
-     if (!default_pool_gatherer.isEmpty()) defaultPoolGathererId_ = default_pool_gatherer ;
-     if (!default_writer.isEmpty()) defaultWriterId_ = default_writer ;
-     if (!default_reader.isEmpty()) defaultWriterId_ = default_reader ;
-     if (!default_gatherer.isEmpty()) defaultGathererId_ = default_gatherer ;
-     if (!default_using_server2.isEmpty()) defaultUsingServer2_ = default_using_server2 ;
+       if (!default_pool.isEmpty())  defaultPoolWriterId_ = defaultPoolReaderId_= defaultPoolGathererId_= default_pool ;
+       if (!default_pool_writer.isEmpty()) defaultPoolWriterId_ = default_pool_writer ;
+       if (!default_pool_reader.isEmpty()) defaultPoolReaderId_ = default_pool_reader ;
+       if (!default_pool_gatherer.isEmpty()) defaultPoolGathererId_ = default_pool_gatherer ;
+       if (!default_writer.isEmpty()) defaultWriterId_ = default_writer ;
+       if (!default_reader.isEmpty()) defaultWriterId_ = default_reader ;
+       if (!default_gatherer.isEmpty()) defaultGathererId_ = default_gatherer ;
+       if (!default_using_server2.isEmpty()) defaultUsingServer2_ = default_using_server2 ;
+     }
    }
 
    /*!

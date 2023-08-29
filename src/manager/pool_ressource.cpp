@@ -7,6 +7,7 @@
 #include "cxios.hpp"
 #include "timer.hpp"
 #include "event_scheduler.hpp"
+#include "thread_manager.hpp"
 
 namespace xios
 {
@@ -32,6 +33,23 @@ namespace xios
     if (eventScheduler) eventScheduler_=eventScheduler ;
     else eventScheduler_= make_shared<CEventScheduler>(poolComm) ;
     freeRessourceEventScheduler_ = eventScheduler_ ;
+    std::hash<string> hashString ;
+    hashId_ = hashString("CPoolRessource::"+Id) ;
+    if (CThreadManager::isUsingThreads()) CThreadManager::spawnThread(&CPoolRessource::threadEventLoop, this) ;
+  }
+
+  void CPoolRessource::synchronize(void)
+  {
+    bool out=false ; 
+    size_t timeLine=0 ;
+          
+    eventScheduler_->registerEvent(timeLine, hashId_) ;
+    while (!out)
+    {
+      CThreadManager::yield() ;
+      out = eventScheduler_->queryEvent(timeLine,hashId_) ;
+      if (out) eventScheduler_->popEvent() ;
+    }
   }
 
   void CPoolRessource::createService(const std::string& serviceId, int type, int size, int nbPartitions)
@@ -121,8 +139,16 @@ namespace xios
     int commRank ;
     MPI_Comm_rank(poolComm_, &commRank) ;
     winNotify_->popFromExclusiveWindow(commRank, this, &CPoolRessource::notificationsDumpIn) ;
-    if (notifyType_==NOTIFY_CREATE_SERVICE) createService() ;
-    else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO) createServiceOnto() ;
+    if (notifyType_==NOTIFY_CREATE_SERVICE) 
+    {
+      if (CThreadManager::isUsingThreads()) synchronize() ;
+      createService() ;
+    }
+    else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO) 
+    {
+      if (CThreadManager::isUsingThreads()) synchronize() ;
+      createServiceOnto() ;
+    }
   }
 
 
@@ -232,9 +258,51 @@ namespace xios
       }
     }
     CTimer::get("CPoolRessource::eventLoop").suspend();
-    if (services_.empty() && finalizeSignal_) return true ;
-    else return false ;
+    if (services_.empty() && finalizeSignal_) finished_=true ;
+    return finished_ ;
   }
+
+  void CPoolRessource::threadEventLoop(void)
+  {
+    CTimer::get("CPoolRessource::eventLoop").resume();
+    info(100)<<"Launch Thread for  CPoolRessource::threadEventLoop, pool id = "<<Id_<<endl ;
+    CThreadManager::threadInitialize() ; 
+    
+    do
+    {
+
+      double time=MPI_Wtime() ;
+      int flag ;
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+      if (time-lastEventLoop_ > eventLoopLatency_) 
+      {
+        //checkCreateServiceNotification() ;
+        checkNotifications() ;
+        lastEventLoop_=time ;
+      }
+    
+      for(auto it=services_.begin();it!=services_.end();++it) 
+      {
+        if (it->second->isFinished())
+        {
+          delete it->second ; 
+          services_.erase(it) ;
+          // destroy server_context -> to do later
+          break ;
+        } ;
+      }
+
+      CTimer::get("CPoolRessource::eventLoop").suspend();
+      if (services_.empty() && finalizeSignal_) finished_=true ;
+      
+      if (!finished_) CThreadManager::yield() ;
+    
+    } while (!finished_) ;
+
+    CThreadManager::threadFinalize() ;
+    info(100)<<"Close thread for  CPoolRessource::threadEventLoop, pool id = "<<Id_<<endl ;
+  }
+
 /*
   void CPoolRessource::checkCreateServiceNotification(void)
   {
@@ -346,7 +414,7 @@ namespace xios
     
   }
 
-  void CPoolRessource::createService(MPI_Comm serviceComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& serviceId, int partitionId, int type, int nbPartitions) // for clients & attached
+  void CPoolRessource::createService(MPI_Comm serviceComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& serviceId, int partitionId, int type, int nbPartitions) // for clients
   {
     services_[std::make_tuple(serviceId,partitionId)] = new CService(serviceComm, eventScheduler, Id_, serviceId, partitionId, type, nbPartitions) ;
   }

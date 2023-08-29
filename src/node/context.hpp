@@ -111,6 +111,8 @@ namespace xios
          bool eventLoop(bool enableEventsProcessing=true);
          bool scheduledEventLoop(bool enableEventsProcessing=true) ; 
          void globalEventLoop(void);
+         void yield(void) ;
+         void synchronize(void) ;
 
          // Finalize a context
          void finalize(void);
@@ -367,6 +369,9 @@ namespace xios
         MPI_Comm getIntraComm(void) {return intraComm_ ;}
         int getIntraCommRank(void) {return intraCommRank_;}
         int getIntraCommSize(void) {return intraCommSize_;}
+      
+      public:
+        shared_ptr<CEventScheduler> getEventScheduler(void) {return eventScheduler_ ;}
       private:
          shared_ptr<CEventScheduler> eventScheduler_ ; //! The local event scheduler for context
          size_t hashId_ ; //! the local hashId for scheduler

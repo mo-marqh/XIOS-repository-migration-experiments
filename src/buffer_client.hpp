@@ -6,6 +6,7 @@
 #include "buffer_out.hpp"
 #include "mpi.hpp"
 #include "cxios.hpp"
+#include "window_dynamic.hpp"
 
 namespace xios
 {
@@ -14,7 +15,7 @@ namespace xios
     public:
       static size_t maxRequestSize;
 
-      CClientBuffer(MPI_Comm intercomm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize);
+      CClientBuffer(MPI_Comm intercomm, int serverRank, StdSize bufferSize, bool hasWindows);
       ~CClientBuffer();
 //      void createWindows(MPI_Comm oneSidedComm) ;
       void freeWindows(void) ;
@@ -27,12 +28,13 @@ namespace xios
       bool hasPendingRequest(void);
       StdSize remain(void);
       MPI_Aint getWinAddress(int numWindows) ;
+      MPI_Aint getWinBufferAddress(int numWindows) ;
       void infoBuffer(void) ;
       bool isNotifiedFinalized(void) ;
       void setGrowableBuffer(double growFactor) { growFactor_=growFactor ; isGrowableBuffer_=true ;}
       void fixBufferSize(size_t bufferSize) { newBufferSize_=bufferSize ; isGrowableBuffer_=false ; resizingBufferStep_=1 ;}
       void fixBuffer(void) { isGrowableBuffer_=false ;}
-      void attachWindows(vector<MPI_Win>& windows) ;
+      void attachWindows(MPI_Comm& winComm) ;
       bool isAttachedWindows(void) { return isAttachedWindows_ ;}
     private:
        void resizeBuffer(size_t newSize) ;
@@ -57,7 +59,6 @@ namespace xios
       StdSize count;
       StdSize maxEventSize;
       StdSize bufferSize;
-      const StdSize estimatedMaxEventSize;
       bool isFinalized_=false ;
 
       const int serverRank;
@@ -68,8 +69,8 @@ namespace xios
 
       CBufferOut* retBuffer;
       const MPI_Comm interComm;
-      std::vector<MPI_Win> windows_ ;
-      bool hasWindows=false ;
+      std::vector<CWindowDynamic*> windows_ ;
+      bool hasWindows_=false ;
       bool isAttachedWindows_=false ;
       double latency_=0 ;
       double lastCheckedWithNothing_=0 ;

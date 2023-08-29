@@ -23,6 +23,7 @@ namespace xios
     CXios::launchServicesManager(isXiosServer) ;
     CXios::launchContextsManager(isXiosServer) ;
     CXios::launchCouplerManager(isXiosServer) ;
+    CXios::launchThreadManager(isXiosServer) ;
  
     if (isXiosServer) CServer::launchServersRessource(splitComm) ;
     MPI_Barrier(xiosComm) ;
@@ -40,15 +41,17 @@ namespace xios
     CXios::getRessourcesManager()->eventLoop() ;
     CXios::getServicesManager()->eventLoop() ;
     CXios::getContextsManager()->eventLoop() ;
-    if (isServer_) {
-        if (CServer::isRoot) {
-            CServer::listenOasisEnddef() ;
-            CServer::listenRootOasisEnddef() ;
-        }
-        else {
-            CServer::listenRootOasisEnddef() ;
-        }
-        return CServer::getServersRessource()->eventLoop(false) ;
+    if (isServer_) 
+    {
+      if (CServer::isRoot) 
+      {
+        CServer::listenOasisEnddef() ;
+        CServer::listenRootOasisEnddef() ;
+      }
+      else CServer::listenRootOasisEnddef() ;
+      
+      if (CThreadManager::isUsingThreads()) return CServer::getServersRessource()->isFinished() ;
+      else return CServer::getServersRessource()->eventLoop(false) ;
     }
     else  return CXios::getPoolRessource()->eventLoop(false) ;
   }
@@ -75,6 +78,7 @@ namespace xios
       CXios::finalizeServicesManager() ;
       CXios::finalizeRessourcesManager() ;
       CXios::finalizeRegistryManager() ;
+      CXios::finalizeThreadManager() ;
       isFinalized_=true ;
     }
     return isFinalized_;

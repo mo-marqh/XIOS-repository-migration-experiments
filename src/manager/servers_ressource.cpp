@@ -8,6 +8,7 @@
 #include "timer.hpp"
 #include <vector>
 #include <string>
+#include "thread_manager.hpp"
 
 
 
@@ -42,6 +43,7 @@ namespace xios
     MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ; 
     eventScheduler_ = make_shared<CEventScheduler>(freeRessourcesComm_) ;
     freeRessourceEventScheduler_ = eventScheduler_ ;
+    if (CThreadManager::isUsingThreads()) CThreadManager::spawnThread(&CServersRessource::threadEventLoop, this) ;
   }
 
   void CServersRessource::createPool(const string& poolId, const int size)
@@ -130,7 +132,8 @@ namespace xios
 
     if (poolRessource_!=nullptr) 
     {
-      if (poolRessource_->eventLoop(serviceOnly))
+      poolRessource_->eventLoop(serviceOnly) ;
+      if (poolRessource_->isFinished())
       {
         delete poolRessource_ ;
         poolRessource_=nullptr ;
@@ -138,17 +141,76 @@ namespace xios
       } 
     }
     CTimer::get("CServersRessource::eventLoop").suspend();
-    if (poolRessource_==nullptr && finalizeSignal_) return true ;
-    else return false ;
+    if (poolRessource_==nullptr && finalizeSignal_) finished_=true ;
+    return finished_ ;
   }
+
+  void CServersRessource::threadEventLoop(void)
+  {
+    CTimer::get("CServersRessource::eventLoop").resume();
+    info(100)<<"Launch Thread for  CServersRessource::threadEventLoop"<<endl ;
+    CThreadManager::threadInitialize() ; 
+
+    do
+    {
+      double time=MPI_Wtime() ;
+      int flag ;
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+
+      if (time-lastEventLoop_ > eventLoopLatency_) 
+      {
+        checkNotifications() ;
+        lastEventLoop_=time ;
+      }
+
+      if (poolRessource_!=nullptr) 
+      {
+        if (poolRessource_->isFinished())
+        {
+          delete poolRessource_ ;
+          poolRessource_=nullptr ;
+          // don't forget to free pool ressource later
+        } 
+      }
+      CTimer::get("CServersRessource::eventLoop").suspend();
+      if (poolRessource_==nullptr && finalizeSignal_) finished_=true ;
+      if (!finished_) CThreadManager::yield() ;
+    
+    } while (!finished_) ;
+
+    CThreadManager::threadFinalize() ;
+    info(100)<<"Close thread for CServersRessource::threadEventLoop"<<endl ; ;
+  }
+
 
   void CServersRessource::checkNotifications(void)
   {
     int commRank ;
     MPI_Comm_rank(serverComm_, &commRank) ;
     winNotify_->popFromExclusiveWindow(commRank, this, &CServersRessource::notificationsDumpIn) ;
-    if (notifyInType_==NOTIFY_CREATE_POOL) createPool() ;
+    if (notifyInType_==NOTIFY_CREATE_POOL) 
+    {
+      if (CThreadManager::isUsingThreads()) synchronize() ;
+      createPool() ;
+    }
     else if (notifyInType_==NOTIFY_FINALIZE) finalizeSignal() ;
+  }
+
+  void CServersRessource::synchronize(void)
+  {
+    bool out=false ; 
+    size_t timeLine=0 ;
+    std::hash<string> hashString ;
+    int commSize ;
+    MPI_Comm_size(freeRessourcesComm_,&commSize) ;
+    size_t hashId = hashString("CServersRessource::"+to_string(commSize)) ;
+    freeRessourceEventScheduler_->registerEvent(timeLine, hashId) ;
+    while (!out)
+    {
+      CThreadManager::yield() ;
+      out = eventScheduler_->queryEvent(timeLine,hashId) ;
+      if (out) eventScheduler_->popEvent() ;
+    }
   }
 
   void CServersRessource::createPool(void)

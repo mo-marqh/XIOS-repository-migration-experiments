@@ -179,8 +179,8 @@ namespace xios
       int xiosCommSize, clientsCommSize ; 
       MPI_Comm_size(CXios::getXiosComm(), &xiosCommSize) ;
       MPI_Comm_size(clientsComm_, &clientsCommSize) ;
-      if (xiosCommSize==clientsCommSize) CXios::setUsingServer() ;
-      else CXios::setNotUsingServer() ;
+      if (xiosCommSize==clientsCommSize) CXios::setNotUsingServer() ;
+      else CXios::setUsingServer() ;
 
       /////////////////////////////////////////
       ///////////// PART 3 ////////////////////

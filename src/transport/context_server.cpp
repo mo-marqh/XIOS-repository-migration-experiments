@@ -43,15 +43,8 @@ namespace xios
     MPI_Comm_rank(intraComm,&intraCommRank);
 
     interComm=interComm_;
-    int flag;
-    MPI_Comm_test_inter(interComm,&flag);
-
-    if (flag) attachedMode=false ;
-    else  attachedMode=true ;
+    MPI_Comm_remote_size(interComm,&clientSize_);
     
-    if (flag) MPI_Comm_remote_size(interComm,&clientSize_);
-    else  MPI_Comm_size(interComm,&clientSize_);
-
     SRegisterContextInfo contextInfo ;
     CXios::getContextsManager()->getContextInfo(context->getId(), contextInfo, intraComm) ;
     eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
@@ -86,13 +79,6 @@ namespace xios
   CContextServer* CContextServer::getNew<CContextServer::legacy>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) 
   { 
     return new COneSidedContextServer(parent, intraComm, interComm) ; 
-  }
-
-//! Attached mode is used ?
-//! \return true if attached mode is used, false otherwise
-  bool CContextServer::isAttachedModeEnabled() const
-  {
-    return attachedMode ;
   }
 
 }

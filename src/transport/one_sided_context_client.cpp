@@ -21,7 +21,7 @@ namespace xios
     \param [in] parent Pointer to context on client side
     \param [in] intraComm_ communicator of group client
     \param [in] interComm_ communicator of group server
-    \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode).
+    \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode --> obsolete ).
     */
     COneSidedContextClient::COneSidedContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
      : CContextClient(parent, intraComm_, interComm_, cxtSer),
@@ -29,12 +29,11 @@ namespace xios
     {
       
       pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-      if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
 
-      if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
+      MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
       
       MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
-
+      eventScheduler_ = parent->getEventScheduler() ;  
       timeLine = 1;
     }
 
@@ -108,18 +107,13 @@ namespace xios
         if (event.isFirst())
         {
           if (CTimer::get("Blocking time").isSuspended()) CTimer::get("Blocking time").resume() ;
-          callGlobalEventLoop() ;
+          yield() ;
         } 
       }
       if (!CTimer::get("Blocking time").isSuspended()) CTimer::get("Blocking time").suspend() ;
 
-      if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
-      {
-        while (checkBuffers(ranks)) callGlobalEventLoop() ;
-      
-        CXios::getDaemonsManager()->scheduleContext(hashId_) ;
-        while (CXios::getDaemonsManager()->isScheduledContext(hashId_)) callGlobalEventLoop() ;
-      }
+
+      synchronize() ;
       
       timeLine++;
     }
@@ -136,6 +130,24 @@ namespace xios
      context_->globalEventLoop() ;
      locked_=false ;
    }
+
+   void COneSidedContextClient::yield(void)
+   {
+     locked_=true ;
+     context_->yield() ;
+     locked_=false ;
+   }
+
+   void COneSidedContextClient::synchronize(void)
+   {
+     if (context_->getServiceType()!=CServicesManager::CLIENT)
+     {
+       locked_=true ;
+       context_->synchronize() ;
+       locked_=false ;
+     }    
+   }
+
    /*!
    Make a new buffer for a certain connection to server with specific rank
    \param [in] rank rank of connected server
@@ -270,7 +282,6 @@ namespace xios
 
   bool COneSidedContextClient::isNotifiedFinalized(void)
   {
-    if (isAttachedModeEnabled()) return true ;
 
     bool finalized = true;
     for (auto& it : buffers ) finalized &= it.second->isNotifiedFinalized();

@@ -5,6 +5,7 @@
 #include "context.hpp"
 #include "register_context_info.hpp"
 #include "services.hpp"
+#include "thread_manager.hpp"
 #include "timer.hpp"
 
 
@@ -49,6 +50,8 @@ namespace xios
 
     info(10)<<"Context "<< CXios::getContextsManager()->getServerContextName(poolId, serviceId, partitionId, type, contextId)<<" created, on local rank "<<localRank
                         <<" and global rank "<<globalRank<<endl  ;
+   
+    if (CThreadManager::isUsingThreads()) CThreadManager::spawnThread(&CServerContext::threadEventLoop, this) ;
   }
 
   CServerContext::~CServerContext()
@@ -83,17 +86,20 @@ namespace xios
       }
     }
     
-    MPI_Request req ;
-    MPI_Status status ;
-    MPI_Ibarrier(intraComm,&req) ;
-    
-    int flag=false ;
-    while(!flag) 
+    if (wait)
     {
-      CXios::getDaemonsManager()->servicesEventLoop() ;
-      MPI_Test(&req,&flag,&status) ;
+      MPI_Request req ;
+      MPI_Status status ;
+      MPI_Ibarrier(intraComm,&req) ;
+    
+      int flag=false ;
+      while(!flag) 
+      {
+        CXios::getDaemonsManager()->servicesEventLoop() ;
+        MPI_Test(&req,&flag,&status) ;
+      }
     }
-
+    
     MPI_Bcast(&ok, 1, MPI_INT, 0, intraComm) ;
 
     if (ok)  
@@ -116,18 +122,8 @@ namespace xios
       int commSize ;
       MPI_Comm_size(contextComm_,&commSize ) ;
 */
-      if (nOverlap> 0 )
-      {
-        while (get<0>(overlapedComm_[name_])==false) CXios::getDaemonsManager()->servicesEventLoop() ;
-        isAttachedMode_=true ;
-        cout<<"CServerContext::createIntercomm : total overlap ==> context in attached mode"<<endl ;
-        interCommClient=newInterCommClient ;
-        interCommServer=newInterCommServer ;
-      }
-      else if (nOverlap==0)
+      if (nOverlap==0)
       { 
-        cout<<"CServerContext::createIntercomm : No overlap ==> context in server mode"<<endl ;
-        isAttachedMode_=false ;
         MPI_Intercomm_create(intraComm, 0, xiosComm_, contextLeader, 3141, &interCommClient) ;
         MPI_Comm_dup(interCommClient, &interCommServer) ;
         MPI_Comm_free(&newInterCommClient) ;
@@ -135,7 +131,7 @@ namespace xios
       }
       else
       {
-        cout<<"CServerContext::createIntercomm : partial overlap ==> not managed"<<endl ;
+        ERROR("void CServerContext::createIntercomm(void)",<<"CServerContext::createIntercomm : overlap ==> not managed") ;
       }
     }
     overlapedComm_.erase(name_) ;
@@ -258,6 +254,41 @@ namespace xios
     return finished ;
   }
 
+  void CServerContext::threadEventLoop(void)
+  {
+    
+    info(100)<<"Launch Thread for CServerContext::threadEventLoop, context id = "<<context_->getId()<<endl ;
+    CThreadManager::threadInitialize() ; 
+    do
+    {
+      CTimer::get("CServerContext::eventLoop").resume();
+      int flag ;
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+
+      if (winNotify_!=nullptr) checkNotifications() ;
+
+
+      if (context_!=nullptr)  
+      {
+        if (context_->eventLoop())
+        {
+          info(100)<<"Remove context server with id "<<context_->getId()<<endl ;
+          CContext::removeContext(context_->getId()) ;
+          context_=nullptr ;
+          // destroy context ??? --> later
+        }
+      }
+      CTimer::get("CServerContext::eventLoop").suspend();
+      if (context_==nullptr && finalizeSignal_) finished_=true ;
+ 
+      if (!finished_) CThreadManager::yield() ;
+    }
+    while (!finished_) ;
+    
+    CThreadManager::threadFinalize() ;
+    info(100)<<"Close thread for CServerContext::threadEventLoop"<<endl ;
+  }
+
   void CServerContext::createIntercomm(void)
   {
     info(40)<<"CServerContext::createIntercomm  : received createIntercomm notification"<<endl ;
@@ -279,20 +310,9 @@ namespace xios
      int commSize ;
      MPI_Comm_size(contextComm_,&commSize ) ;
 
-    if (nOverlap==commSize)
-    {
-      info(10)<<"CServerContext::createIntercomm : total overlap ==> context in attached mode"<<endl ;
-      isAttachedMode_=true ;
-      interCommClient=get<2>(it->second) ;
-      interCommServer=get<1>(it->second) ;
-      context_ -> createClientInterComm(interCommClient, interCommServer ) ;
-      clientsInterComm_.push_back(interCommClient) ;
-      clientsInterComm_.push_back(interCommServer) ;
-    }
-    else if (nOverlap==0)
+    if (nOverlap==0)
     { 
       info(10)<<"CServerContext::createIntercomm : No overlap ==> context in server mode"<<endl ;
-      isAttachedMode_=false ;
       MPI_Intercomm_create(contextComm_, 0, xiosComm_, remoteLeader, 3141, &interCommServer) ;
       MPI_Comm_dup(interCommServer,&interCommClient) ;
       context_ -> createClientInterComm(interCommClient,interCommServer) ;
@@ -301,7 +321,7 @@ namespace xios
     }
     else
     {
-      ERROR("void CServerContext::createIntercomm(void)",<<"CServerContext::createIntercomm : partial overlap ==> not managed") ;
+      ERROR("void CServerContext::createIntercomm(void)",<<"CServerContext::createIntercomm : overlap ==> not managed") ;
     }
    
   }

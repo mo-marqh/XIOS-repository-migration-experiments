@@ -34,6 +34,7 @@ namespace xios
     void createService(MPI_Comm serviceComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& serviceId, int partitionId, int type, int nbPartitions) ; 
     void createServiceOnto(const std::string& serviceId, int type, const std::string& OnServiceId) ;
     bool eventLoop(bool serviceOnly=false) ;
+    void threadEventLoop(void) ;
     bool hasService(const std::string serviceId, int partitionId) {return services_.count(make_tuple(serviceId,partitionId))>0 ;}
     CService* getService(const std::string serviceId, int partitionId) { return services_[make_tuple(serviceId,partitionId)]; }
     void finalizeSignal(void) ;
@@ -49,6 +50,7 @@ namespace xios
     void notificationsDumpIn(CBufferIn& buffer) ;
     void createService(void) ;
     void createServiceOnto(void) ;
+    void synchronize(void) ;
     
 //    void createServiceNotify(int rank, const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
 //    void createServiceDumpOut(CBufferOut& buffer) ;
@@ -57,8 +59,13 @@ namespace xios
     void createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
   public:
     void createNewServiceOnto(const std::string& serviceId, int type, const string& onServiceId) ;
-    
-    private:
+  
+  private:
+    bool finished_=false ;
+  public:
+    bool isFinished(void) { return finished_ ;}
+
+  private:
     MPI_Comm poolComm_ ;
     
     std::multimap<int,int> occupancy_ ;
@@ -73,11 +80,12 @@ namespace xios
     std::map< std::tuple<std::string, int>, CService*> services_ ;
     std::string Id_ ;
     bool finalizeSignal_ ;
-    
+        
     const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;
 
     private:
+      size_t hashId_ ;
       shared_ptr<CEventScheduler> eventScheduler_ ;
       shared_ptr<CEventScheduler> freeRessourceEventScheduler_ ;
       bool isFirstSplit_=true ;

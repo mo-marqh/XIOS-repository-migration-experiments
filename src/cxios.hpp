@@ -10,6 +10,7 @@
 #include "daemons_manager.hpp"
 #include "coupler_manager.hpp"
 #include "registry_manager.hpp"
+#include "thread_manager.hpp"
 #include "mpi_garbage_collector.hpp"
 
 namespace xios
@@ -105,6 +106,7 @@ namespace xios
      static void launchRessourcesManager(bool isXiosServer) ;
      static void launchCouplerManager(bool isXiosServer) ;
      static void launchRegistryManager(bool isXiosServer) ;
+     static void launchThreadManager(bool isXiosServer) ;
     
      static void finalizeServicesManager() ;
      static void finalizeContextsManager() ;
@@ -112,6 +114,7 @@ namespace xios
      static void finalizeRessourcesManager() ;
      static void finalizeCouplerManager() ;
      static void finalizeRegistryManager() ;
+     static void finalizeThreadManager() ;
 
      static CRegistryManager*   getRegistryManager(void) { return registryManager_ ;}
      static CRessourcesManager* getRessourcesManager(void) { return ressourcesManager_ ;}

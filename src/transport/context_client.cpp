@@ -39,13 +39,9 @@ namespace xios
       MPI_Comm_size(intraComm, &clientSize);
 
       int flag;
-      MPI_Comm_test_inter(interComm, &flag);
-      if (flag) isAttached_=false ;
-      else  isAttached_=true ;
-
-      if (flag) MPI_Comm_remote_size(interComm, &serverSize);
-      else  MPI_Comm_size(interComm, &serverSize);
-
+      
+      MPI_Comm_remote_size(interComm, &serverSize);
+      
       computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
 
       auto time=chrono::system_clock::now().time_since_epoch().count() ;

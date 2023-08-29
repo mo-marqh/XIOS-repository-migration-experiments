@@ -60,7 +60,7 @@ namespace xios
   
       std::map<int, StdSize> mapBufferSize_;
       std::map<int,MPI_Comm> winComm_ ; //! Window communicators
-      std::map<int,std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
+      std::map<int,std::vector<CWindowDynamic*> >windows_ ; //! one sided mpi windows to expose client buffers to servers ; No memory will be attached on server side.
       bool isProcessingEvent_ ;
       size_t remoteHashId_; //!< the hash is of the calling context client
       

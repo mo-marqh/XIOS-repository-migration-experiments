@@ -10,6 +10,7 @@
 #include "mpi.hpp"
 #include "registry.hpp"
 #include "context_client.hpp"
+#include "window_dynamic.hpp"
 
 namespace xios
 {
@@ -47,10 +48,12 @@ namespace xios
       // Functions to set/get buffers
       void getBuffers(const size_t timeLine, const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers);
       void newBuffer(int rank);
-      void checkAttachWindows(CClientBuffer* buffer , int rank) ;
+      bool checkAttachWindows(CClientBuffer* buffer , int rank, map<int,MPI_Request>& attachList) ;
       bool checkBuffers(list<int>& ranks);
       bool checkBuffers(void);
       void callGlobalEventLoop() ;
+      void yield(void) ;
+      void synchronize(void) ;
       bool havePendingRequests(list<int>& ranks) ;
       void setGrowableBuffer(void) { isGrowableBuffer_=true;}
       void setFixedBuffer(void) { isGrowableBuffer_=false;}
@@ -75,12 +78,13 @@ namespace xios
       StdSize maxBufferedEvents;
 
       std::map<int, MPI_Comm> winComm_ ; //! Window communicators
-      std::map<int, std::vector<MPI_Win> >windows_ ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
+      std::map<int, std::vector<CWindowDynamic*> >windows_ ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]
       bool isGrowableBuffer_ = true ;
 
       double latency_=0e-2 ;
 
       bool locked_ = false ; //!< The context client is locked to avoid recursive checkBuffer
+      shared_ptr<CEventScheduler> eventScheduler_ ;
   };
 }
 

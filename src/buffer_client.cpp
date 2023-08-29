@@ -13,25 +13,33 @@ namespace xios
 {
   size_t CClientBuffer::maxRequestSize = 0;
 
-  CClientBuffer::CClientBuffer(MPI_Comm interComm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize)
+  CClientBuffer::CClientBuffer(MPI_Comm interComm, int serverRank, StdSize bufferSize, bool hasWindows)
     : interComm(interComm)
     , clientRank_(0)
     , serverRank(serverRank)
     , bufferSize(bufferSize)
-    , estimatedMaxEventSize(estimatedMaxEventSize)
     , maxEventSize(0)
     , current(0)
     , count(0)
     , pending(false)
-    , hasWindows(false) 
+    , hasWindows_(hasWindows) 
   {
-     /*
-      if (windows[0]==MPI_WIN_NULL && windows[1]==MPI_WIN_NULL) hasWindows=false ;
-      else hasWindows=true ;
-     */
+      if (hasWindows_)
+      { 
+        windows_.resize(2) ;
+        windows_[0] = new CWindowDynamic() ;
+        windows_[0]->allocateBuffer(bufferSize+headerSize_) ;
+        bufferHeader[0] = (char*) windows_[0]->getBufferAddress() ;
+        windows_[1] = new CWindowDynamic() ;
+        windows_[1]->allocateBuffer(bufferSize+headerSize_) ;
+        bufferHeader[1] = (char*) windows_[1]->getBufferAddress() ;
+      }
+      else
+      {
+        MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[0]) ;
+        MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[1]) ;
+      }
 
-      MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[0]) ;
-      MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[1]) ;
       buffer[0] = bufferHeader[0]+headerSize_ ;
       buffer[1] = bufferHeader[1]+headerSize_ ;
       firstTimeLine[0]=(size_t*)bufferHeader[0] + timeLineOffset_ ;
@@ -54,34 +62,9 @@ namespace xios
       winState[0]=false ;
       winState[1]=false ;
 
-
-    if (hasWindows)
-    {  
     
-      MPI_Aint buffSize=bufferSize+headerSize_ ;
-      MPI_Win_attach(windows_[0], bufferHeader[0], buffSize) ;
-      MPI_Win_attach(windows_[1], bufferHeader[1], buffSize) ;
-    
-      MPI_Group group ;
-      int groupSize,groupRank ;
-      MPI_Win_get_group(windows_[0], &group) ;
-      MPI_Group_size(group, &groupSize) ;
-      MPI_Group_rank(group, &groupRank) ;
-      if (groupRank!=clientRank_) ERROR("CClientBuffer::CClientBuffer",<< " ClientRank != groupRank "<<clientRank_<<" "<<groupRank);
-
-      MPI_Win_get_group(windows_[1], &group) ;
-      MPI_Group_size(group, &groupSize) ;
-      MPI_Group_rank(group, &groupRank) ;
-      if (groupRank!=clientRank_) ERROR("CClientBuffer::CClientBuffer",<< " ClientRank != groupRank "<<clientRank_<<" "<<groupRank);
-
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
-
-      MPI_Win_unlock(clientRank_, windows_[1]) ;
-      MPI_Win_unlock(clientRank_, windows_[0]) ;
-    } 
-    retBuffer = new CBufferOut(buffer[current], bufferSize);
-    info(10) << "CClientBuffer: allocated 2 x " << bufferSize << " bytes for server " << serverRank << endl;
+      retBuffer = new CBufferOut(buffer[current], bufferSize);
+      info(10) << "CClientBuffer: allocated 2 x " << bufferSize << " bytes for server " << serverRank << endl;
   }
 
   MPI_Aint CClientBuffer::getWinAddress(int i)
@@ -90,37 +73,30 @@ namespace xios
     MPI_Get_address(bufferHeader[i], &address) ;
     return address ;
   }
+  
+  MPI_Aint CClientBuffer::getWinBufferAddress(int i)
+  {
+    return windows_[i]->getWinBufferAddress() ;
+  }
 
-  void CClientBuffer::attachWindows(vector<MPI_Win>& windows)
+  void CClientBuffer::attachWindows(MPI_Comm& winComm)
   {
     isAttachedWindows_=true ;
-    windows_=windows ;
-    if (windows_[0]==MPI_WIN_NULL && windows_[1]==MPI_WIN_NULL) hasWindows=false ;
-    else hasWindows=true ;
 
-    if (hasWindows)
+    if (hasWindows_)
     {  
       MPI_Aint buffSize=bufferSize+headerSize_ ;
-      MPI_Win_attach(windows_[0], bufferHeader[0], buffSize) ;
-      MPI_Win_attach(windows_[1], bufferHeader[1], buffSize) ;
-    
-      MPI_Group group ;
-      int groupSize,groupRank ;
-      MPI_Win_get_group(windows_[0], &group) ;
-      MPI_Group_size(group, &groupSize) ;
-      MPI_Group_rank(group, &groupRank) ;
-      if (groupRank!=clientRank_) ERROR("CClientBuffer::CClientBuffer",<< " ClientRank != groupRank "<<clientRank_<<" "<<groupRank);
+      windows_[0]->create(winComm) ;
+      windows_[0]->attach() ;
+      windows_[1]->create(winComm) ;
+      windows_[1]->attach() ;
 
-      MPI_Win_get_group(windows_[1], &group) ;
-      MPI_Group_size(group, &groupSize) ;
-      MPI_Group_rank(group, &groupRank) ;
-      if (groupRank!=clientRank_) ERROR("CClientBuffer::CClientBuffer",<< " ClientRank != groupRank "<<clientRank_<<" "<<groupRank);
+      windows_[0]->lockExclusive(clientRank_) ;
+      windows_[1]->lockExclusive(clientRank_) ;
 
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
+      windows_[0]->unlockExclusive(clientRank_) ;
+      windows_[1]->unlockExclusive(clientRank_) ;
 
-      MPI_Win_unlock(clientRank_, windows_[1]) ;
-      MPI_Win_unlock(clientRank_, windows_[0]) ;
     } 
 
   }
@@ -128,24 +104,29 @@ namespace xios
 
   CClientBuffer::~CClientBuffer()
   {
-     //freeWindows() ;
-     if (hasWindows)
-     {
-       MPI_Win_detach(windows_[0],bufferHeader[0]);
-       MPI_Win_detach(windows_[1],bufferHeader[1]);
-       MPI_Free_mem(bufferHeader[0]) ;
-       MPI_Free_mem(bufferHeader[1]) ;
-     }
-     delete retBuffer;
+    if (hasWindows_)
+    {
+      windows_[0]->detach() ;
+      windows_[1]->detach() ;
+      delete windows_[0] ;
+      delete windows_[1] ;
+    }
+    else 
+    {
+      MPI_Free_mem(bufferHeader[0]) ;
+      MPI_Free_mem(bufferHeader[1]) ;
+    }
+    delete retBuffer;
   }
 
   void CClientBuffer::lockBuffer(void)
   {
     CTimer::get("lock buffer").resume();
-    if (hasWindows)
+    if (isAttachedWindows_)    
     {
       if (winState[current]==true) ERROR("CClientBuffer::lockBuffer(void)",<<"Try lo lock client buffer but winState said it is already locked") ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE,clientRank_, 0, windows_[current]) ;
+      //MPI_Win_lock(MPI_LOCK_EXCLUSIVE,clientRank_, 0, windows_[current]) ;
+      windows_[current]->lockExclusive(clientRank_) ;
       winState[current]=true ;
     }
     CTimer::get("lock buffer").suspend();
@@ -154,10 +135,11 @@ namespace xios
   void CClientBuffer::unlockBuffer(void)
   {
     CTimer::get("unlock buffer").resume();
-    if (hasWindows)
+    if (isAttachedWindows_)
     {
       if (winState[current]==false) ERROR("CClientBuffer::lockBuffer(void)",<<"Try lo unlock client buffer but winState said it is already unlocked") ;
-      MPI_Win_unlock(clientRank_, windows_[current]) ;
+      //MPI_Win_unlock(clientRank_, windows_[current]) ;
+      windows_[current]->unlockExclusive(clientRank_) ;
       winState[current]=false ;
     }
     CTimer::get("unlock buffer").suspend();
@@ -188,10 +170,6 @@ namespace xios
     if (size > maxEventSize)
     {
       maxEventSize = size;
-
-      if (size > estimatedMaxEventSize)
-        error(0) << "WARNING: Unexpected event of size " << size << " for server " << serverRank
-                 << " (estimated max event size = " << estimatedMaxEventSize << ")" << std::endl;
 
       if (size > maxRequestSize) maxRequestSize = size;
     }
@@ -318,17 +296,20 @@ namespace xios
   void CClientBuffer::resizeBuffer(size_t newSize)
   {
 
-    if (hasWindows)
-    { 
-      MPI_Win_detach(windows_[0], bufferHeader[0]) ;
-      MPI_Win_detach(windows_[1], bufferHeader[1]) ;
-    }
-    MPI_Free_mem(bufferHeader[0]) ;
-    MPI_Free_mem(bufferHeader[1]) ;
-
     bufferSize=newSize ;
-    MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[0]) ;
-    MPI_Alloc_mem(bufferSize+headerSize_, MPI_INFO_NULL, &bufferHeader[1]) ;
+
+    if (hasWindows_)
+    { 
+      windows_[0]->detach();
+      windows_[1]->detach();
+      
+      windows_[0]->attach(bufferSize+headerSize_) ;
+      bufferHeader[0] = (char*) windows_[0] -> getBufferAddress() ;
+      windows_[1]->attach(bufferSize+headerSize_) ;
+      bufferHeader[1] = (char*) windows_[1] -> getBufferAddress() ;
+    }
+    
+    
     buffer[0] = bufferHeader[0]+headerSize_ ;
     buffer[1] = bufferHeader[1]+headerSize_ ;
     firstTimeLine[0]=(size_t*)bufferHeader[0] + timeLineOffset_;
@@ -352,17 +333,14 @@ namespace xios
     winState[1]=false ;
     current=0 ;
     
-    if (hasWindows)
+    if (hasWindows_)
     {  
-    
-      MPI_Win_attach(windows_[0], bufferHeader[0], bufferSize+headerSize_) ;
-      MPI_Win_attach(windows_[1], bufferHeader[1], bufferSize+headerSize_) ;
-          
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[0]) ;
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, clientRank_, 0, windows_[1]) ;
 
-      MPI_Win_unlock(clientRank_, windows_[1]) ;
-      MPI_Win_unlock(clientRank_, windows_[0]) ;
+      windows_[0]->lockExclusive(clientRank_) ;
+      windows_[1]->lockExclusive(clientRank_) ;
+      
+      windows_[1]->unlockExclusive(clientRank_) ;
+      windows_[0]->unlockExclusive(clientRank_) ;
     } 
 
     lockBuffer() ;
@@ -372,12 +350,13 @@ namespace xios
     bufOut->put(size);
     bufOut->put(timelineEventChangeBufferSize);
     bufOut->put(newBufferSize_);
-    bufOut->put(this->getWinAddress(0));
-    bufOut->put(this->getWinAddress(1));
+    
+    bufOut->put(this->getWinBufferAddress(0));
+    bufOut->put(this->getWinBufferAddress(1));
 
     resizingBufferStep_=4;
     unlockBuffer() ;
-    info(100)<<"CClientBuffer::resizeBuffer(size_t newSize) : resizing buffer of server "<<serverRank<<" ; new size : "<<newSize<<" ; winAdress[0] "<<this->getWinAddress(0)<<" winAdress[1] "<<this->getWinAddress(1)<<endl;
+    info(100)<<"CClientBuffer::resizeBuffer(size_t newSize) : resizing buffer of server "<<serverRank<<" ; new size : "<<newSize<<" ; winAdress[0] "<<this->getWinBufferAddress(0)<<" winAdress[1] "<<this->getWinBufferAddress(1)<<endl;
   }
 
   bool CClientBuffer::hasPendingRequest(void)
@@ -396,7 +375,7 @@ namespace xios
     bool ret ;
     lockBuffer() ;
     ret=*notify[current] == notifyResizeBuffer_ ? true : false ;
-    if (ret || !hasWindows) 
+    if (ret || !hasWindows_) 
     {
       *notify[current] = notifyNothing_ ;
       resizingBufferStep_=3;  

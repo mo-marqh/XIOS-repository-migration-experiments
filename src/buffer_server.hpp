@@ -6,13 +6,15 @@
 #include "buffer.hpp"
 #include "mpi.hpp"
 #include "cxios.hpp"
+#include "window_dynamic.hpp"
+
 
 namespace xios
 {
   class CServerBuffer : public CBufferClientServerBase
   {
     public:
-      CServerBuffer(vector<MPI_Win>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize bufSize) ;
+      CServerBuffer(vector<CWindowDynamic*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize bufSize) ;
       ~CServerBuffer() ;
 
       bool isBufferFree(size_t count) ;
@@ -36,7 +38,7 @@ namespace xios
       size_t end;
       size_t size;
       size_t used ;  // count of element occupied
-      std::vector<MPI_Win> windows_ ;
+      std::vector<CWindowDynamic*> windows_ ;
       std::vector<MPI_Aint> winAddress_ ;
       bool resizingBuffer_ = false ;
       int currentWindows ;

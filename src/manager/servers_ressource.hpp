@@ -54,8 +54,14 @@ namespace xios
 
     const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;
-
+    
     private:
+      bool finished_=false;
+    public:
+      bool isFinished(void) { return finished_ ;}
+    private:
+      void synchronize(void) ;
+      void threadEventLoop(void) ;
       shared_ptr<CEventScheduler> eventScheduler_ ;
       shared_ptr<CEventScheduler> freeRessourceEventScheduler_ ;
       bool isFirstSplit_=true ;

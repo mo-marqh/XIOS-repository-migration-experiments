@@ -23,27 +23,22 @@ namespace xios
     \param [in] parent Pointer to context on client side
     \param [in] intraComm_ communicator of group client
     \param [in] interComm_ communicator of group server
-    \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode).
+    \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode --> obsolete).
     */
     CLegacyContextClient::CLegacyContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
                          : CContextClient(parent, intraComm_, interComm_, cxtSer),
                            mapBufferSize_(),  maxBufferedEvents(4)
     {
       pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-      if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
-
-      if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
-      else interCommMerged_ = interComm_; // interComm_ is yet an intracommunicator in attached
-      
+      MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
       MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
-
+      eventScheduler_ = parent->getEventScheduler() ;  
       timeLine = 1;
     }
 
     CContextClient::ETransport getType(void) {return CContextClient::legacy ;}
 
     /*!
-    In case of attached mode, the current context must be reset to context for client
     \param [in] event Event sent to server
     */
     void CLegacyContextClient::sendEvent(CEventClient& event)
@@ -104,26 +99,7 @@ namespace xios
         
       }
       
-      if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
-      {
-        while (checkBuffers(ranks)) callGlobalEventLoop() ;
-      
-        CXios::getDaemonsManager()->scheduleContext(hashId_) ;
-        while (CXios::getDaemonsManager()->isScheduledContext(hashId_)) callGlobalEventLoop() ;
-      }
-      
-      MPI_Request req ;
-      MPI_Status status ;
-      MPI_Ibarrier(intraComm,&req) ;
-      int flag ;
-      MPI_Test(&req,&flag,&status) ;
-      while(!flag) 
-      {
-        callGlobalEventLoop() ;
-        MPI_Test(&req,&flag,&status) ;
-      }
-
-
+      synchronize() ;
       timeLine++;
     }
 
@@ -147,7 +123,7 @@ namespace xios
       map<int,CClientBuffer*>::const_iterator it;
       list<CClientBuffer*>::iterator itBuffer;
       bool areBuffersFree;
-     
+/*     
       for (itServer = serverList.begin(); itServer != serverList.end(); itServer++)
       {
         it = buffers.find(*itServer);
@@ -155,14 +131,41 @@ namespace xios
         {
           CTokenManager* tokenManager = CXios::getRessourcesManager()->getTokenManager() ;
           size_t token = tokenManager->getToken() ;
-          while (!tokenManager->lockToken(token)) callGlobalEventLoop() ;
+          while (!tokenManager->checkToken(token)) callGlobalEventLoop() ;
           newBuffer(*itServer);
           it = buffers.find(*itServer);
           checkAttachWindows(it->second,it->first) ;
-          tokenManager->unlockToken(token) ;
+          tokenManager->updateToken(token) ;
         }
         bufferList.push_back(it->second);
       }
+*/
+      map<int,MPI_Request> attachList ;
+     
+      for (itServer = serverList.begin(); itServer != serverList.end(); itServer++)
+      {
+        it = buffers.find(*itServer);
+        if (it == buffers.end())
+        {
+          newBuffer(*itServer);
+          it = buffers.find(*itServer);
+          checkAttachWindows(it->second, it->first, attachList) ;
+        }
+        bufferList.push_back(it->second);
+      }
+      
+      while(!attachList.empty())
+      {
+        auto it = attachList.begin() ;
+        while(it!=attachList.end())
+        {
+          if (checkAttachWindows(buffers[it->first], it->first, attachList)) it=attachList.erase(it) ;
+          else ++it ;
+        }
+
+        yield() ;
+      }
+
 
       double lastTimeBuffersNotFree=0. ;
       double time ;
@@ -192,7 +195,7 @@ namespace xios
           if (doUnlockBuffers) for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
           checkBuffers();
 
-          callGlobalEventLoop() ;
+          yield() ;
         }
 
       } while (!areBuffersFree);
@@ -202,6 +205,58 @@ namespace xios
         retBuffers.push_back((*itBuffer)->getBuffer(timeLine, *itSize));
    }
 
+
+   bool CLegacyContextClient::checkAttachWindows(CClientBuffer* buffer, int rank, map<int, MPI_Request>& attachList)
+   {
+      int dummy;
+      bool ret=true; 
+
+      if (!buffer->isAttachedWindows())
+      {
+           // create windows dynamically for one-sided
+          /*
+          CTimer::get("create Windows").resume() ;
+          MPI_Comm interComm ;
+          int tag = 0 ;
+          MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;
+          MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+          MPI_Comm_free(&interComm) ;
+                
+          buffer->attachWindows(winComm_[rank]) ;
+          CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
+          MPI_Barrier(winComm_[rank]) ;
+        */
+        if (attachList.count(rank)==0) 
+        {
+          MPI_Irecv(&dummy,0,MPI_INT,clientSize+rank, 21, interCommMerged_, &attachList[rank]) ;
+          ret = false ;
+        }
+        else
+        {
+          MPI_Status status ;
+          int flag ;
+          MPI_Test(&attachList[rank],&flag, &status) ;
+          if (flag)
+          {
+            CTimer::get("create Windows").resume() ;
+            MPI_Comm interComm ;
+            int tag = 0 ;
+            MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;
+            MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+            MPI_Comm_free(&interComm) ;
+              
+            buffer->attachWindows(winComm_[rank]) ;
+            CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
+            MPI_Barrier(winComm_[rank]) ;
+            ret = true ;
+          }
+          else ret=false ;
+        }
+      }
+      return ret ;
+    }
+
+
    void CLegacyContextClient::eventLoop(void)
    {
       if (!locked_) checkBuffers() ;
@@ -210,8 +265,25 @@ namespace xios
    void CLegacyContextClient::callGlobalEventLoop(void)
    {
      locked_=true ;
-     context_->globalEventLoop() ;
+     context_->yield() ;
      locked_=false ;
+   }
+
+   void CLegacyContextClient::yield(void)
+   {
+     locked_=true ;
+     context_->yield() ;
+     locked_=false ;
+   }
+
+   void CLegacyContextClient::synchronize(void)
+   {
+     if (context_->getServiceType()!=CServicesManager::CLIENT)
+     {
+       locked_=true ;
+       context_->synchronize() ;
+       locked_=false ;
+     }    
    }
    /*!
    Make a new buffer for a certain connection to server with specific rank
@@ -225,92 +297,25 @@ namespace xios
         mapBufferSize_[rank] = CXios::minBufferSize;
         maxEventSizes[rank] = CXios::minBufferSize;
       }
-      
-      int considerServers = 1;
-      if (isAttachedModeEnabled()) considerServers = 0;
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interCommMerged_, considerServers*clientSize+rank, mapBufferSize_[rank], maxEventSizes[rank]);
+      bool hasWindows = true ;
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interCommMerged_, clientSize+rank, mapBufferSize_[rank], hasWindows);
       if (isGrowableBuffer_) buffer->setGrowableBuffer(1.2) ;
       else buffer->fixBuffer() ;
       // Notify the server
+     
       CBufferOut* bufOut = buffer->getBuffer(0, 4*sizeof(MPI_Aint));
       MPI_Aint sendBuff[4] ;
       sendBuff[0]=hashId_;
       sendBuff[1]=mapBufferSize_[rank];
-      sendBuff[2]=buffers[rank]->getWinAddress(0); 
-      sendBuff[3]=buffers[rank]->getWinAddress(1); 
-      info(100)<<"CLegacyContextClient::newBuffer : rank "<<rank<<" winAdress[0] "<<buffers[rank]->getWinAddress(0)<<" winAdress[1] "<<buffers[rank]->getWinAddress(1)<<endl;
-      bufOut->put(sendBuff, 4); 
+      sendBuff[2]=buffers[rank]->getWinBufferAddress(0); 
+      sendBuff[3]=buffers[rank]->getWinBufferAddress(1); 
+      info(100)<<"CLegacyContextClient::newBuffer : rank "<<rank<<" winAdress[0] "<<buffers[rank]->getWinBufferAddress(0)<<" winAdress[1] "<<buffers[rank]->getWinBufferAddress(1)<<endl;
+      bufOut->put(sendBuff,4); 
       buffer->checkBuffer(true);
-/*
-       // create windows dynamically for one-sided
-      if (!isAttachedModeEnabled())
-      { 
-        CTimer::get("create Windows").resume() ;
-        MPI_Comm interComm ;
-        MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, 0, &interComm) ;
-        MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
-        CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
-        MPI_Comm_free(&interComm) ;
-        windows_[rank].resize(2) ;
-        
-        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
-        CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;
-        
-        MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);   
-        CXios::getMpiGarbageCollector().registerWindow(windows_[rank][1]) ;
 
-        CTimer::get("create Windows").suspend() ;
-      }
-      else
-      {
-        winComm_[rank] = MPI_COMM_NULL ;
-        windows_[rank].resize(2) ;
-        windows_[rank][0] = MPI_WIN_NULL ;
-        windows_[rank][1] = MPI_WIN_NULL ;
-      }
-      buffer->attachWindows(windows_[rank]) ;
-      if (!isAttachedModeEnabled()) MPI_Barrier(winComm_[rank]) ;
-  */     
    }
 
-   void CLegacyContextClient::checkAttachWindows(CClientBuffer* buffer, int rank)
-   {
-      if (!buffer->isAttachedWindows())
-      {
-           // create windows dynamically for one-sided
-        if (!isAttachedModeEnabled())
-        { 
-          CTimer::get("create Windows").resume() ;
-          MPI_Comm interComm ;
-          MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, 0, &interComm) ;
-          MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
-          CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
-          MPI_Comm_free(&interComm) ;
-          windows_[rank].resize(2) ;
-      
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
-          CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;
-      
-          MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);   
-          CXios::getMpiGarbageCollector().registerWindow(windows_[rank][1]) ;
-
-          CTimer::get("create Windows").suspend() ;
-          buffer->attachWindows(windows_[rank]) ;
-          MPI_Barrier(winComm_[rank]) ;
-        }
-        else
-        {
-          winComm_[rank] = MPI_COMM_NULL ;
-          windows_[rank].resize(2) ;
-          windows_[rank][0] = MPI_WIN_NULL ;
-          windows_[rank][1] = MPI_WIN_NULL ;
-          buffer->attachWindows(windows_[rank]) ;
-        }
-
-      }
-    }
-
-
+  
   
    /*!
    Verify state of buffers. Buffer is under pending state if there is no message on it
@@ -335,18 +340,10 @@ namespace xios
       }
       buffers.clear();
 
-// don't know when release windows
-
-      //if (!isAttachedModeEnabled())
-      //{  
-      //  for(auto& it : winComm_)
-      //  {
-      //    int rank = it.first ;
-      //    MPI_Win_free(&windows_[rank][0]);
-      //    MPI_Win_free(&windows_[rank][1]);
-      //    MPI_Comm_free(&winComm_[rank]) ;
-      //  }
-      //} 
+      for(auto& it : winComm_)
+      {
+        int rank = it.first ;
+      }
    }
 
       
@@ -468,8 +465,6 @@ namespace xios
 
   bool CLegacyContextClient::isNotifiedFinalized(void)
   {
-    if (isAttachedModeEnabled()) return true ;
-
     bool finalized = true;
     map<int,CClientBuffer*>::iterator itBuff;
     for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)

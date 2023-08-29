@@ -312,7 +312,11 @@ namespace xios
     daemonsManager_ = new CDaemonsManager(isXiosServer) ;
   }
 
-  
+  void CXios::launchThreadManager(bool isXiosServer)
+  {
+    CThreadManager::initialize(isXiosServer) ;
+  }
+
   void CXios::finalizeRegistryManager()
   {
     delete registryManager_;
@@ -338,6 +342,11 @@ namespace xios
     delete contextsManager_  ;
   }
   
+  void CXios::finalizeThreadManager()
+  {
+    CThreadManager::finalize()  ;
+  }
+
   void CXios::finalizeDaemonsManager()
   {
     delete daemonsManager_  ;

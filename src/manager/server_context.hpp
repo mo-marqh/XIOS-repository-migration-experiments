@@ -28,13 +28,17 @@ namespace xios
     void checkNotifications(void) ;
 
     bool eventLoop(bool serviceOnly=false) ;
+    void threadEventLoop(void) ;
     void notificationsDumpOut(CBufferOut& buffer) ;
     void notificationsDumpIn(CBufferIn& buffer) ;
     void finalizeSignal(void) ;
     void freeComm(void) ;
-    bool isAttachedMode(void) { return isAttachedMode_ ;}
     CService* getParentService(void) {return parentService_ ; }
-
+    
+    private : 
+      bool finished_=false ;
+    public:
+      bool isFinished(void) { return finished_ ; }
     private:
     void createIntercomm(void) ;
     
@@ -59,7 +63,6 @@ namespace xios
     int globalLeader_ ;
     bool finalizeSignal_ ;
     bool hasNotification_ ;
-    bool isAttachedMode_ ;
 
     const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;

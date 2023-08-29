@@ -23,6 +23,7 @@ namespace xios
     ~CService() ;
 
     bool eventLoop(bool serviceOnly=false) ;
+    void threadEventLoop(void) ;
     void createContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
     void checkCreateContextNotification(void) ;
     void createContextNotify(int rank, const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
@@ -40,6 +41,11 @@ namespace xios
     int getNbPartitions(void) {return nbPartitions_;}
     const MPI_Comm& getCommunicator(void) { return serviceComm_ ;}
     
+    private: 
+    bool finished_=false ;
+    public:
+    bool isFinished(void) { return finished_; }
+
     private:
     void sendNotification(int rank) ;
     void notificationsDumpOut(CBufferOut& buffer) ;

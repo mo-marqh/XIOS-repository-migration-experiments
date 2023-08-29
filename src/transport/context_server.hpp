@@ -22,7 +22,6 @@ namespace xios
     
     CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
     ~CContextServer() {} 
-    bool isAttachedModeEnabled() const ;
     void setAssociatedClient(CContextClient* associatedClient) {associatedClient_=associatedClient ;}
     CContextClient* getAssociatedClient(void) { return associatedClient_ ;}
     int getIntraCommRank(void) { return intraCommRank ;}
@@ -40,8 +39,6 @@ namespace xios
       MPI_Comm interComm ;
       int commSize ;
       int clientSize_ ;
-
-      bool attachedMode ;  //! true if attached mode is enabled otherwise false
 
       CContext* context ;
       CContextClient* associatedClient_ ;

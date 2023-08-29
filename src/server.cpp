@@ -24,6 +24,7 @@
 #include <cstdio>
 #include "workflow_graph.hpp"
 #include "release_static_allocation.hpp"
+#include "thread_manager.hpp"
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -67,7 +68,12 @@ namespace xios
       // don't use OASIS
       if (!CXios::usingOasis)
       {
-        if (!is_MPI_Initialized) MPI_Init(NULL, NULL);
+        if (!is_MPI_Initialized) 
+        {
+          int required = MPI_THREAD_SERIALIZED ;
+          int provided ;
+          MPI_Init_thread(NULL,NULL, required, &provided) ;
+        }
        
         // split the global communicator
         // get hash from all model to attribute a unique color (int) and then split to get client communicator
@@ -98,7 +104,15 @@ namespace xios
       }
       else // using OASIS
       {
-        if (!is_MPI_Initialized) driver_ = new CThirdPartyDriver();
+        
+        if (!is_MPI_Initialized) 
+        {
+          int required = MPI_THREAD_SERIALIZED ;
+          int provided ;
+          MPI_Init_thread(NULL,NULL, required, &provided) ;
+        }
+
+        driver_ = new CThirdPartyDriver();
 
         driver_->getComponentCommunicator( serverComm );
       }
@@ -199,11 +213,30 @@ namespace xios
           if (!CXios::usingServer2)
           {
             ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
-            ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
+            if (CThreadManager::isUsingThreads()) 
+              while(!ressourcesManager->hasPool(CXios::defaultPoolId)) 
+              {
+                daemonsManager->eventLoop() ;
+                CThreadManager::yield() ;
+              }
+            else ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
+          
             servicesManager->createServices(CXios::defaultPoolId, CXios::defaultWriterId, CServicesManager::WRITER,nbRessources,1) ;
-            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
+            if (CThreadManager::isUsingThreads()) 
+              while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultWriterId,0)) 
+              {
+                daemonsManager->eventLoop() ;
+                CThreadManager::yield() ;
+              }
+            else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
+            
             servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultWriterId) ;
-            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
+            if (CThreadManager::isUsingThreads()) 
+            {
+              daemonsManager->eventLoop() ;
+              while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultReaderId, 0)) CThreadManager::yield() ;
+            }
+            else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
           }
           else
           {
@@ -213,13 +246,41 @@ namespace xios
             int nbPoolsServer2 = CXios::nbPoolsServer2 ;
             if (nbPoolsServer2 == 0) nbPoolsServer2 = nprocsServer;
             ressourcesManager->createPool(CXios::defaultPoolId, nbRessources) ;
-            ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
+            if (CThreadManager::isUsingThreads()) 
+              while(!ressourcesManager->hasPool(CXios::defaultPoolId)) 
+              {
+                daemonsManager->eventLoop() ;
+                CThreadManager::yield() ;
+              }
+            else ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
+
             servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
-            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultGathererId) ;
+            if (CThreadManager::isUsingThreads()) 
+              while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultGathererId,0)) 
+              {
+                daemonsManager->eventLoop() ;
+                CThreadManager::yield() ;
+              }
+            else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultGathererId) ;
+
             servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultGathererId) ;
-            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
+            if (CThreadManager::isUsingThreads()) 
+              while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultReaderId, 0)) 
+              {
+                daemonsManager->eventLoop() ;
+                CThreadManager::yield() ;
+              }
+            else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
+            
             servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultWriterId, CServicesManager::WRITER, nprocsServer, nbPoolsServer2) ;
-            servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
+            if (CThreadManager::isUsingThreads())
+              for(int i=0; i<nbPoolsServer2; i++)
+                while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultWriterId,i)) 
+                {
+                  daemonsManager->eventLoop() ;
+                  CThreadManager::yield() ;
+                }
+            else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
           }
         }
 //        servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServicesId, CServicesManager::ALL_SERVICES, nbRessources, 1) ;
@@ -232,11 +293,12 @@ namespace xios
       while (!ok)
       {
         daemonsManager->eventLoop() ;
+        if (CThreadManager::isUsingThreads()) CThreadManager::yield();
         MPI_Test(&req,&ok,&status) ;
       }
 
 
-      testingEventScheduler() ;
+      //testingEventScheduler() ;
 /*
       MPI_Request req ;
       MPI_Status status ;
@@ -261,6 +323,7 @@ namespace xios
       while (!finished)
       {
         finished=daemonsManager->eventLoop() ;
+        if (CThreadManager::isUsingThreads()) CThreadManager::yield() ;
       }
       CTimer::get("XIOS event loop").suspend() ;
 

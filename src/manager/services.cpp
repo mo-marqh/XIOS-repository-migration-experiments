@@ -4,6 +4,7 @@
 #include "cxios.hpp"
 #include "server_context.hpp"
 #include "event_scheduler.hpp"
+#include "thread_manager.hpp"
 #include "timer.hpp"
 
 namespace xios
@@ -40,6 +41,8 @@ namespace xios
     ostringstream oss;
     oss<<partitionId;
     name_= poolId+"__"+serviceId+"_"+oss.str();
+    
+    if (CThreadManager::isUsingThreads()) CThreadManager::spawnThread(&CService::threadEventLoop, this) ;
   }
 
   CService::~CService()
@@ -123,6 +126,7 @@ namespace xios
 
 
     eventScheduler_->checkEvent() ;
+   
     for(auto it=contexts_.begin();it!=contexts_.end();++it) 
     {
       if (it->second->eventLoop(serviceOnly))
@@ -133,10 +137,53 @@ namespace xios
         break ;
       } ;
     }
+  
     CTimer::get("CService::eventLoop").suspend();
     if (contexts_.empty() && finalizeSignal_) return true ;
     else return false ;
   }
+
+  void CService::threadEventLoop(void)
+  {
+    info(100)<<"Launch Thread for  CService::threadEventLoop, service id = "<<name_<<endl ;
+    CThreadManager::threadInitialize() ; 
+    
+    do
+    {
+      CTimer::get("CService::eventLoop").resume();
+      int flag ;
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+   
+//    double time=MPI_Wtime() ;
+//    if (time-lastEventLoop_ > eventLoopLatency_) 
+//    {
+      checkNotifications() ;
+//      lastEventLoop_=time ;
+//    }
+
+
+      eventScheduler_->checkEvent() ;
+   
+      for(auto it=contexts_.begin();it!=contexts_.end();++it) 
+      {
+        if (it->second->isFinished())
+        {
+          delete it->second ; 
+          contexts_.erase(it) ;
+          // destroy server_context -> to do later
+          break ;
+        } ;
+      }
+
+      CTimer::get("CService::eventLoop").suspend();
+      if (contexts_.empty() && finalizeSignal_) finished_=true ;
+      if (!finished_) CThreadManager::yield() ;
+    } while (!finished_) ;
+    
+    CThreadManager::threadFinalize() ;
+    info(100)<<"Close thread for  CService::threadEventLoop, service id = "<<name_<<endl ;
+  }
+
 
   void CService::sendNotification(int rank)
   {

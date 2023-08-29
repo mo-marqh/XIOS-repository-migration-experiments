@@ -41,13 +41,12 @@ namespace xios
     scheduled=false;
     finished=false;
 
-    if (!isAttachedModeEnabled()) MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
+    MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
     MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
     
     itLastTimeLine=lastTimeLine.begin() ;
 
     pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-    if (isAttachedModeEnabled()) pureOneSided=false ; // no one sided in attach mode
       
   }
 
@@ -164,8 +163,6 @@ namespace xios
   {
   
     if (isProcessingEvent_) return ;
-    if (isAttachedModeEnabled())
-      if (!CXios::getDaemonsManager()->isScheduledContext(remoteHashId_)) return ;
 
     auto it=completedEvents_.find(currentTimeLine);
 
@@ -173,12 +170,12 @@ namespace xios
     {
       if (it->second.nbSenders == it->second.currentNbSenders)
       {
-        if (!scheduled && !isAttachedModeEnabled()) // Skip event scheduling for attached mode and reception on client side
+        if (!scheduled) 
         {
           eventScheduler_->registerEvent(currentTimeLine,hashId);
           scheduled=true;
         }
-        else if (isAttachedModeEnabled() || eventScheduler_->queryEvent(currentTimeLine,hashId) )
+        else if (eventScheduler_->queryEvent(currentTimeLine,hashId) )
         {
           //if (!enableEventsProcessing && isCollectiveEvent(event)) return ;
 
@@ -197,7 +194,7 @@ namespace xios
             eventScheduled_=false ;
           }
 
-          if (!isAttachedModeEnabled()) eventScheduler_->popEvent() ;
+          eventScheduler_->popEvent() ;
 
           isProcessingEvent_=true ;
           CEventServer event(this) ;
@@ -213,7 +210,6 @@ namespace xios
           completedEvents_.erase(it);
           currentTimeLine++;
           scheduled = false;
-          if (isAttachedModeEnabled()) CXios::getDaemonsManager()->unscheduleContext() ;
         }
       }
     }
@@ -234,8 +230,6 @@ namespace xios
 
   void COneSidedContextServer::freeWindows()
   {
-    //if (!isAttachedModeEnabled())
-    //{
     //  for(auto& it : winComm_)
     //  {
     //    int rank = it.first ;
@@ -243,7 +237,6 @@ namespace xios
     //    MPI_Win_free(&windows_[rank][1]);
     //    MPI_Comm_free(&winComm_[rank]) ;
     //  }
-    //}
   }
 
   void COneSidedContextServer::notifyClientsFinalize(void)

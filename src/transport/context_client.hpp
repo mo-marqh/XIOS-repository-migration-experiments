@@ -39,7 +39,6 @@ namespace xios
       bool isServerNotLeader(void) const;
       const std::list<int>& getRanksServerLeader(void) const;
       const std::list<int>& getRanksServerNotLeader(void) const;
-      bool isAttachedModeEnabled() const { return isAttached_ ; } 
       static void computeLeader(int clientRank, int clientSize, int serverSize,
                                 std::list<int>& rankRecvLeader,
                                 std::list<int>& rankRecvNotLeader);
@@ -92,7 +91,6 @@ namespace xios
 
       size_t hashId_ ; //!< hash id on the context client that will be used for context server to identify the remote calling context client.
 
-      bool isAttached_ ;
       CContextServer* associatedServer_ ; //!< The server associated to the pair client/server
   };
 
