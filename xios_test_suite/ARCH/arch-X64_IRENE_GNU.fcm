@@ -19,7 +19,7 @@
 %DEBUG_FFLAGS   -g -fbacktrace
 
 %BASE_INC       -D__NONE__
-%BASE_LD        -lstdc++
+%BASE_LD        -lstdc++ -lpthread
 
 %CPP            cpp
 %FPP            cpp -P

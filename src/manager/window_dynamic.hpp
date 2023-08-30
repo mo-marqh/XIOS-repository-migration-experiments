@@ -167,7 +167,7 @@ namespace xios
       }  
     }
     
-    int attach(MPI_Aint size) 
+    void attach(MPI_Aint size) 
     {
       windowSize_ = size+OFFSET_BUFFER_SIZE ;
       MPI_Alloc_mem(windowSize_, MPI_INFO_NULL, &winBuffer_) ;
@@ -177,13 +177,13 @@ namespace xios
       setWinBufferAddress(getWinBufferAddress(),winCommRank_) ;
     }
     
-    int attach() 
+    void attach() 
     {
       MPI_Win_attach(window_, winBuffer_, windowSize_) ;
       setWinBufferAddress(getWinBufferAddress(),winCommRank_) ;
     }
 
-    int detach() 
+    void detach() 
     {
       MPI_Win_detach(window_, winBuffer_) ;
       MPI_Free_mem(winBuffer_) ;        
