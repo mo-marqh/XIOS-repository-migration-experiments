@@ -278,9 +278,13 @@ namespace xios
                        SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0);
                        break;
                      case CDomain::type_attr::rectilinear :
-                       CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->ni)) ;
+                       //CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->ni)) ;
+                       CArray<double,1> lat;
+                       lat.resize( domain->njValue_);
+                       for (int j=0;j<domain->njValue_;j++) lat(j) = domain->latvalue(j*domain->niValue_);
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
-                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->ni-1)) ;
+                       //CArray<double,1> lon = domain->lonvalue(Range(0,domain->ni-1)) ;
+                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->niValue_-1));
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
                        break;
                    }
