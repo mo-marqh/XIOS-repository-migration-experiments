@@ -43,7 +43,10 @@ namespace xios
     MPI_Comm_rank(intraComm,&intraCommRank);
 
     interComm=interComm_;
-    MPI_Comm_remote_size(interComm,&clientSize_);
+    int flag;
+    MPI_Comm_test_inter(interComm,&flag);
+    if (flag) MPI_Comm_remote_size(interComm,&clientSize_);
+    else MPI_Comm_size(interComm,&clientSize_);
     
     SRegisterContextInfo contextInfo ;
     CXios::getContextsManager()->getContextInfo(context->getId(), contextInfo, intraComm) ;

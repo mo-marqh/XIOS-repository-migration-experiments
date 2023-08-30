@@ -38,9 +38,10 @@ namespace xios
       MPI_Comm_rank(intraComm, &clientRank);
       MPI_Comm_size(intraComm, &clientSize);
 
-      int flag;
-      
-      MPI_Comm_remote_size(interComm, &serverSize);
+      int flag;      
+      MPI_Comm_test_inter(interComm, &flag);
+      if (flag) MPI_Comm_remote_size(interComm, &serverSize);
+      else  MPI_Comm_size(interComm, &serverSize);
       
       computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
 
