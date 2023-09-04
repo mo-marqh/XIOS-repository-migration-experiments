@@ -101,12 +101,12 @@ namespace xios
       if (lastBlocToFree_!=0)
       {
         info(logProtocol)<<"Send bloc to free : "<<lastBlocToFree_<<endl ;
-        if (info.isActive(logProtocol)) CTimer::get("Send bloc to free").resume() ;
+        //if (info.isActive(logProtocol)) CTimer::get("Send bloc to free").resume() ;
         //MPI_Win_lock(MPI_LOCK_EXCLUSIVE, windowRank_, 0, winControl_) ;
         //MPI_Aint target=MPI_Aint_add(controlAddr_, CONTROL_ADDR*sizeof(MPI_Aint)) ;
         //MPI_Put(&lastBlocToFree_, 1, MPI_AINT, windowRank_, target, 1, MPI_AINT, winControl_) ;
         //MPI_Win_unlock(windowRank_,winControl_) ; 
-        if (info.isActive(logProtocol)) CTimer::get("Send bloc to free").suspend() ;
+        //if (info.isActive(logProtocol)) CTimer::get("Send bloc to free").suspend() ;
         lastBlocToFree_ = 0 ;        
       }
     }

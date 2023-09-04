@@ -13,7 +13,7 @@ namespace xios
     //MPI_Alloc_mem(controlSize_*sizeof(MPI_Aint), MPI_INFO_NULL, &control_) ;
     //control_[CONTROL_ADDR] = 0 ;
     //control_[CONTROL_FINALIZE] = 0 ;
-    //sendNewBuffer() ;
+    sendNewBuffer() ;
     createWindow(commSelf, interCommMerged, intraServerRank ) ;
     char dummy ;
     MPI_Irecv(&dummy, 0, MPI_CHAR, intraServerRank, 22, interCommMerged, &finalizeRequest_) ;
@@ -307,9 +307,9 @@ namespace xios
 
   void CP2pClientBuffer::sendNewBuffer(void)
   {
-//    MPI_Aint controlAddr ;
+    MPI_Aint controlAddr ;
 //    MPI_Get_address(control_, &controlAddr) ;
-//    MPI_Send(&controlAddr, 1, MPI_AINT, intraServerRank_, 20, interCommMerged_) ;
+    MPI_Send(&controlAddr, 1, MPI_AINT, intraServerRank_, 20, interCommMerged_) ;
   }
 
 }
