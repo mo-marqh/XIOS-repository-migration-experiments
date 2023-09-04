@@ -177,7 +177,7 @@ namespace xios
       for (auto itBuff : buffers)
       {
         itBuff.second->eventLoop() ;
-        pending |= itBuff.second->isEmpty();
+        pending |= !(itBuff.second->isEmpty());
       }
       return pending;
    }
@@ -201,7 +201,7 @@ namespace xios
       for (auto& rank : ranks) 
       {
         buffers[rank]->eventLoop() ;
-        pending |= buffers[rank]->isEmpty() ;
+        pending |= !(buffers[rank]->isEmpty()) ;
       }
       return pending;
    }
