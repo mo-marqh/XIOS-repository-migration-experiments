@@ -21,6 +21,7 @@
 #include "contexts_manager.hpp"
 #include "timeline_events.hpp"
 #include "one_sided_context_server.hpp"
+#include "p2p_context_server.hpp"
 #include "legacy_context_server.hpp"
 
 
@@ -66,6 +67,7 @@ namespace xios
   { 
     string defaultProtocol = CXios::getin<string>("transport_protocol", "default") ;
     if (defaultProtocol=="one_sided") return new COneSidedContextServer(parent, intraComm, interComm) ;
+    else if  (defaultProtocol=="p2p") return new CP2pContextServer(parent, intraComm, interComm) ;
     else if  (defaultProtocol=="legacy") return new CLegacyContextServer(parent, intraComm, interComm) ;
     else if  (defaultProtocol=="default") return new CLegacyContextServer(parent, intraComm, interComm) ;
     else ERROR("CContextServer* CContextServer::getNew<CContextServer::generic>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm)",
@@ -76,6 +78,12 @@ namespace xios
   CContextServer* CContextServer::getNew<CContextServer::oneSided>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) 
   { 
     return new COneSidedContextServer(parent, intraComm, interComm) ; 
+  }
+
+  template<>
+  CContextServer* CContextServer::getNew<CContextServer::p2p>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) 
+  { 
+    return new CP2pContextServer(parent, intraComm, interComm) ; 
   }
 
   template<>

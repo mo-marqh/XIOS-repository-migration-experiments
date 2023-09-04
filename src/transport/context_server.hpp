@@ -15,7 +15,7 @@ namespace xios
   {
     public:
     
-    enum ETransport { generic, legacy, oneSided}  ;
+    enum ETransport { generic, legacy, p2p, oneSided}  ;
       
     template<ETransport transport=generic> 
     static CContextServer* getNew(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
@@ -52,6 +52,9 @@ namespace xios
  
   template<>
   CContextServer* CContextServer::getNew<CContextServer::oneSided>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
+
+  template<>
+  CContextServer* CContextServer::getNew<CContextServer::p2p>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
 
   template<>
   CContextServer* CContextServer::getNew<CContextServer::legacy>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;

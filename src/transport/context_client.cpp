@@ -16,6 +16,7 @@
 #include <random>
 #include <chrono>
 #include "one_sided_context_client.hpp"
+#include "p2p_context_client.hpp"
 #include "legacy_context_client.hpp"
 #include "online_context_client.hpp"
 
@@ -58,6 +59,7 @@ namespace xios
     { 
       string defaultProtocol = CXios::getin<string>("transport_protocol", "default") ;
       if (defaultProtocol=="one_sided") return getNew<CContextClient::oneSided>(parent, intraComm, interComm) ;
+      else if  (defaultProtocol=="p2p") return getNew<CContextClient::p2p>(parent, intraComm, interComm) ;
       else if  (defaultProtocol=="legacy") return getNew<CContextClient::legacy>(parent, intraComm, interComm) ;
       else if  (defaultProtocol=="online") return getNew<CContextClient::online>(parent, intraComm, interComm) ;
       else if  (defaultProtocol=="default") return getNew<CContextClient::legacy>(parent, intraComm, interComm) ;
@@ -69,6 +71,12 @@ namespace xios
     CContextClient* CContextClient::getNew<CContextClient::oneSided>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer)
     { 
       return new COneSidedContextClient(parent, intraComm, interComm, parentServer); 
+    }
+
+    template<>
+    CContextClient* CContextClient::getNew<CContextClient::p2p>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer)
+    { 
+      return new CP2pContextClient(parent, intraComm, interComm, parentServer); 
     }
 
     template<>
