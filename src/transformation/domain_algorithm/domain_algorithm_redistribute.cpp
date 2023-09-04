@@ -199,8 +199,8 @@ namespace xios
 
     if (domainSource->hasLonLat)
     {
-      transformConnector->transfer(domainSource->lonvalue, domainDestination->lonvalue_1d) ;
-      transformConnector->transfer(domainSource->latvalue, domainDestination->latvalue_1d) ;
+      transformConnector->transfer(domainSource->lonvalue, domainDestination->lonvalue_1d, 0.) ; // 0. -> hole
+      transformConnector->transfer(domainSource->latvalue, domainDestination->latvalue_1d, 0.) ; // 0. -> hole
     }
 
     if (domainSource->hasBounds)
@@ -213,14 +213,14 @@ namespace xios
       { // bounds_lon
         CArray<double,1> boundsSrc(domainSource->bounds_lonvalue.dataFirst(),shape(domainSource->bounds_lonvalue.numElements()),neverDeleteData) ;
         CArray<double,1> boundsDst ; 
-        transformConnector->transfer(nv, boundsSrc, boundsDst) ;
+        transformConnector->transfer(nv, boundsSrc, boundsDst, 0.) ; // 0. -> hole
         domainDestination->bounds_lon_1d.resize(nv,globalIndex.numElements()) ;
         domainDestination->bounds_lon_1d = CArray<double,2>(boundsDst.dataFirst(), shape(nv,globalIndex.numElements()),neverDeleteData) ;
       }
       {  // bounds_lat
         CArray<double,1> boundsSrc(domainSource->bounds_latvalue.dataFirst(),shape(domainSource->bounds_latvalue.numElements()),neverDeleteData) ;
         CArray<double,1> boundsDst ; 
-        transformConnector->transfer(nv, boundsSrc, boundsDst) ;
+        transformConnector->transfer(nv, boundsSrc, boundsDst, 0.) ; // 0. -> hole
         domainDestination->bounds_lat_1d.resize(nv,globalIndex.numElements()) ;
         domainDestination->bounds_lat_1d = CArray<double,2>(boundsDst.dataFirst(), shape(nv,globalIndex.numElements()),neverDeleteData) ;
       }
