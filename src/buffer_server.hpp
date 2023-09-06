@@ -14,7 +14,7 @@ namespace xios
   class CServerBuffer : public CBufferClientServerBase
   {
     public:
-      CServerBuffer(vector<CWindowDynamic*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize bufSize) ;
+      CServerBuffer(int clientRank, vector<CWindowDynamic*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize bufSize) ;
       ~CServerBuffer() ;
 
       bool isBufferFree(size_t count) ;
@@ -43,6 +43,7 @@ namespace xios
       bool resizingBuffer_ = false ;
       int currentWindows ;
       bool hasWindows ;
+      int clientRank_ ; // for debugging
       int windowsRank_ ;
       double bufferFromClientLatency_=1e-1 ;
       double bufferFromClientTime_ = 0;

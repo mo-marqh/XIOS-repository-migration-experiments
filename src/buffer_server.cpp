@@ -8,8 +8,8 @@
 namespace xios
 {
 
-  CServerBuffer::CServerBuffer(vector<CWindowDynamic*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize buffSize) 
-  : hasWindows(true), windows_(windows), windowsRank_(windowsRank), winAddress_(winAddress)
+  CServerBuffer::CServerBuffer(int clientRank, vector<CWindowDynamic*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize buffSize) 
+  : hasWindows(true), clientRank_(clientRank), windows_(windows), windowsRank_(windowsRank), winAddress_(winAddress)
   {
     size = 3 * buffSize;
     first = 0;
@@ -239,7 +239,7 @@ namespace xios
     size_t clientCount ;
     bool ok=false ;
     
-   
+    info(100)<<"getBufferFromClient : check data in client buffer  : clientRank "<<clientRank_<<" timeline "<<timeLine<<" ??"<< endl ;
     lockBuffer(); 
     CTimer::get("getBufferFromClient_locked").resume() ;   
 // lock is acquired
@@ -271,7 +271,7 @@ namespace xios
       char checksumLast=0 ;
       for(size_t i=(count<10)?0:count-10; i<count ; i++) checksumLast=checksumLast+buffer[i] ;
       
-      info(40)<<"getBufferFromClient timeLine==clientTimeLine: windowsRank "<<windowsRank_<<" timeline "<<timeLine<<" clientTimeline "
+      info(40)<<"getBufferFromClient timeLine==clientTimeLine: clientRank "<<clientRank_<<" timeline "<<timeLine<<" clientTimeline "
               <<clientTimeline<<" clientCount "<<count<<" checksum "<<(int)checksum<<" "
               <<(int)buffer[0]<<" "<<(int)buffer[1]<<" "<<(int)buffer[2]<<" "<<(int)buffer[3]<<" "<<(int)buffer[4]<<" "<<(int)buffer[5]<<" " 
               <<(int)buffer[6]<<" "<<(int)buffer[7]<<" "<<(int)buffer[8]<<" "<<(int)buffer[9]<<" "<<(int)buffer[10]<<" "<<(int)buffer[11]<<endl ;
@@ -285,7 +285,9 @@ namespace xios
       CTimer::get("getBufferFromClient_locked").suspend() ; 
       unlockBuffer() ;
     }
-    CTimer::get("getBufferFromClient").suspend() ;   
+    CTimer::get("getBufferFromClient").suspend() ;  
+    info(100)<<"getBufferFromClient : check data in client buffer ==> done"<<endl ;
+
     if (ok) return true ;
 
     return false ;

@@ -71,6 +71,7 @@ namespace xios
 
   bool CP2pClientBuffer::isBufferFree(size_t size)
   {
+    if (sentBlocRequest_.size()> maxSentBlocRequests_) return false ;
     if (buffers_.size()>maxWindows_-1) return false ; 
     CBuffer* buffer ;
     if (buffers_.size()==0) return true ;
@@ -167,6 +168,14 @@ namespace xios
   bool CP2pClientBuffer::freeBloc(MPI_Aint addr)
   {
     SBloc& bloc = blocs_.front() ;
+    
+    if (info.isActive(logProtocol))
+    {
+      size_t checksum=0 ;
+      for(size_t j=0;j<bloc.count;j++) checksum+=((unsigned char*)(bloc.addr))[j] ;
+      info(logProtocol)<<"free bloc sent to server rank "<<serverRank_<<" : addr="<<bloc.addr<<"  start="<<bloc.start<<"  count="<<bloc.count<<"  checksum="<<checksum<<endl ;
+    }
+
     bloc.buffer->free(bloc.start, bloc.count) ;
     if (bloc.buffer->getCount()==0) 
       if (buffers_.size()>1) 
@@ -242,7 +251,7 @@ namespace xios
       MPI_Test(&it->mpiRequest, &flag, &status) ;
       if (flag==false) 
       {
-        ++it ;
+//        ++it ;
         break ;
       }
       else addr = it->addr;

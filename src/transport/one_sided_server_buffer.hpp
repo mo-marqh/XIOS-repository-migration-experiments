@@ -130,8 +130,8 @@ namespace xios
       bool fixed_=false;
       size_t fixedSize_ = 0 ;
       size_t currentBufferSize_=0 ;
-      double growingFactor_ = 2. ;
-      double bufferServerFactor_=10. ;
+      double growingFactor_ = 1.2 ;
+      double bufferServerFactor_=1. ;
       
       std::list<CBuffer*> buffers_ ;
       CBuffer* currentBuffer_=nullptr ;

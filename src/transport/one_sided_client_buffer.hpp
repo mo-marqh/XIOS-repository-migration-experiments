@@ -193,7 +193,7 @@ namespace xios
       bool fixed_=false;
       size_t fixedSize_ = 0 ;
       size_t currentBufferSize_= 0  ;
-      double growingFactor_ = 2. ; 
+      double growingFactor_ = 1.2 ; 
       MPI_Aint lastFreedBloc_=0 ;
       bool isFinalized_ = false ;
 

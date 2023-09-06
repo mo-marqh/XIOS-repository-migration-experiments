@@ -96,8 +96,8 @@ namespace xios
     if (!pendingRmaRequests_.empty()) testPendingRequests() ;
     if (pendingRmaRequests_.empty()) transferEvents() ;
 
-    if (!isLocked_)
-    {
+    //if (!isLocked_)
+    //{
       if (lastBlocToFree_!=0)
       {
         info(logProtocol)<<"Send bloc to free : "<<lastBlocToFree_<<endl ;
@@ -109,7 +109,7 @@ namespace xios
         //if (info.isActive(logProtocol)) CTimer::get("Send bloc to free").suspend() ;
         lastBlocToFree_ = 0 ;        
       }
-    }
+    //}
 
     if (buffers_.size()>1) 
      if (buffers_.front()->getCount()==0) buffers_.pop_front() ; // if buffer is empty free buffer
@@ -163,12 +163,21 @@ namespace xios
                            << "  total count = "<<transferedSize<<"  duration : "<<time<<" s"
                            << "  Bandwith : "<< transferedSize/time<< "byte/s"<<endl ;
           CTimer::get("lastTransfer from "+std::to_string(clientRank_)).reset() ;
+          for(int i=0;i<pendingRmaAddr_.size();i++)
+          {
+            size_t checksum=0 ;
+            unsigned char* buffer = (unsigned char*) pendingRmaAddr_[i] ;
+            for(size_t j=0;j<pendingRmaCount_[i];j++) checksum += buffer[j] ;
+            info(logProtocol)<<"Bloc transfered to adrr="<<(void*) buffer<<"  count="<<pendingRmaCount_[i]<<"  checksum="<<checksum<<endl ;
+          }
+
          }
 
         //isLocked_=false ;
         pendingRmaRequests_.clear() ;
         pendingRmaStatus_.clear() ;
         pendingRmaCount_.clear() ;
+        pendingRmaAddr_.clear() ;
         completedEvents_.insert(onTransferEvents_.begin(),onTransferEvents_.end()) ;
         
         for(auto & event : onTransferEvents_) 
@@ -380,6 +389,7 @@ namespace xios
     if (info.isActive(logProtocol)) CTimer::get("MPI_Rget").suspend() ;
     pendingRmaRequests_.push_back(request) ;
     pendingRmaCount_.push_back(count) ;
+    pendingRmaAddr_.push_back(buffer->getBuffer()+start) ;
     onTransferEvents_[timeline].push_back({buffer,start,count,addr}) ;
   }
 

@@ -132,8 +132,8 @@ namespace xios
       bool fixed_=false;
       size_t fixedSize_ = 0 ;
       size_t currentBufferSize_=0 ;
-      double growingFactor_ = 2. ;
-      double bufferServerFactor_=10. ;
+      double growingFactor_ = 1.2 ;
+      double bufferServerFactor_=1. ;
       
       std::list<CBuffer*> buffers_ ;
       CBuffer* currentBuffer_=nullptr ;
@@ -146,6 +146,7 @@ namespace xios
      
       vector<MPI_Request> pendingRmaRequests_ ;
       vector<MPI_Status> pendingRmaStatus_ ;
+      vector<char*> pendingRmaAddr_ ;
       vector<int> pendingRmaCount_ ;
 
       map<size_t, list<SBloc>> onTransferEvents_ ; // map<size_t timeline, list<pair<char* bloc, int count>>>
@@ -163,7 +164,7 @@ namespace xios
       set<int> windowsLocked_ ;
 
       MPI_Win winControl_ ;
-      bool isLocked_=false ;
+      //bool isLocked_=false ;
       const int windowRank_=0 ;
       MPI_Aint lastBlocToFree_=0 ;
 

@@ -139,7 +139,7 @@ namespace xios
       CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
       MPI_Barrier(winComm_[rank]) ;
 
-      it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(windows_[rank], winBufferAddress, 0, buffSize)))).first;
+      it=(buffers.insert(pair<int,CServerBuffer*>(rank, new CServerBuffer(rank, windows_[rank], winBufferAddress, 0, buffSize)))).first;
       lastTimeLine[rank]=0 ;
       itLastTimeLine=lastTimeLine.begin() ;
 
@@ -279,7 +279,7 @@ namespace xios
         delete buffers[rank] ;
         windows_[rank][0] -> setWinBufferAddress(winBufferAdress[0],0) ;
         windows_[rank][1] -> setWinBufferAddress(winBufferAdress[1],0) ;
-        buffers[rank] = new CServerBuffer(windows_[rank], winBufferAdress, 0, newSize) ;
+        buffers[rank] = new CServerBuffer(rank, windows_[rank], winBufferAdress, 0, newSize) ;
         info(100)<<"Context id "<<context->getId()<<" : Receive ChangeBufferSize from client rank "<<rank
                  <<"  newSize : "<<newSize<<" Address : "<<winBufferAdress[0]<<" & "<<winBufferAdress[1]<<endl ;
       }

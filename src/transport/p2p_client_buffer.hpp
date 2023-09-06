@@ -40,7 +40,7 @@ namespace xios
         { 
           if (count_>0) ERROR("COneSidedClientBuffer::~CBuffer()",<<"Try to delete buffer that is not empty"<<std::endl) ;
           //MPI_Win_detach(window_, buffer_) ;
-          //MPI_Free_mem(buffer_) ;
+          MPI_Free_mem(buffer_) ;
           info(logProtocol)<<"Detach memory from windows : addr="<<(MPI_Aint)buffer_<<"   count="<<size_<<endl ;
         }
        
@@ -204,9 +204,10 @@ namespace xios
       bool fixed_=false;
       size_t fixedSize_ = 0 ;
       size_t currentBufferSize_= 0  ;
-      double growingFactor_ = 2. ; 
+      double growingFactor_ = 1.2 ; 
       MPI_Aint lastFreedBloc_=0 ;
       bool isFinalized_ = false ;
+      int maxSentBlocRequests_ = 10000 ;
 
   } ;
 
