@@ -62,7 +62,7 @@ namespace xios
    
     void listen(void) ;
     void listenPendingRequest(void) ;
-    void processRequest(CRequest& request) ;
+    bool processRequest(CRequest& request) ;
     void checkBuffers(void) ;
     void processEvents(bool enableEventsProcessing) ;
     

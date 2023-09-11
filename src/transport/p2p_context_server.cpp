@@ -103,9 +103,11 @@ namespace xios
         requests_.push_back(new CRequest(interCommMerged_, status)) ;
         if (requests_.back()->test()) 
         {
-          processRequest(*(requests_.back())) ;
-          delete requests_.back();
-          requests_.pop_back() ;
+          if ( processRequest( *(requests_.back()) ) )
+          {
+            delete requests_.back();
+            requests_.pop_back() ;
+          }
         }
       }
     }
@@ -118,25 +120,37 @@ namespace xios
     {
       if ((*it)->test())
       {
-        processRequest(*(*it)) ;
-        delete (*it);
-        auto it2=it ;
-        ++it ;
-        requests_.erase(it2) ;
+        if (processRequest(*(*it)))
+        {
+          delete (*it);
+          auto it2=it ;
+          ++it ;
+          requests_.erase(it2) ;
+	}
       }
       else ++it ;
     }
   }
 
-  void CP2pContextServer::processRequest(CRequest& request)
+  bool CP2pContextServer::processRequest(CRequest& request)
   {
     int rank = request.getRank() ;
     auto it=buffers_.find(rank);
-    if (it==buffers_.end())
+    // getCount(new CP2pServerBuffer) = sizeof(MPI_AINT)
+    // getCount(RESIZE) : size_t timeline, size_t size + size_t EVENT_BUFFER_RESIZE = 24
+    // getCount(HEADER) : size_t timeline, int nbSenders, int nbBlocs
+    //                     + nbBlocs * (sizeof(MPI_Aint) addr + int count + int window) = 16 + nbBlocs * 16
+    if ((it==buffers_.end())&&(request.getCount() < 3*sizeof(size_t)))
     {
       buffers_[rank] = new CP2pServerBuffer(rank, commSelf_, interCommMerged_, pendingEvents_, completedEvents_, request.getBuffer()) ;
+      return true;
     }
-    else it->second->receivedRequest(request.getBuffer()) ;
+    else if (it!=buffers_.end()) {
+      it->second->receivedRequest(request.getBuffer()) ;
+      return true;
+    }
+    else
+      return false;
   }
 
   void CP2pContextServer::checkBuffers(void)
