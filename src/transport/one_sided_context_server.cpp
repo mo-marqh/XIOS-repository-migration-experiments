@@ -100,12 +100,14 @@ namespace xios
       traceOn();
       if (flag==true)
       {
-        requests_.push_back(new CRequest(interCommMerged_, status)) ;
-        if (requests_.back()->test()) 
+        int rank=status.MPI_SOURCE ;
+        requests_[rank].push_back(new CRequest(interCommMerged_, status)) ;
+        // Test 1st request of the list, request treatment must be ordered 
+        if (requests_[rank].front()->test()) 
         {
-          processRequest(*(requests_.back())) ;
-          delete requests_.back();
-          requests_.pop_back() ;
+          processRequest(*(requests_[rank].front())) ;
+          delete requests_[rank].front();
+          requests_[rank].pop_front() ;
         }
       }
     }
@@ -113,18 +115,15 @@ namespace xios
 
   void COneSidedContextServer::listenPendingRequest(void)
   {
-    auto it = requests_.begin() ;
-    while (it != requests_.end())
+    for(auto it_rank=requests_.begin() ; it_rank!=requests_.end() ; ++it_rank)
     {
-      if ((*it)->test())
+      int rank = it_rank->first;
+      while ( (!requests_[rank].empty()) && (requests_[rank].front()->test()) )
       {
-        processRequest(*(*it)) ;
-        delete (*it);
-        auto it2=it ;
-        ++it ;
-        requests_.erase(it2) ;
+        processRequest( *(requests_[rank].front()) );
+        delete requests_[rank].front();
+        requests_[rank].pop_front() ;
       }
-      else ++it ;
     }
   }
 
