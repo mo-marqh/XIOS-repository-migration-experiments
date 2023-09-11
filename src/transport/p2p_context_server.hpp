@@ -62,7 +62,7 @@ namespace xios
    
     void listen(void) ;
     void listenPendingRequest(void) ;
-    bool processRequest(CRequest& request) ;
+    void processRequest(CRequest& request) ;
     void checkBuffers(void) ;
     void processEvents(bool enableEventsProcessing) ;
     
@@ -105,7 +105,7 @@ namespace xios
       bool eventScheduled_=false;
       MPI_Request processEventRequest_ ;
 
-      std::list<CRequest*> requests_ ;
+      std::map<int,std::list<CRequest*> >requests_ ;
 
       std::map<size_t, SPendingEvent> pendingEvents_   ;
       std::map<size_t, SPendingEvent> completedEvents_ ;

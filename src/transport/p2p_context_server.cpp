@@ -100,14 +100,14 @@ namespace xios
       traceOn();
       if (flag==true)
       {
-        requests_.push_back(new CRequest(interCommMerged_, status)) ;
-        if (requests_.back()->test()) 
+        int rank=status.MPI_SOURCE ;
+        requests_[rank].push_back(new CRequest(interCommMerged_, status)) ;
+        // Test 1st request of the list, request treatment must be ordered 
+        if (requests_[rank].front()->test())
         {
-          if ( processRequest( *(requests_.back()) ) )
-          {
-            delete requests_.back();
-            requests_.pop_back() ;
-          }
+          processRequest( *(requests_[rank].front()) );
+          delete requests_[rank].front();
+          requests_[rank].pop_front() ;
         }
       }
     }
@@ -115,42 +115,30 @@ namespace xios
 
   void CP2pContextServer::listenPendingRequest(void)
   {
-    auto it = requests_.begin() ;
-    while (it != requests_.end())
+    for(auto it_rank=requests_.begin() ; it_rank!=requests_.end() ; ++it_rank)
     {
-      if ((*it)->test())
+      int rank = it_rank->first;
+      while ( (!requests_[rank].empty()) && (requests_[rank].front()->test()) )
       {
-        if (processRequest(*(*it)))
-        {
-          delete (*it);
-          auto it2=it ;
-          ++it ;
-          requests_.erase(it2) ;
-	}
+        processRequest( *(requests_[rank].front()) );
+        delete requests_[rank].front();
+        requests_[rank].pop_front() ;
       }
-      else ++it ;
     }
   }
 
-  bool CP2pContextServer::processRequest(CRequest& request)
+  void CP2pContextServer::processRequest(CRequest& request)
   {
     int rank = request.getRank() ;
     auto it=buffers_.find(rank);
-    // getCount(new CP2pServerBuffer) = sizeof(MPI_AINT)
-    // getCount(RESIZE) : size_t timeline, size_t size + size_t EVENT_BUFFER_RESIZE = 24
-    // getCount(HEADER) : size_t timeline, int nbSenders, int nbBlocs
-    //                     + nbBlocs * (sizeof(MPI_Aint) addr + int count + int window) = 16 + nbBlocs * 16
-    if ((it==buffers_.end())&&(request.getCount() < 3*sizeof(size_t)))
+    if (it==buffers_.end())
     {
       buffers_[rank] = new CP2pServerBuffer(rank, commSelf_, interCommMerged_, pendingEvents_, completedEvents_, request.getBuffer()) ;
-      return true;
-    }
-    else if (it!=buffers_.end()) {
-      it->second->receivedRequest(request.getBuffer()) ;
-      return true;
     }
     else
-      return false;
+    {
+      it->second->receivedRequest(request.getBuffer()) ;
+    }
   }
 
   void CP2pContextServer::checkBuffers(void)
