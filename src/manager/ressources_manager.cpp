@@ -42,6 +42,7 @@ namespace xios
   {
     delete winNotify_ ;
     delete winRessources_ ;
+    delete tokenManager_ ;
   } 
 
   void CRessourcesManager::createPool(const string& poolId, int size)

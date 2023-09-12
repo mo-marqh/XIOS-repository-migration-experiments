@@ -35,17 +35,23 @@ namespace xios
             rank_=status.MPI_SOURCE ;
             MPI_Get_count(&status,MPI_CHAR,&count_);
             buffer_.resize(count_) ;
+            info(logProtocol) << "DBG : Request created from "  << rank_ << ", of size " << count_ << endl;
             MPI_Irecv(buffer_.data(), count_, MPI_CHAR, rank_, 20, interComm, &request_) ;
+            //MPI_Status mpistatus;
+            //MPI_Recv(buffer_.data(), count_, MPI_CHAR, rank_, 20, interComm, &mpistatus) ;
           }
           
-          ~CRequest() { }
+          ~CRequest() { info(logProtocol) << "DBG : Request deleted "  << rank_ << ", of size " << count_ << endl; }
 
           bool test(void)
           {
             int flag ;
             MPI_Status status ;
             MPI_Test(&request_, &flag, &status) ;
-            if (flag==true) return true ;
+            if (flag==true) {
+	      info(logProtocol) << "DBG : Request completed "  << rank_ << ", of size " << count_ << endl;
+	      return true ;
+	    }
             else return false ;
           }
           int getCount(void) {return count_ ;}
