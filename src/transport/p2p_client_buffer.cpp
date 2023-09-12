@@ -228,7 +228,6 @@ namespace xios
       if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Test").suspend() ;
       if (flag==true)
       {
-        info(logProtocol) << "DBG : Send req deleted to "  << intraServerRank_ << ", of size " << request.buffer->count() << endl;
         delete request.buffer ;
         requests_.pop_front() ;
       }
@@ -300,10 +299,7 @@ namespace xios
       MPI_Issend((void*)(it->addr), it->count, MPI_CHAR, intraServerRank_, 21, interCommMerged_, &sentBlocRequest_.back().mpiRequest) ;
     }
     if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").resume() ;
-    info(logProtocol) << "DBG : Send Hdr to "  << intraServerRank_ << ", of size " << request.buffer->count() << endl;
     MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_, &request.mpiRequest ) ;
-    //MPI_Send(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_ ) ;
-    //delete request.buffer ;	    
     if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").suspend() ;
     info(logProtocol)<<outStr.str()<<endl ;
     requests_.push_back(request) ;
@@ -314,10 +310,7 @@ namespace xios
     SRequest request ;
     request.buffer = new CBufferOut(sizeof(EVENT_BUFFER_RESIZE)+sizeof(timeline)+sizeof(size)) ; 
     *(request.buffer)<<EVENT_BUFFER_RESIZE<<timeline<<size ;
-    info(logProtocol) << "DBG : Send Hdr RESIZE to "  << intraServerRank_ << ", of size " << request.buffer->count() << endl;
     MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_, &request.mpiRequest ) ;
-    //MPI_Send(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_ ) ;
-    //delete request.buffer ;
     requests_.push_back(request) ;
   }
 

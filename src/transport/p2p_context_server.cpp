@@ -103,18 +103,12 @@ namespace xios
         int rank=status.MPI_SOURCE ;
         requests_[rank].push_back(new CRequest(interCommMerged_, status)) ;
         // Test 1st request of the list, request treatment must be ordered 
-        //while (!requests_[rank].back()->test()) 
-        //{
-        //}
         if (requests_[rank].front()->test())
         {
           processRequest( *(requests_[rank].front()) );
           delete requests_[rank].front();
           requests_[rank].pop_front() ;
         }
-        //CRequest* request = new CRequest(interCommMerged_, status);
-        //processRequest(*request) ;
-        //delete request;
       }
     }
   }
@@ -139,11 +133,10 @@ namespace xios
     auto it=buffers_.find(rank);
     if (it==buffers_.end())
     {
-      info(logProtocol) << "DBG : Buffer(Hdr) created "  << rank << ", of size " << request.getCount() << endl;
       buffers_[rank] = new CP2pServerBuffer(rank, commSelf_, interCommMerged_, pendingEvents_, completedEvents_, request.getBuffer()) ;
     }
-    else {
-      info(logProtocol) << "DBG : Buffer(Hdr) received "  << rank << ", of size " << request.getCount() << endl;
+    else
+    {
       it->second->receivedRequest(request.getBuffer()) ;
     }
   }
