@@ -76,6 +76,8 @@ namespace xios
 
      if (registryIn!=nullptr) delete registryIn ;
      if (registryOut!=nullptr) delete registryOut ;
+
+     if (onlineContextClient_!=nullptr) delete onlineContextClient_;
    }
 
    //----------------------------------------------------------------

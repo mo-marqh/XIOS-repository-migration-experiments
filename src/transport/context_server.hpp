@@ -21,7 +21,7 @@ namespace xios
     static CContextServer* getNew(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
     
     CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
-    ~CContextServer() {} 
+    virtual ~CContextServer() {} 
     void setAssociatedClient(CContextClient* associatedClient) {associatedClient_=associatedClient ;}
     CContextClient* getAssociatedClient(void) { return associatedClient_ ;}
     int getIntraCommRank(void) { return intraCommRank ;}

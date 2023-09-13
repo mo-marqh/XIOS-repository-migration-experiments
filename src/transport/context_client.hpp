@@ -34,6 +34,7 @@ namespace xios
 
             // Contructor
       CContextClient(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0);
+      virtual ~CContextClient() {} 
 
       bool isServerLeader(void) const;
       bool isServerNotLeader(void) const;

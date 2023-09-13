@@ -112,7 +112,12 @@ namespace xios
     //}
 
     if (buffers_.size()>1) 
-     if (buffers_.front()->getCount()==0) buffers_.pop_front() ; // if buffer is empty free buffer
+    {
+      if (buffers_.front()->getCount()==0) {
+        delete buffers_.front();
+        buffers_.pop_front() ; // if buffer is empty free buffer
+      }
+    }
   }
 
   void CP2pServerBuffer::notifyClientFinalize(void)
@@ -421,7 +426,14 @@ namespace xios
       size+=bloc.count ;
       bloc.buffer->free(bloc.start, bloc.count) ; // free bloc
       addr=bloc.addr ;
-      if (bloc.buffer->getCount()==0) if (buffers_.size() > 1) buffers_.pop_front() ; // if buffer is empty free buffer
+      if (bloc.buffer->getCount()==0)
+      {
+        if (buffers_.size() > 1)
+        {
+          delete buffers_.front();
+          buffers_.pop_front() ; // if buffer is empty free buffer
+        }
+      }
     }
     event.push(clientRank_, nullptr, buffer, size) ;
     if (info.isActive(logProtocol)) outStr<<" ==> nbSenders="<<event.getNbSender() ;
