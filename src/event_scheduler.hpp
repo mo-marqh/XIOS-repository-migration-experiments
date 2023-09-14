@@ -70,6 +70,7 @@ namespace xios
 
        private:
          void initialize(const MPI_Comm& comm) ;
+         void cleanSplitSchedulers();
        
        //! Send an event to the parent of level `lev+1`
        /*!

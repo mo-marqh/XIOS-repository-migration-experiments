@@ -91,6 +91,29 @@ namespace xios
     {
       checkEvent_() ;
     } 
+    cleanSplitSchedulers();
+  }
+    
+  void CEventScheduler::cleanSplitSchedulers()
+  {
+    // Cleaning is operated recursively going from parent to child
+    if (parentScheduler_)
+    {
+      if (parentScheduler_->childScheduler_.get() == this)
+      {
+        parentScheduler_.reset();
+      }
+      else // if orphan (due to splitScheduler) : clean parent tree (it does not have child)
+      {
+        parentScheduler_->cleanSplitSchedulers();
+        parentScheduler_.reset();
+      }
+    }                   
+    if (childScheduler_)
+    {
+      childScheduler_->cleanSplitSchedulers();
+      childScheduler_.reset();
+    }
   } 
 
   void CEventScheduler::splitScheduler(const MPI_Comm& splittedComm, shared_ptr<CEventScheduler>& parent, shared_ptr<CEventScheduler>& child)
