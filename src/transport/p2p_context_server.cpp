@@ -97,17 +97,19 @@ namespace xios
     {
       traceOff();
       MPI_Iprobe(MPI_ANY_SOURCE, 20,interCommMerged_, &flag, &status);
+
       traceOn();
       if (flag==true)
       {
         int rank=status.MPI_SOURCE ;
-        requests_[rank].push_back(new CRequest(interCommMerged_, status)) ;
+        auto& rankRequests = requests_[rank];
+        rankRequests.push_back(new CRequest(interCommMerged_, status)) ;
         // Test 1st request of the list, request treatment must be ordered 
-        if (requests_[rank].front()->test())
+        if (rankRequests.front()->test())
         {
-          processRequest( *(requests_[rank].front()) );
-          delete requests_[rank].front();
-          requests_[rank].pop_front() ;
+          processRequest( *(rankRequests.front()) );
+          delete rankRequests.front();
+          rankRequests.pop_front() ;
         }
       }
     }
@@ -118,11 +120,12 @@ namespace xios
     for(auto it_rank=requests_.begin() ; it_rank!=requests_.end() ; ++it_rank)
     {
       int rank = it_rank->first;
-      while ( (!requests_[rank].empty()) && (requests_[rank].front()->test()) )
+      auto& rankRequests = it_rank->second;
+      while ( (!rankRequests.empty()) && (rankRequests.front()->test()) )
       {
-        processRequest( *(requests_[rank].front()) );
-        delete requests_[rank].front();
-        requests_[rank].pop_front() ;
+        processRequest( *(rankRequests.front()) );
+        delete rankRequests.front();
+        rankRequests.pop_front() ;
       }
     }
   }
