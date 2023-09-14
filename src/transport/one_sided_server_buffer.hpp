@@ -35,7 +35,7 @@ namespace xios
           ~CBuffer() 
           { 
             if (count_>0) ERROR("COneSidedServerBuffer::~CBuffer()",<<"Try to delete buffer that is not empty"<<std::endl) ;
-            MPI_Free_mem(&buffer_) ;
+            MPI_Free_mem(buffer_) ;
           }
        
           void reserve(size_t& size, size_t& start, size_t& count)
@@ -103,6 +103,14 @@ namespace xios
       COneSidedServerBuffer(int clientRank, const MPI_Comm& commSelf, const MPI_Comm& interCommMerged, map<size_t, SPendingEvent>& pendingEvents, 
                              map<size_t, SPendingEvent>& completedEvents, vector<char>& buffer)  ;
       
+      ~COneSidedServerBuffer()
+      {
+          while (!buffers_.empty()) {
+              delete buffers_.front();
+              buffers_.pop_front() ; // if buffer is empty free buffer
+          }
+      };
+
       void receivedRequest(vector<char>& buffer) ;
       void eventLoop(void) ;
       void fillEventServer(size_t timeline, CEventServer& event) ;
