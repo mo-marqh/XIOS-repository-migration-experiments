@@ -428,7 +428,6 @@ namespace xios
   
   CPoolRessource::~CPoolRessource()
   {
-    freeRessourceEventScheduler_->cleanSplitSchedulers();
     delete winNotify_ ;
     for(auto& service : services_) delete service.second ;
   }
