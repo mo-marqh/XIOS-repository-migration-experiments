@@ -60,6 +60,7 @@ namespace xios
        void setParentScheduler(shared_ptr<CEventScheduler> parentScheduler) { parentScheduler_ = parentScheduler ;}
        void setChildScheduler(shared_ptr<CEventScheduler> childScheduler) { childScheduler_ = childScheduler ;}
        void splitScheduler(const MPI_Comm& splittedComm, shared_ptr<CEventScheduler>& parent, shared_ptr<CEventScheduler>& child) ;
+       void cleanSplitSchedulers();
 
        //! Public interface to give the hand to the instance to check pending or incoming message.
        /*!
@@ -70,7 +71,6 @@ namespace xios
 
        private:
          void initialize(const MPI_Comm& comm) ;
-         void cleanSplitSchedulers();
        
        //! Send an event to the parent of level `lev+1`
        /*!

@@ -91,7 +91,6 @@ namespace xios
     {
       checkEvent_() ;
     } 
-    cleanSplitSchedulers();
   }
     
   void CEventScheduler::cleanSplitSchedulers()
