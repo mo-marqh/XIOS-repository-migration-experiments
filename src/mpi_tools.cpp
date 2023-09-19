@@ -1,11 +1,41 @@
 #include "mpi.hpp"
-#include "mpi_tools.hpp"
-
-
+#include "backtrace.hpp"
+#include "exception.hpp"
+#include "log.hpp"
 #include <string>
+#include <sstream>
 
 namespace xios  
 {
+  std::map<MPI_Comm,string> CCommTrack::commTrack_ ;
+  void CCommTrack::registerComm(const MPI_Comm& comm)
+  {
+    auto it = commTrack_.find(comm) ;
+    if (it == commTrack_.end())  commTrack_[comm] = MemTrack::backTrace(3);
+    else ERROR("CCommtrack::registerComm", << "Communicator already allocated : " << endl<<it->second)
+  }
+
+  void CCommTrack::releaseComm(const MPI_Comm& comm)
+  {
+    auto it = commTrack_.find(comm) ;
+    if (it == commTrack_.end())  ERROR("CCommtrack::releaseComm", << "Communicator not allocated : " << endl)
+    else commTrack_.erase(it) ;
+  }
+
+  void CCommTrack::dumpComm(void)
+  {
+    ostringstream ostr ;
+    ostr<<" LIST of UNFREED MPI COMMUNICATORS"<<endl ;
+    for(auto& it : commTrack_ )
+    {
+      ostr<<"---------------------------"<<endl ;
+      ostr<<" -- unfreed communicator --"<<endl ;
+      ostr<<" --       backtrace      --"<<endl ;
+      ostr<<it.second<<endl ;
+    }
+    info(100)<<ostr.str() ;
+  }
+
   int MPI_Bcast_string(std::string& str, int root, MPI_Comm comm) 
   {
     int commRank ;

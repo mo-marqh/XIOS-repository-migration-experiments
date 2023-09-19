@@ -2,6 +2,7 @@
 #define __XIOS_MPI_TOOLS_HPP__
 
 #include <string>
+#include <map>
 
 namespace xios
 {
@@ -32,6 +33,19 @@ namespace xios
   template<>
   MPI_Datatype MPI_GetType<long double>(void);
 
+  class CCommTrack
+  {
+    private:
+    static std::map<MPI_Comm,std::string> commTrack_ ;
+    
+    public:
+    static void registerComm(const MPI_Comm& comm) ;
 
+    static void releaseComm(const MPI_Comm& comm) ;
+
+    static void dumpComm(void) ;
+
+    static const std::map<MPI_Comm,std::string>& getCommTrack(void) {return commTrack_ ;}
+  } ;
 } 
 #endif

@@ -520,6 +520,7 @@ namespace xios
       CContext::removeAllContexts() ; // free memory for related context 
 
       CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
+      CCommTrack::dumpComm() ;
       if (!is_MPI_Initialized)
       {
         if (!CXios::usingOasis) MPI_Finalize() ;
