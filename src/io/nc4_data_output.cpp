@@ -1951,7 +1951,7 @@ namespace xios
 
             if (field->compression_level.isEmpty())
               field->compression_level = field->getRelFile()->compression_level.isEmpty() ? 0 : field->getRelFile()->compression_level;
-            else
+            if ( (field->compression_level.getValue()>0)&&(field->compression_type.isEmpty()) )
               field->compression_type.setValue( "gzip" );
             if (field->compression_type.isEmpty())
               field->compression_type = "None";
