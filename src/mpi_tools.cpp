@@ -10,9 +10,12 @@ namespace xios
   std::map<MPI_Comm,string> CCommTrack::commTrack_ ;
   void CCommTrack::registerComm(const MPI_Comm& comm)
   {
-    auto it = commTrack_.find(comm) ;
-    if (it == commTrack_.end())  commTrack_[comm] = MemTrack::backTrace(3);
-    else ERROR("CCommtrack::registerComm", << "Communicator already allocated : " << endl<<it->second)
+    if (comm!=MPI_COMM_NULL)
+    {
+      auto it = commTrack_.find(comm) ;
+      if (it == commTrack_.end())  commTrack_[comm] = MemTrack::backTrace(3);
+      else ERROR("CCommtrack::registerComm", << "Communicator already allocated : " << endl<<it->second)
+    }
   }
 
   void CCommTrack::releaseComm(const MPI_Comm& comm)
