@@ -8,6 +8,7 @@
 #include "netCdfInterface.hpp"
 #include "netCdfException.hpp"
 #include "timer.hpp"
+#include "file.hpp"
 
 namespace xios
 {
@@ -390,6 +391,7 @@ namespace xios
             CGrid* grid = field->getGrid();
             std::vector<CDomain*> domains = grid->getDomains();
             std::vector<CAxis*> axis = grid->getAxis();
+            bool singleDomain = (field->getRelFile()->nbDomains == 1);
 
             std::vector<double> userChunkingWeights; // store chunking coefficients defined by users
 	    std::vector<StdString>::const_reverse_iterator itId = dim.rbegin(); // NetCDF is fed using dim, see this::addVariable()
@@ -425,6 +427,7 @@ namespace xios
                   if (dom->type==CDomain::type_attr::unstructured) axisDim="cell";
                   if (dom->type==CDomain::type_attr::rectilinear)  axisDim="lon";
                 }
+                if (!singleDomain) axisDim+="_"+dom->getDomainOutputName();
                 if (axisDim == *itId)
                 {
                   if (!dom->chunking_weight_i.isEmpty()) userChunkingWeights.push_back( dom->chunking_weight_i.getValue() );
@@ -439,6 +442,7 @@ namespace xios
                   if (dom->type==CDomain::type_attr::curvilinear)  axisDim="y";
                   if (dom->type==CDomain::type_attr::rectilinear)  axisDim="lat";
                 }
+                if (!singleDomain) axisDim+="_"+dom->getDomainOutputName();
                 if (axisDim == *itId)
                 {
                   if (!dom->chunking_weight_j.isEmpty()) userChunkingWeights.push_back( dom->chunking_weight_j.getValue() );
