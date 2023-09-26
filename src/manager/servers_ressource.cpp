@@ -22,13 +22,14 @@ namespace xios
   {
 
     MPI_Comm_dup(serverComm, &serverComm_) ;
+    CXios::getMpiGarbageCollector().registerCommunicator(serverComm_) ; 
     MPI_Comm xiosComm=CXios::getXiosComm() ;
   
     int localRank, globalRank ;
     MPI_Comm_rank(xiosComm,&globalRank) ;
     MPI_Comm_rank(serverComm_,&localRank) ;
     
-    winNotify_ = new CWindowManager(serverComm_, maxBufferSize_) ;
+    winNotify_ = new CWindowManager(serverComm_, maxBufferSize_,"CServersRessource::winNotify_") ;
     MPI_Barrier(serverComm_) ;
     if (localRank==localLeader_) 
     {
@@ -41,6 +42,7 @@ namespace xios
     }
 
     MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ; 
+    CXios::getMpiGarbageCollector().registerCommunicator(freeRessourcesComm_) ;
     eventScheduler_ = make_shared<CEventScheduler>(freeRessourcesComm_) ;
     freeRessourceEventScheduler_ = eventScheduler_ ;
     if (CThreadManager::isUsingThreads()) CThreadManager::spawnThread(&CServersRessource::threadEventLoop, this) ;

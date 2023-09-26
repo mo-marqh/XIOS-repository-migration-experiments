@@ -15,7 +15,8 @@ namespace xios
   {
     int commRank, commSize ;
     MPI_Comm_dup(poolComm, &poolComm_) ;
-    winNotify_ = new CWindowManager(poolComm_, maxBufferSize_) ;
+    CXios::getMpiGarbageCollector().registerCommunicator(poolComm_) ;
+    winNotify_ = new CWindowManager(poolComm_, maxBufferSize_,"CPoolRessource::winNotify_") ;
     MPI_Comm_rank(poolComm, &commRank) ;
     MPI_Comm_size(poolComm, &commSize) ;
     info(40)<<"CPoolRessource::CPoolRessource  : creating new pool : "<<Id<<endl ;
@@ -403,6 +404,7 @@ namespace xios
         const MPI_Comm& serviceComm = service.second->getCommunicator() ;
         MPI_Comm newServiceComm ;
         MPI_Comm_dup(serviceComm, &newServiceComm) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(newServiceComm) ;
         int nbPartitions = service.second->getNbPartitions() ;
         int partitionId = service.second->getPartitionId() ;
         shared_ptr<CEventScheduler>  eventScheduler = service.second->getEventScheduler() ;

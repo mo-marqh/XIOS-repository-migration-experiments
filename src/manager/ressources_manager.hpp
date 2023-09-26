@@ -58,14 +58,14 @@ namespace xios
     void registerRessourcesSize(int size) ;
     void registerPoolClient(const std::string& poolId,int size,int leader) ;
     void registerPoolServer(const std::string& poolId,int size,int leader) ;
-    CTokenManager* getTokenManager(void) {return tokenManager_ ;} 
+    //CTokenManager* getTokenManager(void) {return tokenManager_ ;} 
 
     int managerGlobalLeader_ ;
 
     CWindowManager* winRessources_ ;
 
     CWindowManager* winNotify_ ;
-    CTokenManager* tokenManager_ ;
+    //CTokenManager* tokenManager_ ;
 
     const size_t maxBufferSize_=1024*1024 ;
 

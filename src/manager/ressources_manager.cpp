@@ -21,15 +21,15 @@ namespace xios
     MPI_Comm_rank(xiosComm_, &commRank) ;
     if (commRank==0 && isXiosServer) MPI_Comm_rank(xiosComm_, &commRank) ; 
     else commRank=0 ;
-    tokenManager_ = new CTokenManager(xiosComm_,commRank) ;
+    //tokenManager_ = new CTokenManager(xiosComm_,commRank) ;
 
     MPI_Allreduce(&commRank, &managerGlobalLeader_, 1, MPI_INT, MPI_SUM, xiosComm_) ;
 
     MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_,"CRessourcesManager::winNotify_") ;
    
 
-    winRessources_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winRessources_ = new CWindowManager(xiosComm_, maxBufferSize_,"CRessourcesManager::winRessources_") ;
     winRessources_->lockWindow(commRank,0) ;
     serverLeader_=-1 ;
     winRessources_->updateToWindow(commRank, this, &CRessourcesManager::ressourcesDumpOut) ;
@@ -42,7 +42,7 @@ namespace xios
   {
     delete winNotify_ ;
     delete winRessources_ ;
-    delete tokenManager_ ;
+    //delete tokenManager_ ;
   } 
 
   void CRessourcesManager::createPool(const string& poolId, int size)

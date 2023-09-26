@@ -3,7 +3,7 @@
 
 namespace xios
 {
-    CWindowBase::CWindowBase(MPI_Comm winComm, size_t bufferSize)
+    CWindowBase::CWindowBase(MPI_Comm winComm, size_t bufferSize, const string name)  : name_(name)
     {
       bufferSize_ = bufferSize ;
       windowSize_ = bufferSize_ + OFFSET_BUFFER ;
@@ -12,6 +12,7 @@ namespace xios
       MPI_Aint& lock = *((MPI_Aint*)((char*)winBuffer_+OFFSET_LOCK)) ;
       lock=0 ;
       MPI_Win_lock_all(0, window_) ;
+      info(100)<<"CWindowBase constructor : "<<name_<<endl ;
       MPI_Barrier(winComm) ;
     }
   

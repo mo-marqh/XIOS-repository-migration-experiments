@@ -31,8 +31,10 @@ namespace xios
       pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
 
       MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
+      CXios::getMpiGarbageCollector().registerCommunicator(interCommMerged_) ;
       
       MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
+      CXios::getMpiGarbageCollector().registerCommunicator(commSelf_) ;
       eventScheduler_ = parent->getEventScheduler() ;  
       timeLine = 1;
     }

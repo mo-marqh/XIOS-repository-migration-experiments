@@ -2,8 +2,11 @@
 #define __WINDOW_BASE_HPP__
 
 #include <map>
+#include <string>
+
 #include "exception.hpp"
 #include "mpi.hpp"
+#include <string>
 
 namespace xios
 {
@@ -20,10 +23,11 @@ namespace xios
       MPI_Aint windowSize_ ;
       const double maxLatency_ = 1e-3 ; // 1ms latency maximum
       MPI_Win window_ ;
+      std::string name_ ;
 
     public :
 
-    CWindowBase(MPI_Comm winComm, size_t bufferSize);
+    CWindowBase(MPI_Comm winComm, size_t bufferSize, const string name);
 
     bool tryLockExclusive(int rank)
     {
@@ -142,6 +146,7 @@ namespace xios
     ~CWindowBase()
     {
       MPI_Win_unlock_all(window_);
+      info(100)<<"CWindowBase destructor : "<<name_<<endl ;
     }
 
   } ;

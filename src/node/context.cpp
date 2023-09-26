@@ -598,6 +598,7 @@ void CContext::removeAllContexts(void)
 
       intraCommClient=intraComm_ ;
       MPI_Comm_dup(intraComm_, &intraCommServer) ;
+      CXios::getMpiGarbageCollector().registerCommunicator(intraCommServer) ;
 
       CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient) ;
       CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer) ;

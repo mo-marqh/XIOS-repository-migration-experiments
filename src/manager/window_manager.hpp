@@ -30,7 +30,7 @@ namespace xios
 
     public :
 
-    CWindowManager(MPI_Comm winComm, size_t bufferSize) : CWindowBase(winComm, bufferSize + OFFSET_BUFFER_SIZE)
+    CWindowManager(MPI_Comm winComm, size_t bufferSize, const string name) : CWindowBase(winComm, bufferSize + OFFSET_BUFFER_SIZE, name)
     {
       int lock=0 ;
       size_t size=0 ;

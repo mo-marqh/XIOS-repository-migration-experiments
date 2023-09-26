@@ -36,13 +36,16 @@ namespace xios
   {
    
     MPI_Comm_dup(intraComm, &processEventBarrier_) ;
- 
+    CXios::getMpiGarbageCollector().registerCommunicator(processEventBarrier_) ;
+    
     currentTimeLine=1;
     scheduled=false;
     finished=false;
 
     MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
+    CXios::getMpiGarbageCollector().registerCommunicator(interCommMerged_) ;
     MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
+    CXios::getMpiGarbageCollector().registerCommunicator(commSelf_) ;
     
     itLastTimeLine=lastTimeLine.begin() ;
 

@@ -21,12 +21,13 @@ namespace xios
     int localRank, globalRank, commSize ;
 
     MPI_Comm_dup(serviceComm, &serviceComm_) ;
+    CXios::getMpiGarbageCollector().registerCommunicator(serviceComm_) ;
     MPI_Comm globalComm_=CXios::getXiosComm() ;
   
     MPI_Comm_rank(globalComm_,&globalRank) ;
     MPI_Comm_rank(serviceComm_,&localRank) ;
     
-    winNotify_ = new CWindowManager(serviceComm_, maxBufferSize_) ;
+    winNotify_ = new CWindowManager(serviceComm_, maxBufferSize_,"CService::winNotify_") ;
     winNotify_->updateToExclusiveWindow(localRank, this, &CService::createContextDumpOut) ;
     MPI_Barrier(serviceComm_) ;
     if (localRank==localLeader_) 

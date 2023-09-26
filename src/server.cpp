@@ -101,6 +101,8 @@ namespace xios
         delete[] hashAll ;
 
         MPI_Comm_split(globalComm, color, commRank, &serverComm) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(serverComm) ;
+
       }
       else // using OASIS
       {
@@ -117,6 +119,7 @@ namespace xios
         driver_->getComponentCommunicator( serverComm );
       }
       MPI_Comm_dup(serverComm, &intraComm_);
+      CXios::getMpiGarbageCollector().registerCommunicator(intraComm_) ;
       
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS server").resume() ;
@@ -164,6 +167,7 @@ namespace xios
       int commRank ;
       MPI_Comm_rank(CXios::getXiosComm(), &commRank) ;
       MPI_Comm_split(CXios::getXiosComm(),true,commRank,&serversComm_) ;
+      CXios::getMpiGarbageCollector().registerCommunicator(serversComm_) ;
       
       CXios::setUsingServer() ;
 
@@ -442,6 +446,7 @@ namespace xios
       for(int i=0 ; i<clientsRank.size(); i++)
       {  
         MPI_Intercomm_create(intraComm, 0, globalComm, clientsRank[i], 3141, &interComm);
+        CXios::getMpiGarbageCollector().registerCommunicator(interComm) ;
         interCommLeft.push_back(interComm) ;
         MPI_Comm_free(&intraComm) ;
         MPI_Intercomm_merge(interComm,false, &intraComm ) ;
@@ -597,9 +602,10 @@ namespace xios
       finalizeServersRessource();
       
       CContext::removeAllContexts() ; // free memory for related context
-          
+      
       CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
-
+      MPI_Comm xiosComm=CXios::getXiosComm() ;
+      MPI_Comm_free(&xiosComm) ;
       CMemChecker::logMem( "CServer::finalize", true );
       
       CCommTrack::dumpComm() ;

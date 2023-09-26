@@ -29,10 +29,10 @@ namespace xios
     managerGlobalLeader_ = 0 ;
 
     MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_,"CServicesManager::winNotify_") ;
     winNotify_->updateToExclusiveWindow(commRank, this, &CServicesManager::notificationsDumpOut) ;
 
-    winServices_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winServices_ = new CWindowManager(xiosComm_, maxBufferSize_,"CServicesManager::winServices_") ;
     winServices_->updateToExclusiveWindow(commRank, this, &CServicesManager::servicesDumpOut) ;
    
     MPI_Barrier(xiosComm_)  ;    

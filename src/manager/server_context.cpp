@@ -23,12 +23,13 @@ namespace xios
    int localRank, globalRank, commSize ;
 
     MPI_Comm_dup(contextComm, &contextComm_) ;
+    CXios::getMpiGarbageCollector().registerCommunicator(contextComm_) ;
     xiosComm_=CXios::getXiosComm() ;
   
     MPI_Comm_rank(xiosComm_,&globalRank) ;
     MPI_Comm_rank(contextComm_,&localRank) ;
  
-    winNotify_ = new CWindowManager(contextComm_, maxBufferSize_) ;
+    winNotify_ = new CWindowManager(contextComm_, maxBufferSize_,"CServerContext::winNotify_") ;
     MPI_Barrier(contextComm_) ;
     
     int type;
@@ -56,6 +57,7 @@ namespace xios
 
   CServerContext::~CServerContext()
   {
+    delete winNotify_ ;
     cout<<"Server Context destructor"<<endl;
   } 
 
@@ -125,7 +127,9 @@ namespace xios
       if (nOverlap==0)
       { 
         MPI_Intercomm_create(intraComm, 0, xiosComm_, contextLeader, 3141, &interCommClient) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(interCommClient) ;
         MPI_Comm_dup(interCommClient, &interCommServer) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(interCommServer) ;
         MPI_Comm_free(&newInterCommClient) ;
         MPI_Comm_free(&newInterCommServer) ;
       }
@@ -314,7 +318,9 @@ namespace xios
     { 
       info(10)<<"CServerContext::createIntercomm : No overlap ==> context in server mode"<<endl ;
       MPI_Intercomm_create(contextComm_, 0, xiosComm_, remoteLeader, 3141, &interCommServer) ;
+      CXios::getMpiGarbageCollector().registerCommunicator(interCommServer) ;
       MPI_Comm_dup(interCommServer,&interCommClient) ;
+      CXios::getMpiGarbageCollector().registerCommunicator(interCommClient) ;
       context_ -> createClientInterComm(interCommClient,interCommServer) ;
       clientsInterComm_.push_back(interCommClient) ;
       clientsInterComm_.push_back(interCommServer) ;
@@ -328,9 +334,9 @@ namespace xios
 
   void CServerContext::freeComm(void)
   {
-    delete winNotify_ ;
-    winNotify_=nullptr ;
-    MPI_Comm_free(&contextComm_) ;
+    //delete winNotify_ ;
+    //winNotify_=nullptr ;
+    //MPI_Comm_free(&contextComm_) ;
     // don't forget intercomm -> later
   }
   

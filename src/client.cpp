@@ -105,6 +105,7 @@ namespace xios
           delete[] hashAll ;
 
           MPI_Comm_split(globalComm, color, commRank, &clientComm) ;
+          CXios::getMpiGarbageCollector().registerCommunicator(clientComm) ;
         }
         else
         {
@@ -114,7 +115,9 @@ namespace xios
       else // localComm is given
       {
         MPI_Comm_dup(localComm,&clientComm) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(clientComm) ;
         MPI_Comm_dup(localComm,&intraComm_) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(intraComm_) ;
 
         if (CXios::usingServer)
         {
@@ -174,6 +177,7 @@ namespace xios
       int commRank ;
       MPI_Comm_rank(CXios::getXiosComm(), &commRank) ;
       MPI_Comm_split(CXios::getXiosComm(),false,commRank, &clientsComm_) ;
+      CXios::getMpiGarbageCollector().registerCommunicator(clientsComm_) ;
       
       // is using server or not ?
       int xiosCommSize, clientsCommSize ; 
@@ -276,6 +280,7 @@ namespace xios
         for(int i=pos ; i<clientsCodeId.size(); i++)
         {  
           MPI_Intercomm_create(intraComm, 0, globalComm, serverRank, 3141, &interComm);
+          CXios::getMpiGarbageCollector().registerCommunicator(interComm) ;
           MPI_Comm_free(&intraComm) ;
           MPI_Intercomm_merge(interComm,high, &intraComm ) ;
           high=false ;
@@ -340,9 +345,6 @@ namespace xios
   
       CXios::setXiosComm(xiosGlobalComm) ;
 
-      MPI_Comm commUnfree ;
-      MPI_Comm_dup(clientComm, &commUnfree ) ;
- 
     }
 
 // to check on other architecture
@@ -518,8 +520,9 @@ namespace xios
       CXios::finalizeDaemonsManager() ;
       finalizePoolRessource() ;
       CContext::removeAllContexts() ; // free memory for related context 
-
       CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
+      MPI_Comm xiosComm=CXios::getXiosComm() ;
+      MPI_Comm_free(&xiosComm) ;
       CCommTrack::dumpComm() ;
       if (!is_MPI_Initialized)
       {

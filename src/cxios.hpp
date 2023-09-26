@@ -124,8 +124,8 @@ namespace xios
      static CDaemonsManager*    getDaemonsManager(void) { return daemonsManager_ ;}
      static CPoolRessource*     getPoolRessource(void) ;
      
-     static MPI_Comm getGlobalComm(void) { return globalComm ;}
-     static MPI_Comm getXiosComm(void) { return xiosComm ;}
+     static MPI_Comm& getGlobalComm(void) { return globalComm ;}
+     static MPI_Comm& getXiosComm(void) { return xiosComm ;}
      static void setXiosComm(MPI_Comm comm) { xiosComm=comm ;}
      static CRegistry* getGlobalRegistry(void) { return globalRegistry ;}
      static void setGlobalRegistry(CRegistry* registry) { globalRegistry=registry ;}

@@ -18,8 +18,8 @@ namespace xios
     MPI_Allreduce(&commRank, &managerGlobalLeader_, 1, MPI_INT, MPI_SUM, xiosComm_) ;
     MPI_Comm_rank(xiosComm_, &commRank) ;
     
-    winRegistredCoupling_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
-    winNextCoupling_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winRegistredCoupling_ = new CWindowManager(xiosComm_, maxBufferSize_,"CCouplerManager::winRegistredCoupling_") ;
+    winNextCoupling_ = new CWindowManager(xiosComm_, maxBufferSize_,"CCouplerManager::winNextCoupling_") ;
     if (commRank==managerGlobalLeader_)
     {
       winRegistredCoupling_->updateToExclusiveWindow(managerGlobalLeader_, this, &CCouplerManager::registredCouplingDumpOut) ;

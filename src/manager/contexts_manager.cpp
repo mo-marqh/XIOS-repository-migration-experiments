@@ -25,11 +25,11 @@ namespace xios
     MPI_Allreduce(&commRank, &managerGlobalLeader_, 1, MPI_INT, MPI_SUM, xiosComm_) ;
 
     MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_,"CContextsManager::winNotify_") ;
     winNotify_->updateToExclusiveWindow(commRank, this, &CContextsManager::notificationsDumpOut) ;
    
 
-    winContexts_ = new CWindowManager(xiosComm_, maxBufferSize_) ;
+    winContexts_ = new CWindowManager(xiosComm_, maxBufferSize_,"CContextsManager::winContexts_") ;
     winContexts_->updateToExclusiveWindow(commRank, this, &CContextsManager::contextsDumpOut) ;
   
     MPI_Barrier(xiosComm_)  ;    
