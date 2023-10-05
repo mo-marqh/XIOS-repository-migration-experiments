@@ -21,7 +21,8 @@ namespace xios
   void CCommTrack::releaseComm(const MPI_Comm& comm)
   {
     auto it = commTrack_.find(comm) ;
-    if (it == commTrack_.end())  info(100)<<"WARNING : CCommtrack::releaseComm => Communicator not allocated !" << endl ;
+    //if (it == commTrack_.end())  info(100)<<"WARNING : CCommtrack::releaseComm => Communicator not allocated !" << endl ;
+    if (it == commTrack_.end())  { ERROR("void CCommTrack::releaseComm(const MPI_Comm& comm)",<<"Communicator not allocated !" << endl) ; }
     else commTrack_.erase(it) ;
   }
 
