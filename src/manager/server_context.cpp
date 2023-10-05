@@ -71,11 +71,7 @@ namespace xios
 
     bool ok ;
     int type ;
-    MPI_Comm newInterCommClient, newInterCommServer ;
-    MPI_Comm_dup(contextComm_,&newInterCommClient) ;
-    MPI_Comm_dup(contextComm_,&newInterCommServer) ;
-    overlapedComm_[name_]=tuple<bool, MPI_Comm, MPI_Comm>(false, newInterCommClient, newInterCommServer) ;
-    MPI_Barrier(contextComm_) ;
+    
 
     if (intraCommRank==0)
     {
@@ -106,6 +102,12 @@ namespace xios
 
     if (ok)  
     {
+      MPI_Comm newInterCommClient, newInterCommServer ;
+      MPI_Comm_dup(contextComm_,&newInterCommClient) ;
+      MPI_Comm_dup(contextComm_,&newInterCommServer) ;
+      overlapedComm_[name_]=tuple<bool, MPI_Comm, MPI_Comm>(false, newInterCommClient, newInterCommServer) ;
+      MPI_Barrier(contextComm_) ;
+
       int globalRank ;
       MPI_Comm_rank(xiosComm_,&globalRank) ;
       MPI_Bcast(&contextLeader, 1, MPI_INT, 0, intraComm) ;

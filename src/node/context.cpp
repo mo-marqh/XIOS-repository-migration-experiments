@@ -586,7 +586,7 @@ void CContext::removeAllContexts(void)
     MPI_Comm interComm ;
     for(int i=0 ; i<nbPartitions; i++)
     {
-      while (!parentServerContext_->createIntercomm(poolId, serverId, i, getContextId(), intraComm_, interCommClient, interCommServer)) yield() ;
+      while (!parentServerContext_->createIntercomm(poolId, serverId, i, getContextId(), intraComm_, interCommClient, interCommServer, false)) yield() ;
       int type ; 
       if (commRank==0) while (!CXios::getServicesManager()->getServiceType(poolId, serverId, 0, type)) yield();
       synchronize() ;
