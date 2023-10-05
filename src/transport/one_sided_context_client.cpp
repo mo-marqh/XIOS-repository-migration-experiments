@@ -217,7 +217,7 @@ namespace xios
      setFixedBuffer() ;
      for(auto& it : mapSize)
      {
-      size_t size=std::max(CXios::minBufferSize*1.0,std::min(it.second*CXios::bufferSizeFactor*1.01,CXios::maxBufferSize*1.0)) * 8 ; // double
+      size_t size=std::max(CXios::minBufferSize*1.0,std::min(it.second*CXios::bufferSizeFactor*1.01,CXios::maxBufferSize*1.0)) ;
       mapBufferSize_[it.first]=size ;
       if (buffers.count(it.first)>0) buffers[it.first]->setFixed(size);
      }
