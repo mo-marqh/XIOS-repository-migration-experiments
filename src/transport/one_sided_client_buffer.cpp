@@ -72,7 +72,7 @@ namespace xios
     if (buffers_.size()>maxWindows_-1) return false ; 
     CBuffer* buffer ;
     if (buffers_.size()==0) return true ;
-    else if (!fixed) return true ;
+    else if (!fixed_) return true ;
     else 
     {
       buffer = buffers_.back() ;
