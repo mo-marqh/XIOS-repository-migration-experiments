@@ -1,6 +1,6 @@
 #include "registry.hpp"
 #include "type.hpp"
-#include <mpi.hpp>
+#include "mpi.hpp"
 #include <fstream>
 #include <sstream>
 
