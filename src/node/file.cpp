@@ -271,7 +271,7 @@ namespace xios {
       else
       {
         // NetCDF runs now write of null data
-        MPI_Comm_dup(context->intraComm_, &fileComm) ;
+        xios::MPI_Comm_dup(context->intraComm_, &fileComm) ;
       }
 
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
@@ -286,7 +286,7 @@ namespace xios {
       if (checkRead) return;
       //createSubComFile();
       allZoneEmpty = false; 
-      MPI_Comm_dup(context->intraComm_, &fileComm) ;
+      xios::MPI_Comm_dup(context->intraComm_, &fileComm) ;
       checkRead = true;
     }
     CATCH_DUMP_ATTR
@@ -311,8 +311,8 @@ namespace xios {
       }
 
       int color = allZoneEmpty ? 0 : 1;
-      MPI_Comm_split(context->intraComm_, color, context->intraCommRank_, &fileComm);
-      if (allZoneEmpty) MPI_Comm_free(&fileComm);
+      xios::MPI_Comm_split(context->intraComm_, color, context->intraCommRank_, &fileComm);
+      if (allZoneEmpty) xios::MPI_Comm_free(&fileComm);
     }
     CATCH_DUMP_ATTR
 
@@ -724,7 +724,7 @@ namespace xios {
           this->data_in->closeFile();
         isOpen = false;
        }
-      if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm);
+      if (fileComm != MPI_COMM_NULL) xios::MPI_Comm_free(&fileComm);
    }
    CATCH_DUMP_ATTR
 

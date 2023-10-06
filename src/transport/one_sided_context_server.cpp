@@ -35,14 +35,14 @@ namespace xios
                            isProcessingEvent_(false)
   {
    
-    MPI_Comm_dup(intraComm, &processEventBarrier_) ;
+    xios::MPI_Comm_dup(intraComm, &processEventBarrier_) ;
  
     currentTimeLine=1;
     scheduled=false;
     finished=false;
 
-    MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
-    MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
+    xios::MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
+    xios::MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
     
     itLastTimeLine=lastTimeLine.begin() ;
 
@@ -236,7 +236,7 @@ namespace xios
     //    int rank = it.first ;
     //    MPI_Win_free(&windows_[rank][0]);
     //    MPI_Win_free(&windows_[rank][1]);
-    //    MPI_Comm_free(&winComm_[rank]) ;
+    //    xios::MPI_Comm_free(&winComm_[rank]) ;
     //  }
   }
 

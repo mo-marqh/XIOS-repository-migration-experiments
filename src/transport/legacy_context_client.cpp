@@ -30,8 +30,8 @@ namespace xios
                            mapBufferSize_(),  maxBufferedEvents(4)
     {
       pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
-      MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
-      MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
+      xios::MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
+      xios::MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
       eventScheduler_ = parent->getEventScheduler() ;  
       timeLine = 1;
     }
@@ -218,9 +218,9 @@ namespace xios
           CTimer::get("create Windows").resume() ;
           MPI_Comm interComm ;
           int tag = 0 ;
-          MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;
-          MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
-          MPI_Comm_free(&interComm) ;
+          xios::MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;
+          xios::MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+          xios::MPI_Comm_free(&interComm) ;
                 
           buffer->attachWindows(winComm_[rank]) ;
           CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
@@ -241,9 +241,9 @@ namespace xios
             CTimer::get("create Windows").resume() ;
             MPI_Comm interComm ;
             int tag = 0 ;
-            MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;
-            MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
-            MPI_Comm_free(&interComm) ;
+            xios::MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;
+            xios::MPI_Intercomm_merge(interComm, false, &winComm_[rank]) ;
+            xios::MPI_Comm_free(&interComm) ;
               
             buffer->attachWindows(winComm_[rank]) ;
             CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;

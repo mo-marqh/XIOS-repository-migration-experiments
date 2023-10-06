@@ -608,7 +608,7 @@ namespace xios
     else color=1 ;
     if (commRank==0) color=1 ;
     MPI_Comm newComm ;
-    MPI_Comm_split(localComm_, color, commRank, &newComm) ;
+    xios::MPI_Comm_split(localComm_, color, commRank, &newComm) ;
     if (color==1)
     {
       // ok, I am part of the process that must send something to one or more remote server
@@ -619,7 +619,7 @@ namespace xios
       indGlo.resize(dataSize) ;
       MPI_Bcast(indGlo.data(),dataSize,MPI_SIZE_T,0,newComm) ;
     }
-    MPI_Comm_free(&newComm) ;
+    xios::MPI_Comm_free(&newComm) ;
 
     // construct element_[i] from indGlo
     for(auto& rank : ranks)

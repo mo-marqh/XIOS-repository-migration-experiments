@@ -104,7 +104,7 @@ namespace xios
             color=listHash[hashClient] ;
           delete[] hashAll ;
 
-          MPI_Comm_split(globalComm, color, commRank, &clientComm) ;
+          xios::MPI_Comm_split(globalComm, color, commRank, &clientComm) ;
           CXios::getMpiGarbageCollector().registerCommunicator(clientComm) ;
         }
         else
@@ -114,9 +114,9 @@ namespace xios
       }
       else // localComm is given
       {
-        MPI_Comm_dup(localComm,&clientComm) ;
+        xios::MPI_Comm_dup(localComm,&clientComm) ;
         CXios::getMpiGarbageCollector().registerCommunicator(clientComm) ;
-        MPI_Comm_dup(localComm,&intraComm_) ;
+        xios::MPI_Comm_dup(localComm,&intraComm_) ;
         CXios::getMpiGarbageCollector().registerCommunicator(intraComm_) ;
 
         if (CXios::usingServer)
@@ -144,14 +144,14 @@ namespace xios
          int commRank, commGlobalRank, serverLeader, clientLeader,serverRemoteLeader,clientRemoteLeader ;
          MPI_Comm splitComm,interComm ;
          MPI_Comm_rank(globalComm,&commGlobalRank) ;
-         MPI_Comm_split(globalComm, 0, commGlobalRank, &splitComm) ;
+         xios::MPI_Comm_split(globalComm, 0, commGlobalRank, &splitComm) ;
          int splitCommSize, globalCommSize ;
         
          MPI_Comm_size(splitComm,&splitCommSize) ;
          MPI_Comm_size(globalComm,&globalCommSize) ;
          if (splitCommSize==globalCommSize) // no server
          {
-           MPI_Comm_dup(globalComm,&xiosGlobalComm) ;
+           xios::MPI_Comm_dup(globalComm,&xiosGlobalComm) ;
            CXios::setXiosComm(xiosGlobalComm) ;
          }
          else
@@ -162,8 +162,8 @@ namespace xios
            serverLeader=0 ;
            MPI_Allreduce(&clientLeader,&clientRemoteLeader,1,MPI_INT,MPI_SUM,globalComm) ;
            MPI_Allreduce(&serverLeader,&serverRemoteLeader,1,MPI_INT,MPI_SUM,globalComm) ;
-           MPI_Intercomm_create(splitComm, 0, globalComm, serverRemoteLeader,1341,&interComm) ;
-           MPI_Intercomm_merge(interComm,true,&xiosGlobalComm) ;
+           xios::MPI_Intercomm_create(splitComm, 0, globalComm, serverRemoteLeader,1341,&interComm) ;
+           xios::MPI_Intercomm_merge(interComm,true,&xiosGlobalComm) ;
            CXios::setXiosComm(xiosGlobalComm) ;
          }
       }
@@ -176,7 +176,7 @@ namespace xios
 
       int commRank ;
       MPI_Comm_rank(CXios::getXiosComm(), &commRank) ;
-      MPI_Comm_split(CXios::getXiosComm(),false,commRank, &clientsComm_) ;
+      xios::MPI_Comm_split(CXios::getXiosComm(),false,commRank, &clientsComm_) ;
       CXios::getMpiGarbageCollector().registerCommunicator(clientsComm_) ;
       
       // is using server or not ?
@@ -270,7 +270,7 @@ namespace xios
       if (error==false)  // you have a server
       {
         MPI_Comm intraComm ;
-        MPI_Comm_dup(clientComm,&intraComm) ;
+        xios::MPI_Comm_dup(clientComm,&intraComm) ;
         MPI_Comm interComm ;
         
         int pos=0 ;
@@ -279,10 +279,10 @@ namespace xios
         bool high=true ;
         for(int i=pos ; i<clientsCodeId.size(); i++)
         {  
-          MPI_Intercomm_create(intraComm, 0, globalComm, serverRank, 3141, &interComm);
+          xios::MPI_Intercomm_create(intraComm, 0, globalComm, serverRank, 3141, &interComm);
           CXios::getMpiGarbageCollector().registerCommunicator(interComm) ;
-          MPI_Comm_free(&intraComm) ;
-          MPI_Intercomm_merge(interComm,high, &intraComm ) ;
+          xios::MPI_Comm_free(&intraComm) ;
+          xios::MPI_Intercomm_merge(interComm,high, &intraComm ) ;
           high=false ;
           if (i==pos) {
             interComm_=interComm ;
@@ -312,7 +312,7 @@ namespace xios
          
         int client ;
         MPI_Comm intraComm ;
-        MPI_Comm_dup(clientComm,&intraComm) ;
+        xios::MPI_Comm_dup(clientComm,&intraComm) ;
         MPI_Comm interComm ;
         
         int pos=0 ;
@@ -323,13 +323,13 @@ namespace xios
         {  
           if (codeId==clientsCodeId[0])   // first model play the server rule
           {          
-            MPI_Intercomm_create(intraComm, 0, globalComm, clientsRank[i], 3141, &interComm);
-            MPI_Intercomm_merge(interComm,false, &intraComm ) ;
+            xios::MPI_Intercomm_create(intraComm, 0, globalComm, clientsRank[i], 3141, &interComm);
+            xios::MPI_Intercomm_merge(interComm,false, &intraComm ) ;
           }
           else
           {          
-            MPI_Intercomm_create(intraComm, 0, globalComm, clientsRank[0], 3141, &interComm);
-            MPI_Intercomm_merge(interComm,high, &intraComm ) ;
+            xios::MPI_Intercomm_create(intraComm, 0, globalComm, clientsRank[0], 3141, &interComm);
+            xios::MPI_Intercomm_merge(interComm,high, &intraComm ) ;
             high=false ;
           }
           if (i==pos) {
@@ -380,7 +380,7 @@ namespace xios
           for(int i=0 ; i<clientsCodeId.size(); i++)
           {  
             MPI_Comm_connect(portName, MPI_INFO_NULL, 0, intraComm, &interComm);
-            MPI_Intercomm_merge(interComm, true, &intraComm ) ;
+            xios::MPI_Intercomm_merge(interComm, true, &intraComm ) ;
           }
           xiosGlobalComm=intraComm ;
         }
@@ -400,7 +400,7 @@ namespace xios
             for(int i=0 ; i<clientsCodeId.size()-1; i++)
             {  
               MPI_Comm_accept(portName, MPI_INFO_NULL, 0, intraComm, &interComm);
-              MPI_Intercomm_merge(interComm,false, &intraComm ) ;
+              xios::MPI_Intercomm_merge(interComm,false, &intraComm ) ;
             }
           }
           else  // other clients are connecting to the first one
@@ -422,7 +422,7 @@ namespace xios
               for(int i=0 ; i<clientsCodeId.size()-1; i++)
               {  
                 MPI_Comm_connect(portName, MPI_INFO_NULL, 0, intraComm, &interComm);
-                MPI_Intercomm_merge(interComm, true, &intraComm ) ;
+                xios::MPI_Intercomm_merge(interComm, true, &intraComm ) ;
               }
               xiosGlobalComm=intraComm ;
             }
@@ -522,7 +522,7 @@ namespace xios
       CContext::removeAllContexts() ; // free memory for related context 
       CXios::getMpiGarbageCollector().release() ; // release unfree MPI ressources
       MPI_Comm xiosComm=CXios::getXiosComm() ;
-      MPI_Comm_free(&xiosComm) ;
+      xios::MPI_Comm_free(&xiosComm) ;
       CCommTrack::dumpComm() ;
       if (!is_MPI_Initialized)
       {

@@ -35,15 +35,15 @@ namespace xios
       isProcessingEvent_(false)
   {
  
-    MPI_Comm_dup(intraComm, &processEventBarrier_) ;
+    xios::MPI_Comm_dup(intraComm, &processEventBarrier_) ;
  
 
     currentTimeLine=1;
     scheduled=false;
     finished=false;
 
-    MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
-    MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
+    xios::MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
+    xios::MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
     
     itLastTimeLine=lastTimeLine.begin() ;
 
@@ -121,9 +121,9 @@ namespace xios
       CTimer::get("create Windows").resume() ;
       MPI_Comm interComm ;
       int tag = 0 ;
-      MPI_Intercomm_create(commSelf_, 0, interCommMerged_, rank, tag , &interComm) ;
-      MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
-      MPI_Comm_free(&interComm) ;
+      xios::MPI_Intercomm_create(commSelf_, 0, interCommMerged_, rank, tag , &interComm) ;
+      xios::MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
+      xios::MPI_Comm_free(&interComm) ;
       windows_[rank].resize(2) ;
       //MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
       //CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;

@@ -43,7 +43,7 @@ namespace xios
 //  {
 //   int color = clientRank % 2;
 //   commLevel_.push_back(MPI_Comm());
-//   MPI_Comm_split(mpiCommLevel, color, 0, &(commLevel_.back()));
+//   xios::MPI_Comm_split(mpiCommLevel, color, 0, &(commLevel_.back()));
 //   divideMPICommLevel(commLevel_.back(), level);
 //  }
 //}
@@ -159,7 +159,7 @@ void DivideAdaptiveComm::computeMPICommLevel()
 //  {
 //   int color = clientRank % 2;
 //   commLevel_.push_back(MPI_Comm());
-//   MPI_Comm_split(mpiCommLevel, color, 0, &(commLevel_.back()));
+//   xios::MPI_Comm_split(mpiCommLevel, color, 0, &(commLevel_.back()));
 //   divideMPICommLevel(commLevel_.back(), level);
 //  }
 //}

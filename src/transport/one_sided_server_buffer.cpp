@@ -24,10 +24,10 @@ namespace xios
   {
     CTimer::get("create Windows").resume() ;
     MPI_Comm interComm ;
-    MPI_Intercomm_create(commSelf, 0, interCommMerged, clientRank_, 0 , &interComm) ;
-    MPI_Intercomm_merge(interComm, true, &winComm_) ;
+    xios::MPI_Intercomm_create(commSelf, 0, interCommMerged, clientRank_, 0 , &interComm) ;
+    xios::MPI_Intercomm_merge(interComm, true, &winComm_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(winComm_) ;
-    MPI_Comm_free(&interComm) ;
+    xios::MPI_Comm_free(&interComm) ;
     
     maxWindows_=MAX_WINDOWS ;
     windows_.resize(maxWindows_) ;

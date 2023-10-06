@@ -21,7 +21,7 @@ namespace xios
   CServersRessource::CServersRessource(MPI_Comm serverComm) : poolRessource_(nullptr), finalizeSignal_(false)
   {
 
-    MPI_Comm_dup(serverComm, &serverComm_) ;
+    xios::MPI_Comm_dup(serverComm, &serverComm_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(serverComm_) ; 
     MPI_Comm xiosComm=CXios::getXiosComm() ;
   
@@ -41,7 +41,7 @@ namespace xios
       for(int i=0;i<commSize;i++) freeRessourcesRank_[i]=i ;
     }
 
-    MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ; 
+    xios::MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ; 
     CXios::getMpiGarbageCollector().registerCommunicator(freeRessourcesComm_) ;
     eventScheduler_ = make_shared<CEventScheduler>(freeRessourcesComm_) ;
     freeRessourceEventScheduler_ = eventScheduler_ ;
@@ -224,7 +224,7 @@ namespace xios
     int commRank ;
     MPI_Comm poolComm ;
     MPI_Comm_rank(freeRessourcesComm_,&commRank) ;
-    MPI_Comm_split(freeRessourcesComm_, isPartOf, commRank, &poolComm) ;
+    xios::MPI_Comm_split(freeRessourcesComm_, isPartOf, commRank, &poolComm) ;
     
     shared_ptr<CEventScheduler> parentScheduler, childScheduler ;
     freeRessourceEventScheduler_->splitScheduler(poolComm, parentScheduler, childScheduler) ;
@@ -235,12 +235,12 @@ namespace xios
     if (isPartOf)
     {  
       poolRessource_ = new CPoolRessource(poolComm, childScheduler, poolId, true) ;
-      MPI_Comm_free(&poolComm) ;
+      xios::MPI_Comm_free(&poolComm) ;
     }
     else 
     {
       freeRessourceEventScheduler_ = childScheduler ;
-      MPI_Comm_free(&freeRessourcesComm_) ;
+      xios::MPI_Comm_free(&freeRessourcesComm_) ;
       freeRessourcesComm_=poolComm ;
     }
 

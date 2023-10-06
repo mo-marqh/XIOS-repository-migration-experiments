@@ -14,7 +14,7 @@ namespace xios
   CPoolRessource::CPoolRessource(MPI_Comm poolComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& Id, bool isServer) : Id_(Id), finalizeSignal_(false)
   {
     int commRank, commSize ;
-    MPI_Comm_dup(poolComm, &poolComm_) ;
+    xios::MPI_Comm_dup(poolComm, &poolComm_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(poolComm_) ;
     winNotify_ = new CWindowManager(poolComm_, maxBufferSize_,"CPoolRessource::winNotify_") ;
     MPI_Comm_rank(poolComm, &commRank) ;
@@ -335,12 +335,12 @@ namespace xios
     if (!services_.empty()) color = 0 ;
     else color=1 ; 
     MPI_Comm_rank(poolComm_,&commRank) ;
-    MPI_Comm_split(poolComm_, color, commRank, &freeComm) ;  // workaround
+    xios::MPI_Comm_split(poolComm_, color, commRank, &freeComm) ;  // workaround
     
     if (services_.empty()) 
     {
       MPI_Comm_rank(freeComm,&commRank) ;
-      MPI_Comm_split(freeComm, in, commRank, &serviceComm) ;
+      xios::MPI_Comm_split(freeComm, in, commRank, &serviceComm) ;
 
       // temporary for event scheduler, we must using hierarchical split of free ressources communicator.
       // we hope for now that spliting using occupancy make this match
@@ -363,7 +363,7 @@ namespace xios
         }
         else  partitionId = serviceCommRank / (serviceCommSize/nbPartitions + 1) ;
 
-        MPI_Comm_split(serviceComm, partitionId, commRank, &newServiceComm) ;
+        xios::MPI_Comm_split(serviceComm, partitionId, commRank, &newServiceComm) ;
 
         MPI_Comm_size(newServiceComm,&serviceCommSize) ;
         MPI_Comm_rank(newServiceComm,&serviceCommRank) ;
@@ -377,7 +377,7 @@ namespace xios
 
         services_[std::make_tuple(serviceId,partitionId)] = new CService(newServiceComm, childScheduler, Id_, serviceId, partitionId, type, nbPartitions) ;
        
-        MPI_Comm_free(&newServiceComm) ;
+        xios::MPI_Comm_free(&newServiceComm) ;
       }
       else
       {
@@ -387,9 +387,9 @@ namespace xios
         freeRessourceEventScheduler_ = childScheduler ;
         isFirstSplit_=false ;
       }
-      MPI_Comm_free(&serviceComm) ;
+      xios::MPI_Comm_free(&serviceComm) ;
     }
-    MPI_Comm_free(&freeComm) ;
+    xios::MPI_Comm_free(&freeComm) ;
   }
   
   void CPoolRessource::createNewServiceOnto(const std::string& serviceId, int type, const std::string& onServiceId)
@@ -403,7 +403,7 @@ namespace xios
       {
         const MPI_Comm& serviceComm = service.second->getCommunicator() ;
         MPI_Comm newServiceComm ;
-        MPI_Comm_dup(serviceComm, &newServiceComm) ;
+        xios::MPI_Comm_dup(serviceComm, &newServiceComm) ;
         CXios::getMpiGarbageCollector().registerCommunicator(newServiceComm) ;
         int nbPartitions = service.second->getNbPartitions() ;
         int partitionId = service.second->getPartitionId() ;

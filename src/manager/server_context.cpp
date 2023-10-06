@@ -22,7 +22,7 @@ namespace xios
    info(40)<<"CCServerContext::CServerContext  : new context creation ; contextId : "<<contextId<<endl ;
    int localRank, globalRank, commSize ;
 
-    MPI_Comm_dup(contextComm, &contextComm_) ;
+    xios::MPI_Comm_dup(contextComm, &contextComm_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(contextComm_) ;
     xiosComm_=CXios::getXiosComm() ;
   
@@ -103,8 +103,8 @@ namespace xios
     if (ok)  
     {
       MPI_Comm newInterCommClient, newInterCommServer ;
-      MPI_Comm_dup(contextComm_,&newInterCommClient) ;
-      MPI_Comm_dup(contextComm_,&newInterCommServer) ;
+      xios::MPI_Comm_dup(contextComm_,&newInterCommClient) ;
+      xios::MPI_Comm_dup(contextComm_,&newInterCommServer) ;
       overlapedComm_[name_]=tuple<bool, MPI_Comm, MPI_Comm>(false, newInterCommClient, newInterCommServer) ;
       MPI_Barrier(contextComm_) ;
 
@@ -128,12 +128,12 @@ namespace xios
 */
       if (nOverlap==0)
       { 
-        MPI_Intercomm_create(intraComm, 0, xiosComm_, contextLeader, 3141, &interCommClient) ;
+        xios::MPI_Intercomm_create(intraComm, 0, xiosComm_, contextLeader, 3141, &interCommClient) ;
         CXios::getMpiGarbageCollector().registerCommunicator(interCommClient) ;
-        MPI_Comm_dup(interCommClient, &interCommServer) ;
+        xios::MPI_Comm_dup(interCommClient, &interCommServer) ;
         CXios::getMpiGarbageCollector().registerCommunicator(interCommServer) ;
-        MPI_Comm_free(&newInterCommClient) ;
-        MPI_Comm_free(&newInterCommServer) ;
+        xios::MPI_Comm_free(&newInterCommClient) ;
+        xios::MPI_Comm_free(&newInterCommServer) ;
       }
       else
       {
@@ -319,9 +319,9 @@ namespace xios
     if (nOverlap==0)
     { 
       info(10)<<"CServerContext::createIntercomm : No overlap ==> context in server mode"<<endl ;
-      MPI_Intercomm_create(contextComm_, 0, xiosComm_, remoteLeader, 3141, &interCommServer) ;
+      xios::MPI_Intercomm_create(contextComm_, 0, xiosComm_, remoteLeader, 3141, &interCommServer) ;
       CXios::getMpiGarbageCollector().registerCommunicator(interCommServer) ;
-      MPI_Comm_dup(interCommServer,&interCommClient) ;
+      xios::MPI_Comm_dup(interCommServer,&interCommClient) ;
       CXios::getMpiGarbageCollector().registerCommunicator(interCommClient) ;
       context_ -> createClientInterComm(interCommClient,interCommServer) ;
       clientsInterComm_.push_back(interCommClient) ;
@@ -338,7 +338,7 @@ namespace xios
   {
     //delete winNotify_ ;
     //winNotify_=nullptr ;
-    //MPI_Comm_free(&contextComm_) ;
+    //xios::MPI_Comm_free(&contextComm_) ;
     // don't forget intercomm -> later
   }
   

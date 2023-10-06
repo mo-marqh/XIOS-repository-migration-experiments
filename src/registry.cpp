@@ -264,9 +264,9 @@ namespace xios
     MPI_Comm_rank(communicator,&rank);
     if (rank==0) color=1 ;
     MPI_Comm newComm ;
-    MPI_Comm_split(communicator,color,rank,&newComm) ;
+    xios::MPI_Comm_split(communicator,color,rank,&newComm) ;
     if (color==1) hierarchicalGatherRegistry(newComm) ;
-    MPI_Comm_free(&newComm) ;    
+    xios::MPI_Comm_free(&newComm) ;    
   }
 
   void CRegistry::hierarchicalGatherRegistry(const MPI_Comm& comm)
@@ -281,9 +281,9 @@ namespace xios
       if (mpiRank<mpiSize/2+mpiSize%2) color=0 ;
       else color=1 ;
       MPI_Comm commUp ;
-      MPI_Comm_split(comm,color,mpiRank,&commUp) ,
+      xios::MPI_Comm_split(comm,color,mpiRank,&commUp) ,
       hierarchicalGatherRegistry(commUp) ;
-      MPI_Comm_free(&commUp) ;
+      xios::MPI_Comm_free(&commUp) ;
     }
 
     if (mpiSize>1)
@@ -293,9 +293,9 @@ namespace xios
       
       if (mpiRank==0 || mpiRank==mpiSize/2+mpiSize%2) color=0 ;
       else color=1 ;
-      MPI_Comm_split(comm,color,mpiRank,&commDown) ;
+      xios::MPI_Comm_split(comm,color,mpiRank,&commDown) ;
       if (color==0) gatherRegistry(commDown) ;
-      MPI_Comm_free(&commDown) ;    
+      xios::MPI_Comm_free(&commDown) ;    
     }
   }
 

@@ -27,7 +27,7 @@ namespace xios
       void release(void)
       {
         for( auto& it : stack_) 
-          if (it.type==SType::COMM) MPI_Comm_free(&it.comm);
+          if (it.type==SType::COMM) xios::MPI_Comm_free(&it.comm);
           else if (it.type==SType::WIN) MPI_Win_free(&it.win);
         stack_.clear();
       }

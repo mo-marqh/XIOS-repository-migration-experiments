@@ -21,13 +21,13 @@ namespace xios
   {
     CTimer::get("create Windows").resume() ;
     MPI_Comm interComm ;
-    MPI_Intercomm_create(commSelf, 0, interCommMerged, intraServerRank, 0, &interComm) ;
-    MPI_Intercomm_merge(interComm, false, &winComm_) ;
+    xios::MPI_Intercomm_create(commSelf, 0, interCommMerged, intraServerRank, 0, &interComm) ;
+    xios::MPI_Intercomm_merge(interComm, false, &winComm_) ;
     int rank ;
     MPI_Comm_rank(winComm_,&rank) ;
     info(logProtocol)<<"Windows rank="<<rank<<endl ;
     CXios::getMpiGarbageCollector().registerCommunicator(winComm_) ;
-    MPI_Comm_free(&interComm) ;
+    xios::MPI_Comm_free(&interComm) ;
     
     maxWindows_=MAX_WINDOWS ;    
     windows_.resize(maxWindows_) ;

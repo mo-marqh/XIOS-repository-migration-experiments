@@ -26,7 +26,7 @@ namespace xios
   
   void CEventScheduler::initialize(const MPI_Comm& comm) 
   {
-    MPI_Comm_dup(comm, &communicator_) ;
+    xios::MPI_Comm_dup(comm, &communicator_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(communicator_) ;
     MPI_Comm_size(communicator_,&mpiSize_) ;
     MPI_Comm_rank(communicator_,&mpiRank_);
@@ -122,7 +122,7 @@ namespace xios
     child = make_shared<CEventScheduler>(splittedComm, schedulerLevel_+ 1) ;
     if (child->isRoot()) color=1 ;
     else color=0 ;
-    MPI_Comm_split(communicator_, color, mpiRank_, &newComm) ;
+    xios::MPI_Comm_split(communicator_, color, mpiRank_, &newComm) ;
     CXios::getMpiGarbageCollector().registerCommunicator(newComm) ;
 
     parent = make_shared<CEventScheduler>(newComm , schedulerLevel_) ;

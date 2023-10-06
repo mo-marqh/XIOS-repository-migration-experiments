@@ -20,7 +20,7 @@ namespace xios
    
     int localRank, globalRank, commSize ;
 
-    MPI_Comm_dup(serviceComm, &serviceComm_) ;
+    xios::MPI_Comm_dup(serviceComm, &serviceComm_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(serviceComm_) ;
     MPI_Comm globalComm_=CXios::getXiosComm() ;
   

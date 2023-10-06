@@ -446,7 +446,7 @@ TRY
   CContext* context = CContext::getCurrent();
   
   MPI_Comm poleComme(MPI_COMM_NULL);
-  MPI_Comm_split(context->intraComm_, interMapValuePole.empty() ? MPI_UNDEFINED : 1, 0, &poleComme);
+  xios::MPI_Comm_split(context->intraComm_, interMapValuePole.empty() ? MPI_UNDEFINED : 1, 0, &poleComme);
   if (MPI_COMM_NULL != poleComme)
   {
     int nbClientPole;

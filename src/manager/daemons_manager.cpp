@@ -16,7 +16,7 @@ namespace xios
     int commRank ;
     MPI_Comm_rank(xiosComm,&commRank) ;
     MPI_Comm splitComm ;
-    MPI_Comm_split(xiosComm,isXiosServer,commRank,&splitComm) ;
+    xios::MPI_Comm_split(xiosComm,isXiosServer,commRank,&splitComm) ;
     
     CXios::launchRegistryManager(isXiosServer) ;
     CXios::launchRessourcesManager(isXiosServer) ;
@@ -27,7 +27,7 @@ namespace xios
  
     if (isXiosServer) CServer::launchServersRessource(splitComm) ;
     MPI_Barrier(xiosComm) ;
-    MPI_Comm_free(&splitComm) ;
+    xios::MPI_Comm_free(&splitComm) ;
   }
 
   CDaemonsManager::~CDaemonsManager()

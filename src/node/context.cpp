@@ -540,7 +540,7 @@ void CContext::removeAllContexts(void)
   TRY
   {
     MPI_Comm intraCommClient ;
-    MPI_Comm_dup(intraComm_, &intraCommClient);
+    xios::MPI_Comm_dup(intraComm_, &intraCommClient);
     comms.push_back(intraCommClient);
 
     CContextServer* server ;
@@ -597,7 +597,7 @@ void CContext::removeAllContexts(void)
       MPI_Comm intraCommClient, intraCommServer ;
 
       intraCommClient=intraComm_ ;
-      MPI_Comm_dup(intraComm_, &intraCommServer) ;
+      xios::MPI_Comm_dup(intraComm_, &intraCommServer) ;
       CXios::getMpiGarbageCollector().registerCommunicator(intraCommServer) ;
 
       CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient) ;
@@ -805,17 +805,17 @@ void CContext::removeAllContexts(void)
          MPI_Comm interComm, interCommClient, interCommServer  ;
          MPI_Comm intraCommClient, intraCommServer ;
 
-         MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
+         xios::MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
 
-        MPI_Comm_dup(intraComm_, &intraCommClient) ;
-        MPI_Comm_dup(intraComm_, &intraCommServer) ;
-        MPI_Comm_dup(interComm, &interCommClient) ;
-        MPI_Comm_dup(interComm, &interCommServer) ;
+        xios::MPI_Comm_dup(intraComm_, &intraCommClient) ;
+        xios::MPI_Comm_dup(intraComm_, &intraCommServer) ;
+        xios::MPI_Comm_dup(interComm, &interCommClient) ;
+        xios::MPI_Comm_dup(interComm, &interCommServer) ;
         CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient);
         CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer);
         client->setAssociatedServer(server) ;
         server->setAssociatedClient(client) ;
-        MPI_Comm_free(&interComm) ;
+        xios::MPI_Comm_free(&interComm) ;
         couplerOutClient_[fullContextId] = client ;
         couplerOutServer_[fullContextId] = server ;
       }
@@ -828,17 +828,17 @@ void CContext::removeAllContexts(void)
        MPI_Comm interComm, interCommClient, interCommServer  ;
        MPI_Comm intraCommClient, intraCommServer ;
 
-       MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
+       xios::MPI_Intercomm_create(getIntraComm(), 0, CXios::getXiosComm(), contextLeader, 0, &interComm) ;
 
-       MPI_Comm_dup(intraComm_, &intraCommClient) ;
-       MPI_Comm_dup(intraComm_, &intraCommServer) ;
-       MPI_Comm_dup(interComm, &interCommServer) ;
-       MPI_Comm_dup(interComm, &interCommClient) ;
+       xios::MPI_Comm_dup(intraComm_, &intraCommClient) ;
+       xios::MPI_Comm_dup(intraComm_, &intraCommServer) ;
+       xios::MPI_Comm_dup(interComm, &interCommServer) ;
+       xios::MPI_Comm_dup(interComm, &interCommClient) ;
        CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer);
        CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient);
        client->setAssociatedServer(server) ;
        server->setAssociatedClient(client) ;
-       MPI_Comm_free(&interComm) ;
+       xios::MPI_Comm_free(&interComm) ;
 
        couplerInClient_[fullContextId] = client ;
        couplerInServer_[fullContextId] = server ;        
@@ -1000,7 +1000,7 @@ void CContext::removeAllContexts(void)
    TRY
    {
      for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-       MPI_Comm_free(&(*it));
+       xios::MPI_Comm_free(&(*it));
      comms.clear();
    }
    CATCH_DUMP_ATTR
