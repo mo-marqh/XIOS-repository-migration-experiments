@@ -36,14 +36,17 @@ namespace xios
   {
    
     xios::MPI_Comm_dup(intraComm, &processEventBarrier_) ;
- 
+    CXios::getMpiGarbageCollector().registerCommunicator(processEventBarrier_) ;
+    
     currentTimeLine=1;
     scheduled=false;
     finished=false;
 
     xios::MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
+    CXios::getMpiGarbageCollector().registerCommunicator(interCommMerged_) ;
     xios::MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
-    
+    CXios::getMpiGarbageCollector().registerCommunicator(commSelf_) ;
+
     itLastTimeLine=lastTimeLine.begin() ;
 
     pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
