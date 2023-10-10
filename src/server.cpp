@@ -151,6 +151,9 @@ namespace xios
         xios::MPI_Intercomm_create(splitComm, 0, globalComm, clientRemoteLeader,1341,&interComm) ;
         xios::MPI_Intercomm_merge(interComm,false,&xiosGlobalComm) ;
         CXios::setXiosComm(xiosGlobalComm) ;
+
+        xios::MPI_Comm_free( &interComm );
+        xios::MPI_Comm_free( &splitComm );
       }
       else
       {

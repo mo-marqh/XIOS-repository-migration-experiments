@@ -166,6 +166,9 @@ namespace xios
            xios::MPI_Intercomm_merge(interComm,true,&xiosGlobalComm) ;
            CXios::setXiosComm(xiosGlobalComm) ;
          }
+
+         xios::MPI_Comm_free( &interComm );
+         xios::MPI_Comm_free( &splitComm );
       }
       else
       {
@@ -509,7 +512,6 @@ namespace xios
 
     void CClient::finalize(void)
     {
-     
       MPI_Barrier(clientsComm_) ;
       int commRank ;
       MPI_Comm_rank(clientsComm_, &commRank) ;
