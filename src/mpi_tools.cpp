@@ -13,7 +13,7 @@ namespace xios
     if (comm!=MPI_COMM_NULL)
     {
       auto it = commTrack_.find(comm) ;
-      if (it == commTrack_.end())  commTrack_[comm] = MemTrack::backTrace(3);
+      if (it == commTrack_.end())  commTrack_[comm] = MemCppTrack::backTrace(3);
       else ERROR("CCommtrack::registerComm", << "Communicator already allocated : " << endl<<it->second)
     }
   }

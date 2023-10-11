@@ -6,7 +6,7 @@
 
 namespace xios
 {
-  namespace MemTrack
+  namespace MemCppTrack
   {
     void backTrace(std::ostringstream& stack, int n=0) ;
 
