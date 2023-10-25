@@ -18,6 +18,7 @@ namespace xios
     //CBufferIn bufferIn(buffer.data(),buffer.size()) ;
     //bufferIn >> controlAddr_;
     createWindow(commSelf, interCommMerged) ;
+    countDeletedBuffers_ = 0;
   }
 
   void CP2pServerBuffer::createWindow(const MPI_Comm& commSelf, const MPI_Comm& interCommMerged)
@@ -79,13 +80,15 @@ namespace xios
       int nbBlocs ; 
       int count ;
       int window ;
+      size_t start ; 
       bufferIn >> nbBlocs ;
       MPI_Aint bloc ;
       auto& blocs = pendingBlocs_[timeline] ;
       for(int i=0;i<nbBlocs;++i) 
       {
-        bufferIn >> bloc >> count >> window;
-        blocs.push_back({bloc, count, window}) ;
+        bufferIn >> bloc >> count >> window >> start;
+        //info(logProtocol) << "Receiving window : "<<window << endl;
+        blocs.push_back({bloc, count, window,start}) ;
       }
     }
   }
@@ -114,8 +117,12 @@ namespace xios
     if (buffers_.size()>1) 
     {
       if (buffers_.front()->getCount()==0) {
+        // If the front buffer is empty and if another buffer become the active one (buffers_.size()>1)
+        //     the front buffer can be deleted, no new message will be sent through the front buffer
         delete buffers_.front();
-        buffers_.pop_front() ; // if buffer is empty free buffer
+        buffers_.erase(buffers_.begin()) ; // if buffer is empty free buffer
+        //info(logProtocol) << "Deleting win : " << countDeletedBuffers_  << endl;
+        countDeletedBuffers_++;
       }
     }
   }
@@ -222,6 +229,17 @@ namespace xios
       else return currentBuffer_->remain() ;
     }
   }
+  
+  size_t CP2pServerBuffer::remainSize(int bufferId)
+  {
+    if (bufferId-countDeletedBuffers_>=buffers_.size())
+    {
+      //info(logProtocol) << "The buffer " << bufferId << " is not yet allocated" << endl;
+      return 0;
+    }      
+    return buffers_[bufferId-countDeletedBuffers_]->remain() ;
+  }
+
 
   void CP2pServerBuffer::transferEvents(void)
   {
@@ -231,31 +249,14 @@ namespace xios
       size_t transferedSize=0 ;
 
       size_t timeline =  pendingBlocs_.begin()->first ;
-      auto& blocs = pendingBlocs_.begin()->second ;
-      
-      if (!bufferResize_.empty()) 
-      {
-        if (bufferResize_.front().first==timeline)
-        {
-          currentBufferSize_=bufferResize_.front().second * bufferServerFactor_ ;
-          info(logProtocol)<<"Received new buffer size="<<currentBufferSize_<<"  at timeline="<<timeline<<endl ;
-          bufferResize_.pop_front() ;
-          newBuffer(currentBufferSize_,fixed_) ;
-        }
-      }
+      auto& blocs = pendingBlocs_.begin()->second ; // map<size_t  , list<tuple<MPI_Aint,int ,int,size_t>>> pendingBlocs_;
+                                                    //     timeline,            addr    ,size,win,start
+      // addr   = std::get<0>(bloc) ;
+      // size   = std::get<1>(bloc) ;
+      // window = std::get<2>(bloc) ;
+      // start  = std::get<3>(bloc) ; // start : used to check mirror behavior
 
       size_t eventSize=0 ;
-      for(auto& bloc : blocs) eventSize+=get<1>(bloc) ;
-      
-      if (eventSize > remain) 
-      {
-        if ( eventSize <= currentBufferSize_) return ; // wait for free storage ;
-        else 
-        {
-          if (currentBuffer_==nullptr) remain = eventSize ;
-          else remain = currentBuffer_->remain() + fixedSize_ ;
-        }
-      }
       
       //if (isLocked_) ERROR("void COneSidedServerBuffer::transferEvents(void)",<<"windows is Locked");
       
@@ -274,7 +275,46 @@ namespace xios
       //  }
       //}
       //isLocked_=true ;
-      do
+//      do
+
+      bool spaceForAllblocks = true;
+      int lastBufferUsed = -1;
+      if (blocs.size()==0) spaceForAllblocks = false;
+      else
+      {
+        for(auto& bloc : blocs)
+        {
+          //info(logProtocol) << "blocSize = " << get<1>(bloc)
+          //                  << " - remain in win : " << get<2>(bloc) << " : " << remainSize( get<2>(bloc) )
+          //                  << "; bufferResize_ = " <<  bufferResize_.size() << endl;
+          
+          // if the active buffer change, the new buffer must be considered as empty
+          if (lastBufferUsed != get<2>(bloc) ) eventSize = 0;
+
+          // if the targeted buffer does not exist
+          if ( get<2>(bloc)-countDeletedBuffers_>=buffers_.size() )
+          {
+            if ( bufferResize_.empty() ) // no resize order
+            {
+              spaceForAllblocks = false;
+              break;
+            }
+          }
+          else if ( ( get<1>(bloc) > (remainSize(get<2>(bloc))-eventSize) ) )  // if there is no enough place in the targeted bloc
+          {
+            spaceForAllblocks = false;
+            break;
+          }
+          else
+          {
+            // if there is enough place in the targeted bloc, store the 
+            lastBufferUsed = get<2>(bloc);
+            eventSize += get<1>(bloc);
+          }
+        }
+      }      
+
+      if (spaceForAllblocks)
       {
         transferEvent() ; // ok enough storage for this bloc
         
@@ -283,24 +323,14 @@ namespace xios
         
         //  break ; // transfering just one event temporary => to remove
         
-        if (pendingBlocs_.empty()) break ; // no more blocs to tranfer => exit loop
-
-        timeline =  pendingBlocs_.begin()->first ;
-        auto& blocs=pendingBlocs_.begin()->second ;
-        
-        if (!bufferResize_.empty()) 
-        {
-          if (bufferResize_.front().first==timeline)
-          {
-            currentBufferSize_=bufferResize_.front().second * bufferServerFactor_ ;
-            info(logProtocol)<<"Received new buffer size="<<currentBufferSize_<<"  at timeline="<<timeline<<endl ;
-            bufferResize_.pop_front() ;
-            newBuffer(currentBufferSize_,fixed_) ;
-          }
-        }
-
-        for(auto& bloc : blocs) eventSize+=get<1>(bloc) ;
-        if (transferedSize+eventSize<=remain)
+//        if (pendingBlocs_.empty()) break ; // no more blocs to tranfer => exit loop
+//
+//        timeline =  pendingBlocs_.begin()->first ;
+//        auto& blocs=pendingBlocs_.begin()->second ;
+//        
+//
+//        for(auto& bloc : blocs) eventSize+=get<1>(bloc) ;
+//        if (transferedSize+eventSize<=remain)
         {
           //for(auto& bloc : blocs) 
           //{
@@ -316,7 +346,7 @@ namespace xios
           //}
         }
       }
-      while(transferedSize+eventSize<=remain) ;
+//      while(transferedSize+eventSize<=remain) ;
       
     }
   }
@@ -340,38 +370,40 @@ namespace xios
       addr = std::get<0>(bloc) ;
       size = std::get<1>(bloc) ;
       window = std::get<2>(bloc) ;
+      start = std::get<3>(bloc) ; // start : used to check mirror behavior
 
       offset=0 ;
 
+      // Need to keep loop even if a given bloc will not be split.
+      // To mimic client behavior, especially if (size_==end_) reset end_ = 0 ;
       do
       {
-        if (currentBuffer_!=nullptr)
+        //if ( (currentBuffer_!=nullptr) || (window-countDeletedBuffers_ == buffers_.size() ) )
         {
-          currentBuffer_->reserve(size, start, count) ;
+          if (window-countDeletedBuffers_ >= buffers_.size())
+            {
+              if (!bufferResize_.empty()) 
+                {
+                  if (bufferResize_.front().first==timeline)
+                    {
+                      currentBufferSize_=bufferResize_.front().second * bufferServerFactor_ ;
+                      //info(logProtocol)<<"Received new buffer size="<<currentBufferSize_<<"  at timeline="<<timeline<<endl ;
+                      bufferResize_.pop_front() ;
+                      newBuffer(currentBufferSize_,fixed_) ;
+                    }
+                }
+            }
+          
+          buffers_[window-countDeletedBuffers_]->reserve(size, start, count) ;
       
           if ( count > 0)
           {
-            transferRmaRequest(timeline, addr, offset, currentBuffer_, start, count, window) ;
+            transferRmaRequest(timeline, addr, offset, buffers_[window-countDeletedBuffers_], start, count, window) ;
             offset=MPI_Aint_add(offset, count) ;
+            
           }
-          //currentBuffer_->reserve(size, start, count) ;
-      
-          //if ( count > 0)
-          //{
-          //  transferRmaRequest(timeline, addr, offset, currentBuffer_, start, count, window) ;
-          //  offset=MPI_Aint_add(offset, count) ;
-          //}
         }
 
-        if (size>0) 
-        {
-          if (fixed_) newBuffer(std::max(fixedSize_, size),fixed_) ;
-          else
-          {
-            currentBufferSize_ = std::max((size_t)(currentBufferSize_*growingFactor_), size) ;
-            newBuffer(currentBufferSize_,fixed_) ;
-          }
-        }
       } while (size > 0 ) ;
     }
 
@@ -384,7 +416,7 @@ namespace xios
     MPI_Aint offsetAddr=MPI_Aint_add(addr, offset) ;
     if (info.isActive(logProtocol))
     {
-      info(logProtocol)<<"receive Bloc from client "<<clientRank_<<" : timeline="<<timeline<<"  addr="<<addr<<"  count="<<count<<" buffer="<<buffer<<"  start="<<start<<endl ;
+      info(logProtocol)<<"receive Bloc from client "<<clientRank_<<" : timeline="<<timeline<<"  addr="<<addr<<"  count="<<count<<" buffer="<<buffer<<"  start="<<start<<"  window="<<window<<endl ;
       info(logProtocol)<<"check dest buffers ; start_buffer="<<static_cast<void*>(buffer->getBuffer())<<"  end_buffer="<<static_cast<void*>(buffer->getBuffer()+buffer->getSize()-1)
                <<"  start="<<static_cast<void*>(buffer->getBuffer()+start)<<"   end="<<static_cast<void*>(buffer->getBuffer()+start+count-1)<<endl ;
     }
@@ -424,14 +456,19 @@ namespace xios
       }
 
       size+=bloc.count ;
+      //info(logProtocol) << "Free from : " << bloc.start << ", size : " << bloc.count<< endl;
       bloc.buffer->free(bloc.start, bloc.count) ; // free bloc
       addr=bloc.addr ;
       if (bloc.buffer->getCount()==0)
       {
         if (buffers_.size() > 1)
         {
+          // If the front buffer is empty and if another buffer become the active one (buffers_.size()>1)
+          //     the front buffer can be deleted, no new message will be sent through the front buffer
           delete buffers_.front();
-          buffers_.pop_front() ; // if buffer is empty free buffer
+          buffers_.erase(buffers_.begin()) ; // if buffer is empty free buffer
+          //info(logProtocol) << "Deleting win : " << countDeletedBuffers_  << endl;
+          countDeletedBuffers_++;
         }
       }
     }

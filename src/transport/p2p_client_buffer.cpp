@@ -40,6 +40,7 @@ namespace xios
     //  CXios::getMpiGarbageCollector().registerWindow(windows_[i]) ;
     //}
     currentWindow_=-1 ;
+    currentMirror_=-1 ;
     
     //MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_, &winControl_);
     //CXios::getMpiGarbageCollector().registerWindow(winControl_) ;
@@ -58,13 +59,14 @@ namespace xios
 
   void CP2pClientBuffer::newBuffer(size_t size, bool fixed)
   { 
+    currentMirror_++;
     currentWindow_=(currentWindow_+1)%maxWindows_ ;
-    if (usedWindows_[currentWindow_]) 
-    {
-      ERROR("void CP2pClientBuffer::newBuffer(size_t size, bool fixed)",<<"Try to alloc buffer to a window already in use"<<endl ) ;
-    }
-    else usedWindows_[currentWindow_]=true ;
-    buffers_.push_back(new CBuffer(windows_[currentWindow_], size, fixed)); 
+    //if (usedWindows_[currentWindow_]) 
+    //{
+    //  ERROR("void CP2pClientBuffer::newBuffer(size_t size, bool fixed)",<<"Try to alloc buffer to a window already in use"<<endl ) ;
+    //}
+    //else usedWindows_[currentWindow_]=true ;
+    buffers_.push_back(new CBuffer(windows_[currentMirror_], size, fixed)); 
     currentBuffer_=buffers_.back() ;
     info(logProtocol)<<"   Nb attached memory blocs="<<buffers_.size()<<endl ;
   }
@@ -105,7 +107,10 @@ namespace xios
       {
         if (buffers_.empty())
         {
-          if (fixed_) newBuffer(fixedSize_,fixed_) ;
+          if (fixed_) {
+            currentBufferSize_=fixedSize_;
+            newBuffer(fixedSize_,fixed_) ;
+          }
           else
           { 
             if (currentBufferSize_==0) currentBufferSize_=size ;
@@ -118,7 +123,8 @@ namespace xios
         currentBuffer->write(&buffer, size, addr, start, count) ;
         if (count > 0) 
         {
-          blocs_.push_back({addr,currentBuffer_, start, static_cast<int>(count), currentWindow_}) ;
+          //info(logProtocol) << "Using currentMirror_ 1 : "<<currentMirror_ << endl;
+          blocs_.push_back({addr,currentBuffer_, start, static_cast<int>(count), currentMirror_}) ;
           nbBlocs++ ; 
         }
 
@@ -127,7 +133,8 @@ namespace xios
 
         if (count > 0) 
         {
-          blocs_.push_back({addr,currentBuffer_, start, static_cast<int>(count), currentWindow_}) ;
+          //info(logProtocol) << "Using currentMirror_ 2 : "<<currentMirror_ << endl;
+          blocs_.push_back({addr,currentBuffer_, start, static_cast<int>(count), currentMirror_}) ;
           nbBlocs++ ; 
         }
 
@@ -180,7 +187,7 @@ namespace xios
     if (bloc.buffer->getCount()==0) 
       if (buffers_.size()>1) 
       {  
-        usedWindows_[bloc.window]=false ;
+        //usedWindows_[bloc.window]=false ;
         delete buffers_.front() ;
         buffers_.pop_front() ;
       }
@@ -278,20 +285,20 @@ namespace xios
   {
     ostringstream outStr ;
     SRequest request ;
-    request.buffer = new CBufferOut(sizeof(timeline)+sizeof(nbSenders)+sizeof(nbBlocs)+(sizeof(MPI_Aint)+sizeof(int)+sizeof(int))*nbBlocs) ; 
+    request.buffer = new CBufferOut(sizeof(timeline)+sizeof(nbSenders)+sizeof(nbBlocs)+(sizeof(MPI_Aint)+sizeof(int)+sizeof(int)+sizeof(size_t))*nbBlocs) ; 
     *(request.buffer)<<timeline<<nbSenders<<nbBlocs ;
     if (info.isActive(logProtocol))  outStr<<"New timeline event sent to server rank "<<serverRank_<<" : timeLine="<<timeline<<"  nbSenders="<<nbSenders<<"  nbBlocs="<<nbBlocs<<endl ;
     auto it = blocs_.end() ;
     for(int i=0 ; i<nbBlocs; ++i,--it) ;
     for(int i=0 ; i<nbBlocs; ++i,++it) 
     {
-      *(request.buffer) << it->addr << it->count << it->window;
+      *(request.buffer) << it->addr << it->count << it->window << it->start;
     
       if (info.isActive(logProtocol))
       {
         size_t checksum=0 ;
         for(size_t j=0;j<it->count;j++) checksum+=((unsigned char*)(it->addr))[j] ;
-        outStr<<"Bloc "<<i<<"  addr="<<it->addr<<"  count="<<it->count<<"  checksum="<<checksum<<"  ;  " ;
+        outStr<<"Bloc "<<i<<"  addr="<<it->addr<<"  count="<<it->count<<"  checksum="<<checksum<<"  window="<<it->window<<"  start="<<it->start<<"  ;  " ;
       }
 
       sentBlocRequest_.emplace_back() ;
@@ -299,6 +306,7 @@ namespace xios
       MPI_Issend((void*)(it->addr), it->count, MPI_CHAR, intraServerRank_, 21, interCommMerged_, &sentBlocRequest_.back().mpiRequest) ;
     }
     if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").resume() ;
+    //info(logProtocol) << "Send event : " << request.buffer->count() << endl;
     MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_, &request.mpiRequest ) ;
     if (info.isActive(logProtocol)) CTimer::get("sendTimelineEvent : MPI_Isend").suspend() ;
     info(logProtocol)<<outStr.str()<<endl ;
@@ -310,6 +318,7 @@ namespace xios
     SRequest request ;
     request.buffer = new CBufferOut(sizeof(EVENT_BUFFER_RESIZE)+sizeof(timeline)+sizeof(size)) ; 
     *(request.buffer)<<EVENT_BUFFER_RESIZE<<timeline<<size ;
+    //info(logProtocol) << "Send resize : " << request.buffer->count() << endl;
     MPI_Isend(request.buffer->start(),request.buffer->count(), MPI_CHAR, intraServerRank_, 20, interCommMerged_, &request.mpiRequest ) ;
     requests_.push_back(request) ;
   }

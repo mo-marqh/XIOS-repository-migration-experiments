@@ -45,6 +45,7 @@ namespace xios
             {
               if (start_-end_ >= size)
               {
+                //if (start!=end_) info(logProtocol)<<" CASE 0, recv/computed : " << start << "/" << end_ << endl;
                 count=size ;
                 size = 0 ;
                 start=end_ ;
@@ -53,6 +54,10 @@ namespace xios
               } 
               else
               {
+		// Server buffers get blocs from clients, they should not be splitted (mirrors the client buffers)
+                //if (start!=end_) info(logProtocol)<<" CASE 1"<< endl;
+                //info(logProtocol)<<" CASE 1 : start/end/count - size : "<< start_ << ", " << end_ << ", " << count_ << " " << size_ << " vs size " << size << endl;
+                ERROR("COneSidedServerBuffer::reserve()",<<"This should be the case of the 2nd part of a splitted message"<<std::endl);
                 //count = start_-end_ ;
                 //size -= count ;
                 //start=end_ ;
@@ -65,6 +70,7 @@ namespace xios
             {
               if (size_-end_ >= size)
               {
+                //if (start!=end_ ) info(logProtocol)<<" CASE 2, recv/computed : "<< start << "/" << end_ << endl;
                 count = size ;
                 size = 0;
                 start=end_ ;
@@ -73,10 +79,15 @@ namespace xios
               }
               else
               {
+                // Server buffers get blocs from clients, they should not be splitted (mirrors the client buffers)
+                //     1st part of a splitted message, fill the end of the buffer
+                //     end_ must be set to 0 like on clients
+                //if (start!=end_) info(logProtocol)<<" CASE 3"<< endl;
+                //  info(logProtocol)<<" CASE 3 : start/end/count - size : "<< start_ << ", " << end_ << ", " << count_ << " " << size_ << " vs size " << size << endl;
                 //count = size_ - end_ ;
                 //size -= count ;
                 //start=end_ ;
-                //end_ = 0 ;
+                end_ = 0 ;
                 //count_+= count ;
                 count = 0 ;
               }
@@ -93,7 +104,14 @@ namespace xios
             count_ -= count ;
           }
 
-          size_t remain(void) { return size_-count_; }
+          size_t remain(void) {
+            if (count_==0)
+              return size_;
+            else if (end_<start_)
+              return start_-end_;
+            else
+              return size_-end_;
+          }
           size_t getSize(void) { return size_ ;}
           size_t getCount(void) {return count_ ;}
           size_t isFixed(void) {return fixed_;}
@@ -109,7 +127,8 @@ namespace xios
       {
           while (!buffers_.empty()) {
               delete buffers_.front();
-              buffers_.pop_front() ; // if buffer is empty free buffer
+              buffers_.erase(buffers_.begin()) ; // if buffer is empty free buffer
+              countDeletedBuffers_++;
           }
       };
 
@@ -134,6 +153,7 @@ namespace xios
       void transferEvent(void) ;
       void transferRmaRequest(size_t timeline, MPI_Aint addr, MPI_Aint offset, CBuffer* buffer, size_t start, int count, int window) ;
       size_t remainSize(void) ;
+      size_t remainSize(int bufferId) ;
 
 
 
@@ -143,14 +163,14 @@ namespace xios
       double growingFactor_ = 1. ;
       double bufferServerFactor_=1. ;
       
-      std::list<CBuffer*> buffers_ ;
+      std::vector<CBuffer*> buffers_ ;
       CBuffer* currentBuffer_=nullptr ;
 
       map<size_t, SPendingEvent>& pendingFullEvents_ ;
       map<size_t, SPendingEvent>& completedFullEvents_ ;
 
       map<size_t, int> nbSenders_ ;
-      map<size_t, list<tuple<MPI_Aint,int,int>>> pendingBlocs_;
+      map<size_t, list<tuple<MPI_Aint,int,int,size_t>>> pendingBlocs_;
      
       vector<MPI_Request> pendingRmaRequests_ ;
       vector<MPI_Status> pendingRmaStatus_ ;
@@ -175,6 +195,7 @@ namespace xios
       //bool isLocked_=false ;
       const int windowRank_=0 ;
       MPI_Aint lastBlocToFree_=0 ;
+      int countDeletedBuffers_;
 
   } ;
 

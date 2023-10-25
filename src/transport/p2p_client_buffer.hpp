@@ -52,6 +52,7 @@ namespace xios
           {
             if (start_-end_ >= size)
             {
+              //info(logProtocol)<<" CASE 0 : start/end/count - size : "<< start_ << ", " << end_ << ", " << count_ << " " << size_ << " vs size " << size << endl;
               count=size ;
               size = 0 ;
               start=end_ ;
@@ -63,6 +64,7 @@ namespace xios
             } 
             else
             {
+              //info(logProtocol)<<" CASE 1 : start/end/count - size : "<< start_ << ", " << end_ << ", " << count_ << " " << size_ << " vs size " << size << endl;
               count = start_-end_ ;
               size -= count ;
               start=end_ ;
@@ -77,6 +79,7 @@ namespace xios
           {
             if (size_-end_ >= size)
             {
+              //info(logProtocol)<<" CASE 2 : start/end/count - size : "<< start_ << ", " << end_ << ", " << count_ << " " << size_ << " vs size " << size << endl;
               count = size ;
               size = 0;
               start=end_ ;
@@ -88,6 +91,7 @@ namespace xios
             }
             else
             {
+              //info(logProtocol)<<" CASE 3 : start/end/count - size : "<< start_ << ", " << end_ << ", " << count_ << " " << size_ << " vs size " << size << endl;
               count = size_ - end_ ;
               size -= count ;
               start=end_ ;
@@ -184,6 +188,7 @@ namespace xios
       vector<char*> windows_ ;
       vector<bool> usedWindows_ ;
       int currentWindow_ ;
+      int currentMirror_ ;
       int maxWindows_ ;
 
       //MPI_Win winControl_ ;
