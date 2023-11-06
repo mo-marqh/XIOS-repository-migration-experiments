@@ -60,7 +60,7 @@ namespace xios
 
   bool CP2pContextServer::hasPendingEvent(void)
   {
-    return pendingEvent;
+    return ((pendingEvents_.size()!=0)||(completedEvents_.size()!=0));
   }
 
   bool CP2pContextServer::hasFinished(void)

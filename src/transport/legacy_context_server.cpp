@@ -59,7 +59,7 @@ namespace xios
 
   bool CLegacyContextServer::hasPendingEvent(void)
   {
-    return pendingEvent;
+    return (pendingRequest.size()!=0);
   }
 
   bool CLegacyContextServer::hasFinished(void)

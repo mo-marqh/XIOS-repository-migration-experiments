@@ -60,7 +60,7 @@ namespace xios
 
   bool COneSidedContextServer::hasPendingEvent(void)
   {
-    return pendingEvent;
+    return ((pendingEvents_.size()!=0)||(completedEvents_.size()!=0));
   }
 
   bool COneSidedContextServer::hasFinished(void)

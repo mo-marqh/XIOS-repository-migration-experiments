@@ -936,6 +936,12 @@ void CContext::removeAllContexts(void)
          {
             notifiedFinalized = client->isNotifiedFinalized() ;
          }   while (!notifiedFinalized) ;
+         bool pendingEvent=true;
+         do
+         {
+            server-> eventLoop();
+            pendingEvent = server->hasPendingEvent() ;
+         }   while (pendingEvent) ;
 
           server->releaseBuffers();
           client->releaseBuffers();
