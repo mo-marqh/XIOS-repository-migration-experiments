@@ -29,6 +29,7 @@ namespace xios
 
     virtual bool eventLoop(bool enableEventsProcessing = true) = 0 ;
     virtual void releaseBuffers(void)=0;
+    virtual bool hasPendingEvent(void)=0;
     
     protected :
 
