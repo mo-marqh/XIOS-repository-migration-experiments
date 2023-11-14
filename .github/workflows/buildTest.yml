@@ -17,3 +17,6 @@ jobs:
         run: |
           ./make_xios --debug --arch GCC_LINUX_APT
           ls -l bin/
+      - name: run xios_test_suite
+        run: |
+          python3 -m xios_test_suite.pyTestingFramework
