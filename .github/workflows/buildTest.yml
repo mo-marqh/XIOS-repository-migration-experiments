@@ -1,0 +1,19 @@
+name: build-test-XIOS
+
+on: [push, pull_request]
+
+jobs:
+  build_test:
+    name: build XIOS and run tests
+    runs-on: ubuntu-latest
+    steps:
+      # Check out PR
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+            sudo apt update
+            sudo apt -yq install $(<dependencies)
+      - name: build XIOS
+        run: |
+          ./make_xios --debug --arch GCC_LINUX_APT
+          ls -l bin/

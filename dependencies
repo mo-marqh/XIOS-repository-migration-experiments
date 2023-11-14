@@ -1,0 +1,7 @@
+g++
+libboost-mpi1.74-dev
+libhdf5-openmpi-dev
+libnetcdff-dev
+libnetcdf-mpi-dev
+libnetcdff-dev
+libpnetcdf-dev
