@@ -129,7 +129,14 @@ namespace xios
           count_ -= count ;
         }
 
-        size_t remain(void) { return size_-count_; }
+        size_t remain(void) {
+            if (count_==0)
+              return size_;
+            else if (end_<start_)
+              return start_-end_;
+            else
+              return size_-end_;
+          }
         size_t getSize(void) { return size_ ;}
         size_t getCount(void) {return count_ ;}
         size_t isFixed(void) {return fixed_;}
