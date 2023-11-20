@@ -33,6 +33,7 @@ namespace xios
   macroPutVar(double)
   macroPutVar(float)
   macroPutVar(int)
+  macroPutVar(short)
   macroPutVar(size_t)
   macroPutVar(char)
   

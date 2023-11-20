@@ -11,6 +11,13 @@
 #include "exception.hpp"
 #include "timer.hpp"
 #include "uuid.hpp"
+
+#include <limits.h>
+#define X_FLOAT_MAX     FLT_MAX
+#define X_FLOAT_MIN     FLT_MIN
+#define X_SHORT_MAX     SHRT_MAX
+#define X_SHORT_MIN     SHRT_MIN
+
 namespace xios
 {
       /// ////////////////////// Dfinitions ////////////////////// ///
@@ -2268,7 +2275,7 @@ namespace xios
               case (MULTI_FILE) :
               {
                  CTimer::get("Files : writing data").resume();
-                 SuperClassWriter::writeData(data, fieldid, isCollective, nstep - 1);
+                 writeAndConvertData(field, data, nstep - 1);
                  CTimer::get("Files : writing data").suspend();
                  if (wtime)
                  {
@@ -2432,7 +2439,7 @@ namespace xios
 
 
                 CTimer::get("Files : writing data").resume();
-                SuperClassWriter::writeData(data, fieldid, isCollective, nstep - 1, &start, &count);
+                writeAndConvertData(field, data, nstep - 1, &start, &count);
                 CTimer::get("Files : writing data").suspend();
 
                  if (wtime)
@@ -2466,6 +2473,66 @@ namespace xios
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeFieldData_ (CField*  field)", << msg);
          }
+      }
+
+      void CNc4DataOutput::writeAndConvertData(CField* field, const CArray<double,1>& data, StdSize record, const std::vector<StdSize> *start, const std::vector<StdSize> *count)
+      {
+        StdString fieldid = field->getFieldOutputName();
+        nc_type type ;
+        if (field->prec.isEmpty()) type =  NC_FLOAT ;
+        else
+        {
+          if (field->prec==2) type = NC_SHORT ;
+          else if (field->prec==4)  type =  NC_FLOAT ;
+          else if (field->prec==8)   type =  NC_DOUBLE ;
+        }
+
+        bool conversionByNetCDF = true; // default : conversion operated by NetCDF for now (legacy behaviour)
+        if (!field->conversion_by_NetCDF.isEmpty())
+        {
+          // use conversion_by_NetCDF = ".false." to  bypass NetCDF conversion
+          //   poor performances from NC_DOUBLE to NC_FLOAT with isgreater/isless in recent NetCDF available at TGCC
+          conversionByNetCDF = field->conversion_by_NetCDF;
+        }
+        if ( ( type == NC_DOUBLE ) || ( conversionByNetCDF ) )
+        {
+          SuperClassWriter::writeData(data, fieldid, isCollective, record, start, count);
+        }
+        else if ( type == NC_FLOAT )
+        {
+          CArray<float,1> f_data;
+          f_data.resize( data.numElements() );
+          for (int i = 0; i < data.numElements(); i++) 
+          {
+            if (data(i) <= X_FLOAT_MAX || data(i) >= X_FLOAT_MIN)
+              f_data(i) = data(i);
+            else if (data(i) > X_FLOAT_MAX)
+              f_data(i) = X_FLOAT_MAX;
+            else if (data(i) < X_FLOAT_MIN)
+              f_data(i) = X_FLOAT_MIN;
+          }
+          SuperClassWriter::writeData(f_data, fieldid, isCollective, record, start, count);
+        }
+        else if ( type == NC_SHORT )
+        {
+          CArray<short,1> s_data;
+          s_data.resize( data.numElements() );
+          for (int i = 0; i < data.numElements(); i++) 
+          {
+            if (data(i) <= X_SHORT_MAX || data(i) >= X_SHORT_MIN)
+              s_data(i) = data(i);
+            else if (data(i) > X_SHORT_MAX)
+              s_data(i) = X_SHORT_MAX;
+            else if (data(i) < X_SHORT_MIN)
+              s_data(i) = X_SHORT_MIN;
+          }
+          SuperClassWriter::writeData(s_data, fieldid, isCollective, record, start, count);
+        }
+        else
+        {
+            ERROR("CNc4DataOutput::writeAndConvertData(...)", << "Type conversion not managed for " << fieldid ); 
+        }
+        
       }
 
       //---------------------------------------------------------------
