@@ -32,6 +32,7 @@ namespace xios
   macroPutVar(double)
   macroPutVar(float)
   macroPutVar(int)
+  macroPutVar(short)
   macroPutVar(char)
   
 #define macroType(type, ncType) \

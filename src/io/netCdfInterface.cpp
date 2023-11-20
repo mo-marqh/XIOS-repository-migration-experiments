@@ -990,6 +990,12 @@ int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, c
 }
 
 template<>
+int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, short* data)
+{
+  return nc_get_vara_short(ncid, varid, start, count, data);
+}
+
+template<>
 int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, char* data)
 {
   return nc_get_vara_text(ncid, varid, start, count, data);
@@ -1012,6 +1018,12 @@ template<>
 int CNetCdfInterface::ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const int* data)
 {
   return nc_put_vara_int(ncid, varid, start, count, data);
+}
+
+template<>
+int CNetCdfInterface::ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const short* data)
+{
+  return nc_put_vara_short(ncid, varid, start, count, data);
 }
 
 template<>

@@ -56,6 +56,8 @@ namespace xios
             virtual void writeAttribute_(CVariable* var);
             virtual void writeAttribute_(CVariable* var, const string& fieldId);
             virtual void writeFieldData_(CField* field);
+            void writeAndConvertData(CField* field, const CArray<double,1>& data, StdSize record,
+                                     const std::vector<StdSize> *start = NULL, const std::vector<StdSize> *count = NULL);
             virtual void writeFile_     (CFile* file);
             virtual void closeFile_     (void);
             virtual void syncFile_      (void);
