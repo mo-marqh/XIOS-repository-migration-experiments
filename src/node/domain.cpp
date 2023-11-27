@@ -2125,9 +2125,9 @@ namespace xios {
     {
       int nbServer = client->getRemoteSize();
       int nglo=ni_glo*nj_glo ;
-      CArray<size_t,1> indGlo ;
+      CArray<size_t,1> indGlo(nglo) ;
       for(size_t i=0;i<nglo;i++) indGlo(i) = i ;
-      for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer] = indGlo ; 
+      for (auto& rankServer : client->getRanksServerLeader()) globalIndex[rankServer].reference(indGlo.copy()); ; 
     }
     remoteElement_[client] = make_shared<CDistributedElement>(ni_glo*nj_glo, globalIndex) ;
     remoteElement_[client]->addFullView() ;
