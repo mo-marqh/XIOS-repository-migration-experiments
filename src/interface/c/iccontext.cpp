@@ -37,17 +37,14 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
 
-      std::vector<xios::CContext*> def_vector =
-            xios::CContext::getRoot()->getChildList();
-
-      for (std::size_t i = 0; i < def_vector.size(); i++)
+      xios_map<StdString, CContext* > def_map =
+            xios::CContext::getRoot()->getChildMap();
+      
+      if (def_map.count(id))
       {
-          if (def_vector[i]->getId().compare(id) == 0)
-          {
-            *_ret = def_vector[i];
-             CTimer::get("XIOS").suspend() ;
-            return;
-          }
+        *_ret = def_map[id];
+        CTimer::get("XIOS").suspend() ;
+        return;
       }
        CTimer::get("XIOS").suspend() ;
        ERROR("void cxios_context_handle_create (XContextPtr * _ret, const char * _id, int _id_len)",
@@ -92,17 +89,15 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume();
-      std::vector<xios::CContext*> def_vector =
-            xios::CContext::getRoot()->getChildList();
+
+      xios_map<StdString, CContext* > def_map =
+            xios::CContext::getRoot()->getChildMap();
 
       *_ret = false;
-      for (std::size_t i = 0; i < def_vector.size(); i++)
+      if (def_map.count(id))
       {
-        if (def_vector[i]->getId().compare(id) == 0)
-        {
-          *_ret = true;
-          break;
-        }
+        *_ret = true;
+        return;
       }
       CTimer::get("XIOS").suspend();
    }

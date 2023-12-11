@@ -221,17 +221,17 @@ namespace xios
    TRY
    {
       StdString currentContextId = CContext::getCurrent() -> getId();
-      std::vector<CContext*> def_vector =
-         CContext::getRoot()->getChildList();
-      std::vector<CContext*>::iterator
-         it = def_vector.begin(), end = def_vector.end();
+      std::map<StdString,CContext*> def_map =
+         CContext::getRoot()->getChildMap();
+      std::map<StdString,CContext*>::iterator
+         it = def_map.begin(), end = def_map.end();
 
       out << "<? xml version=\"1.0\" ?>" << std::endl;
       out << "<"  << xml::CXMLNode::GetRootName() << " >" << std::endl;
 
       for (; it != end; it++)
       {
-         CContext* context = *it;
+         CContext* context = it->second;
          CContext::setCurrent(context->getId());
          out << *context << std::endl;
       }
@@ -812,6 +812,7 @@ void CContext::removeAllContexts(void)
         xios::MPI_Comm_dup(interComm, &interCommClient) ;
         xios::MPI_Comm_dup(interComm, &interCommServer) ;
         CContextClient* client = CContextClient::getNew(this, intraCommClient, interCommClient);
+              
         CContextServer* server = CContextServer::getNew(this, intraCommServer, interCommServer);
         client->setAssociatedServer(server) ;
         server->setAssociatedClient(client) ;

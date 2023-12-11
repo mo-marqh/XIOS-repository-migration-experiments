@@ -228,10 +228,10 @@ namespace xios
    //---------------------------------------------------------------   
 
    template <class U, class V, class W>
-      const std::vector<U*>&
-         CGroupTemplate<U, V, W>::getChildList(void) const
+      const xios_map<StdString, U*>&
+         CGroupTemplate<U, V, W>::getChildMap(void) const
    { 
-      return (this->childList); 
+      return (this->childMap); 
    }
 
    //---------------------------------------------------------------

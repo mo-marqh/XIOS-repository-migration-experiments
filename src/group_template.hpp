@@ -36,7 +36,7 @@ namespace xios
 
          /// Accesseurs ///
          const xios_map<StdString,Group*>& getGroupMap(void) const;
-         const vector<Child*>& getChildList(void) const;
+         const xios_map<StdString,Child*>& getChildMap(void) const;
 
          void getAllChildren(vector<Child*> & allc) const;
          vector<Child*> getAllChildren(void) const;
