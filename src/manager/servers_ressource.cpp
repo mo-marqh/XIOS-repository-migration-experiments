@@ -235,13 +235,13 @@ namespace xios
     if (isPartOf)
     {  
       poolRessource_ = new CPoolRessource(poolComm, childScheduler, poolId, true) ;
-      xios::MPI_Comm_free(&poolComm) ;
+      CXios::getMpiGarbageCollector().registerCommunicator(poolComm) ;
     }
     else 
     {
       freeRessourceEventScheduler_ = childScheduler ;
-      xios::MPI_Comm_free(&freeRessourcesComm_) ;
       freeRessourcesComm_=poolComm ;
+      CXios::getMpiGarbageCollector().registerCommunicator(freeRessourcesComm_) ;
     }
 
   }
