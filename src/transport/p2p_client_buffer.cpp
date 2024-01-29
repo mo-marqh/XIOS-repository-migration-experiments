@@ -68,7 +68,7 @@ namespace xios
     //else usedWindows_[currentWindow_]=true ;
     buffers_.push_back(new CBuffer(windows_[currentMirror_], size, fixed)); 
     currentBuffer_=buffers_.back() ;
-    info(logProtocol)<<"   Nb attached memory blocs="<<buffers_.size()<<endl ;
+    info(logProtocol)<<"   Nb attached memory blocs="<<buffers_.size()<<", size of the last buffer = " << size << endl ;
   }
 
   bool CP2pClientBuffer::isBufferFree(size_t size)
@@ -87,6 +87,7 @@ namespace xios
         if (buffer->isFixed()) 
         {
           if ( size > buffer->getSize()) return true ;
+	  else if ( currentBufferSize_ < fixedSize_ ) return true ;
           else return false ;
         }
         else return true ;
@@ -116,6 +117,13 @@ namespace xios
             if (currentBufferSize_==0) currentBufferSize_=size ;
             newBuffer(currentBufferSize_, fixed_) ;
           }
+        }
+        else if ((currentBufferSize_ < fixedSize_)&&(fixed_))
+        {
+          // Forces to allocate the fixed buffer if defined
+          //   without this test, could be not done if each field size is < currentBufferSize_
+          currentBufferSize_ = fixedSize_ ;
+          newBuffer(currentBufferSize_, fixed_) ;
         }
         CBuffer* currentBuffer = buffers_.back() ;
 

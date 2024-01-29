@@ -19,7 +19,7 @@ namespace xios
       const int CONTROL_FINALIZE = 1  ;
 
       const size_t EVENT_BUFFER_RESIZE = std::numeric_limits<size_t>::max()-1 ;
-      const int MAX_WINDOWS=6 ;
+      const int MAX_WINDOWS=60 ;
 
 
   } ;

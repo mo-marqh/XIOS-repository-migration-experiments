@@ -97,6 +97,7 @@ extern "C"
       if (def_map.count(id))
       {
         *_ret = true;
+        CTimer::get("XIOS").suspend();
         return;
       }
       CTimer::get("XIOS").suspend();
