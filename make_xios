@@ -256,18 +256,21 @@ then
             fi
         done
     fi
-    HDF5_VERSION=`grep "HDF5 Version" $hdf5_settings_file | awk -F  ':' '{ print $2 }'`
-    HDF5_MAJOR_VERSION=`echo $HDF5_VERSION | awk -F  '.' '{ print $2 }'`
-    HDF5_MINOR_VERSION=`echo $HDF5_VERSION | awk -F  '.' '{ print $3 }'`
-    HDF5_PARALLEL=`grep "Parallel HDF5" $hdf5_settings_file | awk -F  ':' '{ print $2 }'`
-    HDF5_DEFLATE=`grep "I/O filters (external)" $hdf5_settings_file | awk -F  ':' '{ print $2 }'`
-    if ( [[ "$HDF5_MAJOR_VERSION" -ge 11 || ( "$HDF5_MAJOR_VERSION" -eq 10 &&  "$HDF5_MINOR_VERSION" -ge 3 ) ]] )
+    if [[ ! -z $hdf5_settings_file ]]
     then
-        if [[ "$HDF5_PARALLEL" =~ "yes" && "$HDF5_DEFLATE" =~ "zlib" ]]
-        then 
-            XIOS_CPPKEY="$XIOS_CPPKEY PARALLEL_COMPRESSION"
-        fi
-    fi          
+        HDF5_VERSION=`grep "HDF5 Version" $hdf5_settings_file | awk -F  ':' '{ print $2 }'`
+        HDF5_MAJOR_VERSION=`echo $HDF5_VERSION | awk -F  '.' '{ print $2 }'`
+        HDF5_MINOR_VERSION=`echo $HDF5_VERSION | awk -F  '.' '{ print $3 }'`
+        HDF5_PARALLEL=`grep "Parallel HDF5" $hdf5_settings_file | awk -F  ':' '{ print $2 }'`
+        HDF5_DEFLATE=`grep "I/O filters (external)" $hdf5_settings_file | awk -F  ':' '{ print $2 }'`
+        if ( [[ "$HDF5_MAJOR_VERSION" -ge 11 || ( "$HDF5_MAJOR_VERSION" -eq 10 &&  "$HDF5_MINOR_VERSION" -ge 3 ) ]] )
+        then
+            if [[ "$HDF5_PARALLEL" =~ "yes" && "$HDF5_DEFLATE" =~ "zlib" ]]
+            then 
+                XIOS_CPPKEY="$XIOS_CPPKEY PARALLEL_COMPRESSION"
+            fi
+        fi          
+    fi # hdf5_settings_file 
 fi
 if [[ "$XIOS_CPPKEY" =~ "PARALLEL_COMPRESSION" ]]
 then
