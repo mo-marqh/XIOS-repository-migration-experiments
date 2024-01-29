@@ -105,7 +105,8 @@ def main():
                         report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(0)+"\n")
                     elif os.path.exists("reference/ref_"+config+"/"+checkfile): # if no output file -> set -2
                         report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-2)+"\n")
-
+                    else :
+                        report.write(folder_name+" "+folder_name+"@"+config_name+" "+folder_name+"@"+config_name+"@"+checkfile+" "+str(-666)+"\n")
                    
 
 if __name__== "__main__":
