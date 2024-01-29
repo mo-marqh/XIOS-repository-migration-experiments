@@ -307,21 +307,35 @@ namespace xios {
 
    size_t CAxis::computeAttributesHash( MPI_Comm comm )
    {
-     // Compute the hash of distributed attributs (value ...)
-     int globalSize = this->n_glo.getValue();
-     CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
-     shared_ptr<CGridTransformConnector> gridTransformConnector;
-     // Compute a without redundancy element FULL view to enable a consistent hash computation (and a distributed globalIndex)
-     this->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm, gridTransformConnector, globalIndex );
-     int localSize = globalIndex.numElements();
-
-     CArray<double,1> distributedValue ;
-     gridTransformConnector->transfer(this->value, distributedValue );
-        
-     size_t localHash = 0;
-     for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
+     int sz(1);
+     MPI_Comm_size( comm, &sz );
      size_t distributedHash = 0;
-     MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm  );
+     if (sz!=1) // compute the connector only if the element is distributed
+     {
+       // Compute the hash of distributed attributs (value ...)
+       int globalSize = this->n_glo.getValue();
+       CArray<size_t,1> globalIndex; // No redundancy globalIndex will be computed with the connector
+       shared_ptr<CGridTransformConnector> gridTransformConnector;
+       // Compute a without redundancy element FULL view to enable a consistent hash computation (and a distributed globalIndex)
+       this->getLocalView(CElementView::FULL)->createWithoutRedundancyFullViewConnector( globalSize, comm, gridTransformConnector, globalIndex );
+       int localSize = globalIndex.numElements();
+  
+       CArray<double,1> distributedValue ;
+       gridTransformConnector->transfer(this->value, distributedValue );
+          
+       size_t localHash = 0;
+       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
+       distributedHash = 0;
+       MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm  );
+     }
+     else // if the element is not distributed, the local hash is valid
+     {
+       int globalSize = this->n_glo.getValue();
+       int localSize = globalSize;
+       size_t localHash = 0;
+       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=iloc*this->value(iloc);
+       distributedHash = localHash;
+     }
 
      // Compute the hash of global attributs (unit, prec ...)
      vector<StdString> excludedAttr;
