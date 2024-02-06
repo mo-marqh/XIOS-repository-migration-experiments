@@ -58,6 +58,7 @@ namespace xios
     public:
       virtual void parse(xml::CXMLNode & node);
       void allocateRessources(const string& poolId) ;
+      std::vector<CServiceNode*> servicesOnto_;
 
   }; // class CServiceNode
   ///--------------------------------------------------------------

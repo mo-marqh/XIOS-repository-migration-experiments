@@ -10,12 +10,31 @@ namespace xios
   { /* Ne rien faire de plus */ }
 
   CServiceNode::~CServiceNode(void)
-  { /* Ne rien faire de plus */ }
+  {
+    for(auto& serviceOnto : servicesOnto_)
+    {
+      delete serviceOnto;
+    }
+  }
 
 
   void CServiceNode::parse(xml::CXMLNode & node)
   {
     SuperClass::parse(node);
+    if (node.goToChildElement())
+    {
+      do
+      {
+        CServiceNode* serviceOnto = new CServiceNode();
+        serviceOnto->parse( node );
+        if ( (serviceOnto->name.isEmpty()) || (serviceOnto->type.isEmpty()) )
+        {
+          ERROR("void CServiceNode::parse(xml::CXMLNode & node)",<<"Service onto is not defined correctly <name> and <type> must be specified")
+        }
+        servicesOnto_.push_back( serviceOnto );
+      } while (node.goToNextElement());
+      node.goToParentElement();
+    }
   }
 
   void CServiceNode::allocateRessources(const string& poolId)
@@ -61,6 +80,15 @@ namespace xios
     else ERROR("void CServiceNode::allocateRessources(const string& poolId)",<<"Service has no name or id, attributes <id> or <name> must be specified")
     
     servicesManager->createServices(poolId, serviceId, serviceType, nbRessources, nb_partitions, true) ;
+
+    for(auto& serviceOnto : servicesOnto_)
+    {
+      if (serviceOnto->type.getValue() == type_attr::writer) serviceType=CServicesManager::WRITER ;
+      else if (serviceOnto->type.getValue() == type_attr::reader) serviceType=CServicesManager::READER ;
+      else if (serviceOnto->type.getValue() == type_attr::gatherer) serviceType=CServicesManager::GATHERER ;
+      servicesManager->createServicesOnto(poolId, serviceOnto->name, serviceType, serviceId, true) ;
+    }
+    
     if (CThreadManager::isUsingThreads())
       for(int i=0; i<nb_partitions; i++)
         while(!servicesManager->hasService(poolId, serviceId, i)) 
