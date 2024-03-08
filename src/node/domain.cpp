@@ -1808,7 +1808,7 @@ namespace xios {
    {
      int sz(1);
      MPI_Comm_size( comm, &sz );
-     size_t distributedHash = 0;
+     unsigned long long distributedHash = 0;
      if (sz!=1) // compute the connector only if the element is distributed
      {
        // Compute the hash of distributed attributs (value ...)
@@ -1825,17 +1825,20 @@ namespace xios {
   
        // Compute the distributed hash (v0) of the element
        // it will be associated to the default element name (= map key), and to the name really written
-       size_t localHash = 0;
-       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*lon_distributedValue(iloc)*lat_distributedValue(iloc);
+       unsigned long long localHash = 0;
+       for (int iloc=0; iloc<localSize ; iloc++ )
+       {
+         localHash+=((unsigned long long)(abs(globalIndex(iloc)*lon_distributedValue(iloc)*lat_distributedValue(iloc))))%LLONG_MAX;
+       }
        distributedHash = 0;
-       MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm  );
+       MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, comm  );
      }
      else // if the element is not distributed, the local hash is valid
      {
        int globalSize = this->ni_glo.getValue()*this->nj_glo.getValue();
        int localSize = globalSize;
-       size_t localHash = 0;
-       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=iloc*this->lonvalue(iloc)*this->latvalue(iloc);
+       unsigned long long localHash = 0;
+       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=((unsigned long long)(abs(iloc*this->lonvalue(iloc)*this->latvalue(iloc))))%LLONG_MAX;
        distributedHash = localHash;
      }
 

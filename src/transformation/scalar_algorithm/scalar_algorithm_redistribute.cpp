@@ -94,14 +94,6 @@ namespace xios
 
     CArray<double,1> valSrc, valDst ;
     valSrc.resize(scalarSource->getLocalView(CElementView::FULL)->getSize()) ;
-    valDst.resize(scalarDestination->getLocalView(CElementView::FULL)->getSize()) ;
-    
-    if (scalarSource->hasValue())
-    {
-      if (valSrc.numElements()>0)  valSrc(0)=scalarSource->value ;
-      transformConnector->transfer(valSrc, valDst) ;
-      if (valDst.numElements()>0)  scalarDestination->value = valDst(0) ;
-    }
 
     if (scalarSource->hasBounds()) 
     {
@@ -123,9 +115,21 @@ namespace xios
     workflow=true ;
     
     transformMask->transfer(workflow, mask, false) ;   
-    scalarDestination->mask = mask(0) ;
+    if (mask.numElements()>0)
+    {
+      scalarDestination->mask = mask(0) ;
+    }
 
     scalarDestination->checkAttributes() ;
+    this->computeAlgorithm(scalarSource->getLocalView(CElementView::WORKFLOW), scalarDestination->getLocalView(CElementView::WORKFLOW)) ;
+
+    valDst.resize(scalarDestination->getLocalView(CElementView::FULL)->getSize()) ;
+    if (scalarSource->hasValue())
+    {
+      if (valSrc.numElements()>0)  valSrc(0)=scalarSource->value ;
+      transformConnector->transfer(valSrc, valDst) ;
+      if (valDst.numElements()>0)  scalarDestination->value = valDst(0) ;
+    }
   }
   CATCH
 

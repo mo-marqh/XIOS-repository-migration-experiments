@@ -477,34 +477,36 @@ namespace xios
                 countChunkingDims++;
                 normalizingWeight = userChunkingWeights[i];
               }
-
-            std::vector<double> chunkingRatioPerDims; // will store coefficients used to compute chunk size
-            double productRatios = 1; // last_coeff = pow( shrink_ratio / (product of all ratios), 1/countChunkingDims )
-            for (int i=0;i<userChunkingWeights.size();i++)
+            if (normalizingWeight!=0) // no chunk for scalar
             {
-              chunkingRatioPerDims.push_back( userChunkingWeights[i] / normalizingWeight );
-              if (chunkingRatioPerDims[i]) productRatios *= chunkingRatioPerDims[i];
-            }
-            for (int i=0;i<userChunkingWeights.size();i++)
-            {
-              chunkingRatioPerDims[i] *= pow( chunkingRatio / productRatios, 1./countChunkingDims );
-            }
-            
-            std::vector<double>::iterator itChunkingRatios = chunkingRatioPerDims.begin();
-            //itId = dim.rbegin();
-            double correctionFromPreviousDim = 1.;
-            for (vector<StdSize>::reverse_iterator itDim = dimsizes.rbegin(); itDim != dimsizes.rend(); ++itDim, ++itChunkingRatios, ++itId)
-            {
-              *itChunkingRatios *= correctionFromPreviousDim;
-              correctionFromPreviousDim = 1;
-              if (*itChunkingRatios > 1) // else target larger than size !
+              std::vector<double> chunkingRatioPerDims; // will store coefficients used to compute chunk size
+              double productRatios = 1; // last_coeff = pow( shrink_ratio / (product of all ratios), 1/countChunkingDims )
+              for (int i=0;i<userChunkingWeights.size();i++)
               {
-                StdSize dimensionSize = *itDim;
-                //info(0) << *itId << " " << *itDim << " " << *itChunkingRatios << " " << (*itDim)/(*itChunkingRatios) << endl;
-                *itDim = ceil( *itDim / ceil(*itChunkingRatios) );
-                correctionFromPreviousDim = *itChunkingRatios/ ((double)dimensionSize/(*itDim));
+                chunkingRatioPerDims.push_back( userChunkingWeights[i] / normalizingWeight );
+                if (chunkingRatioPerDims[i]) productRatios *= chunkingRatioPerDims[i];
               }
-            }
+              for (int i=0;i<userChunkingWeights.size();i++)
+              {
+                chunkingRatioPerDims[i] *= pow( chunkingRatio / productRatios, 1./countChunkingDims );
+              }
+              
+              std::vector<double>::iterator itChunkingRatios = chunkingRatioPerDims.begin();
+              //itId = dim.rbegin();
+              double correctionFromPreviousDim = 1.;
+              for (vector<StdSize>::reverse_iterator itDim = dimsizes.rbegin(); itDim != dimsizes.rend(); ++itDim, ++itChunkingRatios, ++itId)
+              {
+                *itChunkingRatios *= correctionFromPreviousDim;
+                correctionFromPreviousDim = 1;
+                if (*itChunkingRatios > 1) // else target larger than size !
+                {
+                  StdSize dimensionSize = *itDim;
+                  //info(0) << *itId << " " << *itDim << " " << *itChunkingRatios << " " << (*itDim)/(*itChunkingRatios) << endl;
+                  *itDim = ceil( *itDim / ceil(*itChunkingRatios) );
+                  correctionFromPreviousDim = *itChunkingRatios/ ((double)dimensionSize/(*itDim));
+                }
+              }
+	    }
             int storageType = (0 == dimSize) ? NC_CONTIGUOUS : NC_CHUNKED;
             CNetCdfInterface::defVarChunking(grpid, varid, storageType, &dimsizes[0]);
             CNetCdfInterface::defVarFill(grpid, varid, true, NULL);

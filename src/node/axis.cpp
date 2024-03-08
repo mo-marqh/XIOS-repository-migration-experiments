@@ -309,7 +309,7 @@ namespace xios {
    {
      int sz(1);
      MPI_Comm_size( comm, &sz );
-     size_t distributedHash = 0;
+     unsigned long long distributedHash = 0;
      if (sz!=1) // compute the connector only if the element is distributed
      {
        // Compute the hash of distributed attributs (value ...)
@@ -323,17 +323,17 @@ namespace xios {
        CArray<double,1> distributedValue ;
        gridTransformConnector->transfer(this->value, distributedValue );
           
-       size_t localHash = 0;
-       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=globalIndex(iloc)*distributedValue(iloc);
+       unsigned long long localHash = 0;
+       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=((unsigned long long)(abs(globalIndex(iloc)*distributedValue(iloc))))%LLONG_MAX;
        distributedHash = 0;
-       MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm  );
+       MPI_Allreduce( &localHash, &distributedHash, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, comm  );
      }
      else // if the element is not distributed, the local hash is valid
      {
        int globalSize = this->n_glo.getValue();
        int localSize = globalSize;
-       size_t localHash = 0;
-       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=iloc*this->value(iloc);
+       unsigned long long localHash = 0;
+       for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=((unsigned long long)(abs(iloc*this->value(iloc))))%LLONG_MAX;
        distributedHash = localHash;
      }
 

@@ -410,7 +410,9 @@ namespace xios
 
                        start[0]=domain->ibeginValue_;
                        count[0]=domain->niValue_;
-                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->niValue_-1));
+                       CArray<double,1> lon;
+                       lon.resize( domain->niValue_);
+                       for (int i=0;i<domain->niValue_;i++) lon(i) = domain->lonvalue(i);
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
                      }
                      break;
