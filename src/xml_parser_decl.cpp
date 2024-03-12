@@ -6,10 +6,10 @@ namespace xios
 {
   namespace xml
   {
-    template void CXMLParser::ParseInclude<CContext>(StdIStream & stream, const string& fluxId, CContext& object) ;
+    template void CXMLParser::ParseInclude<CContext>(const string& fluxId, CContext& object) ;
 
  #   define macro(T) \
-    template void CXMLParser::ParseInclude< CGroupTemplate<C##T, C##T##Group, C##T##Attributes> >(StdIStream & stream, const string& fluxId, CGroupTemplate<C##T, C##T##Group, C##T##Attributes>& object) ;
+    template void CXMLParser::ParseInclude< CGroupTemplate<C##T, C##T##Group, C##T##Attributes> >(const string& fluxId, CGroupTemplate<C##T, C##T##Group, C##T##Attributes>& object) ;
 
     macro( Context )
     macro( Axis )
@@ -46,6 +46,11 @@ namespace xios
     macro( RedistributeDomain )
     macro( RedistributeAxis )
     macro( RedistributeScalar )
+#   undef macro
 
+#   define macro(T) \
+    template void CXMLParser::ParseInclude< CGroupTemplate<C##T, C##T##Group, C##T##Attributes> >(const string& fluxId, CGroupTemplate<C##T, C##T##Group, C##T##Attributes>& object, const std::set<StdString>& parseContextList) ;
+    macro( Context )
+#   undef macro
   }
 }

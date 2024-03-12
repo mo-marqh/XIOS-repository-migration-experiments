@@ -8,6 +8,7 @@
 namespace xios
 {
   std::vector<std::string> splitRegex(const std::string& input, const std::string& regex) ;
+  std::string strTrim(const std::string& input) ;
 
   inline std::vector<std::string> splitRegex(const std::string& input, const std::string& regex)
   {
@@ -19,5 +20,9 @@ namespace xios
       return {first, last}; 
   }
 
+  inline std::string strTrim(const std::string& input)
+  {
+    return std::regex_replace(input, std::regex("^ +| +$"), "$1");
+  }
 }
 #endif

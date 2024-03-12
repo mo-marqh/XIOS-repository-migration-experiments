@@ -12,6 +12,9 @@ namespace xios
   template<typename T> 
   MPI_Datatype MPI_GetType(void) ;
 
+  template<> 
+  MPI_Datatype MPI_GetType<bool>(void) ;
+
   template<>
   MPI_Datatype MPI_GetType<char>(void);
 

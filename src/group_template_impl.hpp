@@ -36,133 +36,6 @@ namespace xios
       CGroupTemplate<U, V, W>::~CGroupTemplate(void)
    { /* Ne rien faire de plus */ }
    
-   ///--------------------------------------------------------------
-/*
-   template <class U, class V, class W>
-      void CGroupTemplate<U, V, W>::toBinary(StdOStream & os) const
-   {
-      SuperClass::toBinary(os);
-      
-      const StdSize grpnb = this->groupList.size();
-      const StdSize chdnb = this->childList.size();
-      ENodeType cenum = U::GetType();
-      ENodeType genum = V::GetType();
-      
-      os.write (reinterpret_cast<const char*>(&grpnb) , sizeof(StdSize));
-      os.write (reinterpret_cast<const char*>(&chdnb) , sizeof(StdSize));      
-      
-      typename std::vector<V*>::const_iterator  
-         itg = this->groupList.begin(), endg = this->groupList.end();
-      typename std::vector<U*>::const_iterator 
-         itc = this->childList.begin(), endc = this->childList.end();
-            
-      for (; itg != endg; itg++)
-      { 
-         V* group = *itg;
-         bool hid = group->hasId();
-         
-         os.write (reinterpret_cast<const char*>(&genum), sizeof(ENodeType));      
-         os.write (reinterpret_cast<const char*>(&hid), sizeof(bool));
-         
-         if (hid)
-         {
-            const StdString & id = group->getId();
-            const StdSize size   = id.size();
-               
-            os.write (reinterpret_cast<const char*>(&size), sizeof(StdSize));
-            os.write (id.data(), size * sizeof(char));         
-         }              
-         group->toBinary(os);
-      }
-            
-      for (; itc != endc; itc++)
-      { 
-         U* child = *itc;
-         bool hid = child->hasId();
-         
-         os.write (reinterpret_cast<const char*>(&cenum), sizeof(ENodeType));
-         os.write (reinterpret_cast<const char*>(&hid), sizeof(bool));
-         
-         if (hid)
-         {
-            const StdString & id = child->getId();
-            const StdSize size   = id.size();
-               
-            os.write (reinterpret_cast<const char*>(&size), sizeof(StdSize));
-            os.write (id.data(), size * sizeof(char));         
-         }         
-         child->toBinary(os);
-      }
-      
-   }
-   
-   template <class U, class V, class W>
-      void CGroupTemplate<U, V, W>::fromBinary(StdIStream & is)
-   {
-      SuperClass::fromBinary(is);
-      
-      V* group_ptr = (this->hasId())
-         ? V::get(this->getId())
-         : V::get((V*)this);
-      
-      StdSize grpnb = 0;
-      StdSize chdnb = 0;
-      ENodeType renum = Unknown;
-      
-      is.read (reinterpret_cast<char*>(&grpnb), sizeof(StdSize));
-      is.read (reinterpret_cast<char*>(&chdnb), sizeof(StdSize));
-      
-      for (StdSize i = 0; i < grpnb; i++)
-      {
-         bool hid = false;
-         is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));
-         is.read (reinterpret_cast<char*>(&hid), sizeof(bool));
-         
-         if (renum != V::GetType())
-            ERROR("CGroupTemplate<U, V, W>::fromBinary(StdIStream & is)",
-                  << "[ renum = " << renum << "] Bad type !");
-                        
-         if (hid)
-         {
-            StdSize size  = 0;
-            is.read (reinterpret_cast<char*>(&size), sizeof(StdSize));
-            StdString id(size, ' ');
-            is.read (const_cast<char *>(id.data()), size * sizeof(char));
-            CGroupFactory::CreateGroup(group_ptr->getShared(), id)->fromBinary(is);
-         }
-         else
-         {
-            CGroupFactory::CreateGroup(group_ptr->getShared())->fromBinary(is);
-         }
-      }
-      
-      for (StdSize j = 0; j < chdnb; j++)
-      {
-         bool hid = false;
-         is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));
-         is.read (reinterpret_cast<char*>(&hid), sizeof(bool));
-         
-         if (renum != U::GetType())
-            ERROR("CGroupTemplate<U, V, W>::fromBinary(StdIStream & is)",
-                  << "[ renum = " << renum << "] Bad type !");
-                  
-         if (hid)
-         {
-            StdSize size  = 0;
-            is.read (reinterpret_cast<char*>(&size), sizeof(StdSize));
-            StdString id(size, ' ');
-            is.read (const_cast<char *>(id.data()), size * sizeof(char));
-            CGroupFactory::CreateChild(group_ptr->getShared(), id)->fromBinary(is);            
-         }
-         else
-         {
-            CGroupFactory::CreateChild(group_ptr->getShared())->fromBinary(is);
-         }   
-      }
-   }
-*/
-   //--------------------------------------------------------------
-
    template <class U, class V, class W>
       StdString CGroupTemplate<U, V, W>::toString(void) const
    {
@@ -254,14 +127,6 @@ namespace xios
    //---------------------------------------------------------------
 
    template <class U, class V, class W>
-      void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node)
-   { 
-      this->parse(node, true); 
-   }
-   
-   //---------------------------------------------------------------
-   
-   template <class U, class V, class W>
       void CGroupTemplate<U, V, W>::solveDescInheritance(bool apply, const CAttributeMap * const parent)
    {
       if (parent != NULL)
@@ -318,29 +183,7 @@ namespace xios
       void CGroupTemplate<U, V, W>::solveRefInheritance(void)
    { /* Ne rien faire de plus */ }
    
-//   template <class U, class V, class W>
-//   bool CGroupTemplate<U, V, W>::has(const string& id) 
-//   {
-//       return CObjectFactory::HasObject<V>(id) ;
-//   }
 
-//   template <class U, class V, class W>
-//   std::shared_ptr<V> CGroupTemplate<U, V, W>::get(const string& id) 
-//   {
-//       return CObjectFactory::GetObject<V>(id) ;
-//   }
-
-//   template <class U, class V, class W>
-//   std::shared_ptr<V> CGroupTemplate<U, V, W>::get() 
-//   {
-//       return CObjectFactory::GetObject<V>(this) ;
-//   }
-   
-//   template <class U, class V, class W>
-//   std::shared_ptr<V> CGroupTemplate<U, V, W>::create(const string& id) 
-//   {
-//       return CObjectFactory::CreateObject<V>(id) ;
-//   }
    ///--------------------------------------------------------------
 
   
@@ -469,6 +312,19 @@ namespace xios
    }
 
    template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node)
+   { 
+      this->parse(node, true); 
+   }
+   
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList)
+   {
+     ERROR("void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList)",
+                     <<"must not be called by this kind of object : "<<GetName() ) ;
+   }
+
+   template <class U, class V, class W>
       void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)
    {
 
@@ -477,18 +333,7 @@ namespace xios
       if (withAttr)
       {
          CGroupTemplate<U, V, W>::SuperClass::parse(node);
-         if (attributes.end() != attributes.find("src"))
-         {
-            StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
-            if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
-               ERROR("void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)",
-                     <<endl<< "Can not open <"<<attributes["src"].c_str()<<"> file" );
-            
-            if (!ifs.good())
-               ERROR("CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)",
-                     << "[ filename = " << attributes["src"] << " ] Bad xml stream !");
-            xml::CXMLParser::ParseInclude(ifs, attributes["src"].c_str(), *this);
-         }
+         if (attributes.end() != attributes.find("src")) xml::CXMLParser::ParseInclude(attributes["src"].c_str(), *this);
       }
 
       // PARSING POUR GESTION DES ENFANTS

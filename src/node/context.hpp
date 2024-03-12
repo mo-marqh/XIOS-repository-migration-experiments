@@ -408,6 +408,9 @@ namespace xios
    // Declare/Define CContextGroup and CContextDefinition
    DECLARE_GROUP(CContext);
 
+   template <>
+   void CGroupTemplate<CContext, CContextGroup, CContextAttributes>::parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList) ;
+
    ///--------------------------------------------------------------
 
 } // namespace xios
