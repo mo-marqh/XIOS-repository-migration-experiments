@@ -5,11 +5,45 @@
 #include "attribute_template.hpp"
 #include "object_template.hpp"
 #include "group_template.hpp"
+#include "string_tools.hpp"
 
 namespace xios
 {
    namespace xml
    {
+      
+      string CXMLParser::currentIncludePath_="." ;
+
+      string CXMLParser::updateIncludePath(const string& filePath)
+      {
+        string path = strTrim(filePath) ;
+        vector<string> match=splitRegex(path+'/',"/" ) ;
+
+        // check if empty path
+        bool isEmpty=true ;
+        for(auto& m : match) 
+          if (!m.empty())
+          {
+            isEmpty=false ;
+            break ;
+          }
+
+        if (isEmpty) ERROR("string CXMLParser::updatePath(const string& filePath)",
+                     << "File path to include an new XML is empty :'"<<filePath<<"'" );
+
+        if (match.back().empty()) ERROR("string CXMLParser::updatePath(const string& filePath)",
+                     << "File path to include an new XML must not be a directory but a file :'"<<filePath<<"'" );
+        bool isAbsolutePath = match.front().empty() ;
+        
+        if (isAbsolutePath) currentIncludePath_="" ;
+        for(int i=0; i<match.size()-1; ++i) if (! match[i].empty()) currentIncludePath_ = currentIncludePath_ + "/" + match[i] ;
+        
+        string finalPath = currentIncludePath_ + "/" + match.back() ;
+
+        return finalPath ;
+      }
+
+
       /// ////////////////////// Définitions ////////////////////// ///
 
       void CXMLParser::ParseFile(const StdString & filename, const std::set<StdString>& parseContextList)
@@ -51,48 +85,10 @@ namespace xios
                ERROR("CXMLParser::ParseStream(StdIStream & stream)",
                      << "Root element should be named simulation (actual = \'"
                      << node.getElementName() << "\')!");
-
-            std::set<StdString>::iterator it;
-            std::set<StdString>::const_iterator itE = parseContextList.end();
-            bool isParseAll = (parseContextList.empty());
             try
             {
-              if (node.goToChildElement())
-              {
-                 do
-                 {
-                    CContextGroup* group_context = CContext::getRoot() ;
-
-                    attributes = node.getAttributes();
-
-                    if (attributes.end() == attributes.find("id"))
-                    {
-                       DEBUG("The context will not be processed because it is not identified (missing id)");
-                       continue;
-                    }
-
-                    CContext::setCurrent(attributes["id"]) ;
-
-                    if (isParseAll)
-                    {
-                      CContext* context = CContext::create(attributes["id"]);
-                      context->parse(node);
-
-                      attributes.clear();
-                    }
-                    else
-                    {
-                      it = parseContextList.find(attributes["id"]);
-                      if (itE != it)
-                      {
-                        CContext* context = CContext::create(*it);
-                        context->parse(node);
-
-                        attributes.clear();
-                      }
-                    }
-                 } while (node.goToNextElement());
-              }
+              CContextGroup* rootContext = CContext::getRoot() ;
+              rootContext->parse(node, true, parseContextList) ;
             }
             catch(CException& e)
             {

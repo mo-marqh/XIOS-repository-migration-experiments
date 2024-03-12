@@ -251,13 +251,6 @@ namespace xios
       return ((groupList.size() + childList.size()) > 0); 
    }
 
-   //---------------------------------------------------------------
-
-   template <class U, class V, class W>
-      void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node)
-   { 
-      this->parse(node, true); 
-   }
    
    //---------------------------------------------------------------
    
@@ -510,6 +503,21 @@ namespace xios
       }
    }
 
+  //---------------------------------------------------------------
+
+   template <class U, class V, class W>
+      void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node)
+   { 
+      this->parse(node, true); 
+   }
+   
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList)
+   {
+     ERROR("void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList)",
+                     <<"must not be called by this kind of object : "<<GetName() ) ;
+   }
+
    template <class U, class V, class W>
       void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)
    {
@@ -519,18 +527,7 @@ namespace xios
       if (withAttr)
       {
          CGroupTemplate<U, V, W>::SuperClass::parse(node);
-         if (attributes.end() != attributes.find("src"))
-         {
-            StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
-            if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
-               ERROR("void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)",
-                     <<endl<< "Can not open <"<<attributes["src"].c_str()<<"> file" );
-            
-            if (!ifs.good())
-               ERROR("CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)",
-                     << "[ filename = " << attributes["src"] << " ] Bad xml stream !");
-            xml::CXMLParser::ParseInclude(ifs, attributes["src"].c_str(), *this);
-         }
+         if (attributes.end() != attributes.find("src")) xml::CXMLParser::ParseInclude(attributes["src"].c_str(), *this);
       }
 
       // PARSING POUR GESTION DES ENFANTS

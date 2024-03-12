@@ -112,17 +112,7 @@ namespace xios {
       // PARSING POUR GESTION DES ENFANTS
       xml::THashAttributes attributes = node.getAttributes();
 
-      if (attributes.end() != attributes.find("src"))
-      {
-         StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
-         if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
-            ERROR("void CContext::parse(xml::CXMLNode & node)",
-                  <<endl<< "Can not open <"<<attributes["src"].c_str()<<"> file" );
-         if (!ifs.good())
-            ERROR("CContext::parse(xml::CXMLNode & node)",
-                  << "[ filename = " << attributes["src"] << " ] Bad xml stream !");
-         xml::CXMLParser::ParseInclude(ifs, attributes["src"], *this);
-      }
+      if (attributes.end() != attributes.find("src")) xml::CXMLParser::ParseInclude(attributes["src"], *this);
 
       if (node.getElementName().compare(CContext::GetName()))
          DEBUG("Le noeud is wrong defined but will be considered as a context !");
@@ -161,6 +151,70 @@ namespace xios {
       }
    }
    CATCH_DUMP_ATTR
+
+   template <>
+   void CGroupTemplate<CContext, CContextGroup, CContextAttributes>::parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList)
+   TRY
+   {
+      StdString name = node.getElementName();
+      xml::THashAttributes attributes = node.getAttributes();
+      CGroupTemplate<CContext, CContextGroup, CContextAttributes>::SuperClass::parse(node);
+      if (attributes.end() != attributes.find("src")) xml::CXMLParser::ParseInclude(attributes["src"].c_str(), *this, parseContextList);
+
+      if (!(node.goToChildElement()))
+      {
+        // no children ?
+      }
+      else
+      {
+        do // Parcours pour traitement.
+        { 
+
+          StdString name = node.getElementName();
+          attributes.clear();
+          attributes = node.getAttributes();
+
+          if (name.compare(CContextGroup::GetName()) == 0)
+          {
+            CContextGroup contextGroup ;
+            contextGroup.parse(node, true, parseContextList) ;
+            continue;
+          }
+
+          if (name.compare(CContext::GetName()) == 0)
+          {
+            if (attributes.end() == attributes.find("id"))
+            {
+              DEBUG("The context will not be processed because it is not identified (missing id)");
+              continue;
+            }
+            else
+            {  
+              if (parseContextList.empty() || parseContextList.count(attributes["id"]) > 0)
+              {
+                CContext::setCurrent(attributes["id"]) ;
+                CContext* context = CContext::create(attributes["id"]);
+                context->parse(node);
+                attributes.clear();
+              }
+              continue;
+            }
+          }
+
+          DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
+                << "\', un objet de type \'" << CContextGroup::GetName()
+                << "\' ne peut contenir qu'un objet de type \'" << CContextGroup::GetName()
+                << "\' ou de type \'" << CContext::GetName()
+                << "\' (reçu : " << name << ") !");
+
+         } while (node.goToNextElement());
+         node.goToParentElement(); // Retour au parent
+      }
+   }
+   CATCH_DUMP_ATTR
+
+
+
 
    //----------------------------------------------------------------
    //! Show tree structure of context

@@ -50,6 +50,8 @@ namespace xios
 
          virtual void parse(xml::CXMLNode & node);
          virtual void parse(xml::CXMLNode & node, bool withAttr);
+         virtual void parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList);
+         
          virtual void parseChild(xml::CXMLNode & node);
         
          /// Test ///
