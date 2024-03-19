@@ -65,6 +65,105 @@ extern "C"
   }
 
 
+  void cxios_set_fieldgroup_build_workflow_graph(fieldgroup_Ptr fieldgroup_hdl, bool build_workflow_graph)
+  {
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->build_workflow_graph.setValue(build_workflow_graph);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_build_workflow_graph(fieldgroup_Ptr fieldgroup_hdl, bool* build_workflow_graph)
+  {
+    CTimer::get("XIOS").resume();
+    *build_workflow_graph = fieldgroup_hdl->build_workflow_graph.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_build_workflow_graph(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->build_workflow_graph.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_fieldgroup_build_workflow_graph_end(fieldgroup_Ptr fieldgroup_hdl, cxios_duration build_workflow_graph_end_c)
+  {
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->build_workflow_graph_end.allocate();
+    CDuration& build_workflow_graph_end = fieldgroup_hdl->build_workflow_graph_end.get();
+    build_workflow_graph_end.year = build_workflow_graph_end_c.year;
+    build_workflow_graph_end.month = build_workflow_graph_end_c.month;
+    build_workflow_graph_end.day = build_workflow_graph_end_c.day;
+    build_workflow_graph_end.hour = build_workflow_graph_end_c.hour;
+    build_workflow_graph_end.minute = build_workflow_graph_end_c.minute;
+    build_workflow_graph_end.second = build_workflow_graph_end_c.second;
+    build_workflow_graph_end.timestep = build_workflow_graph_end_c.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_build_workflow_graph_end(fieldgroup_Ptr fieldgroup_hdl, cxios_duration* build_workflow_graph_end_c)
+  {
+    CTimer::get("XIOS").resume();
+    CDuration build_workflow_graph_end = fieldgroup_hdl->build_workflow_graph_end.getInheritedValue();
+    build_workflow_graph_end_c->year = build_workflow_graph_end.year;
+    build_workflow_graph_end_c->month = build_workflow_graph_end.month;
+    build_workflow_graph_end_c->day = build_workflow_graph_end.day;
+    build_workflow_graph_end_c->hour = build_workflow_graph_end.hour;
+    build_workflow_graph_end_c->minute = build_workflow_graph_end.minute;
+    build_workflow_graph_end_c->second = build_workflow_graph_end.second;
+    build_workflow_graph_end_c->timestep = build_workflow_graph_end.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_build_workflow_graph_end(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->build_workflow_graph_end.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_fieldgroup_build_workflow_graph_start(fieldgroup_Ptr fieldgroup_hdl, cxios_duration build_workflow_graph_start_c)
+  {
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->build_workflow_graph_start.allocate();
+    CDuration& build_workflow_graph_start = fieldgroup_hdl->build_workflow_graph_start.get();
+    build_workflow_graph_start.year = build_workflow_graph_start_c.year;
+    build_workflow_graph_start.month = build_workflow_graph_start_c.month;
+    build_workflow_graph_start.day = build_workflow_graph_start_c.day;
+    build_workflow_graph_start.hour = build_workflow_graph_start_c.hour;
+    build_workflow_graph_start.minute = build_workflow_graph_start_c.minute;
+    build_workflow_graph_start.second = build_workflow_graph_start_c.second;
+    build_workflow_graph_start.timestep = build_workflow_graph_start_c.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_build_workflow_graph_start(fieldgroup_Ptr fieldgroup_hdl, cxios_duration* build_workflow_graph_start_c)
+  {
+    CTimer::get("XIOS").resume();
+    CDuration build_workflow_graph_start = fieldgroup_hdl->build_workflow_graph_start.getInheritedValue();
+    build_workflow_graph_start_c->year = build_workflow_graph_start.year;
+    build_workflow_graph_start_c->month = build_workflow_graph_start.month;
+    build_workflow_graph_start_c->day = build_workflow_graph_start.day;
+    build_workflow_graph_start_c->hour = build_workflow_graph_start.hour;
+    build_workflow_graph_start_c->minute = build_workflow_graph_start.minute;
+    build_workflow_graph_start_c->second = build_workflow_graph_start.second;
+    build_workflow_graph_start_c->timestep = build_workflow_graph_start.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_build_workflow_graph_start(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->build_workflow_graph_start.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_fieldgroup_cell_methods(fieldgroup_Ptr fieldgroup_hdl, const char * cell_methods, int cell_methods_size)
   {
     std::string cell_methods_str;
@@ -184,6 +283,29 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = fieldgroup_hdl->compression_level.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_fieldgroup_conversion_by_netcdf(fieldgroup_Ptr fieldgroup_hdl, bool conversion_by_netcdf)
+  {
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->conversion_by_netcdf.setValue(conversion_by_netcdf);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_conversion_by_netcdf(fieldgroup_Ptr fieldgroup_hdl, bool* conversion_by_netcdf)
+  {
+    CTimer::get("XIOS").resume();
+    *conversion_by_netcdf = fieldgroup_hdl->conversion_by_netcdf.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_conversion_by_netcdf(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->conversion_by_netcdf.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

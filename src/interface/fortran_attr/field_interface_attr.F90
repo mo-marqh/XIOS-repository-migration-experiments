@@ -49,6 +49,67 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_axis_ref
 
 
+    SUBROUTINE cxios_set_field_build_workflow_graph(field_hdl, build_workflow_graph) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: build_workflow_graph
+    END SUBROUTINE cxios_set_field_build_workflow_graph
+
+    SUBROUTINE cxios_get_field_build_workflow_graph(field_hdl, build_workflow_graph) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)             :: build_workflow_graph
+    END SUBROUTINE cxios_get_field_build_workflow_graph
+
+    FUNCTION cxios_is_defined_field_build_workflow_graph(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_build_workflow_graph
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_build_workflow_graph
+
+
+    SUBROUTINE cxios_set_field_build_workflow_graph_end(field_hdl, build_workflow_graph_end) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      TYPE(txios(duration)), VALUE :: build_workflow_graph_end
+    END SUBROUTINE cxios_set_field_build_workflow_graph_end
+
+    SUBROUTINE cxios_get_field_build_workflow_graph_end(field_hdl, build_workflow_graph_end) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      TYPE(txios(duration)) :: build_workflow_graph_end
+    END SUBROUTINE cxios_get_field_build_workflow_graph_end
+
+    FUNCTION cxios_is_defined_field_build_workflow_graph_end(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_build_workflow_graph_end
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_build_workflow_graph_end
+
+
+    SUBROUTINE cxios_set_field_build_workflow_graph_start(field_hdl, build_workflow_graph_start) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      TYPE(txios(duration)), VALUE :: build_workflow_graph_start
+    END SUBROUTINE cxios_set_field_build_workflow_graph_start
+
+    SUBROUTINE cxios_get_field_build_workflow_graph_start(field_hdl, build_workflow_graph_start) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      TYPE(txios(duration)) :: build_workflow_graph_start
+    END SUBROUTINE cxios_get_field_build_workflow_graph_start
+
+    FUNCTION cxios_is_defined_field_build_workflow_graph_start(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_build_workflow_graph_start
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_build_workflow_graph_start
+
+
     SUBROUTINE cxios_set_field_cell_methods(field_hdl, cell_methods, cell_methods_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
@@ -148,6 +209,25 @@ MODULE field_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_compression_level
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
     END FUNCTION cxios_is_defined_field_compression_level
+
+
+    SUBROUTINE cxios_set_field_conversion_by_netcdf(field_hdl, conversion_by_netcdf) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: conversion_by_netcdf
+    END SUBROUTINE cxios_set_field_conversion_by_netcdf
+
+    SUBROUTINE cxios_get_field_conversion_by_netcdf(field_hdl, conversion_by_netcdf) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)             :: conversion_by_netcdf
+    END SUBROUTINE cxios_get_field_conversion_by_netcdf
+
+    FUNCTION cxios_is_defined_field_conversion_by_netcdf(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_conversion_by_netcdf
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_conversion_by_netcdf
 
 
     SUBROUTINE cxios_set_field_default_value(field_hdl, default_value) BIND(C)

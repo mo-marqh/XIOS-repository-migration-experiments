@@ -1029,6 +1029,25 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_tile_nj
 
 
+    SUBROUTINE cxios_set_domaingroup_tile_only(domaingroup_hdl, tile_only) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: tile_only
+    END SUBROUTINE cxios_set_domaingroup_tile_only
+
+    SUBROUTINE cxios_get_domaingroup_tile_only(domaingroup_hdl, tile_only) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: tile_only
+    END SUBROUTINE cxios_get_domaingroup_tile_only
+
+    FUNCTION cxios_is_defined_domaingroup_tile_only(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_tile_only
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_tile_only
+
+
     SUBROUTINE cxios_set_domaingroup_type(domaingroup_hdl, type, type_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl

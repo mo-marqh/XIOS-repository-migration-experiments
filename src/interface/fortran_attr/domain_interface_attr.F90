@@ -1008,6 +1008,25 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_tile_nj
 
 
+    SUBROUTINE cxios_set_domain_tile_only(domain_hdl, tile_only) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: tile_only
+    END SUBROUTINE cxios_set_domain_tile_only
+
+    SUBROUTINE cxios_get_domain_tile_only(domain_hdl, tile_only) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      LOGICAL (KIND=C_BOOL)             :: tile_only
+    END SUBROUTINE cxios_get_domain_tile_only
+
+    FUNCTION cxios_is_defined_domain_tile_only(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_tile_only
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_tile_only
+
+
     SUBROUTINE cxios_set_domain_type(domain_hdl, type, type_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl

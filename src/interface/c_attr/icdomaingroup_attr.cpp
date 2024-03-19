@@ -1248,6 +1248,29 @@ extern "C"
   }
 
 
+  void cxios_set_domaingroup_tile_only(domaingroup_Ptr domaingroup_hdl, bool tile_only)
+  {
+    CTimer::get("XIOS").resume();
+    domaingroup_hdl->tile_only.setValue(tile_only);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_tile_only(domaingroup_Ptr domaingroup_hdl, bool* tile_only)
+  {
+    CTimer::get("XIOS").resume();
+    *tile_only = domaingroup_hdl->tile_only.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_tile_only(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->tile_only.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domaingroup_type(domaingroup_Ptr domaingroup_hdl, const char * type, int type_size)
   {
     std::string type_str;

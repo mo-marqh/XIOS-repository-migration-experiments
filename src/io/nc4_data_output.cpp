@@ -2709,11 +2709,11 @@ namespace xios
         }
 
         bool conversionByNetCDF = true; // default : conversion operated by NetCDF for now (legacy behaviour)
-        if (!field->conversion_by_NetCDF.isEmpty())
+        if (!field->conversion_by_netcdf.isEmpty())
         {
-          // use conversion_by_NetCDF = ".false." to  bypass NetCDF conversion
+          // use conversion_by_netcdf = ".false." to  bypass NetCDF conversion
           //   poor performances from NC_DOUBLE to NC_FLOAT with isgreater/isless in recent NetCDF available at TGCC
-          conversionByNetCDF = field->conversion_by_NetCDF;
+          conversionByNetCDF = field->conversion_by_netcdf;
         }
         if ( ( type == NC_DOUBLE ) || ( conversionByNetCDF ) )
         {

@@ -168,6 +168,29 @@ extern "C"
   }
 
 
+  void cxios_set_axisgroup_convert_from_factor(axisgroup_Ptr axisgroup_hdl, double convert_from_factor)
+  {
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->convert_from_factor.setValue(convert_from_factor);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_convert_from_factor(axisgroup_Ptr axisgroup_hdl, double* convert_from_factor)
+  {
+    CTimer::get("XIOS").resume();
+    *convert_from_factor = axisgroup_hdl->convert_from_factor.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_convert_from_factor(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->convert_from_factor.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axisgroup_data_begin(axisgroup_Ptr axisgroup_hdl, int data_begin)
   {
     CTimer::get("XIOS").resume();
