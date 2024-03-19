@@ -334,6 +334,14 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   reorderDomain.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"redistribute_domain_interface_attr.F90").c_str());
+  redistributeDomain.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icredistribute_domain_attr.cpp").c_str());
+  redistributeDomain.generateCInterface(file);
+  file.close();
+  
   file.open((path+"iredistribute_domain_attr.F90").c_str());
   redistributeDomain.generateFortranInterface(file);
   file.close();
@@ -443,6 +451,14 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   duplicateScalarToAxis.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"redistribute_axis_interface_attr.F90").c_str());
+  redistributeAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icredistribute_axis_attr.cpp").c_str());
+  redistributeAxis.generateCInterface(file);
+  file.close();
+
   file.open((path+"iredistribute_axis_attr.F90").c_str());
   redistributeAxis.generateFortranInterface(file);
   file.close();
@@ -498,6 +514,14 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"ireduce_scalar_to_scalar_attr.F90").c_str());
   reduceScalarToScalar.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"redistribute_scalar_interface_attr.F90").c_str());
+  redistributeScalar.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icredistribute_scalar_attr.cpp").c_str());
+  redistributeScalar.generateCInterface(file);
   file.close();
 
   file.open((path+"iredistribute_scalar_attr.F90").c_str());

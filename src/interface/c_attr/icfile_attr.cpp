@@ -238,6 +238,32 @@ extern "C"
   }
 
 
+  void cxios_set_file_gatherer(file_Ptr file_hdl, const char * gatherer, int gatherer_size)
+  {
+    std::string gatherer_str;
+    if (!cstr2string(gatherer, gatherer_size, gatherer_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->gatherer.setValue(gatherer_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_gatherer(file_Ptr file_hdl, char * gatherer, int gatherer_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->gatherer.getInheritedValue(), gatherer, gatherer_size))
+      ERROR("void cxios_get_file_gatherer(file_Ptr file_hdl, char * gatherer, int gatherer_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_gatherer(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->gatherer.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_min_digits(file_Ptr file_hdl, int min_digits)
   {
     CTimer::get("XIOS").resume();
@@ -426,6 +452,84 @@ extern "C"
   }
 
 
+  void cxios_set_file_pool_gatherer(file_Ptr file_hdl, const char * pool_gatherer, int pool_gatherer_size)
+  {
+    std::string pool_gatherer_str;
+    if (!cstr2string(pool_gatherer, pool_gatherer_size, pool_gatherer_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->pool_gatherer.setValue(pool_gatherer_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_pool_gatherer(file_Ptr file_hdl, char * pool_gatherer, int pool_gatherer_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->pool_gatherer.getInheritedValue(), pool_gatherer, pool_gatherer_size))
+      ERROR("void cxios_get_file_pool_gatherer(file_Ptr file_hdl, char * pool_gatherer, int pool_gatherer_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_pool_gatherer(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->pool_gatherer.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_pool_reader(file_Ptr file_hdl, const char * pool_reader, int pool_reader_size)
+  {
+    std::string pool_reader_str;
+    if (!cstr2string(pool_reader, pool_reader_size, pool_reader_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->pool_reader.setValue(pool_reader_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_pool_reader(file_Ptr file_hdl, char * pool_reader, int pool_reader_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->pool_reader.getInheritedValue(), pool_reader, pool_reader_size))
+      ERROR("void cxios_get_file_pool_reader(file_Ptr file_hdl, char * pool_reader, int pool_reader_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_pool_reader(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->pool_reader.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_pool_writer(file_Ptr file_hdl, const char * pool_writer, int pool_writer_size)
+  {
+    std::string pool_writer_str;
+    if (!cstr2string(pool_writer, pool_writer_size, pool_writer_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->pool_writer.setValue(pool_writer_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_pool_writer(file_Ptr file_hdl, char * pool_writer, int pool_writer_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->pool_writer.getInheritedValue(), pool_writer, pool_writer_size))
+      ERROR("void cxios_get_file_pool_writer(file_Ptr file_hdl, char * pool_writer, int pool_writer_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_pool_writer(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->pool_writer.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_read_metadata_par(file_Ptr file_hdl, bool read_metadata_par)
   {
     CTimer::get("XIOS").resume();
@@ -444,6 +548,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = file_hdl->read_metadata_par.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_reader(file_Ptr file_hdl, const char * reader, int reader_size)
+  {
+    std::string reader_str;
+    if (!cstr2string(reader, reader_size, reader_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->reader.setValue(reader_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_reader(file_Ptr file_hdl, char * reader, int reader_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->reader.getInheritedValue(), reader, reader_size))
+      ERROR("void cxios_get_file_reader(file_Ptr file_hdl, char * reader, int reader_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_reader(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->reader.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -884,6 +1014,29 @@ extern "C"
   }
 
 
+  void cxios_set_file_using_server2(file_Ptr file_hdl, bool using_server2)
+  {
+    CTimer::get("XIOS").resume();
+    file_hdl->using_server2.setValue(using_server2);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_using_server2(file_Ptr file_hdl, bool* using_server2)
+  {
+    CTimer::get("XIOS").resume();
+    *using_server2 = file_hdl->using_server2.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_using_server2(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->using_server2.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_uuid_format(file_Ptr file_hdl, const char * uuid_format, int uuid_format_size)
   {
     std::string uuid_format_str;
@@ -931,6 +1084,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = file_hdl->uuid_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_writer(file_Ptr file_hdl, const char * writer, int writer_size)
+  {
+    std::string writer_str;
+    if (!cstr2string(writer, writer_size, writer_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->writer.setValue(writer_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_writer(file_Ptr file_hdl, char * writer, int writer_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->writer.getInheritedValue(), writer, writer_size))
+      ERROR("void cxios_get_file_writer(file_Ptr file_hdl, char * writer, int writer_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_writer(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->writer.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

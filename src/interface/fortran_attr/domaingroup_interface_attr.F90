@@ -30,6 +30,48 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_area
 
 
+    SUBROUTINE cxios_set_domaingroup_area_1d(domaingroup_hdl, area_1d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_1d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domaingroup_area_1d
+
+    SUBROUTINE cxios_get_domaingroup_area_1d(domaingroup_hdl, area_1d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_1d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domaingroup_area_1d
+
+    FUNCTION cxios_is_defined_domaingroup_area_1d(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_area_1d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_area_1d
+
+
+    SUBROUTINE cxios_set_domaingroup_area_2d(domaingroup_hdl, area_2d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_2d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domaingroup_area_2d
+
+    SUBROUTINE cxios_get_domaingroup_area_2d(domaingroup_hdl, area_2d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_2d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domaingroup_area_2d
+
+    FUNCTION cxios_is_defined_domaingroup_area_2d(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_area_2d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_area_2d
+
+
     SUBROUTINE cxios_set_domaingroup_bounds_lat_1d(domaingroup_hdl, bounds_lat_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
@@ -154,6 +196,44 @@ MODULE domaingroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_bounds_lon_name
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
     END FUNCTION cxios_is_defined_domaingroup_bounds_lon_name
+
+
+    SUBROUTINE cxios_set_domaingroup_chunking_weight_i(domaingroup_hdl, chunking_weight_i) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: chunking_weight_i
+    END SUBROUTINE cxios_set_domaingroup_chunking_weight_i
+
+    SUBROUTINE cxios_get_domaingroup_chunking_weight_i(domaingroup_hdl, chunking_weight_i) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)             :: chunking_weight_i
+    END SUBROUTINE cxios_get_domaingroup_chunking_weight_i
+
+    FUNCTION cxios_is_defined_domaingroup_chunking_weight_i(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_chunking_weight_i
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_chunking_weight_i
+
+
+    SUBROUTINE cxios_set_domaingroup_chunking_weight_j(domaingroup_hdl, chunking_weight_j) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: chunking_weight_j
+    END SUBROUTINE cxios_set_domaingroup_chunking_weight_j
+
+    SUBROUTINE cxios_get_domaingroup_chunking_weight_j(domaingroup_hdl, chunking_weight_j) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)             :: chunking_weight_j
+    END SUBROUTINE cxios_get_domaingroup_chunking_weight_j
+
+    FUNCTION cxios_is_defined_domaingroup_chunking_weight_j(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_chunking_weight_j
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_chunking_weight_j
 
 
     SUBROUTINE cxios_set_domaingroup_comment(domaingroup_hdl, comment, comment_size) BIND(C)
@@ -781,6 +861,27 @@ MODULE domaingroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_nvertex
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
     END FUNCTION cxios_is_defined_domaingroup_nvertex
+
+
+    SUBROUTINE cxios_set_domaingroup_nvertex_name(domaingroup_hdl, nvertex_name, nvertex_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: nvertex_name
+      INTEGER  (kind = C_INT)     , VALUE        :: nvertex_name_size
+    END SUBROUTINE cxios_set_domaingroup_nvertex_name
+
+    SUBROUTINE cxios_get_domaingroup_nvertex_name(domaingroup_hdl, nvertex_name, nvertex_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: nvertex_name
+      INTEGER  (kind = C_INT)     , VALUE        :: nvertex_name_size
+    END SUBROUTINE cxios_get_domaingroup_nvertex_name
+
+    FUNCTION cxios_is_defined_domaingroup_nvertex_name(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_nvertex_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_nvertex_name
 
 
     SUBROUTINE cxios_set_domaingroup_prec(domaingroup_hdl, prec) BIND(C)

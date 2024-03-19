@@ -30,6 +30,48 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_area
 
 
+    SUBROUTINE cxios_set_domain_area_1d(domain_hdl, area_1d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_1d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_area_1d
+
+    SUBROUTINE cxios_get_domain_area_1d(domain_hdl, area_1d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_1d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_area_1d
+
+    FUNCTION cxios_is_defined_domain_area_1d(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_area_1d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_area_1d
+
+
+    SUBROUTINE cxios_set_domain_area_2d(domain_hdl, area_2d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_2d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_domain_area_2d
+
+    SUBROUTINE cxios_get_domain_area_2d(domain_hdl, area_2d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area_2d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_domain_area_2d
+
+    FUNCTION cxios_is_defined_domain_area_2d(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_area_2d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_area_2d
+
+
     SUBROUTINE cxios_set_domain_bounds_lat_1d(domain_hdl, bounds_lat_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
@@ -154,6 +196,44 @@ MODULE domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_bounds_lon_name
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
     END FUNCTION cxios_is_defined_domain_bounds_lon_name
+
+
+    SUBROUTINE cxios_set_domain_chunking_weight_i(domain_hdl, chunking_weight_i) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: chunking_weight_i
+    END SUBROUTINE cxios_set_domain_chunking_weight_i
+
+    SUBROUTINE cxios_get_domain_chunking_weight_i(domain_hdl, chunking_weight_i) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      REAL (KIND=C_DOUBLE)             :: chunking_weight_i
+    END SUBROUTINE cxios_get_domain_chunking_weight_i
+
+    FUNCTION cxios_is_defined_domain_chunking_weight_i(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_chunking_weight_i
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_chunking_weight_i
+
+
+    SUBROUTINE cxios_set_domain_chunking_weight_j(domain_hdl, chunking_weight_j) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: chunking_weight_j
+    END SUBROUTINE cxios_set_domain_chunking_weight_j
+
+    SUBROUTINE cxios_get_domain_chunking_weight_j(domain_hdl, chunking_weight_j) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      REAL (KIND=C_DOUBLE)             :: chunking_weight_j
+    END SUBROUTINE cxios_get_domain_chunking_weight_j
+
+    FUNCTION cxios_is_defined_domain_chunking_weight_j(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_chunking_weight_j
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_chunking_weight_j
 
 
     SUBROUTINE cxios_set_domain_comment(domain_hdl, comment, comment_size) BIND(C)
@@ -760,6 +840,27 @@ MODULE domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_nvertex
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
     END FUNCTION cxios_is_defined_domain_nvertex
+
+
+    SUBROUTINE cxios_set_domain_nvertex_name(domain_hdl, nvertex_name, nvertex_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: nvertex_name
+      INTEGER  (kind = C_INT)     , VALUE        :: nvertex_name_size
+    END SUBROUTINE cxios_set_domain_nvertex_name
+
+    SUBROUTINE cxios_get_domain_nvertex_name(domain_hdl, nvertex_name, nvertex_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: nvertex_name
+      INTEGER  (kind = C_INT)     , VALUE        :: nvertex_name_size
+    END SUBROUTINE cxios_get_domain_nvertex_name
+
+    FUNCTION cxios_is_defined_domain_nvertex_name(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_nvertex_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_nvertex_name
 
 
     SUBROUTINE cxios_set_domain_prec(domain_hdl, prec) BIND(C)

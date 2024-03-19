@@ -142,6 +142,29 @@ extern "C"
   }
 
 
+  void cxios_set_axis_chunking_weight(axis_Ptr axis_hdl, double chunking_weight)
+  {
+    CTimer::get("XIOS").resume();
+    axis_hdl->chunking_weight.setValue(chunking_weight);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axis_chunking_weight(axis_Ptr axis_hdl, double* chunking_weight)
+  {
+    CTimer::get("XIOS").resume();
+    *chunking_weight = axis_hdl->chunking_weight.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axis_chunking_weight(axis_Ptr axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axis_hdl->chunking_weight.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axis_comment(axis_Ptr axis_hdl, const char * comment, int comment_size)
   {
     std::string comment_str;

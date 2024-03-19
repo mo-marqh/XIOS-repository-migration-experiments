@@ -12,10 +12,11 @@ CONTAINS
 
   SUBROUTINE xios(set_filegroup_attr)  &
     ( filegroup_id, append, comment, compression_level, convention, convention_str, cyclic, description  &
-    , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-    , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-    , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+    , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+    , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+    , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+    , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -32,6 +33,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: format
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: gatherer
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode
@@ -40,8 +42,12 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_gatherer
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_reader
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_writer
       LOGICAL  , OPTIONAL, INTENT(IN) :: read_metadata_par
       LOGICAL (KIND=C_BOOL) :: read_metadata_par_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: reader
       INTEGER  , OPTIONAL, INTENT(IN) :: record_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_end_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq
@@ -57,26 +63,31 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: timeseries
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: ts_prefix
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
+      LOGICAL  , OPTIONAL, INTENT(IN) :: using_server2
+      LOGICAL (KIND=C_BOOL) :: using_server2_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: uuid_format
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: uuid_name
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: writer
 
       CALL xios(get_filegroup_handle) &
       (filegroup_id,filegroup_hdl)
       CALL xios(set_filegroup_attr_hdl_)   &
       ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-      , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-      , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-      , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+      , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+      , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+      , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+      , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
   END SUBROUTINE xios(set_filegroup_attr)
 
   SUBROUTINE xios(set_filegroup_attr_hdl)  &
     ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-    , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-    , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-    , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+    , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+    , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+    , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+    , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -92,6 +103,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: format
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: gatherer
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode
@@ -100,8 +112,12 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_gatherer
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_reader
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_writer
       LOGICAL  , OPTIONAL, INTENT(IN) :: read_metadata_par
       LOGICAL (KIND=C_BOOL) :: read_metadata_par_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: reader
       INTEGER  , OPTIONAL, INTENT(IN) :: record_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_end_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq
@@ -117,25 +133,30 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: timeseries
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: ts_prefix
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
+      LOGICAL  , OPTIONAL, INTENT(IN) :: using_server2
+      LOGICAL (KIND=C_BOOL) :: using_server2_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: uuid_format
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: uuid_name
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: writer
 
       CALL xios(set_filegroup_attr_hdl_)  &
       ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-      , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-      , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-      , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+      , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+      , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+      , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+      , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
   END SUBROUTINE xios(set_filegroup_attr_hdl)
 
   SUBROUTINE xios(set_filegroup_attr_hdl_)   &
     ( filegroup_hdl, append_, comment_, compression_level_, convention_, convention_str_, cyclic_  &
-    , description_, enabled_, format_, group_ref_, min_digits_, mode_, name_, name_suffix_, output_freq_  &
-    , output_level_, par_access_, read_metadata_par_, record_offset_, split_end_offset_, split_freq_  &
-    , split_freq_format_, split_last_date_, split_start_offset_, sync_freq_, time_counter_, time_counter_name_  &
-    , time_stamp_format_, time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_  &
-    , uuid_name_ )
+    , description_, enabled_, format_, gatherer_, group_ref_, min_digits_, mode_, name_, name_suffix_  &
+    , output_freq_, output_level_, par_access_, pool_gatherer_, pool_reader_, pool_writer_, read_metadata_par_  &
+    , reader_, record_offset_, split_end_offset_, split_freq_, split_freq_format_, split_last_date_  &
+    , split_start_offset_, sync_freq_, time_counter_, time_counter_name_, time_stamp_format_, time_stamp_name_  &
+    , time_units_, timeseries_, ts_prefix_, type_, using_server2_, uuid_format_, uuid_name_, writer_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -151,6 +172,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: enabled_
       LOGICAL (KIND=C_BOOL) :: enabled__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: format_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: gatherer_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode_
@@ -159,8 +181,12 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_gatherer_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_reader_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: pool_writer_
       LOGICAL  , OPTIONAL, INTENT(IN) :: read_metadata_par_
       LOGICAL (KIND=C_BOOL) :: read_metadata_par__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: reader_
       INTEGER  , OPTIONAL, INTENT(IN) :: record_offset_
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_end_offset_
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq_
@@ -176,8 +202,11 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: timeseries_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: ts_prefix_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
+      LOGICAL  , OPTIONAL, INTENT(IN) :: using_server2_
+      LOGICAL (KIND=C_BOOL) :: using_server2__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: uuid_format_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: uuid_name_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: writer_
 
       IF (PRESENT(append_)) THEN
         append__tmp = append_
@@ -227,6 +256,11 @@ CONTAINS
       (filegroup_hdl%daddr, format_, len(format_))
       ENDIF
 
+      IF (PRESENT(gatherer_)) THEN
+        CALL cxios_set_filegroup_gatherer &
+      (filegroup_hdl%daddr, gatherer_, len(gatherer_))
+      ENDIF
+
       IF (PRESENT(group_ref_)) THEN
         CALL cxios_set_filegroup_group_ref &
       (filegroup_hdl%daddr, group_ref_, len(group_ref_))
@@ -267,10 +301,30 @@ CONTAINS
       (filegroup_hdl%daddr, par_access_, len(par_access_))
       ENDIF
 
+      IF (PRESENT(pool_gatherer_)) THEN
+        CALL cxios_set_filegroup_pool_gatherer &
+      (filegroup_hdl%daddr, pool_gatherer_, len(pool_gatherer_))
+      ENDIF
+
+      IF (PRESENT(pool_reader_)) THEN
+        CALL cxios_set_filegroup_pool_reader &
+      (filegroup_hdl%daddr, pool_reader_, len(pool_reader_))
+      ENDIF
+
+      IF (PRESENT(pool_writer_)) THEN
+        CALL cxios_set_filegroup_pool_writer &
+      (filegroup_hdl%daddr, pool_writer_, len(pool_writer_))
+      ENDIF
+
       IF (PRESENT(read_metadata_par_)) THEN
         read_metadata_par__tmp = read_metadata_par_
         CALL cxios_set_filegroup_read_metadata_par &
       (filegroup_hdl%daddr, read_metadata_par__tmp)
+      ENDIF
+
+      IF (PRESENT(reader_)) THEN
+        CALL cxios_set_filegroup_reader &
+      (filegroup_hdl%daddr, reader_, len(reader_))
       ENDIF
 
       IF (PRESENT(record_offset_)) THEN
@@ -348,6 +402,12 @@ CONTAINS
       (filegroup_hdl%daddr, type_, len(type_))
       ENDIF
 
+      IF (PRESENT(using_server2_)) THEN
+        using_server2__tmp = using_server2_
+        CALL cxios_set_filegroup_using_server2 &
+      (filegroup_hdl%daddr, using_server2__tmp)
+      ENDIF
+
       IF (PRESENT(uuid_format_)) THEN
         CALL cxios_set_filegroup_uuid_format &
       (filegroup_hdl%daddr, uuid_format_, len(uuid_format_))
@@ -358,14 +418,20 @@ CONTAINS
       (filegroup_hdl%daddr, uuid_name_, len(uuid_name_))
       ENDIF
 
+      IF (PRESENT(writer_)) THEN
+        CALL cxios_set_filegroup_writer &
+      (filegroup_hdl%daddr, writer_, len(writer_))
+      ENDIF
+
   END SUBROUTINE xios(set_filegroup_attr_hdl_)
 
   SUBROUTINE xios(get_filegroup_attr)  &
     ( filegroup_id, append, comment, compression_level, convention, convention_str, cyclic, description  &
-    , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-    , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-    , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+    , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+    , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+    , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+    , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -382,6 +448,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: format
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: gatherer
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode
@@ -390,8 +457,12 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_gatherer
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_reader
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_writer
       LOGICAL  , OPTIONAL, INTENT(OUT) :: read_metadata_par
       LOGICAL (KIND=C_BOOL) :: read_metadata_par_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: reader
       INTEGER  , OPTIONAL, INTENT(OUT) :: record_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_end_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq
@@ -407,26 +478,31 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: timeseries
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: ts_prefix
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: using_server2
+      LOGICAL (KIND=C_BOOL) :: using_server2_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: uuid_format
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: uuid_name
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: writer
 
       CALL xios(get_filegroup_handle) &
       (filegroup_id,filegroup_hdl)
       CALL xios(get_filegroup_attr_hdl_)   &
       ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-      , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-      , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-      , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+      , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+      , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+      , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+      , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
   END SUBROUTINE xios(get_filegroup_attr)
 
   SUBROUTINE xios(get_filegroup_attr_hdl)  &
     ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-    , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-    , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-    , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+    , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+    , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+    , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+    , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -442,6 +518,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: format
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: gatherer
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode
@@ -450,8 +527,12 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_gatherer
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_reader
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_writer
       LOGICAL  , OPTIONAL, INTENT(OUT) :: read_metadata_par
       LOGICAL (KIND=C_BOOL) :: read_metadata_par_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: reader
       INTEGER  , OPTIONAL, INTENT(OUT) :: record_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_end_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq
@@ -467,25 +548,30 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: timeseries
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: ts_prefix
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: using_server2
+      LOGICAL (KIND=C_BOOL) :: using_server2_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: uuid_format
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: uuid_name
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: writer
 
       CALL xios(get_filegroup_attr_hdl_)  &
       ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-      , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-      , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-      , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+      , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+      , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+      , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+      , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
   END SUBROUTINE xios(get_filegroup_attr_hdl)
 
   SUBROUTINE xios(get_filegroup_attr_hdl_)   &
     ( filegroup_hdl, append_, comment_, compression_level_, convention_, convention_str_, cyclic_  &
-    , description_, enabled_, format_, group_ref_, min_digits_, mode_, name_, name_suffix_, output_freq_  &
-    , output_level_, par_access_, read_metadata_par_, record_offset_, split_end_offset_, split_freq_  &
-    , split_freq_format_, split_last_date_, split_start_offset_, sync_freq_, time_counter_, time_counter_name_  &
-    , time_stamp_format_, time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_  &
-    , uuid_name_ )
+    , description_, enabled_, format_, gatherer_, group_ref_, min_digits_, mode_, name_, name_suffix_  &
+    , output_freq_, output_level_, par_access_, pool_gatherer_, pool_reader_, pool_writer_, read_metadata_par_  &
+    , reader_, record_offset_, split_end_offset_, split_freq_, split_freq_format_, split_last_date_  &
+    , split_start_offset_, sync_freq_, time_counter_, time_counter_name_, time_stamp_format_, time_stamp_name_  &
+    , time_units_, timeseries_, ts_prefix_, type_, using_server2_, uuid_format_, uuid_name_, writer_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -501,6 +587,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: enabled_
       LOGICAL (KIND=C_BOOL) :: enabled__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: format_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: gatherer_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode_
@@ -509,8 +596,12 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_gatherer_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_reader_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: pool_writer_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: read_metadata_par_
       LOGICAL (KIND=C_BOOL) :: read_metadata_par__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: reader_
       INTEGER  , OPTIONAL, INTENT(OUT) :: record_offset_
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_end_offset_
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq_
@@ -526,8 +617,11 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: timeseries_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: ts_prefix_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: using_server2_
+      LOGICAL (KIND=C_BOOL) :: using_server2__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: uuid_format_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: uuid_name_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: writer_
 
       IF (PRESENT(append_)) THEN
         CALL cxios_get_filegroup_append &
@@ -577,6 +671,11 @@ CONTAINS
       (filegroup_hdl%daddr, format_, len(format_))
       ENDIF
 
+      IF (PRESENT(gatherer_)) THEN
+        CALL cxios_get_filegroup_gatherer &
+      (filegroup_hdl%daddr, gatherer_, len(gatherer_))
+      ENDIF
+
       IF (PRESENT(group_ref_)) THEN
         CALL cxios_get_filegroup_group_ref &
       (filegroup_hdl%daddr, group_ref_, len(group_ref_))
@@ -617,10 +716,30 @@ CONTAINS
       (filegroup_hdl%daddr, par_access_, len(par_access_))
       ENDIF
 
+      IF (PRESENT(pool_gatherer_)) THEN
+        CALL cxios_get_filegroup_pool_gatherer &
+      (filegroup_hdl%daddr, pool_gatherer_, len(pool_gatherer_))
+      ENDIF
+
+      IF (PRESENT(pool_reader_)) THEN
+        CALL cxios_get_filegroup_pool_reader &
+      (filegroup_hdl%daddr, pool_reader_, len(pool_reader_))
+      ENDIF
+
+      IF (PRESENT(pool_writer_)) THEN
+        CALL cxios_get_filegroup_pool_writer &
+      (filegroup_hdl%daddr, pool_writer_, len(pool_writer_))
+      ENDIF
+
       IF (PRESENT(read_metadata_par_)) THEN
         CALL cxios_get_filegroup_read_metadata_par &
       (filegroup_hdl%daddr, read_metadata_par__tmp)
         read_metadata_par_ = read_metadata_par__tmp
+      ENDIF
+
+      IF (PRESENT(reader_)) THEN
+        CALL cxios_get_filegroup_reader &
+      (filegroup_hdl%daddr, reader_, len(reader_))
       ENDIF
 
       IF (PRESENT(record_offset_)) THEN
@@ -698,6 +817,12 @@ CONTAINS
       (filegroup_hdl%daddr, type_, len(type_))
       ENDIF
 
+      IF (PRESENT(using_server2_)) THEN
+        CALL cxios_get_filegroup_using_server2 &
+      (filegroup_hdl%daddr, using_server2__tmp)
+        using_server2_ = using_server2__tmp
+      ENDIF
+
       IF (PRESENT(uuid_format_)) THEN
         CALL cxios_get_filegroup_uuid_format &
       (filegroup_hdl%daddr, uuid_format_, len(uuid_format_))
@@ -708,14 +833,20 @@ CONTAINS
       (filegroup_hdl%daddr, uuid_name_, len(uuid_name_))
       ENDIF
 
+      IF (PRESENT(writer_)) THEN
+        CALL cxios_get_filegroup_writer &
+      (filegroup_hdl%daddr, writer_, len(writer_))
+      ENDIF
+
   END SUBROUTINE xios(get_filegroup_attr_hdl_)
 
   SUBROUTINE xios(is_defined_filegroup_attr)  &
     ( filegroup_id, append, comment, compression_level, convention, convention_str, cyclic, description  &
-    , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-    , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-    , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+    , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+    , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+    , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+    , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -738,6 +869,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: enabled_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: format
       LOGICAL(KIND=C_BOOL) :: format_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: gatherer
+      LOGICAL(KIND=C_BOOL) :: gatherer_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: min_digits
@@ -754,8 +887,16 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: output_level_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: par_access
       LOGICAL(KIND=C_BOOL) :: par_access_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_gatherer
+      LOGICAL(KIND=C_BOOL) :: pool_gatherer_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_reader
+      LOGICAL(KIND=C_BOOL) :: pool_reader_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_writer
+      LOGICAL(KIND=C_BOOL) :: pool_writer_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: read_metadata_par
       LOGICAL(KIND=C_BOOL) :: read_metadata_par_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: reader
+      LOGICAL(KIND=C_BOOL) :: reader_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: record_offset
       LOGICAL(KIND=C_BOOL) :: record_offset_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: split_end_offset
@@ -786,28 +927,34 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: ts_prefix_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: using_server2
+      LOGICAL(KIND=C_BOOL) :: using_server2_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: uuid_format
       LOGICAL(KIND=C_BOOL) :: uuid_format_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: uuid_name
       LOGICAL(KIND=C_BOOL) :: uuid_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: writer
+      LOGICAL(KIND=C_BOOL) :: writer_tmp
 
       CALL xios(get_filegroup_handle) &
       (filegroup_id,filegroup_hdl)
       CALL xios(is_defined_filegroup_attr_hdl_)   &
       ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-      , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-      , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-      , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+      , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+      , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+      , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+      , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
   END SUBROUTINE xios(is_defined_filegroup_attr)
 
   SUBROUTINE xios(is_defined_filegroup_attr_hdl)  &
     ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-    , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-    , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-    , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+    , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+    , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+    , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+    , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -829,6 +976,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: enabled_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: format
       LOGICAL(KIND=C_BOOL) :: format_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: gatherer
+      LOGICAL(KIND=C_BOOL) :: gatherer_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: min_digits
@@ -845,8 +994,16 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: output_level_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: par_access
       LOGICAL(KIND=C_BOOL) :: par_access_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_gatherer
+      LOGICAL(KIND=C_BOOL) :: pool_gatherer_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_reader
+      LOGICAL(KIND=C_BOOL) :: pool_reader_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_writer
+      LOGICAL(KIND=C_BOOL) :: pool_writer_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: read_metadata_par
       LOGICAL(KIND=C_BOOL) :: read_metadata_par_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: reader
+      LOGICAL(KIND=C_BOOL) :: reader_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: record_offset
       LOGICAL(KIND=C_BOOL) :: record_offset_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: split_end_offset
@@ -877,27 +1034,33 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: ts_prefix_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: using_server2
+      LOGICAL(KIND=C_BOOL) :: using_server2_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: uuid_format
       LOGICAL(KIND=C_BOOL) :: uuid_format_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: uuid_name
       LOGICAL(KIND=C_BOOL) :: uuid_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: writer
+      LOGICAL(KIND=C_BOOL) :: writer_tmp
 
       CALL xios(is_defined_filegroup_attr_hdl_)  &
       ( filegroup_hdl, append, comment, compression_level, convention, convention_str, cyclic, description  &
-      , enabled, format, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
-      , par_access, read_metadata_par, record_offset, split_end_offset, split_freq, split_freq_format  &
-      , split_last_date, split_start_offset, sync_freq, time_counter, time_counter_name, time_stamp_format  &
-      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      , enabled, format, gatherer, group_ref, min_digits, mode, name, name_suffix, output_freq, output_level  &
+      , par_access, pool_gatherer, pool_reader, pool_writer, read_metadata_par, reader, record_offset  &
+      , split_end_offset, split_freq, split_freq_format, split_last_date, split_start_offset, sync_freq  &
+      , time_counter, time_counter_name, time_stamp_format, time_stamp_name, time_units, timeseries  &
+      , ts_prefix, type, using_server2, uuid_format, uuid_name, writer )
 
   END SUBROUTINE xios(is_defined_filegroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_filegroup_attr_hdl_)   &
     ( filegroup_hdl, append_, comment_, compression_level_, convention_, convention_str_, cyclic_  &
-    , description_, enabled_, format_, group_ref_, min_digits_, mode_, name_, name_suffix_, output_freq_  &
-    , output_level_, par_access_, read_metadata_par_, record_offset_, split_end_offset_, split_freq_  &
-    , split_freq_format_, split_last_date_, split_start_offset_, sync_freq_, time_counter_, time_counter_name_  &
-    , time_stamp_format_, time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_  &
-    , uuid_name_ )
+    , description_, enabled_, format_, gatherer_, group_ref_, min_digits_, mode_, name_, name_suffix_  &
+    , output_freq_, output_level_, par_access_, pool_gatherer_, pool_reader_, pool_writer_, read_metadata_par_  &
+    , reader_, record_offset_, split_end_offset_, split_freq_, split_freq_format_, split_last_date_  &
+    , split_start_offset_, sync_freq_, time_counter_, time_counter_name_, time_stamp_format_, time_stamp_name_  &
+    , time_units_, timeseries_, ts_prefix_, type_, using_server2_, uuid_format_, uuid_name_, writer_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -919,6 +1082,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: enabled__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: format_
       LOGICAL(KIND=C_BOOL) :: format__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: gatherer_
+      LOGICAL(KIND=C_BOOL) :: gatherer__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref_
       LOGICAL(KIND=C_BOOL) :: group_ref__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: min_digits_
@@ -935,8 +1100,16 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: output_level__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: par_access_
       LOGICAL(KIND=C_BOOL) :: par_access__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_gatherer_
+      LOGICAL(KIND=C_BOOL) :: pool_gatherer__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_reader_
+      LOGICAL(KIND=C_BOOL) :: pool_reader__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: pool_writer_
+      LOGICAL(KIND=C_BOOL) :: pool_writer__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: read_metadata_par_
       LOGICAL(KIND=C_BOOL) :: read_metadata_par__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: reader_
+      LOGICAL(KIND=C_BOOL) :: reader__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: record_offset_
       LOGICAL(KIND=C_BOOL) :: record_offset__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: split_end_offset_
@@ -967,10 +1140,14 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: ts_prefix__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type_
       LOGICAL(KIND=C_BOOL) :: type__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: using_server2_
+      LOGICAL(KIND=C_BOOL) :: using_server2__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: uuid_format_
       LOGICAL(KIND=C_BOOL) :: uuid_format__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: uuid_name_
       LOGICAL(KIND=C_BOOL) :: uuid_name__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: writer_
+      LOGICAL(KIND=C_BOOL) :: writer__tmp
 
       IF (PRESENT(append_)) THEN
         append__tmp = cxios_is_defined_filegroup_append &
@@ -1026,6 +1203,12 @@ CONTAINS
         format_ = format__tmp
       ENDIF
 
+      IF (PRESENT(gatherer_)) THEN
+        gatherer__tmp = cxios_is_defined_filegroup_gatherer &
+      (filegroup_hdl%daddr)
+        gatherer_ = gatherer__tmp
+      ENDIF
+
       IF (PRESENT(group_ref_)) THEN
         group_ref__tmp = cxios_is_defined_filegroup_group_ref &
       (filegroup_hdl%daddr)
@@ -1074,10 +1257,34 @@ CONTAINS
         par_access_ = par_access__tmp
       ENDIF
 
+      IF (PRESENT(pool_gatherer_)) THEN
+        pool_gatherer__tmp = cxios_is_defined_filegroup_pool_gatherer &
+      (filegroup_hdl%daddr)
+        pool_gatherer_ = pool_gatherer__tmp
+      ENDIF
+
+      IF (PRESENT(pool_reader_)) THEN
+        pool_reader__tmp = cxios_is_defined_filegroup_pool_reader &
+      (filegroup_hdl%daddr)
+        pool_reader_ = pool_reader__tmp
+      ENDIF
+
+      IF (PRESENT(pool_writer_)) THEN
+        pool_writer__tmp = cxios_is_defined_filegroup_pool_writer &
+      (filegroup_hdl%daddr)
+        pool_writer_ = pool_writer__tmp
+      ENDIF
+
       IF (PRESENT(read_metadata_par_)) THEN
         read_metadata_par__tmp = cxios_is_defined_filegroup_read_metadata_par &
       (filegroup_hdl%daddr)
         read_metadata_par_ = read_metadata_par__tmp
+      ENDIF
+
+      IF (PRESENT(reader_)) THEN
+        reader__tmp = cxios_is_defined_filegroup_reader &
+      (filegroup_hdl%daddr)
+        reader_ = reader__tmp
       ENDIF
 
       IF (PRESENT(record_offset_)) THEN
@@ -1170,6 +1377,12 @@ CONTAINS
         type_ = type__tmp
       ENDIF
 
+      IF (PRESENT(using_server2_)) THEN
+        using_server2__tmp = cxios_is_defined_filegroup_using_server2 &
+      (filegroup_hdl%daddr)
+        using_server2_ = using_server2__tmp
+      ENDIF
+
       IF (PRESENT(uuid_format_)) THEN
         uuid_format__tmp = cxios_is_defined_filegroup_uuid_format &
       (filegroup_hdl%daddr)
@@ -1180,6 +1393,12 @@ CONTAINS
         uuid_name__tmp = cxios_is_defined_filegroup_uuid_name &
       (filegroup_hdl%daddr)
         uuid_name_ = uuid_name__tmp
+      ENDIF
+
+      IF (PRESENT(writer_)) THEN
+        writer__tmp = cxios_is_defined_filegroup_writer &
+      (filegroup_hdl%daddr)
+        writer_ = writer__tmp
       ENDIF
 
   END SUBROUTINE xios(is_defined_filegroup_attr_hdl_)

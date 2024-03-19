@@ -129,6 +129,25 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_check_if_active
 
 
+    SUBROUTINE cxios_set_fieldgroup_chunking_blocksize_target(fieldgroup_hdl, chunking_blocksize_target) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: chunking_blocksize_target
+    END SUBROUTINE cxios_set_fieldgroup_chunking_blocksize_target
+
+    SUBROUTINE cxios_get_fieldgroup_chunking_blocksize_target(fieldgroup_hdl, chunking_blocksize_target) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)             :: chunking_blocksize_target
+    END SUBROUTINE cxios_get_fieldgroup_chunking_blocksize_target
+
+    FUNCTION cxios_is_defined_fieldgroup_chunking_blocksize_target(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_chunking_blocksize_target
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_chunking_blocksize_target
+
+
     SUBROUTINE cxios_set_fieldgroup_comment(fieldgroup_hdl, comment, comment_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
@@ -167,6 +186,67 @@ MODULE fieldgroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_compression_level
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
     END FUNCTION cxios_is_defined_fieldgroup_compression_level
+
+
+    SUBROUTINE cxios_set_fieldgroup_compression_params(fieldgroup_hdl, compression_params, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: compression_params
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_fieldgroup_compression_params
+
+    SUBROUTINE cxios_get_fieldgroup_compression_params(fieldgroup_hdl, compression_params, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: compression_params
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_fieldgroup_compression_params
+
+    FUNCTION cxios_is_defined_fieldgroup_compression_params(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_compression_params
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_compression_params
+
+
+    SUBROUTINE cxios_set_fieldgroup_compression_type(fieldgroup_hdl, compression_type, compression_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: compression_type
+      INTEGER  (kind = C_INT)     , VALUE        :: compression_type_size
+    END SUBROUTINE cxios_set_fieldgroup_compression_type
+
+    SUBROUTINE cxios_get_fieldgroup_compression_type(fieldgroup_hdl, compression_type, compression_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: compression_type
+      INTEGER  (kind = C_INT)     , VALUE        :: compression_type_size
+    END SUBROUTINE cxios_get_fieldgroup_compression_type
+
+    FUNCTION cxios_is_defined_fieldgroup_compression_type(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_compression_type
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_compression_type
+
+
+    SUBROUTINE cxios_set_fieldgroup_conversion_by_NetCDF(fieldgroup_hdl, conversion_by_NetCDF) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: conversion_by_NetCDF
+    END SUBROUTINE cxios_set_fieldgroup_conversion_by_NetCDF
+
+    SUBROUTINE cxios_get_fieldgroup_conversion_by_NetCDF(fieldgroup_hdl, conversion_by_NetCDF) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: conversion_by_NetCDF
+    END SUBROUTINE cxios_get_fieldgroup_conversion_by_NetCDF
+
+    FUNCTION cxios_is_defined_fieldgroup_conversion_by_NetCDF(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_conversion_by_NetCDF
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_conversion_by_NetCDF
 
 
     SUBROUTINE cxios_set_fieldgroup_default_value(fieldgroup_hdl, default_value) BIND(C)

@@ -163,6 +163,29 @@ extern "C"
   }
 
 
+  void cxios_set_field_chunking_blocksize_target(field_Ptr field_hdl, double chunking_blocksize_target)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->chunking_blocksize_target.setValue(chunking_blocksize_target);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_chunking_blocksize_target(field_Ptr field_hdl, double* chunking_blocksize_target)
+  {
+    CTimer::get("XIOS").resume();
+    *chunking_blocksize_target = field_hdl->chunking_blocksize_target.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_chunking_blocksize_target(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->chunking_blocksize_target.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_field_comment(field_Ptr field_hdl, const char * comment, int comment_size)
   {
     std::string comment_str;
@@ -207,6 +230,80 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = field_hdl->compression_level.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_field_compression_params(field_Ptr field_hdl, double* compression_params, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,1> tmp(compression_params, shape(extent[0]), neverDeleteData);
+    field_hdl->compression_params.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_compression_params(field_Ptr field_hdl, double* compression_params, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,1> tmp(compression_params, shape(extent[0]), neverDeleteData);
+    tmp=field_hdl->compression_params.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_compression_params(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->compression_params.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_field_compression_type(field_Ptr field_hdl, const char * compression_type, int compression_type_size)
+  {
+    std::string compression_type_str;
+    if (!cstr2string(compression_type, compression_type_size, compression_type_str)) return;
+    CTimer::get("XIOS").resume();
+    field_hdl->compression_type.setValue(compression_type_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_compression_type(field_Ptr field_hdl, char * compression_type, int compression_type_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(field_hdl->compression_type.getInheritedValue(), compression_type, compression_type_size))
+      ERROR("void cxios_get_field_compression_type(field_Ptr field_hdl, char * compression_type, int compression_type_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_compression_type(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->compression_type.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_field_conversion_by_NetCDF(field_Ptr field_hdl, bool conversion_by_NetCDF)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->conversion_by_NetCDF.setValue(conversion_by_NetCDF);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_conversion_by_NetCDF(field_Ptr field_hdl, bool* conversion_by_NetCDF)
+  {
+    CTimer::get("XIOS").resume();
+    *conversion_by_NetCDF = field_hdl->conversion_by_NetCDF.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_conversion_by_NetCDF(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->conversion_by_NetCDF.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

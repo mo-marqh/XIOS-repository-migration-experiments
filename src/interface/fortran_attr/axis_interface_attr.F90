@@ -112,6 +112,25 @@ MODULE axis_interface_attr
     END FUNCTION cxios_is_defined_axis_bounds_name
 
 
+    SUBROUTINE cxios_set_axis_chunking_weight(axis_hdl, chunking_weight) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: chunking_weight
+    END SUBROUTINE cxios_set_axis_chunking_weight
+
+    SUBROUTINE cxios_get_axis_chunking_weight(axis_hdl, chunking_weight) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      REAL (KIND=C_DOUBLE)             :: chunking_weight
+    END SUBROUTINE cxios_get_axis_chunking_weight
+
+    FUNCTION cxios_is_defined_axis_chunking_weight(axis_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_chunking_weight
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+    END FUNCTION cxios_is_defined_axis_chunking_weight
+
+
     SUBROUTINE cxios_set_axis_comment(axis_hdl, comment, comment_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl

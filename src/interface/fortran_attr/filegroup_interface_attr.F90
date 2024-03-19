@@ -190,6 +190,27 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_format
 
 
+    SUBROUTINE cxios_set_filegroup_gatherer(filegroup_hdl, gatherer, gatherer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: gatherer
+      INTEGER  (kind = C_INT)     , VALUE        :: gatherer_size
+    END SUBROUTINE cxios_set_filegroup_gatherer
+
+    SUBROUTINE cxios_get_filegroup_gatherer(filegroup_hdl, gatherer, gatherer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: gatherer
+      INTEGER  (kind = C_INT)     , VALUE        :: gatherer_size
+    END SUBROUTINE cxios_get_filegroup_gatherer
+
+    FUNCTION cxios_is_defined_filegroup_gatherer(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_gatherer
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_gatherer
+
+
     SUBROUTINE cxios_set_filegroup_group_ref(filegroup_hdl, group_ref, group_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
@@ -354,6 +375,69 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_par_access
 
 
+    SUBROUTINE cxios_set_filegroup_pool_gatherer(filegroup_hdl, pool_gatherer, pool_gatherer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: pool_gatherer
+      INTEGER  (kind = C_INT)     , VALUE        :: pool_gatherer_size
+    END SUBROUTINE cxios_set_filegroup_pool_gatherer
+
+    SUBROUTINE cxios_get_filegroup_pool_gatherer(filegroup_hdl, pool_gatherer, pool_gatherer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: pool_gatherer
+      INTEGER  (kind = C_INT)     , VALUE        :: pool_gatherer_size
+    END SUBROUTINE cxios_get_filegroup_pool_gatherer
+
+    FUNCTION cxios_is_defined_filegroup_pool_gatherer(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_pool_gatherer
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_pool_gatherer
+
+
+    SUBROUTINE cxios_set_filegroup_pool_reader(filegroup_hdl, pool_reader, pool_reader_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: pool_reader
+      INTEGER  (kind = C_INT)     , VALUE        :: pool_reader_size
+    END SUBROUTINE cxios_set_filegroup_pool_reader
+
+    SUBROUTINE cxios_get_filegroup_pool_reader(filegroup_hdl, pool_reader, pool_reader_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: pool_reader
+      INTEGER  (kind = C_INT)     , VALUE        :: pool_reader_size
+    END SUBROUTINE cxios_get_filegroup_pool_reader
+
+    FUNCTION cxios_is_defined_filegroup_pool_reader(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_pool_reader
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_pool_reader
+
+
+    SUBROUTINE cxios_set_filegroup_pool_writer(filegroup_hdl, pool_writer, pool_writer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: pool_writer
+      INTEGER  (kind = C_INT)     , VALUE        :: pool_writer_size
+    END SUBROUTINE cxios_set_filegroup_pool_writer
+
+    SUBROUTINE cxios_get_filegroup_pool_writer(filegroup_hdl, pool_writer, pool_writer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: pool_writer
+      INTEGER  (kind = C_INT)     , VALUE        :: pool_writer_size
+    END SUBROUTINE cxios_get_filegroup_pool_writer
+
+    FUNCTION cxios_is_defined_filegroup_pool_writer(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_pool_writer
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_pool_writer
+
+
     SUBROUTINE cxios_set_filegroup_read_metadata_par(filegroup_hdl, read_metadata_par) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
@@ -371,6 +455,27 @@ MODULE filegroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_read_metadata_par
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
     END FUNCTION cxios_is_defined_filegroup_read_metadata_par
+
+
+    SUBROUTINE cxios_set_filegroup_reader(filegroup_hdl, reader, reader_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: reader
+      INTEGER  (kind = C_INT)     , VALUE        :: reader_size
+    END SUBROUTINE cxios_set_filegroup_reader
+
+    SUBROUTINE cxios_get_filegroup_reader(filegroup_hdl, reader, reader_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: reader
+      INTEGER  (kind = C_INT)     , VALUE        :: reader_size
+    END SUBROUTINE cxios_get_filegroup_reader
+
+    FUNCTION cxios_is_defined_filegroup_reader(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_reader
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_reader
 
 
     SUBROUTINE cxios_set_filegroup_record_offset(filegroup_hdl, record_offset) BIND(C)
@@ -686,6 +791,25 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_type
 
 
+    SUBROUTINE cxios_set_filegroup_using_server2(filegroup_hdl, using_server2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: using_server2
+    END SUBROUTINE cxios_set_filegroup_using_server2
+
+    SUBROUTINE cxios_get_filegroup_using_server2(filegroup_hdl, using_server2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: using_server2
+    END SUBROUTINE cxios_get_filegroup_using_server2
+
+    FUNCTION cxios_is_defined_filegroup_using_server2(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_using_server2
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_using_server2
+
+
     SUBROUTINE cxios_set_filegroup_uuid_format(filegroup_hdl, uuid_format, uuid_format_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
@@ -726,6 +850,27 @@ MODULE filegroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_uuid_name
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
     END FUNCTION cxios_is_defined_filegroup_uuid_name
+
+
+    SUBROUTINE cxios_set_filegroup_writer(filegroup_hdl, writer, writer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: writer
+      INTEGER  (kind = C_INT)     , VALUE        :: writer_size
+    END SUBROUTINE cxios_set_filegroup_writer
+
+    SUBROUTINE cxios_get_filegroup_writer(filegroup_hdl, writer, writer_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: writer
+      INTEGER  (kind = C_INT)     , VALUE        :: writer_size
+    END SUBROUTINE cxios_get_filegroup_writer
+
+    FUNCTION cxios_is_defined_filegroup_writer(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_writer
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_writer
 
   END INTERFACE
 
