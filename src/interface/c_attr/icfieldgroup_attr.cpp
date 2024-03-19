@@ -286,24 +286,24 @@ extern "C"
   }
 
 
-  void cxios_set_fieldgroup_conversion_by_NetCDF(fieldgroup_Ptr fieldgroup_hdl, bool conversion_by_NetCDF)
+  void cxios_set_fieldgroup_conversion_by_netcdf(fieldgroup_Ptr fieldgroup_hdl, bool conversion_by_netcdf)
   {
     CTimer::get("XIOS").resume();
-    fieldgroup_hdl->conversion_by_NetCDF.setValue(conversion_by_NetCDF);
+    fieldgroup_hdl->conversion_by_netcdf.setValue(conversion_by_netcdf);
     CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_fieldgroup_conversion_by_NetCDF(fieldgroup_Ptr fieldgroup_hdl, bool* conversion_by_NetCDF)
+  void cxios_get_fieldgroup_conversion_by_netcdf(fieldgroup_Ptr fieldgroup_hdl, bool* conversion_by_netcdf)
   {
     CTimer::get("XIOS").resume();
-    *conversion_by_NetCDF = fieldgroup_hdl->conversion_by_NetCDF.getInheritedValue();
+    *conversion_by_netcdf = fieldgroup_hdl->conversion_by_netcdf.getInheritedValue();
     CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_fieldgroup_conversion_by_NetCDF(fieldgroup_Ptr fieldgroup_hdl)
+  bool cxios_is_defined_fieldgroup_conversion_by_netcdf(fieldgroup_Ptr fieldgroup_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = fieldgroup_hdl->conversion_by_NetCDF.hasInheritedValue();
+     bool isDefined = fieldgroup_hdl->conversion_by_netcdf.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

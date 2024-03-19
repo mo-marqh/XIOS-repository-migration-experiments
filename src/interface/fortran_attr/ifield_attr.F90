@@ -13,7 +13,7 @@ CONTAINS
   SUBROUTINE xios(set_field_attr)  &
     ( field_id, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
     , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-    , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
     , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
     , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
     , valid_max, valid_min )
@@ -34,8 +34,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: compression_params(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: compression_type
-      LOGICAL  , OPTIONAL, INTENT(IN) :: conversion_by_NetCDF
-      LOGICAL (KIND=C_BOOL) :: conversion_by_NetCDF_tmp
+      LOGICAL  , OPTIONAL, INTENT(IN) :: conversion_by_netcdf
+      LOGICAL (KIND=C_BOOL) :: conversion_by_netcdf_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: default_value
       LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value
       LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
@@ -72,7 +72,7 @@ CONTAINS
       CALL xios(set_field_attr_hdl_)   &
       ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
       , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-      , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
       , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
       , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
       , valid_max, valid_min )
@@ -82,7 +82,7 @@ CONTAINS
   SUBROUTINE xios(set_field_attr_hdl)  &
     ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
     , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-    , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
     , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
     , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
     , valid_max, valid_min )
@@ -102,8 +102,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: compression_params(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: compression_type
-      LOGICAL  , OPTIONAL, INTENT(IN) :: conversion_by_NetCDF
-      LOGICAL (KIND=C_BOOL) :: conversion_by_NetCDF_tmp
+      LOGICAL  , OPTIONAL, INTENT(IN) :: conversion_by_netcdf
+      LOGICAL (KIND=C_BOOL) :: conversion_by_netcdf_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: default_value
       LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value
       LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
@@ -138,7 +138,7 @@ CONTAINS
       CALL xios(set_field_attr_hdl_)  &
       ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
       , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-      , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
       , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
       , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
       , valid_max, valid_min )
@@ -148,7 +148,7 @@ CONTAINS
   SUBROUTINE xios(set_field_attr_hdl_)   &
     ( field_hdl, add_offset_, axis_ref_, build_workflow_graph_, cell_methods_, cell_methods_mode_  &
     , check_if_active_, chunking_blocksize_target_, comment_, compression_level_, compression_params_  &
-    , compression_type_, conversion_by_NetCDF_, default_value_, detect_missing_value_, domain_ref_  &
+    , compression_type_, conversion_by_netcdf_, default_value_, detect_missing_value_, domain_ref_  &
     , enabled_, expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_  &
     , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
     , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
@@ -168,8 +168,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: compression_params_(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: compression_type_
-      LOGICAL  , OPTIONAL, INTENT(IN) :: conversion_by_NetCDF_
-      LOGICAL (KIND=C_BOOL) :: conversion_by_NetCDF__tmp
+      LOGICAL  , OPTIONAL, INTENT(IN) :: conversion_by_netcdf_
+      LOGICAL (KIND=C_BOOL) :: conversion_by_netcdf__tmp
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: default_value_
       LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value_
       LOGICAL (KIND=C_BOOL) :: detect_missing_value__tmp
@@ -258,10 +258,10 @@ CONTAINS
       (field_hdl%daddr, compression_type_, len(compression_type_))
       ENDIF
 
-      IF (PRESENT(conversion_by_NetCDF_)) THEN
-        conversion_by_NetCDF__tmp = conversion_by_NetCDF_
-        CALL cxios_set_field_conversion_by_NetCDF &
-      (field_hdl%daddr, conversion_by_NetCDF__tmp)
+      IF (PRESENT(conversion_by_netcdf_)) THEN
+        conversion_by_netcdf__tmp = conversion_by_netcdf_
+        CALL cxios_set_field_conversion_by_netcdf &
+      (field_hdl%daddr, conversion_by_netcdf__tmp)
       ENDIF
 
       IF (PRESENT(default_value_)) THEN
@@ -399,7 +399,7 @@ CONTAINS
   SUBROUTINE xios(get_field_attr)  &
     ( field_id, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
     , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-    , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
     , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
     , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
     , valid_max, valid_min )
@@ -420,8 +420,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: compression_params(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: compression_type
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: conversion_by_NetCDF
-      LOGICAL (KIND=C_BOOL) :: conversion_by_NetCDF_tmp
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: conversion_by_netcdf
+      LOGICAL (KIND=C_BOOL) :: conversion_by_netcdf_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: default_value
       LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value
       LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
@@ -458,7 +458,7 @@ CONTAINS
       CALL xios(get_field_attr_hdl_)   &
       ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
       , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-      , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
       , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
       , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
       , valid_max, valid_min )
@@ -468,7 +468,7 @@ CONTAINS
   SUBROUTINE xios(get_field_attr_hdl)  &
     ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
     , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-    , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
     , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
     , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
     , valid_max, valid_min )
@@ -488,8 +488,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: compression_params(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: compression_type
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: conversion_by_NetCDF
-      LOGICAL (KIND=C_BOOL) :: conversion_by_NetCDF_tmp
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: conversion_by_netcdf
+      LOGICAL (KIND=C_BOOL) :: conversion_by_netcdf_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: default_value
       LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value
       LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
@@ -524,7 +524,7 @@ CONTAINS
       CALL xios(get_field_attr_hdl_)  &
       ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
       , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-      , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
       , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
       , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
       , valid_max, valid_min )
@@ -534,7 +534,7 @@ CONTAINS
   SUBROUTINE xios(get_field_attr_hdl_)   &
     ( field_hdl, add_offset_, axis_ref_, build_workflow_graph_, cell_methods_, cell_methods_mode_  &
     , check_if_active_, chunking_blocksize_target_, comment_, compression_level_, compression_params_  &
-    , compression_type_, conversion_by_NetCDF_, default_value_, detect_missing_value_, domain_ref_  &
+    , compression_type_, conversion_by_netcdf_, default_value_, detect_missing_value_, domain_ref_  &
     , enabled_, expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_  &
     , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
     , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
@@ -554,8 +554,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: compression_params_(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: compression_type_
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: conversion_by_NetCDF_
-      LOGICAL (KIND=C_BOOL) :: conversion_by_NetCDF__tmp
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: conversion_by_netcdf_
+      LOGICAL (KIND=C_BOOL) :: conversion_by_netcdf__tmp
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: default_value_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value_
       LOGICAL (KIND=C_BOOL) :: detect_missing_value__tmp
@@ -644,10 +644,10 @@ CONTAINS
       (field_hdl%daddr, compression_type_, len(compression_type_))
       ENDIF
 
-      IF (PRESENT(conversion_by_NetCDF_)) THEN
-        CALL cxios_get_field_conversion_by_NetCDF &
-      (field_hdl%daddr, conversion_by_NetCDF__tmp)
-        conversion_by_NetCDF_ = conversion_by_NetCDF__tmp
+      IF (PRESENT(conversion_by_netcdf_)) THEN
+        CALL cxios_get_field_conversion_by_netcdf &
+      (field_hdl%daddr, conversion_by_netcdf__tmp)
+        conversion_by_netcdf_ = conversion_by_netcdf__tmp
       ENDIF
 
       IF (PRESENT(default_value_)) THEN
@@ -785,7 +785,7 @@ CONTAINS
   SUBROUTINE xios(is_defined_field_attr)  &
     ( field_id, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
     , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-    , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
     , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
     , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
     , valid_max, valid_min )
@@ -815,8 +815,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: compression_params_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: compression_type
       LOGICAL(KIND=C_BOOL) :: compression_type_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: conversion_by_NetCDF
-      LOGICAL(KIND=C_BOOL) :: conversion_by_NetCDF_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: conversion_by_netcdf
+      LOGICAL(KIND=C_BOOL) :: conversion_by_netcdf_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: default_value
       LOGICAL(KIND=C_BOOL) :: default_value_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: detect_missing_value
@@ -873,7 +873,7 @@ CONTAINS
       CALL xios(is_defined_field_attr_hdl_)   &
       ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
       , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-      , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
       , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
       , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
       , valid_max, valid_min )
@@ -883,7 +883,7 @@ CONTAINS
   SUBROUTINE xios(is_defined_field_attr_hdl)  &
     ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
     , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-    , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
     , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
     , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
     , valid_max, valid_min )
@@ -912,8 +912,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: compression_params_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: compression_type
       LOGICAL(KIND=C_BOOL) :: compression_type_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: conversion_by_NetCDF
-      LOGICAL(KIND=C_BOOL) :: conversion_by_NetCDF_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: conversion_by_netcdf
+      LOGICAL(KIND=C_BOOL) :: conversion_by_netcdf_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: default_value
       LOGICAL(KIND=C_BOOL) :: default_value_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: detect_missing_value
@@ -968,7 +968,7 @@ CONTAINS
       CALL xios(is_defined_field_attr_hdl_)  &
       ( field_hdl, add_offset, axis_ref, build_workflow_graph, cell_methods, cell_methods_mode, check_if_active  &
       , chunking_blocksize_target, comment, compression_level, compression_params, compression_type  &
-      , conversion_by_NetCDF, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , conversion_by_netcdf, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
       , freq_offset, freq_op, grid_path, grid_ref, indexed_output, level, long_name, name, operation  &
       , prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
       , valid_max, valid_min )
@@ -978,7 +978,7 @@ CONTAINS
   SUBROUTINE xios(is_defined_field_attr_hdl_)   &
     ( field_hdl, add_offset_, axis_ref_, build_workflow_graph_, cell_methods_, cell_methods_mode_  &
     , check_if_active_, chunking_blocksize_target_, comment_, compression_level_, compression_params_  &
-    , compression_type_, conversion_by_NetCDF_, default_value_, detect_missing_value_, domain_ref_  &
+    , compression_type_, conversion_by_netcdf_, default_value_, detect_missing_value_, domain_ref_  &
     , enabled_, expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, indexed_output_  &
     , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
     , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
@@ -1007,8 +1007,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: compression_params__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: compression_type_
       LOGICAL(KIND=C_BOOL) :: compression_type__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: conversion_by_NetCDF_
-      LOGICAL(KIND=C_BOOL) :: conversion_by_NetCDF__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: conversion_by_netcdf_
+      LOGICAL(KIND=C_BOOL) :: conversion_by_netcdf__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: default_value_
       LOGICAL(KIND=C_BOOL) :: default_value__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: detect_missing_value_
@@ -1126,10 +1126,10 @@ CONTAINS
         compression_type_ = compression_type__tmp
       ENDIF
 
-      IF (PRESENT(conversion_by_NetCDF_)) THEN
-        conversion_by_NetCDF__tmp = cxios_is_defined_field_conversion_by_NetCDF &
+      IF (PRESENT(conversion_by_netcdf_)) THEN
+        conversion_by_netcdf__tmp = cxios_is_defined_field_conversion_by_netcdf &
       (field_hdl%daddr)
-        conversion_by_NetCDF_ = conversion_by_NetCDF__tmp
+        conversion_by_netcdf_ = conversion_by_netcdf__tmp
       ENDIF
 
       IF (PRESENT(default_value_)) THEN

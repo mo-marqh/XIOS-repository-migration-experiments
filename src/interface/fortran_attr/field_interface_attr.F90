@@ -230,23 +230,23 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_compression_type
 
 
-    SUBROUTINE cxios_set_field_conversion_by_NetCDF(field_hdl, conversion_by_NetCDF) BIND(C)
+    SUBROUTINE cxios_set_field_conversion_by_netcdf(field_hdl, conversion_by_netcdf) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
-      LOGICAL (KIND=C_BOOL)      , VALUE :: conversion_by_NetCDF
-    END SUBROUTINE cxios_set_field_conversion_by_NetCDF
+      LOGICAL (KIND=C_BOOL)      , VALUE :: conversion_by_netcdf
+    END SUBROUTINE cxios_set_field_conversion_by_netcdf
 
-    SUBROUTINE cxios_get_field_conversion_by_NetCDF(field_hdl, conversion_by_NetCDF) BIND(C)
+    SUBROUTINE cxios_get_field_conversion_by_netcdf(field_hdl, conversion_by_netcdf) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
-      LOGICAL (KIND=C_BOOL)             :: conversion_by_NetCDF
-    END SUBROUTINE cxios_get_field_conversion_by_NetCDF
+      LOGICAL (KIND=C_BOOL)             :: conversion_by_netcdf
+    END SUBROUTINE cxios_get_field_conversion_by_netcdf
 
-    FUNCTION cxios_is_defined_field_conversion_by_NetCDF(field_hdl) BIND(C)
+    FUNCTION cxios_is_defined_field_conversion_by_netcdf(field_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_conversion_by_NetCDF
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_conversion_by_netcdf
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
-    END FUNCTION cxios_is_defined_field_conversion_by_NetCDF
+    END FUNCTION cxios_is_defined_field_conversion_by_netcdf
 
 
     SUBROUTINE cxios_set_field_default_value(field_hdl, default_value) BIND(C)
