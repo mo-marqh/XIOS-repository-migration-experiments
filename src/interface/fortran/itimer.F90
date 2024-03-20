@@ -3,6 +3,7 @@
 MODULE ITIMER
    USE, INTRINSIC :: ISO_C_BINDING
    USE TIMER_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
@@ -14,6 +15,7 @@ MODULE ITIMER
 
       trace_=.TRUE.
       IF (PRESENT(trace)) trace_ = trace
+      CALL xios_logical_to_bool_0d(trace_)
       CALL cxios_timer_resume(timer_id, len(timer_id),trace_)            
 
    END SUBROUTINE xios(timer_resume)
@@ -26,6 +28,7 @@ MODULE ITIMER
 
       trace_=.TRUE.
       IF (PRESENT(trace)) trace_ = trace
+      CALL xios_logical_to_bool_0d(trace_)
       CALL cxios_timer_suspend(timer_id, len(timer_id),trace_)            
 
    END SUBROUTINE xios(timer_suspend)

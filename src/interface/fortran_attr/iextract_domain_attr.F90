@@ -7,6 +7,7 @@ MODULE iextract_domain_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE iextract_domain
   USE extract_domain_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

@@ -7,6 +7,7 @@ MODULE itemporal_splitting_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE itemporal_splitting
   USE temporal_splitting_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

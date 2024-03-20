@@ -7,6 +7,7 @@ MODULE idomain_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE idomain
   USE domain_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -378,6 +379,7 @@ CONTAINS
       IF (PRESENT(mask_1d_)) THEN
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
         mask_1d__tmp = mask_1d_
+        CALL xios_logical_to_bool_1d(mask_1d__tmp, SHAPE(mask_1d__tmp))
         CALL cxios_set_domain_mask_1d &
       (domain_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
       ENDIF
@@ -385,6 +387,7 @@ CONTAINS
       IF (PRESENT(mask_2d_)) THEN
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
         mask_2d__tmp = mask_2d_
+        CALL xios_logical_to_bool_2d(mask_2d__tmp, SHAPE(mask_2d__tmp))
         CALL cxios_set_domain_mask_2d &
       (domain_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
       ENDIF
@@ -815,6 +818,7 @@ CONTAINS
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
         CALL cxios_get_domain_mask_1d &
       (domain_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
+        CALL xios_bool_to_logical_1d(mask_1d__tmp, SHAPE(mask_1d__tmp))
         mask_1d_ = mask_1d__tmp
       ENDIF
 
@@ -822,6 +826,7 @@ CONTAINS
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
         CALL cxios_get_domain_mask_2d &
       (domain_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
+        CALL xios_bool_to_logical_2d(mask_2d__tmp, SHAPE(mask_2d__tmp))
         mask_2d_ = mask_2d__tmp
       ENDIF
 

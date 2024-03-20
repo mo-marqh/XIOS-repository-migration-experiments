@@ -7,6 +7,7 @@ MODULE icontext_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE icontext
   USE context_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -85,6 +86,7 @@ CONTAINS
 
       IF (PRESENT(attached_mode_)) THEN
         attached_mode__tmp = attached_mode_
+        CALL xios_logical_to_bool_0d(attached_mode__tmp)
         CALL cxios_set_context_attached_mode &
       (context_hdl%daddr, attached_mode__tmp)
       ENDIF
@@ -121,6 +123,7 @@ CONTAINS
 
       IF (PRESENT(default_using_server2_)) THEN
         default_using_server2__tmp = default_using_server2_
+        CALL xios_logical_to_bool_0d(default_using_server2__tmp)
         CALL cxios_set_context_default_using_server2 &
       (context_hdl%daddr, default_using_server2__tmp)
       ENDIF
@@ -213,6 +216,7 @@ CONTAINS
       IF (PRESENT(attached_mode_)) THEN
         CALL cxios_get_context_attached_mode &
       (context_hdl%daddr, attached_mode__tmp)
+        CALL xios_bool_to_logical_0d(attached_mode__tmp)
         attached_mode_ = attached_mode__tmp
       ENDIF
 
@@ -249,6 +253,7 @@ CONTAINS
       IF (PRESENT(default_using_server2_)) THEN
         CALL cxios_get_context_default_using_server2 &
       (context_hdl%daddr, default_using_server2__tmp)
+        CALL xios_bool_to_logical_0d(default_using_server2__tmp)
         default_using_server2_ = default_using_server2__tmp
       ENDIF
 

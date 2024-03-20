@@ -355,6 +355,7 @@ namespace xios
     if (!matchingTypeCFortran<T>())
     {
       oss << "  " << name_tmp << " = " << name << "_" << iendl;
+      oss << "  CALL xios_logical_to_bool_0d(" << name_tmp << ")" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl;
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ")" << iendl;
     }
@@ -373,6 +374,7 @@ namespace xios
     {
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl;
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ")" << iendl;
+      oss << "  CALL xios_bool_to_logical_0d(" << name_tmp << ")" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl;
     }
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl;
@@ -942,6 +944,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL xios_logical_to_bool_1d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -960,6 +963,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL xios_logical_to_bool_2d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -978,6 +982,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL xios_logical_to_bool_3d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -997,6 +1002,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
       oss << " SIZE(" << name << "_,4)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL xios_logical_to_bool_4d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -1016,6 +1022,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
       oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL xios_logical_to_bool_5d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -1035,6 +1042,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
       oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL xios_logical_to_bool_6d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -1055,6 +1063,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6), &" << iendl; \
       oss << " SIZE(" << name << "_,7)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL xios_logical_to_bool_7d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -1095,6 +1104,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL xios_bool_to_logical_1d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
     } \
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
@@ -1113,6 +1123,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL xios_bool_to_logical_2d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
     } \
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
@@ -1131,6 +1142,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL xios_bool_to_logical_3d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
@@ -1150,6 +1162,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << " SIZE(" << name << "_,4)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL xios_bool_to_logical_4d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
@@ -1169,6 +1182,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL xios_bool_to_logical_5d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
@@ -1188,6 +1202,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL xios_bool_to_logical_6d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
@@ -1208,6 +1223,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
       oss << " SIZE(" << name << "_,7)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
       oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL xios_bool_to_logical_7d(" << name_tmp << ", SHAPE("<< name_tmp << "))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
     else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \

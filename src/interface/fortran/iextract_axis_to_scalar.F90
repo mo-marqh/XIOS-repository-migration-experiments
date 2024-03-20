@@ -3,6 +3,7 @@
 MODULE IEXTRACT_AXIS_TO_SCALAR
    USE, INTRINSIC :: ISO_C_BINDING
    USE EXTRACT_AXIS_TO_SCALAR_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(extract_axis_to_scalar)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -23,6 +24,7 @@ MODULE IEXTRACT_AXIS_TO_SCALAR
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_extract_axis_to_scalar_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_extract_axis_to_scalar) = val
 
    END FUNCTION  xios(is_valid_extract_axis_to_scalar)

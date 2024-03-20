@@ -3,6 +3,7 @@
 MODULE IREDISTRIBUTE_AXIS
    USE, INTRINSIC :: ISO_C_BINDING
    USE REDISTRIBUTE_AXIS_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(redistribute_axis)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -23,6 +24,7 @@ MODULE IREDISTRIBUTE_AXIS
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_redistribute_axis_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_redistribute_axis) = val
 
    END FUNCTION  xios(is_valid_redistribute_axis)

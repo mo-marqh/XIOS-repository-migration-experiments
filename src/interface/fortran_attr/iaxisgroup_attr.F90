@@ -7,6 +7,7 @@ MODULE iaxisgroup_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE iaxis
   USE axisgroup_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -244,6 +245,7 @@ CONTAINS
       IF (PRESENT(mask_)) THEN
         ALLOCATE(mask__tmp(SIZE(mask_,1)))
         mask__tmp = mask_
+        CALL xios_logical_to_bool_1d(mask__tmp, SHAPE(mask__tmp))
         CALL cxios_set_axisgroup_mask &
       (axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
       ENDIF
@@ -530,6 +532,7 @@ CONTAINS
         ALLOCATE(mask__tmp(SIZE(mask_,1)))
         CALL cxios_get_axisgroup_mask &
       (axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
+        CALL xios_bool_to_logical_1d(mask__tmp, SHAPE(mask__tmp))
         mask_ = mask__tmp
       ENDIF
 

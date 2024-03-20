@@ -6,6 +6,7 @@ MODULE ICONTEXT
    USE IDATE
    USE IDURATION
 !   USE icontext_attr
+   USE LOGICAL_BOOL_CONVERSION
 
 
    TYPE txios(context)
@@ -61,6 +62,7 @@ MODULE ICONTEXT
       ELSE
          wswap = .FALSE.
       END IF
+      CALL xios_logical_to_bool_0d(wswap)
       CALL cxios_context_set_current(context%daddr, wswap)
 
    END SUBROUTINE xios(set_current_context_hdl)
@@ -82,6 +84,7 @@ MODULE ICONTEXT
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_context_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_context) = val
 
    END FUNCTION  xios(is_valid_context)

@@ -7,6 +7,7 @@ MODULE ireorder_domain_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE ireorder_domain
   USE reorder_domain_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -58,6 +59,7 @@ CONTAINS
 
       IF (PRESENT(invert_lat_)) THEN
         invert_lat__tmp = invert_lat_
+        CALL xios_logical_to_bool_0d(invert_lat__tmp)
         CALL cxios_set_reorder_domain_invert_lat &
       (reorder_domain_hdl%daddr, invert_lat__tmp)
       ENDIF
@@ -128,6 +130,7 @@ CONTAINS
       IF (PRESENT(invert_lat_)) THEN
         CALL cxios_get_reorder_domain_invert_lat &
       (reorder_domain_hdl%daddr, invert_lat__tmp)
+        CALL xios_bool_to_logical_0d(invert_lat__tmp)
         invert_lat_ = invert_lat__tmp
       ENDIF
 

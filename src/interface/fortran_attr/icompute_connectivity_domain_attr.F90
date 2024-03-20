@@ -7,6 +7,7 @@ MODULE icompute_connectivity_domain_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE icompute_connectivity_domain
   USE compute_connectivity_domain_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

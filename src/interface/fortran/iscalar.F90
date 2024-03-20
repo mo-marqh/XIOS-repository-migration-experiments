@@ -4,6 +4,7 @@ MODULE ISCALAR
    USE, INTRINSIC :: ISO_C_BINDING
    USE SCALAR_INTERFACE
    USE SCALARGROUP_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(scalar)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -39,6 +40,7 @@ MODULE ISCALAR
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_scalar_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_scalar) = val
 
    END FUNCTION  xios(is_valid_scalar)
@@ -49,6 +51,7 @@ MODULE ISCALAR
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_scalargroup_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_scalargroup) = val
 
    END FUNCTION  xios(is_valid_scalargroup)

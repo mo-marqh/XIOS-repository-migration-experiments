@@ -4,6 +4,7 @@ MODULE IDATA
    USE, INTRINSIC :: ISO_C_BINDING
    USE ICONTEXT
    USE IFIELD
+   USE LOGICAL_BOOL_CONVERSION
 
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
@@ -779,6 +780,7 @@ MODULE IDATA
    LOGICAL(KIND=C_BOOL) :: is_init
 
       CALL cxios_context_is_initialized(context_id, LEN(context_id), is_init)
+      CALL xios_bool_to_logical_0d(is_init)
       xios(context_is_initialized) = is_init
 
     END FUNCTION xios(context_is_initialized)
@@ -1346,6 +1348,7 @@ MODULE IDATA
 
       CALL cxios_get_variable_data_k8(varId, len(varId), data_k8, val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(getVar_k8) = val
    END FUNCTION xios(getVar_k8)
 
@@ -1358,6 +1361,7 @@ MODULE IDATA
 
       CALL cxios_get_variable_data_k4(varId, len(varId), data_k4, val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(getVar_k4) = val
    END FUNCTION xios(getVar_k4)
 
@@ -1370,6 +1374,7 @@ MODULE IDATA
 
       CALL cxios_get_variable_data_int(varId, len(varId), data_int, val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(getVar_int) = val
    END FUNCTION xios(getVar_int)
 
@@ -1382,8 +1387,12 @@ MODULE IDATA
       LOGICAL (C_BOOL)                              :: data_tmp
 
       CALL cxios_get_variable_data_logic(varId, len(varId), data_tmp, val)
+      CALL xios_bool_to_logical_0d(val)
       xios(getVar_logic) = val
-      IF (val) data_logic = data_tmp
+      IF (val) THEN
+         CALL xios_bool_to_logical_0d(data_tmp)
+         data_logic = data_tmp
+      ENDIF
    END FUNCTION xios(getVar_logic)
 
    LOGICAL FUNCTION xios(getVar_char)(varId, data_char)
@@ -1395,6 +1404,7 @@ MODULE IDATA
 
       CALL cxios_get_variable_data_char(varId, len(varId), data_char, len(data_char), val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(getVar_char) = val
    END FUNCTION xios(getVar_char)
 
@@ -1408,6 +1418,7 @@ MODULE IDATA
 
       CALL cxios_set_variable_data_k8(varId, len(varId), data_k8, val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(setVar_k8) = val
    END FUNCTION xios(setVar_k8)
 
@@ -1420,6 +1431,7 @@ MODULE IDATA
 
       CALL cxios_set_variable_data_k4(varId, len(varId), data_k4, val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(setVar_k4) = val
    END FUNCTION xios(setVar_k4)
 
@@ -1432,6 +1444,7 @@ MODULE IDATA
 
       CALL cxios_set_variable_data_int(varId, len(varId), data_int, val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(setVar_int) = val
    END FUNCTION xios(setVar_int)
 
@@ -1444,8 +1457,10 @@ MODULE IDATA
       LOGICAL  (kind = C_BOOL)                      :: data_tmp
 
       data_tmp = data_logic
+      CALL xios_logical_to_bool_0d(data_tmp)
       CALL cxios_set_variable_data_logic(varId, len(varId), data_tmp, val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(setVar_logic) = val
    END FUNCTION xios(setVar_logic)
 
@@ -1458,6 +1473,7 @@ MODULE IDATA
 
       CALL cxios_set_variable_data_char(varId, len(varId), data_char, len(data_char), val)
 
+      CALL xios_bool_to_logical_0d(val)
       xios(setVar_char) = val
    END FUNCTION xios(setVar_char)
 

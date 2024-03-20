@@ -3,6 +3,7 @@
 MODULE IREORDER_DOMAIN
    USE, INTRINSIC :: ISO_C_BINDING
    USE REORDER_DOMAIN_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(reorder_domain)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -23,6 +24,7 @@ MODULE IREORDER_DOMAIN
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_reorder_domain_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_reorder_domain) = val
 
    END FUNCTION  xios(is_valid_reorder_domain)

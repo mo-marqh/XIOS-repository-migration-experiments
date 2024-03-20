@@ -568,7 +568,8 @@ namespace xios
      oss << "MODULE i" << className << "_attr" << iendl++;
      oss << "USE, INTRINSIC :: ISO_C_BINDING" << iendl;
      oss << "USE i" << superClassName << iendl;
-     oss << "USE " << className << "_interface_attr" << iendl--;
+     oss << "USE " << className << "_interface_attr" << iendl;
+     oss << "USE LOGICAL_BOOL_CONVERSION" << iendl--;
 //   oss << "TYPE txios(" << className << ")" << iendl;
 //   oss << "  INTEGER(kind = C_INTPTR_T) :: daddr" << iendl;
 //   oss << "END TYPE txios(" << className << ")" << iendl;

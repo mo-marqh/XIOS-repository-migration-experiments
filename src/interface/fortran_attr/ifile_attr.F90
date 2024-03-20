@@ -7,6 +7,7 @@ MODULE ifile_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE ifile
   USE file_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -206,6 +207,7 @@ CONTAINS
 
       IF (PRESENT(append_)) THEN
         append__tmp = append_
+        CALL xios_logical_to_bool_0d(append__tmp)
         CALL cxios_set_file_append &
       (file_hdl%daddr, append__tmp)
       ENDIF
@@ -232,6 +234,7 @@ CONTAINS
 
       IF (PRESENT(cyclic_)) THEN
         cyclic__tmp = cyclic_
+        CALL xios_logical_to_bool_0d(cyclic__tmp)
         CALL cxios_set_file_cyclic &
       (file_hdl%daddr, cyclic__tmp)
       ENDIF
@@ -243,6 +246,7 @@ CONTAINS
 
       IF (PRESENT(enabled_)) THEN
         enabled__tmp = enabled_
+        CALL xios_logical_to_bool_0d(enabled__tmp)
         CALL cxios_set_file_enabled &
       (file_hdl%daddr, enabled__tmp)
       ENDIF
@@ -309,6 +313,7 @@ CONTAINS
 
       IF (PRESENT(read_metadata_par_)) THEN
         read_metadata_par__tmp = read_metadata_par_
+        CALL xios_logical_to_bool_0d(read_metadata_par__tmp)
         CALL cxios_set_file_read_metadata_par &
       (file_hdl%daddr, read_metadata_par__tmp)
       ENDIF
@@ -395,6 +400,7 @@ CONTAINS
 
       IF (PRESENT(using_server2_)) THEN
         using_server2__tmp = using_server2_
+        CALL xios_logical_to_bool_0d(using_server2__tmp)
         CALL cxios_set_file_using_server2 &
       (file_hdl%daddr, using_server2__tmp)
       ENDIF
@@ -613,6 +619,7 @@ CONTAINS
       IF (PRESENT(append_)) THEN
         CALL cxios_get_file_append &
       (file_hdl%daddr, append__tmp)
+        CALL xios_bool_to_logical_0d(append__tmp)
         append_ = append__tmp
       ENDIF
 
@@ -639,6 +646,7 @@ CONTAINS
       IF (PRESENT(cyclic_)) THEN
         CALL cxios_get_file_cyclic &
       (file_hdl%daddr, cyclic__tmp)
+        CALL xios_bool_to_logical_0d(cyclic__tmp)
         cyclic_ = cyclic__tmp
       ENDIF
 
@@ -650,6 +658,7 @@ CONTAINS
       IF (PRESENT(enabled_)) THEN
         CALL cxios_get_file_enabled &
       (file_hdl%daddr, enabled__tmp)
+        CALL xios_bool_to_logical_0d(enabled__tmp)
         enabled_ = enabled__tmp
       ENDIF
 
@@ -716,6 +725,7 @@ CONTAINS
       IF (PRESENT(read_metadata_par_)) THEN
         CALL cxios_get_file_read_metadata_par &
       (file_hdl%daddr, read_metadata_par__tmp)
+        CALL xios_bool_to_logical_0d(read_metadata_par__tmp)
         read_metadata_par_ = read_metadata_par__tmp
       ENDIF
 
@@ -802,6 +812,7 @@ CONTAINS
       IF (PRESENT(using_server2_)) THEN
         CALL cxios_get_file_using_server2 &
       (file_hdl%daddr, using_server2__tmp)
+        CALL xios_bool_to_logical_0d(using_server2__tmp)
         using_server2_ = using_server2__tmp
       ENDIF
 

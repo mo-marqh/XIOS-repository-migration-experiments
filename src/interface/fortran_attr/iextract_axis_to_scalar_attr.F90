@@ -7,6 +7,7 @@ MODULE iextract_axis_to_scalar_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE iextract_axis_to_scalar
   USE extract_axis_to_scalar_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

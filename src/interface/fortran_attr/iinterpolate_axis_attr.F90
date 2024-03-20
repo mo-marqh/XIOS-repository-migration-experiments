@@ -7,6 +7,7 @@ MODULE iinterpolate_axis_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE iinterpolate_axis
   USE interpolate_axis_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -84,6 +85,7 @@ CONTAINS
 
       IF (PRESENT(extrapolate_)) THEN
         extrapolate__tmp = extrapolate_
+        CALL xios_logical_to_bool_0d(extrapolate__tmp)
         CALL cxios_set_interpolate_axis_extrapolate &
       (interpolate_axis_hdl%daddr, extrapolate__tmp)
       ENDIF
@@ -175,6 +177,7 @@ CONTAINS
       IF (PRESENT(extrapolate_)) THEN
         CALL cxios_get_interpolate_axis_extrapolate &
       (interpolate_axis_hdl%daddr, extrapolate__tmp)
+        CALL xios_bool_to_logical_0d(extrapolate__tmp)
         extrapolate_ = extrapolate__tmp
       ENDIF
 
