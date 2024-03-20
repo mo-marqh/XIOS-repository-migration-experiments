@@ -96,6 +96,7 @@ namespace xios
     }
     vector<MPI_Status> sendStatus(sendReq.size()) ;
     MPI_Waitall(sendReq.size(),sendReq.data(),sendStatus.data()) ;
+    MPI_Barrier( localComm_ );
 
     auto remoteElement = make_shared<CDistributedElement>(dstView_->getGlobalSize(), remoteArrayIndex) ;
     remoteElement->addFullView() ;
