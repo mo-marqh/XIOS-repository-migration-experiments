@@ -4,6 +4,7 @@ MODULE IAXIS
    USE, INTRINSIC :: ISO_C_BINDING
    USE AXIS_INTERFACE
    USE AXISGROUP_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
    
    TYPE txios(axis)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -39,6 +40,7 @@ MODULE IAXIS
       LOGICAL  (kind = 1)                 :: val
       
       CALL cxios_axis_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_axis) = val
 
    END FUNCTION  xios(is_valid_axis)
@@ -49,6 +51,7 @@ MODULE IAXIS
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_axisgroup_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_axisgroup) = val
 
    END FUNCTION  xios(is_valid_axisgroup)

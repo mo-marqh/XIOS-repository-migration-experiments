@@ -7,6 +7,7 @@ MODULE IFILE
 !   USE IFILE_ATTR
 !   USE IFILEGROUP_ATTR
    USE IDURATION
+   USE LOGICAL_BOOL_CONVERSION
    
    TYPE txios(file)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -42,6 +43,7 @@ MODULE IFILE
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_file_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_file) = val
 
    END FUNCTION  xios(is_valid_file)
@@ -52,6 +54,7 @@ MODULE IFILE
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_filegroup_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_filegroup) = val
 
    END FUNCTION  xios(is_valid_filegroup)

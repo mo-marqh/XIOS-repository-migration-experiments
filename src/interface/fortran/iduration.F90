@@ -3,6 +3,7 @@
 MODULE IDURATION
    USE, INTRINSIC :: ISO_C_BINDING
    USE DURATION_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE(txios(duration)), PARAMETER :: xios(year) = txios(duration)(1, 0, 0, 0, 0, 0, 0)
    TYPE(txios(duration)), PARAMETER :: xios(month) = txios(duration)(0, 1, 0, 0, 0, 0, 0)
@@ -175,8 +176,11 @@ MODULE IDURATION
       IMPLICIT NONE
       TYPE(txios(duration)), INTENT(IN) :: dur1, dur2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_duration_eq(dur1, dur2)
+      res__tmp = cxios_duration_eq(dur1, dur2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(duration_eq)
 
    FUNCTION xios(duration_neq)(dur1, dur2) RESULT(res)
@@ -184,8 +188,11 @@ MODULE IDURATION
       IMPLICIT NONE
       TYPE(txios(duration)), INTENT(IN) :: dur1, dur2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_duration_neq(dur1, dur2)
+      res__tmp = cxios_duration_neq(dur1, dur2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(duration_neq)
 
 END MODULE IDURATION

@@ -2,6 +2,7 @@
 
 MODULE IMEM_CHECKER
    USE, INTRINSIC :: ISO_C_BINDING
+   USE LOGICAL_BOOL_CONVERSION
    
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
       
@@ -39,6 +40,7 @@ MODULE IMEM_CHECKER
 
       finalize_=.FALSE.
       IF (PRESENT(finalize)) finalize_ = finalize
+      CALL xios_logical_to_bool_0d(finalize_)
       CALL cxios_mem_checker_log(mem_id, len(mem_id), finalize_)
 
    END SUBROUTINE xios(mem_checker_log)

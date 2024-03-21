@@ -3,6 +3,7 @@
 MODULE IINVERSE_AXIS
    USE, INTRINSIC :: ISO_C_BINDING
    USE INVERSE_AXIS_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(inverse_axis)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -23,6 +24,7 @@ MODULE IINVERSE_AXIS
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_inverse_axis_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_inverse_axis) = val
 
    END FUNCTION  xios(is_valid_inverse_axis)

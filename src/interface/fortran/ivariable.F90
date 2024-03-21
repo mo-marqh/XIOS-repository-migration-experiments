@@ -4,6 +4,7 @@ MODULE IVARIABLE
    USE, INTRINSIC :: ISO_C_BINDING
    USE VARIABLE_INTERFACE
    USE VARIABLEGROUP_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
    
    TYPE txios(variable)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -39,6 +40,7 @@ MODULE IVARIABLE
       LOGICAL  (kind = 1)                 :: val
       
       CALL cxios_variable_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_variable) = val
 
    END FUNCTION  xios(is_valid_variable)
@@ -49,6 +51,7 @@ MODULE IVARIABLE
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_variablegroup_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_variablegroup) = val
 
    END FUNCTION  xios(is_valid_variablegroup)

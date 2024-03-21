@@ -7,6 +7,7 @@ MODULE ivariablegroup_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE ivariable
   USE variablegroup_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

@@ -7,6 +7,7 @@ MODULE iscalargroup_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE iscalar
   USE scalargroup_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

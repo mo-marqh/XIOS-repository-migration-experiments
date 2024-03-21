@@ -6,6 +6,7 @@ MODULE IDOMAIN
    USE DOMAINGROUP_INTERFACE
 !   USE IDOMAIN_ATTR
 !   USE IDOMAINGROUP_ATTR
+   USE LOGICAL_BOOL_CONVERSION
       
    TYPE txios(domain)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -41,6 +42,7 @@ MODULE IDOMAIN
       CHARACTER(len  = *)    , INTENT(IN) :: idt
       LOGICAL  (kind = 1)                 :: val
       CALL cxios_domain_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_domain) = val
    END FUNCTION  xios(is_valid_domain)
 
@@ -49,6 +51,7 @@ MODULE IDOMAIN
       CHARACTER(len  = *)    , INTENT(IN) :: idt
       LOGICAL  (kind = 1)                 :: val
       CALL cxios_domaingroup_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_domaingroup) = val
    END FUNCTION  xios(is_valid_domaingroup)
    

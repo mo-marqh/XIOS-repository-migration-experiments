@@ -6,6 +6,7 @@ MODULE IGRID
    USE GRIDGROUP_INTERFACE
 !   USE IGRID_ATTR
 !   USE IGRIDGROUP_ATTR
+   USE LOGICAL_BOOL_CONVERSION
    
    TYPE txios(grid)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -42,6 +43,7 @@ MODULE IGRID
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_grid_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_grid) = val
 
    END FUNCTION  xios(is_valid_grid)
@@ -52,6 +54,7 @@ MODULE IGRID
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_gridgroup_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_gridgroup) = val
 
    END FUNCTION  xios(is_valid_gridgroup)

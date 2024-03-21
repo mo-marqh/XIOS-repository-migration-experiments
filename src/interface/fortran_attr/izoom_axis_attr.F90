@@ -7,6 +7,7 @@ MODULE izoom_axis_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE izoom_axis
   USE zoom_axis_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

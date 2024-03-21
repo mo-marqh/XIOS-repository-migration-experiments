@@ -7,6 +7,7 @@ MODULE izoom_domain_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE izoom_domain
   USE zoom_domain_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

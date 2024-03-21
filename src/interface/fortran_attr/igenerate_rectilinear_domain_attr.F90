@@ -7,6 +7,7 @@ MODULE igenerate_rectilinear_domain_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE igenerate_rectilinear_domain
   USE generate_rectilinear_domain_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

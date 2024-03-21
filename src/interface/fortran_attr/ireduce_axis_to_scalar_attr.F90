@@ -7,6 +7,7 @@ MODULE ireduce_axis_to_scalar_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE ireduce_axis_to_scalar
   USE reduce_axis_to_scalar_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

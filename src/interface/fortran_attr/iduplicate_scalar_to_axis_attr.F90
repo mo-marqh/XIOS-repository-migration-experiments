@@ -7,6 +7,7 @@ MODULE iduplicate_scalar_to_axis_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE iduplicate_scalar_to_axis
   USE duplicate_scalar_to_axis_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

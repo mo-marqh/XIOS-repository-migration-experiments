@@ -3,6 +3,7 @@
 MODULE ITEMPORAL_SPLITTING
    USE, INTRINSIC :: ISO_C_BINDING
    USE TEMPORAL_SPLITTING_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(temporal_splitting)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -23,6 +24,7 @@ MODULE ITEMPORAL_SPLITTING
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_temporal_splitting_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_temporal_splitting) = val
 
    END FUNCTION  xios(is_valid_temporal_splitting)

@@ -7,6 +7,7 @@ MODULE ifield_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE ifield
   USE field_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -210,6 +211,7 @@ CONTAINS
 
       IF (PRESENT(build_workflow_graph_)) THEN
         build_workflow_graph__tmp = build_workflow_graph_
+        CALL xios_logical_to_bool_0d(build_workflow_graph__tmp)
         CALL cxios_set_field_build_workflow_graph &
       (field_hdl%daddr, build_workflow_graph__tmp)
       ENDIF
@@ -236,6 +238,7 @@ CONTAINS
 
       IF (PRESENT(check_if_active_)) THEN
         check_if_active__tmp = check_if_active_
+        CALL xios_logical_to_bool_0d(check_if_active__tmp)
         CALL cxios_set_field_check_if_active &
       (field_hdl%daddr, check_if_active__tmp)
       ENDIF
@@ -252,6 +255,7 @@ CONTAINS
 
       IF (PRESENT(conversion_by_netcdf_)) THEN
         conversion_by_netcdf__tmp = conversion_by_netcdf_
+        CALL xios_logical_to_bool_0d(conversion_by_netcdf__tmp)
         CALL cxios_set_field_conversion_by_netcdf &
       (field_hdl%daddr, conversion_by_netcdf__tmp)
       ENDIF
@@ -263,6 +267,7 @@ CONTAINS
 
       IF (PRESENT(detect_missing_value_)) THEN
         detect_missing_value__tmp = detect_missing_value_
+        CALL xios_logical_to_bool_0d(detect_missing_value__tmp)
         CALL cxios_set_field_detect_missing_value &
       (field_hdl%daddr, detect_missing_value__tmp)
       ENDIF
@@ -274,6 +279,7 @@ CONTAINS
 
       IF (PRESENT(enabled_)) THEN
         enabled__tmp = enabled_
+        CALL xios_logical_to_bool_0d(enabled__tmp)
         CALL cxios_set_field_enabled &
       (field_hdl%daddr, enabled__tmp)
       ENDIF
@@ -310,6 +316,7 @@ CONTAINS
 
       IF (PRESENT(indexed_output_)) THEN
         indexed_output__tmp = indexed_output_
+        CALL xios_logical_to_bool_0d(indexed_output__tmp)
         CALL cxios_set_field_indexed_output &
       (field_hdl%daddr, indexed_output__tmp)
       ENDIF
@@ -341,6 +348,7 @@ CONTAINS
 
       IF (PRESENT(read_access_)) THEN
         read_access__tmp = read_access_
+        CALL xios_logical_to_bool_0d(read_access__tmp)
         CALL cxios_set_field_read_access &
       (field_hdl%daddr, read_access__tmp)
       ENDIF
@@ -362,6 +370,7 @@ CONTAINS
 
       IF (PRESENT(ts_enabled_)) THEN
         ts_enabled__tmp = ts_enabled_
+        CALL xios_logical_to_bool_0d(ts_enabled__tmp)
         CALL cxios_set_field_ts_enabled &
       (field_hdl%daddr, ts_enabled__tmp)
       ENDIF
@@ -589,6 +598,7 @@ CONTAINS
       IF (PRESENT(build_workflow_graph_)) THEN
         CALL cxios_get_field_build_workflow_graph &
       (field_hdl%daddr, build_workflow_graph__tmp)
+        CALL xios_bool_to_logical_0d(build_workflow_graph__tmp)
         build_workflow_graph_ = build_workflow_graph__tmp
       ENDIF
 
@@ -615,6 +625,7 @@ CONTAINS
       IF (PRESENT(check_if_active_)) THEN
         CALL cxios_get_field_check_if_active &
       (field_hdl%daddr, check_if_active__tmp)
+        CALL xios_bool_to_logical_0d(check_if_active__tmp)
         check_if_active_ = check_if_active__tmp
       ENDIF
 
@@ -631,6 +642,7 @@ CONTAINS
       IF (PRESENT(conversion_by_netcdf_)) THEN
         CALL cxios_get_field_conversion_by_netcdf &
       (field_hdl%daddr, conversion_by_netcdf__tmp)
+        CALL xios_bool_to_logical_0d(conversion_by_netcdf__tmp)
         conversion_by_netcdf_ = conversion_by_netcdf__tmp
       ENDIF
 
@@ -642,6 +654,7 @@ CONTAINS
       IF (PRESENT(detect_missing_value_)) THEN
         CALL cxios_get_field_detect_missing_value &
       (field_hdl%daddr, detect_missing_value__tmp)
+        CALL xios_bool_to_logical_0d(detect_missing_value__tmp)
         detect_missing_value_ = detect_missing_value__tmp
       ENDIF
 
@@ -653,6 +666,7 @@ CONTAINS
       IF (PRESENT(enabled_)) THEN
         CALL cxios_get_field_enabled &
       (field_hdl%daddr, enabled__tmp)
+        CALL xios_bool_to_logical_0d(enabled__tmp)
         enabled_ = enabled__tmp
       ENDIF
 
@@ -689,6 +703,7 @@ CONTAINS
       IF (PRESENT(indexed_output_)) THEN
         CALL cxios_get_field_indexed_output &
       (field_hdl%daddr, indexed_output__tmp)
+        CALL xios_bool_to_logical_0d(indexed_output__tmp)
         indexed_output_ = indexed_output__tmp
       ENDIF
 
@@ -720,6 +735,7 @@ CONTAINS
       IF (PRESENT(read_access_)) THEN
         CALL cxios_get_field_read_access &
       (field_hdl%daddr, read_access__tmp)
+        CALL xios_bool_to_logical_0d(read_access__tmp)
         read_access_ = read_access__tmp
       ENDIF
 
@@ -741,6 +757,7 @@ CONTAINS
       IF (PRESENT(ts_enabled_)) THEN
         CALL cxios_get_field_ts_enabled &
       (field_hdl%daddr, ts_enabled__tmp)
+        CALL xios_bool_to_logical_0d(ts_enabled__tmp)
         ts_enabled_ = ts_enabled__tmp
       ENDIF
 

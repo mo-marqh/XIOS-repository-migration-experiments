@@ -3,6 +3,7 @@
 MODULE IEXPAND_DOMAIN
    USE, INTRINSIC :: ISO_C_BINDING
    USE EXPAND_DOMAIN_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(expand_domain)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -23,6 +24,7 @@ MODULE IEXPAND_DOMAIN
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_expand_domain_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_expand_domain) = val
 
    END FUNCTION  xios(is_valid_expand_domain)

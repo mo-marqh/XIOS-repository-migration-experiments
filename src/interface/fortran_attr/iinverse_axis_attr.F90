@@ -7,6 +7,7 @@ MODULE iinverse_axis_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE iinverse_axis
   USE inverse_axis_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

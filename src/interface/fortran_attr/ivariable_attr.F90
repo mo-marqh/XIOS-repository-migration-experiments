@@ -7,6 +7,7 @@ MODULE ivariable_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE ivariable
   USE variable_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 

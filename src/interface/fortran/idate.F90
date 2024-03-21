@@ -2,6 +2,7 @@
 MODULE IDATE
    USE, INTRINSIC :: ISO_C_BINDING
    USE DATE_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    INTERFACE OPERATOR(+)
       MODULE PROCEDURE xios(date_add_duration)
@@ -114,8 +115,11 @@ MODULE IDATE
       IMPLICIT NONE
       TYPE(txios(date)), INTENT(IN) :: date1, date2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_date_eq(date1, date2)
+      res__tmp = cxios_date_eq(date1, date2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(date_eq)
 
    FUNCTION xios(date_neq)(date1, date2) RESULT(res)
@@ -123,8 +127,11 @@ MODULE IDATE
       IMPLICIT NONE
       TYPE(txios(date)), INTENT(IN) :: date1, date2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_date_neq(date1, date2)
+      res__tmp = cxios_date_neq(date1, date2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(date_neq)
 
    FUNCTION xios(date_lt)(date1, date2) RESULT(res)
@@ -132,8 +139,11 @@ MODULE IDATE
       IMPLICIT NONE
       TYPE(txios(date)), INTENT(IN) :: date1, date2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_date_lt(date1, date2)
+      res__tmp = cxios_date_lt(date1, date2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(date_lt)
 
    FUNCTION xios(date_le)(date1, date2) RESULT(res)
@@ -141,8 +151,11 @@ MODULE IDATE
       IMPLICIT NONE
       TYPE(txios(date)), INTENT(IN) :: date1, date2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_date_le(date1, date2)
+      res__tmp = cxios_date_le(date1, date2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(date_le)
 
    FUNCTION xios(date_gt)(date1, date2) RESULT(res)
@@ -150,8 +163,11 @@ MODULE IDATE
       IMPLICIT NONE
       TYPE(txios(date)), INTENT(IN) :: date1, date2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_date_gt(date1, date2)
+      res__tmp = cxios_date_gt(date1, date2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(date_gt)
 
    FUNCTION xios(date_ge)(date1, date2) RESULT(res)
@@ -159,8 +175,11 @@ MODULE IDATE
       IMPLICIT NONE
       TYPE(txios(date)), INTENT(IN) :: date1, date2
       LOGICAL :: res
+      LOGICAL (KIND=C_BOOL) :: res__tmp
 
-      res = cxios_date_ge(date1, date2)
+      res__tmp = cxios_date_ge(date1, date2)
+      CALL xios_bool_to_logical_0d(res__tmp)
+      res = res__tmp
    END FUNCTION xios(date_ge)
 
    SUBROUTINE xios(date_assign_duration)(date, dur)

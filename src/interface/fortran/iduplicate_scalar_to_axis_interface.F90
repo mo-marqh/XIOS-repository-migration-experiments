@@ -3,6 +3,7 @@
 MODULE IDUPLICATE_SCALAR_TO_AXIS
    USE, INTRINSIC :: ISO_C_BINDING
    USE DUPLICATE_SCALAR_TO_AXIS_INTERFACE
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(duplicate_scalar_to_axis)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -23,6 +24,7 @@ MODULE IDUPLICATE_SCALAR_TO_AXIS
       LOGICAL  (kind = 1)                 :: val
 
       CALL cxios_duplicate_scalar_to_axis_valid_id(val, idt, len(idt))
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_duplicate_scalar_to_axis) = val
 
    END FUNCTION  xios(is_valid_duplicate_scalar_to_axis)

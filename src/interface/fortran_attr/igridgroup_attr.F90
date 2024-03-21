@@ -7,6 +7,7 @@ MODULE igridgroup_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE igrid
   USE gridgroup_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -124,6 +125,7 @@ CONTAINS
       IF (PRESENT(mask_0d_)) THEN
         ALLOCATE(mask_0d__tmp(SIZE(mask_0d_,1)))
         mask_0d__tmp = mask_0d_
+        CALL xios_logical_to_bool_1d(mask_0d__tmp, SHAPE(mask_0d__tmp))
         CALL cxios_set_gridgroup_mask_0d &
       (gridgroup_hdl%daddr, mask_0d__tmp, SHAPE(mask_0d_))
       ENDIF
@@ -131,6 +133,7 @@ CONTAINS
       IF (PRESENT(mask_1d_)) THEN
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
         mask_1d__tmp = mask_1d_
+        CALL xios_logical_to_bool_1d(mask_1d__tmp, SHAPE(mask_1d__tmp))
         CALL cxios_set_gridgroup_mask_1d &
       (gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
       ENDIF
@@ -138,6 +141,7 @@ CONTAINS
       IF (PRESENT(mask_2d_)) THEN
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
         mask_2d__tmp = mask_2d_
+        CALL xios_logical_to_bool_2d(mask_2d__tmp, SHAPE(mask_2d__tmp))
         CALL cxios_set_gridgroup_mask_2d &
       (gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
       ENDIF
@@ -145,6 +149,7 @@ CONTAINS
       IF (PRESENT(mask_3d_)) THEN
         ALLOCATE(mask_3d__tmp(SIZE(mask_3d_,1), SIZE(mask_3d_,2), SIZE(mask_3d_,3)))
         mask_3d__tmp = mask_3d_
+        CALL xios_logical_to_bool_3d(mask_3d__tmp, SHAPE(mask_3d__tmp))
         CALL cxios_set_gridgroup_mask_3d &
       (gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
       ENDIF
@@ -153,6 +158,7 @@ CONTAINS
         ALLOCATE(mask_4d__tmp(SIZE(mask_4d_,1), SIZE(mask_4d_,2), SIZE(mask_4d_,3), &
        SIZE(mask_4d_,4)))
         mask_4d__tmp = mask_4d_
+        CALL xios_logical_to_bool_4d(mask_4d__tmp, SHAPE(mask_4d__tmp))
         CALL cxios_set_gridgroup_mask_4d &
       (gridgroup_hdl%daddr, mask_4d__tmp, SHAPE(mask_4d_))
       ENDIF
@@ -161,6 +167,7 @@ CONTAINS
         ALLOCATE(mask_5d__tmp(SIZE(mask_5d_,1), SIZE(mask_5d_,2), SIZE(mask_5d_,3), &
        SIZE(mask_5d_,4), SIZE(mask_5d_,5)))
         mask_5d__tmp = mask_5d_
+        CALL xios_logical_to_bool_5d(mask_5d__tmp, SHAPE(mask_5d__tmp))
         CALL cxios_set_gridgroup_mask_5d &
       (gridgroup_hdl%daddr, mask_5d__tmp, SHAPE(mask_5d_))
       ENDIF
@@ -169,6 +176,7 @@ CONTAINS
         ALLOCATE(mask_6d__tmp(SIZE(mask_6d_,1), SIZE(mask_6d_,2), SIZE(mask_6d_,3), &
        SIZE(mask_6d_,4), SIZE(mask_6d_,5), SIZE(mask_6d_,6)))
         mask_6d__tmp = mask_6d_
+        CALL xios_logical_to_bool_6d(mask_6d__tmp, SHAPE(mask_6d__tmp))
         CALL cxios_set_gridgroup_mask_6d &
       (gridgroup_hdl%daddr, mask_6d__tmp, SHAPE(mask_6d_))
       ENDIF
@@ -178,6 +186,7 @@ CONTAINS
        SIZE(mask_7d_,4), SIZE(mask_7d_,5), SIZE(mask_7d_,6), &
        SIZE(mask_7d_,7)))
         mask_7d__tmp = mask_7d_
+        CALL xios_logical_to_bool_7d(mask_7d__tmp, SHAPE(mask_7d__tmp))
         CALL cxios_set_gridgroup_mask_7d &
       (gridgroup_hdl%daddr, mask_7d__tmp, SHAPE(mask_7d_))
       ENDIF
@@ -304,6 +313,7 @@ CONTAINS
         ALLOCATE(mask_0d__tmp(SIZE(mask_0d_,1)))
         CALL cxios_get_gridgroup_mask_0d &
       (gridgroup_hdl%daddr, mask_0d__tmp, SHAPE(mask_0d_))
+        CALL xios_bool_to_logical_1d(mask_0d__tmp, SHAPE(mask_0d__tmp))
         mask_0d_ = mask_0d__tmp
       ENDIF
 
@@ -311,6 +321,7 @@ CONTAINS
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
         CALL cxios_get_gridgroup_mask_1d &
       (gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
+        CALL xios_bool_to_logical_1d(mask_1d__tmp, SHAPE(mask_1d__tmp))
         mask_1d_ = mask_1d__tmp
       ENDIF
 
@@ -318,6 +329,7 @@ CONTAINS
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
         CALL cxios_get_gridgroup_mask_2d &
       (gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
+        CALL xios_bool_to_logical_2d(mask_2d__tmp, SHAPE(mask_2d__tmp))
         mask_2d_ = mask_2d__tmp
       ENDIF
 
@@ -325,6 +337,7 @@ CONTAINS
         ALLOCATE(mask_3d__tmp(SIZE(mask_3d_,1), SIZE(mask_3d_,2), SIZE(mask_3d_,3)))
         CALL cxios_get_gridgroup_mask_3d &
       (gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
+        CALL xios_bool_to_logical_3d(mask_3d__tmp, SHAPE(mask_3d__tmp))
         mask_3d_ = mask_3d__tmp
       ENDIF
 
@@ -333,6 +346,7 @@ CONTAINS
        SIZE(mask_4d_,4)))
         CALL cxios_get_gridgroup_mask_4d &
       (gridgroup_hdl%daddr, mask_4d__tmp, SHAPE(mask_4d_))
+        CALL xios_bool_to_logical_4d(mask_4d__tmp, SHAPE(mask_4d__tmp))
         mask_4d_ = mask_4d__tmp
       ENDIF
 
@@ -341,6 +355,7 @@ CONTAINS
        SIZE(mask_5d_,4), SIZE(mask_5d_,5)))
         CALL cxios_get_gridgroup_mask_5d &
       (gridgroup_hdl%daddr, mask_5d__tmp, SHAPE(mask_5d_))
+        CALL xios_bool_to_logical_5d(mask_5d__tmp, SHAPE(mask_5d__tmp))
         mask_5d_ = mask_5d__tmp
       ENDIF
 
@@ -349,6 +364,7 @@ CONTAINS
        SIZE(mask_6d_,4), SIZE(mask_6d_,5), SIZE(mask_6d_,6)))
         CALL cxios_get_gridgroup_mask_6d &
       (gridgroup_hdl%daddr, mask_6d__tmp, SHAPE(mask_6d_))
+        CALL xios_bool_to_logical_6d(mask_6d__tmp, SHAPE(mask_6d__tmp))
         mask_6d_ = mask_6d__tmp
       ENDIF
 
@@ -358,6 +374,7 @@ CONTAINS
        SIZE(mask_7d_,7)))
         CALL cxios_get_gridgroup_mask_7d &
       (gridgroup_hdl%daddr, mask_7d__tmp, SHAPE(mask_7d_))
+        CALL xios_bool_to_logical_7d(mask_7d__tmp, SHAPE(mask_7d__tmp))
         mask_7d_ = mask_7d__tmp
       ENDIF
 

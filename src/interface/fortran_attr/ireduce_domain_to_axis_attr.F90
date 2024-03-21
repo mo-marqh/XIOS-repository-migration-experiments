@@ -7,6 +7,7 @@ MODULE ireduce_domain_to_axis_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE ireduce_domain_to_axis
   USE reduce_domain_to_axis_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
@@ -60,6 +61,7 @@ CONTAINS
 
       IF (PRESENT(local_)) THEN
         local__tmp = local_
+        CALL xios_logical_to_bool_0d(local__tmp)
         CALL cxios_set_reduce_domain_to_axis_local &
       (reduce_domain_to_axis_hdl%daddr, local__tmp)
       ENDIF
@@ -122,6 +124,7 @@ CONTAINS
       IF (PRESENT(local_)) THEN
         CALL cxios_get_reduce_domain_to_axis_local &
       (reduce_domain_to_axis_hdl%daddr, local__tmp)
+        CALL xios_bool_to_logical_0d(local__tmp)
         local_ = local__tmp
       ENDIF
 

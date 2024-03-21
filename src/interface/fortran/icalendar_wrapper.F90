@@ -5,6 +5,7 @@ MODULE ICALENDAR_WRAPPER
    USE CALENDAR_WRAPPER_INTERFACE
    USE IDATE
    USE IDURATION
+   USE LOGICAL_BOOL_CONVERSION
 
    TYPE txios(calendar_wrapper)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -33,6 +34,7 @@ MODULE ICALENDAR_WRAPPER
       LOGICAL  (kind = 1)             :: val
 
       CALL cxios_calendar_wrapper_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_calendar_wrapper) = val
    END FUNCTION  xios(is_valid_calendar_wrapper)
 

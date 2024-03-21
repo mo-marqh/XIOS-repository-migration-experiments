@@ -10,6 +10,7 @@ MODULE IFIELD
    USE IDOMAIN
    USE IAXIS
    USE ISCALAR
+   USE LOGICAL_BOOL_CONVERSION
    
    TYPE txios(field)
       INTEGER(kind = C_INTPTR_T) :: daddr
@@ -128,6 +129,7 @@ MODULE IFIELD
       LOGICAL  (kind = 1)                 :: val
       
       CALL cxios_field_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_field) = val
 
    END FUNCTION  xios(is_valid_field)
@@ -137,6 +139,7 @@ MODULE IFIELD
       CHARACTER(len  = *)    , INTENT(IN) :: idt
       LOGICAL  (kind = 1)                 :: val
       CALL cxios_fieldgroup_valid_id(val, idt, len(idt));
+      CALL xios_bool_to_logical_0d(val)
       xios(is_valid_fieldgroup) = val
 
    END FUNCTION  xios(is_valid_fieldgroup)
@@ -165,7 +168,9 @@ MODULE IFIELD
          at_current_timestep = .FALSE.
       ENDIF
 
+      CALL xios_logical_to_bool_0d(at_current_timestep)
       CALL cxios_field_is_active(field_hdl%daddr, at_current_timestep, ret);
+      CALL xios_bool_to_logical_0d(ret)
       xios(field_is_active_hdl) = ret
       
    END FUNCTION xios(field_is_active_hdl)

@@ -7,6 +7,7 @@ MODULE icontext_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE icontext
   USE context_interface_attr
+  USE LOGICAL_BOOL_CONVERSION
 
 CONTAINS
 
