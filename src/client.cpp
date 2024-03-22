@@ -114,6 +114,8 @@ namespace xios
       }
       else // localComm is given
       {
+        CTimer::get("XIOS").resume() ;
+        CTimer::get("XIOS init/finalize",false).resume() ;
         xios::MPI_Comm_dup(localComm,&clientComm) ;
         CXios::getMpiGarbageCollector().registerCommunicator(clientComm) ;
         xios::MPI_Comm_dup(localComm,&intraComm_) ;
@@ -516,6 +518,7 @@ namespace xios
       MPI_Comm_rank(clientsComm_, &commRank) ;
       if (commRank==0) CXios::getRessourcesManager()->finalize() ;
       
+      CTimer::get("XIOS finalize").suspend();
       CTimer::get("XIOS init/finalize",false).suspend() ;
       CTimer::get("XIOS").suspend() ;
       CXios::finalizeDaemonsManager() ;

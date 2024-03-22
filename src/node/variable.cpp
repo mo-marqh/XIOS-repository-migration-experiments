@@ -76,6 +76,7 @@ namespace xios {
                                     "log_memory",
                                     "log_type",
                                     "max_buffer_size",
+                                    "memory_report",
                                     "memtrack_blocks",
                                     "memtrack_size",
                                     "min_buffer_size",
