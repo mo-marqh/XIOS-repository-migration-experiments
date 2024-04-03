@@ -20,6 +20,7 @@
 
 namespace xios
 {
+      extern CLogType logProfile ;
       /// ////////////////////// Dfinitions ////////////////////// ///
       CNc4DataOutput::CNc4DataOutput
          (CFile* file, const StdString & filename, bool exist)
@@ -2276,12 +2277,12 @@ namespace xios
            {
               case (MULTI_FILE) :
               {
-                 CTimer::get("Files : writing data").resume();
+                 if (info.isActive(logProfile)) CTimer::get("Files : writing data").resume();
                  writeAndConvertData(field, data, nstep - 1);
-                 CTimer::get("Files : writing data").suspend();
+                 if (info.isActive(logProfile)) CTimer::get("Files : writing data").suspend();
                  if (wtime)
                  {
-                   CTimer::get("Files : writing time axis").resume();
+                   if (info.isActive(logProfile)) CTimer::get("Files : writing time axis").resume();
                    if ( wtimeData)
                    {
                        SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, nstep - 1, isRoot);
@@ -2292,7 +2293,7 @@ namespace xios
                      SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, nstep - 1,isRoot);
                      if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, nstep - 1, isRoot);
                    }
-                   CTimer::get("Files : writing time axis").suspend();
+                   if (info.isActive(logProfile)) CTimer::get("Files : writing time axis").suspend();
                  }
                  break;
               }
@@ -2440,13 +2441,13 @@ namespace xios
                 }
 
 
-                CTimer::get("Files : writing data").resume();
+                if (info.isActive(logProfile)) CTimer::get("Files : writing data").resume();
                 writeAndConvertData(field, data, nstep - 1, &start, &count);
-                CTimer::get("Files : writing data").suspend();
+                if (info.isActive(logProfile)) CTimer::get("Files : writing data").suspend();
 
                  if (wtime)
                  {
-                   CTimer::get("Files : writing time axis").resume();
+                   if (info.isActive(logProfile)) CTimer::get("Files : writing time axis").resume();
                    if ( wtimeData)
                    {
                      SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, nstep - 1, isRoot);
@@ -2458,7 +2459,7 @@ namespace xios
                      if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, nstep - 1, isRoot);
 
                    }
-                   CTimer::get("Files : writing time axis").suspend();  
+                   if (info.isActive(logProfile)) CTimer::get("Files : writing time axis").suspend();  
                  }
 
                 break;

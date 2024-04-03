@@ -45,6 +45,7 @@ namespace xios
         static void testingEventScheduler(void);
         
         static void finalize(void);
+        static void printProfile(void);
         static void eventLoop(void);
         
         static MPI_Comm intraComm_;

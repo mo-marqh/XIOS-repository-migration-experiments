@@ -41,6 +41,7 @@ namespace xios
 {
 
   std::shared_ptr<CContextGroup> CContext::root;
+  extern CLogType logProfile ;
 
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -817,6 +818,7 @@ void CContext::removeAllContexts(void)
   {
     bool  finished(true); 
     if (isLockedContext()) enableEventsProcessing=false;
+    else if (info.isActive(logProfile)) CTimer::get("Context event loop").resume();
     
     setCurrent(getId()) ;
 
@@ -838,6 +840,7 @@ void CContext::removeAllContexts(void)
       for(auto couplerIn : couplerInServer_) couplerIn.second->eventLoop();
     }
     setCurrent(getId()) ;
+    if (!isLockedContext()) if (info.isActive(logProfile)) CTimer::get("Context event loop").suspend();
     return finalized && finished ;
   }
 
@@ -1112,7 +1115,7 @@ void CContext::removeAllContexts(void)
    {
      CMemChecker::logMem( "CContext::closeDefinition" );
 
-     CTimer::get("Context : close definition").resume() ;
+     if (info.isActive(logProfile)) CTimer::get("Context : close definition").resume() ;
 
      onlineContextClient_=CContextClient::getNew<CContextClient::online>(this,intraComm_, intraComm_);
           
@@ -1408,7 +1411,7 @@ void CContext::removeAllContexts(void)
     for(auto& it : fieldBufferEvaluation) it.first->setBufferSize(it.second) ;
 
 
-     CTimer::get("Context : close definition").suspend() ;
+     if (info.isActive(logProfile)) CTimer::get("Context : close definition").suspend() ;
      CMemChecker::logMem( "CContext::closeDefinition_END" );
   }
   CATCH_DUMP_ATTR

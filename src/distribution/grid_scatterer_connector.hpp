@@ -9,10 +9,11 @@
 #include "distributed_view.hpp"
 #include "context_client.hpp"
 #include "scatterer_connector.hpp"
-
+#include "timer.hpp"
 
 namespace xios
 {
+  extern CLogType logProfile ;
  
   class CGridScattererConnector
   {
@@ -77,7 +78,9 @@ namespace xios
           messages.back().push(data) ;
           event.push(rank, nbSenders_[rank], messages.back());
         }
+        if (info.isActive(logProfile)) CTimer::get("Scatter event").resume();
         client->sendEvent(event) ;
+        if (info.isActive(logProfile)) CTimer::get("Scatter event").suspend();
       } 
       
       void transfer(CContextClient* client, CEventClient& event, const CMessage& messageHeader)

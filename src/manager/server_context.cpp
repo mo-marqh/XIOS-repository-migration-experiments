@@ -12,6 +12,7 @@
 namespace xios
 {
   using namespace std ;
+  extern CLogType logTimers ;
 
   map<string, tuple<bool,MPI_Comm,MPI_Comm> > CServerContext::overlapedComm_ ;
 
@@ -232,7 +233,7 @@ namespace xios
 
   bool CServerContext::eventLoop(bool serviceOnly)
   {
-    CTimer::get("CServerContext::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CServerContext::eventLoop").resume();
     bool finished=false ;
     int flag ;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
@@ -255,7 +256,7 @@ namespace xios
         // destroy context ??? --> later
       }
     }
-    CTimer::get("CServerContext::eventLoop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CServerContext::eventLoop").suspend();
     if (context_==nullptr && finalizeSignal_) finished=true ;
     return finished ;
   }
@@ -263,11 +264,11 @@ namespace xios
   void CServerContext::threadEventLoop(void)
   {
     
+    if (info.isActive(logTimers)) CTimer::get("CServerContext::eventLoop").resume();
     info(100)<<"Launch Thread for CServerContext::threadEventLoop, context id = "<<context_->getId()<<endl ;
     CThreadManager::threadInitialize() ; 
     do
     {
-      CTimer::get("CServerContext::eventLoop").resume();
       int flag ;
       MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
 
@@ -284,7 +285,6 @@ namespace xios
           // destroy context ??? --> later
         }
       }
-      CTimer::get("CServerContext::eventLoop").suspend();
       if (context_==nullptr && finalizeSignal_) finished_=true ;
  
       if (!finished_) CThreadManager::yield() ;
@@ -293,6 +293,7 @@ namespace xios
     
     CThreadManager::threadFinalize() ;
     info(100)<<"Close thread for CServerContext::threadEventLoop"<<endl ;
+    if (info.isActive(logTimers)) CTimer::get("CServerContext::eventLoop").suspend();
   }
 
   void CServerContext::createIntercomm(void)

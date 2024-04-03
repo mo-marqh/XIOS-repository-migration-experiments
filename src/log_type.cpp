@@ -4,6 +4,9 @@
 namespace xios
 {
   using namespace std ;
+  CLogType logProtocol("log_protocol") ;
+  CLogType logTimers("log_timers") ;
+  CLogType logProfile("log_profile") ;
   
   int CLogType::globalBitPos_ = 0 ;
 

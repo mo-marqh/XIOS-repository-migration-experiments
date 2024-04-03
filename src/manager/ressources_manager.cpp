@@ -11,6 +11,7 @@
 namespace xios
 {
   using namespace std;
+  extern CLogType logTimers ;
 
   CRessourcesManager::CRessourcesManager(bool isXiosServer) 
   {
@@ -111,7 +112,7 @@ namespace xios
 
   void CRessourcesManager::eventLoop(void)
   {
-    CTimer::get("CRessourcesManager::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::eventLoop").resume();
     int flag ;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
     double time=MPI_Wtime() ;
@@ -121,22 +122,22 @@ namespace xios
       lastEventLoop_=time ;
     }
 
-    CTimer::get("CRessourcesManager::eventLoop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::eventLoop").suspend();
   }
   
   void CRessourcesManager::checkNotifications(void)
   {
     int commRank ;
     MPI_Comm_rank(xiosComm_, &commRank) ;
-    CTimer::get("CRessourcesManager::checkNotifications lock").resume();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::checkNotifications lock").resume();
     winNotify_->lockWindowExclusive(commRank) ;
-    CTimer::get("CRessourcesManager::checkNotifications lock").suspend();
-    CTimer::get("CRessourcesManager::checkNotifications pop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::checkNotifications lock").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::checkNotifications pop").resume();
     winNotify_->popFromLockedWindow(commRank, this, &CRessourcesManager::notificationsDumpIn) ;
-    CTimer::get("CRessourcesManager::checkNotifications pop").suspend();
-    CTimer::get("CRessourcesManager::checkNotifications unlock").resume();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::checkNotifications pop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::checkNotifications unlock").resume();
     winNotify_->unlockWindowExclusive(commRank) ;
-    CTimer::get("CRessourcesManager::checkNotifications unlock").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CRessourcesManager::checkNotifications unlock").suspend();
     if (notifyType_==NOTIFY_CREATE_POOL) createPool() ;
     else if (notifyType_==NOTIFY_FINALIZE) finalizeSignal() ;
   }

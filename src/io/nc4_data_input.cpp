@@ -9,6 +9,7 @@
 
 namespace xios
 {
+  extern CLogType logProfile ;
   CNc4DataInput::CNc4DataInput(const StdString& filename, MPI_Comm comm_file, bool multifile, bool isCollective /*= true*/,
                                bool readMetaDataPar /*= false*/, bool ugridConvention /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
     : SuperClass()
@@ -56,7 +57,9 @@ namespace xios
     switch (SuperClass::type)
     {
       case MULTI_FILE:
+        if (info.isActive(logProfile)) CTimer::get("Files : reading data").resume();
         SuperClassWriter::getData(dataOut, fieldId, isCollective, record );
+        if (info.isActive(logProfile)) CTimer::get("Files : reading data").suspend();
         break;
       case ONE_FILE:
       {
@@ -105,7 +108,9 @@ namespace xios
           }
         }
 
+        if (info.isActive(logProfile)) CTimer::get("Files : reading data").resume();
         SuperClassWriter::getData(dataOut, fieldId, isCollective, record, &start, &count);
+        if (info.isActive(logProfile)) CTimer::get("Files : reading data").suspend();
         break;
       }
     }

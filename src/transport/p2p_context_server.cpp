@@ -29,6 +29,8 @@
 namespace xios
 {
   using namespace std ;
+  extern CLogType logTimers ;
+  extern CLogType logProfile ;
 
   CP2pContextServer::CP2pContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
                          : CContextServer(parent, intraComm_, interComm_), 
@@ -70,21 +72,23 @@ namespace xios
 
   bool CP2pContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
   {
-    CTimer::get("listen request").resume();
+    if (info.isActive(logProfile)) CTimer::get("Recv event loop (p2p)").resume();
+    if (info.isActive(logTimers)) CTimer::get("listen request").resume();
     listen();
-    CTimer::get("listen request").suspend();
+    if (info.isActive(logTimers)) CTimer::get("listen request").suspend();
 
-    CTimer::get("listen pending request").resume();
+    if (info.isActive(logTimers)) CTimer::get("listen pending request").resume();
     listenPendingRequest() ;
-    CTimer::get("listen pending request").suspend();
+    if (info.isActive(logTimers)) CTimer::get("listen pending request").suspend();
 
-    CTimer::get("check server Buffers").resume();
+    if (info.isActive(logTimers)) CTimer::get("check server Buffers").resume();
     checkBuffers() ;
-    CTimer::get("check server Buffers").suspend();
+    if (info.isActive(logTimers)) CTimer::get("check server Buffers").suspend();
 
-    CTimer::get("check event process").resume();
+    if (info.isActive(logTimers)) CTimer::get("check event process").resume();
     processEvents(enableEventsProcessing);
-    CTimer::get("check event process").suspend();
+    if (info.isActive(logTimers)) CTimer::get("check event process").suspend();
+    if (info.isActive(logProfile)) CTimer::get("Recv event loop (p2p)").suspend();
     return finished;
 
   }
@@ -268,10 +272,11 @@ namespace xios
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
+      CTimer::get("Context finalize").resume();
       finished=true;
       info(20)<<" CP2pContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
       notifyClientsFinalize() ;
-      CTimer::get("receiving requests").suspend();
+      if (info.isActive(logTimers)) CTimer::get("receiving requests").suspend();
       context->finalize();
       
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
@@ -284,6 +289,7 @@ namespace xios
         totalBuf += itMap->second;
       }
       report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
+      CTimer::get("Context finalize").suspend();
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);

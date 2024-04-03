@@ -9,6 +9,7 @@
 namespace xios
 {
   extern CLogType logProtocol ;
+  extern CLogType logTimers ;
 
   CP2pServerBuffer::CP2pServerBuffer(int clientRank, const MPI_Comm& commSelf, const MPI_Comm& interCommMerged, map<size_t, SPendingEvent>& pendingEvents, 
                                                map<size_t, SPendingEvent>& completedEvents, vector<char>& buffer) 
@@ -23,7 +24,7 @@ namespace xios
 
   void CP2pServerBuffer::createWindow(const MPI_Comm& commSelf, const MPI_Comm& interCommMerged)
   {
-    CTimer::get("create Windows").resume() ;
+    if (info.isActive(logTimers)) CTimer::get("create Windows").resume() ;
     //MPI_Comm interComm ;
     //xios::MPI_Intercomm_create(commSelf, 0, interCommMerged, clientRank_, 0 , &interComm) ;
     //xios::MPI_Intercomm_merge(interComm, true, &winComm_) ;
@@ -40,7 +41,7 @@ namespace xios
     //}
     //MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_, &winControl_);
     //CXios::getMpiGarbageCollector().registerWindow(winControl_) ;
-    CTimer::get("create Windows").suspend() ;
+    if (info.isActive(logTimers)) CTimer::get("create Windows").suspend() ;
     //MPI_Barrier(winComm_) ;
     //MPI_Barrier(winComm_) ;
 

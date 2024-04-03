@@ -9,6 +9,8 @@
 
 namespace xios
 {
+  extern CLogType logTimers ;
+
   CService::CService(MPI_Comm serviceComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& poolId, const std::string& serviceId, const int& partitionId, 
                      int type, int nbPartitions) 
                          : finalizeSignal_(false), eventScheduler_(nullptr), poolId_(poolId), serviceId_(serviceId),
@@ -114,7 +116,7 @@ namespace xios
   bool CService::eventLoop(bool serviceOnly)
   {
     //checkCreateContextNotification() ;
-    CTimer::get("CService::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CService::eventLoop").resume();
     int flag ;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
    
@@ -139,19 +141,19 @@ namespace xios
       } ;
     }
   
-    CTimer::get("CService::eventLoop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CService::eventLoop").suspend();
     if (contexts_.empty() && finalizeSignal_) return true ;
     else return false ;
   }
 
   void CService::threadEventLoop(void)
   {
+    if (info.isActive(logTimers)) CTimer::get("CService::eventLoop").resume();
     info(100)<<"Launch Thread for  CService::threadEventLoop, service id = "<<name_<<endl ;
     CThreadManager::threadInitialize() ; 
     
     do
     {
-      CTimer::get("CService::eventLoop").resume();
       int flag ;
       MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
    
@@ -176,13 +178,13 @@ namespace xios
         } ;
       }
 
-      CTimer::get("CService::eventLoop").suspend();
       if (contexts_.empty() && finalizeSignal_) finished_=true ;
       if (!finished_) CThreadManager::yield() ;
     } while (!finished_) ;
     
     CThreadManager::threadFinalize() ;
     info(100)<<"Close thread for  CService::threadEventLoop, service id = "<<name_<<endl ;
+    if (info.isActive(logTimers)) CTimer::get("CService::eventLoop").suspend();
   }
 
 

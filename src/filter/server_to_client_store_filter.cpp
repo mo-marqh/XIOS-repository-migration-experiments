@@ -33,6 +33,7 @@ namespace xios
       CWorkflowGraph::addNode("Server to Client Store filter", 5, true, 1, packets[0]);
     }
 
+    //if (info.isActive(logProfile)) CTimer::get("Field : send data (read)").resume();
     if (isEOF) 
     {
       msg<<(int)(-1) ;
@@ -45,6 +46,7 @@ namespace xios
       connector->transfer(packets[0]->data, client_, event, msg) ;
       info(20)<<"Send Data from server to client: FieldId : "<<field_->getId()<<"  step : "<<nStep_<<endl; 
     }
+    //if (info.isActive(logProfile)) CTimer::get("Field : send data (read)").suspend();
 
     nStep_++ ;
   }

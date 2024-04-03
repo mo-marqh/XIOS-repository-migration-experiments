@@ -5,9 +5,11 @@
 #include "algo_types.hpp"
 #include "context.hpp"
 #include "transform_filter.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
+  extern CLogType logProfile ;
 
   CGridAlgorithmGeneric::CGridAlgorithmGeneric(CGrid* gridSrc, CGrid* gridDst, int pos,  shared_ptr<CGenericAlgorithmTransformation> algo)
   : CGridAlgorithm(algo), gridSrc_(gridSrc), gridDst_(gridDst), pos_(pos)
@@ -53,7 +55,9 @@ namespace xios
   void CGridAlgorithmGeneric::apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut)
   {
     CArray<double,1> dataOutTmp ;
+    if (info.isActive(logProfile)) CTimer::get("Transformation transfers").resume() ;
     gridTransformConnector_->transfer(dataIn, dataOutTmp) ;
+    if (info.isActive(logProfile)) CTimer::get("Transformation transfers").suspend() ;
     algorithm_->apply(dimBefore_, dimAfter_, dataOutTmp, dataOut) ;
   }
 

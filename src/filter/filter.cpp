@@ -1,7 +1,9 @@
 #include "filter.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
+  extern CLogType logProfile ;
   CFilter::CFilter(CGarbageCollector& gc, size_t inputSlotsCount, IFilterEngine* engine)
     : CInputPin(gc, inputSlotsCount)
     , COutputPin(gc)
@@ -11,7 +13,9 @@ namespace xios
 
   void CFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
+    if (info.isActive(logProfile)) CTimer::get("Applying filters").resume() ;
     CDataPacketPtr outputPacket = engine->apply(data);
+    if (info.isActive(logProfile)) CTimer::get("Applying filters").suspend() ;
     if (outputPacket)
       onOutputReady(outputPacket);
   }

@@ -7,6 +7,7 @@
 
 namespace xios
 {
+  extern CLogType logProfile ;
   CServerFromClientSourceFilter::CServerFromClientSourceFilter(CGarbageCollector& gc, CGrid* grid)
     : COutputPin(gc)
     , grid_(grid)
@@ -24,7 +25,9 @@ namespace xios
     packet->date = CContext::getCurrent()->getCalendar()->getTimeOrigin() + timeStamp*Second; // very bad, better to pass directly the date
     packet->timestamp = timeStamp;
     packet->status = CDataPacket::NO_ERROR;
+    if (info.isActive(logProfile)) CTimer::get("Server workflow data entry").resume();
     grid_->getServerFromClientConnector()->transfer(event,packet->data) ;
+    if (info.isActive(logProfile)) CTimer::get("Server workflow data entry").suspend();
 
     if(this->graphEnabled)
     {
@@ -34,7 +37,9 @@ namespace xios
       packet->graphPackage->currentField = this->graphPackage->inFields[0];
       CWorkflowGraph::addNode("Server from Client Source filter", 1, false, 0, packet);
     }
+    if (info.isActive(logProfile)) CTimer::get("Server workflow").resume();
     onOutputReady(packet);
+    if (info.isActive(logProfile)) CTimer::get("Server workflow").suspend();
   }
 
  

@@ -13,6 +13,7 @@
 namespace xios
 {
   using namespace std ;
+  extern CLogType logTimers ;
 
   CContextsManager::CContextsManager(bool isXiosServer)
   {
@@ -152,7 +153,7 @@ namespace xios
 
   void CContextsManager::eventLoop(void)
   {
-    CTimer::get("CContextsManager::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CContextsManager::eventLoop").resume();
     int flag ;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
     double time=MPI_Wtime() ;
@@ -161,7 +162,7 @@ namespace xios
       checkNotifications() ;
       lastEventLoop_=time ;
     }
-    CTimer::get("CContextsManager::eventLoop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CContextsManager::eventLoop").suspend();
   }
   
   void CContextsManager::checkNotifications(void)

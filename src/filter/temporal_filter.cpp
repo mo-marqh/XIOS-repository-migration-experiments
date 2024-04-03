@@ -3,9 +3,11 @@
 #include "calendar_util.hpp"
 #include "workflow_graph.hpp"
 #include "mem_checker.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
+  extern CLogType logProfile ;
   static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, CArray<double, 1>& tmpData);
 
   CTemporalFilter::CTemporalFilter(CGarbageCollector& gc, const std::string& opId,
@@ -75,6 +77,7 @@ namespace xios
 
     if (data[0]->status != CDataPacket::END_OF_STREAM)
     {
+      if (info.isActive(logProfile)) CTimer::get("Temporal filters").resume() ;
       bool usePacket, outputResult, copyLess;
       if (isOnceOperation)
         usePacket = outputResult = copyLess = isFirstOperation;
@@ -122,6 +125,7 @@ namespace xios
         isFirstOperation = false;
         graphCycleCompleted = true;
      }
+     if (info.isActive(logProfile)) CTimer::get("Temporal filters").suspend() ;
     }
 
     return packet;

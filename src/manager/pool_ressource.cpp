@@ -11,6 +11,8 @@
 
 namespace xios
 {
+  extern CLogType logTimers ;
+  
   CPoolRessource::CPoolRessource(MPI_Comm poolComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& Id, bool isServer) : Id_(Id), finalizeSignal_(false)
   {
     int commRank, commSize ;
@@ -236,7 +238,7 @@ namespace xios
 
   bool CPoolRessource::eventLoop(bool serviceOnly)
   {
-    CTimer::get("CPoolRessource::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CPoolRessource::eventLoop").resume();
    
     double time=MPI_Wtime() ;
     int flag ;
@@ -258,14 +260,14 @@ namespace xios
         break ;
       }
     }
-    CTimer::get("CPoolRessource::eventLoop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CPoolRessource::eventLoop").suspend();
     if (services_.empty() && finalizeSignal_) finished_=true ;
     return finished_ ;
   }
 
   void CPoolRessource::threadEventLoop(void)
   {
-    CTimer::get("CPoolRessource::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CPoolRessource::eventLoop").resume();
     info(100)<<"Launch Thread for  CPoolRessource::threadEventLoop, pool id = "<<Id_<<endl ;
     CThreadManager::threadInitialize() ; 
     
@@ -293,7 +295,6 @@ namespace xios
         } ;
       }
 
-      CTimer::get("CPoolRessource::eventLoop").suspend();
       if (services_.empty() && finalizeSignal_) finished_=true ;
       
       if (!finished_) CThreadManager::yield() ;
@@ -301,6 +302,7 @@ namespace xios
     } while (!finished_) ;
 
     CThreadManager::threadFinalize() ;
+    if (info.isActive(logTimers)) CTimer::get("CPoolRessource::eventLoop").suspend();
     info(100)<<"Close thread for  CPoolRessource::threadEventLoop, pool id = "<<Id_<<endl ;
   }
 

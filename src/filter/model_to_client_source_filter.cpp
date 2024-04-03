@@ -5,9 +5,11 @@
 #include <limits> 
 #include "workflow_graph.hpp"
 #include "mem_checker.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
+  extern CLogType logProfile ;
   CModelToClientSourceFilter::CModelToClientSourceFilter(CGarbageCollector& gc, CGrid* grid, bool hasMissingValue, double defaultValue)
     : COutputPin(gc)
     , grid_(grid)
@@ -36,7 +38,9 @@ namespace xios
             << "grid = " << grid_->getId())
     const double nanValue = std::numeric_limits<double>::quiet_NaN();
     packet->data.resize(connector->getDstSize()) ;
+    if (info.isActive(logProfile)) CTimer::get("Model to client").resume();
     connector->transfer(data, packet->data, nanValue) ;
+    if (info.isActive(logProfile)) CTimer::get("Model to client").suspend();
 
     CMemChecker::logMem( "CModelToClientSourceFilter::streamData" );
 
@@ -49,7 +53,9 @@ namespace xios
     }
     
     buildWorkflowGraph(packet);
+    if (info.isActive(logProfile)) CTimer::get("Client workflow").resume();
     onOutputReady(packet);
+    if (info.isActive(logProfile)) CTimer::get("Client workflow").suspend();
   }
   
   void CModelToClientSourceFilter::buildWorkflowGraph(CDataPacketPtr packet)

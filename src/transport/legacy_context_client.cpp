@@ -19,6 +19,8 @@
 
 namespace xios
 {
+    extern CLogType logTimers ;
+  
     /*!
     \param [in] parent Pointer to context on client side
     \param [in] intraComm_ communicator of group client
@@ -217,7 +219,7 @@ namespace xios
       {
            // create windows dynamically for one-sided
           /*
-          CTimer::get("create Windows").resume() ;
+          if (info.isActive(logTimers)) CTimer::get("create Windows").resume() ;
           MPI_Comm interComm ;
           int tag = 0 ;
           xios::MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;
@@ -240,7 +242,7 @@ namespace xios
           MPI_Test(&attachList[rank],&flag, &status) ;
           if (flag)
           {
-            CTimer::get("create Windows").resume() ;
+            if (info.isActive(logTimers)) CTimer::get("create Windows").resume() ;
             MPI_Comm interComm ;
             int tag = 0 ;
             xios::MPI_Intercomm_create(commSelf_, 0, interCommMerged_, clientSize+rank, tag, &interComm) ;

@@ -17,6 +17,7 @@
 namespace xios
 {
   using namespace std ;
+  extern CLogType logTimers ;
 
   CServersRessource::CServersRessource(MPI_Comm serverComm) : poolRessource_(nullptr), finalizeSignal_(false)
   {
@@ -121,7 +122,7 @@ namespace xios
 
   bool CServersRessource::eventLoop(bool serviceOnly)
   {
-    CTimer::get("CServersRessource::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CServersRessource::eventLoop").resume();
     double time=MPI_Wtime() ;
     int flag ;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
@@ -142,14 +143,14 @@ namespace xios
         // don't forget to free pool ressource later
       } 
     }
-    CTimer::get("CServersRessource::eventLoop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CServersRessource::eventLoop").suspend();
     if (poolRessource_==nullptr && finalizeSignal_) finished_=true ;
     return finished_ ;
   }
 
   void CServersRessource::threadEventLoop(void)
   {
-    CTimer::get("CServersRessource::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CServersRessource::eventLoop").resume();
     info(100)<<"Launch Thread for  CServersRessource::threadEventLoop"<<endl ;
     CThreadManager::threadInitialize() ; 
 
@@ -174,13 +175,13 @@ namespace xios
           // don't forget to free pool ressource later
         } 
       }
-      CTimer::get("CServersRessource::eventLoop").suspend();
       if (poolRessource_==nullptr && finalizeSignal_) finished_=true ;
       if (!finished_) CThreadManager::yield() ;
     
     } while (!finished_) ;
 
     CThreadManager::threadFinalize() ;
+    if (info.isActive(logTimers)) CTimer::get("CServersRessource::eventLoop").suspend();
     info(100)<<"Close thread for CServersRessource::threadEventLoop"<<endl ; ;
   }
 

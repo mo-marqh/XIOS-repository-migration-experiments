@@ -12,6 +12,7 @@
 
 namespace xios
 {
+      extern CLogType logProfile ;
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4(const StdString& filename, bool append, bool useClassicFormat,
@@ -57,24 +58,24 @@ namespace xios
          // If the file does not exist, we always create it
          if (!append || !std::ifstream(filename.c_str()))
          {
-            CTimer::get("Files : create").resume();
+            if (info.isActive(logProfile)) CTimer::get("Files : create").resume();
             if (wmpi)
                CNetCdfInterface::createPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
             else
                CNetCdfInterface::create(filename, mode, this->ncidp);
-            CTimer::get("Files : create").suspend();
+            if (info.isActive(logProfile)) CTimer::get("Files : create").suspend();
  
             this->appendMode = false;
          }
          else
          {
             mode |= NC_WRITE;
-            CTimer::get("Files : open").resume();
+            if (info.isActive(logProfile)) CTimer::get("Files : open").resume();
             if (wmpi)
                CNetCdfInterface::openPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
             else
                CNetCdfInterface::open(filename, mode, this->ncidp);
-            CTimer::get("Files : open").suspend();
+            if (info.isActive(logProfile)) CTimer::get("Files : open").suspend();
             this->appendMode = true;
          }
 
@@ -88,9 +89,9 @@ namespace xios
 
       void CONetCDF4::close()
       {
-        CTimer::get("Files : close").resume();
+        if (info.isActive(logProfile)) CTimer::get("Files : close").resume();
         CNetCdfInterface::close(this->ncidp);
-        CTimer::get("Files : close").suspend();
+        if (info.isActive(logProfile)) CTimer::get("Files : close").suspend();
       }
 
       //---------------------------------------------------------------

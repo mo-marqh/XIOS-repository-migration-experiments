@@ -166,8 +166,10 @@ extern "C"
    TRY
    {
      CTimer::get("XIOS").resume();
+     CTimer::get("XIOS solve inheritance").resume();
      CContext* context = CContext::getCurrent();
      context->solveAllInheritance(false);
+     CTimer::get("XIOS solve inheritance").suspend();
      CTimer::get("XIOS").suspend();
    }
    CATCH_DUMP_STACK

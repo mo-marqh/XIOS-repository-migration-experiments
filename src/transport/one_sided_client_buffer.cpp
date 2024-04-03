@@ -6,6 +6,7 @@ namespace xios
 {
   
   extern CLogType logProtocol;
+  extern CLogType logTimers ;
 
   COneSidedClientBuffer::COneSidedClientBuffer(MPI_Comm& interComm, int serverRank, MPI_Comm& commSelf, MPI_Comm& interCommMerged, int intraServerRank) : interComm_(interComm), serverRank_(serverRank), interCommMerged_(interCommMerged), intraServerRank_(intraServerRank)
   {
@@ -19,7 +20,7 @@ namespace xios
 
   void COneSidedClientBuffer::createWindow(MPI_Comm& commSelf, MPI_Comm& interCommMerged, int intraServerRank )
   {
-    CTimer::get("create Windows").resume() ;
+    if (info.isActive(logTimers)) CTimer::get("create Windows").resume() ;
     MPI_Comm interComm ;
     xios::MPI_Intercomm_create(commSelf, 0, interCommMerged, intraServerRank, 0, &interComm) ;
     xios::MPI_Intercomm_merge(interComm, false, &winComm_) ;
@@ -45,7 +46,7 @@ namespace xios
     MPI_Barrier(winComm_) ;
     MPI_Win_attach(winControl_, control_, controlSize_*sizeof(MPI_Aint)) ;
     MPI_Barrier(winComm_) ;
-    CTimer::get("create Windows").suspend() ;
+    if (info.isActive(logTimers)) CTimer::get("create Windows").suspend() ;
  
  //   MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, winControl_) ;
  //   MPI_Win_unlock(0,winControl_) ;

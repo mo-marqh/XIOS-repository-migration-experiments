@@ -27,6 +27,7 @@
 
 namespace xios
 {
+  extern CLogType logProfile ;
 
   /// ////////////////////// Définitions ////////////////////// ///
 
@@ -319,6 +320,7 @@ namespace xios
   void CField::triggerLateField(void)
   TRY
   {
+    if (info.isActive(logProfile)) CTimer::get("Check late data (read)").resume();
     if (hasFileIn()) 
     {
       checkForLateDataFromServer() ;
@@ -330,6 +332,7 @@ namespace xios
       checkForLateDataFromCoupler() ;
       clientFromClientSourceFilter_->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate()) ;
     }
+    if (info.isActive(logProfile)) CTimer::get("Check late data (read)").suspend();
   }
   CATCH_DUMP_ATTR
 

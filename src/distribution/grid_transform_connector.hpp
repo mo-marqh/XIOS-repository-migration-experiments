@@ -9,11 +9,13 @@
 #include "grid_gatherer_connector.hpp"
 #include "reduction_types.hpp"
 #include "mpi.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
  
-  
+  extern CLogType logProfile ;
+
   class CGridTransformConnector
   {
      
@@ -40,6 +42,7 @@ namespace xios
       {
         map<int,CArray<T,1>> tmpArrayIn ;
         gridScattererConnector_->transfer(dataIn, tmpArrayIn) ;
+        if (info.isActive(logProfile)) CTimer::get("Transformation MPI").resume();
         vector<MPI_Request> requests ;
         MPI_Request request ;
         for(auto it : tmpArrayIn)
@@ -60,6 +63,7 @@ namespace xios
         
         vector<MPI_Status> status(requests.size()) ;
         MPI_Waitall(requests.size(), requests.data(),status.data()) ;
+        if (info.isActive(logProfile)) CTimer::get("Transformation MPI").suspend();
         
         const double nanValue = std::numeric_limits<double>::quiet_NaN();
 

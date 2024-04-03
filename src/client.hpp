@@ -14,6 +14,7 @@ namespace xios
         static void xiosGlobalCommByFileExchange(MPI_Comm clientComm, const string& codeId) ;
         static void xiosGlobalCommByPublishing(MPI_Comm clientComm, const string& codeId) ;
         static void finalize(void);
+        static void printProfile(void);
         static void registerContext(const string& id, MPI_Comm contextComm);
         static void registerContext_old(const string& id, MPI_Comm contextComm);
         static void callOasisEnddef(void) ; 

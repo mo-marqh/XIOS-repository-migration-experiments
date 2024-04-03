@@ -20,6 +20,7 @@
 
 namespace xios {
 
+   extern CLogType logProfile ;
    /// ////////////////////// Dfinitions ////////////////////// ///
 
    CFile::CFile(void)
@@ -328,9 +329,9 @@ namespace xios {
 
       if (mode.isEmpty() || mode.getValue() == mode_attr::write)
       {
-        CTimer::get("Files : create headers").resume();
+        if (info.isActive(logProfile)) CTimer::get("Files : create headers").resume();
         if (!isOpen) createHeader();
-        CTimer::get("Files : create headers").suspend();
+        if (info.isActive(logProfile)) CTimer::get("Files : create headers").suspend();
         checkSync();
       }        
       checkSplit(); 
@@ -356,11 +357,11 @@ namespace xios {
 //      {
         if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {
-          CTimer::get("Files : open headers").resume();
+          if (info.isActive(logProfile)) CTimer::get("Files : open headers").resume();
           
           if (!isOpen) openInReadMode();
 
-          CTimer::get("Files : open headers").suspend();
+          if (info.isActive(logProfile)) CTimer::get("Files : open headers").suspend();
         }
         //checkSplit(); // Really need for reading?
  //     }

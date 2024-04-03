@@ -10,6 +10,7 @@
 
 namespace xios
 {
+  extern CLogType logProfile ;
   CFileReaderSourceFilter::CFileReaderSourceFilter(CGarbageCollector& gc, CField* field)
     : COutputPin(gc)
   {
@@ -23,6 +24,7 @@ namespace xios
 
   void CFileReaderSourceFilter::streamData()
   {
+    if (info.isActive(logProfile)) CTimer::get("Reader workflow data entry").resume();
     Time timeStamp ;
     CDataPacketPtr packet(new CDataPacket);
     packet->date = CContext::getCurrent()->getCalendar()->getCurrentDate();
@@ -50,6 +52,7 @@ namespace xios
       this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
       CWorkflowGraph::addNode("File Reader Source filter", 1, false, 0, packet);
     }
+    if (info.isActive(logProfile)) CTimer::get("Reader workflow data entry").suspend();
            
     onOutputReady(packet);
   }

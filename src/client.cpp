@@ -35,6 +35,7 @@ namespace xios
     StdOFStream CClient::m_infoStream;
     StdOFStream CClient::m_errorStream;
     CPoolRessource* CClient::poolRessource_=nullptr ;
+    extern CLogType logTimers ;
 
     MPI_Comm& CClient::getInterComm(void)   { return (interComm_); }
      
@@ -542,7 +543,13 @@ namespace xios
 //      report(0)<< " Memory report : Current buffer_size : "<<CXios::bufferSize<<endl ;
       report(0)<< " Memory report : Minimum buffer size required : " << CClientBuffer::maxRequestSize << " bytes" << endl ;
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
-      report(100)<<CTimer::getAllCumulatedTime()<<endl ;
+
+      if (info.isActive(logProfile))
+      {
+        printProfile();
+      }
+        
+      if (info.isActive(logTimers)) report(0)<<"\n"<<CTimer::getAllCumulatedTime()<<endl ;
       if (CXios::reportMemory)
       {
         report(100)<<CMemChecker::getAllCumulatedMem()<<endl ;
@@ -551,6 +558,48 @@ namespace xios
 
       xios::releaseStaticAllocation() ;
 
+    }
+
+    void CClient::printProfile()
+    {
+      list< pair<string,int> > timer_name;
+      timer_name.push_back({"XIOS init",0});
+      timer_name.push_back({"XIOS init context",0});
+      timer_name.push_back({"XIOS close definition",0});
+      timer_name.push_back({"XIOS solve inheritance",0});
+      timer_name.push_back({"XIOS update calendar",0});
+      timer_name.push_back({"Check late data (read)",1});
+      timer_name.push_back({"XIOS recv field",0});
+      timer_name.push_back({"XIOS send field",0});
+      timer_name.push_back({"Context event loop",1});
+      timer_name.push_back({"Model to client",1});
+      timer_name.push_back({"Client workflow",1});
+      timer_name.push_back({"Applying filters",2});
+      timer_name.push_back({"Transformation transfers",3});
+      timer_name.push_back({"Transformation MPI",4});
+      timer_name.push_back({"Temporal filters",3});
+      timer_name.push_back({"Scatter event",3});
+      timer_name.push_back({"Field : send data",4});
+      timer_name.push_back({"Blocking time",0});
+      timer_name.push_back({"XIOS context finalize",0});
+      timer_name.push_back({"XIOS finalize",0});
+      
+      report(0)<< endl;
+      double total_time = CTimer::get("XIOS").getCumulatedTime();
+      for(auto it_timer_name = timer_name.begin(); it_timer_name != timer_name.end(); it_timer_name++)
+      {
+        double timer_time = CTimer::get(it_timer_name->first).getCumulatedTime();
+        if ( timer_time / total_time > 0.001 )
+        {
+          ostringstream printed_line;
+          printed_line << setprecision(3) << std::fixed;
+          for(int itab=0;itab<it_timer_name->second;itab++)
+              printed_line << "  ";
+          printed_line << it_timer_name->first << " : " << timer_time <<endl;
+          string string_line = printed_line.str();
+          report(0)<< string_line;
+        }
+      }
     }
     
     void CClient::finalizePoolRessource() 

@@ -29,6 +29,8 @@
 namespace xios
 {
   using namespace std ;
+  extern CLogType logTimers ;
+  extern CLogType logProfile ;
 
   CLegacyContextServer::CLegacyContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) 
     : CContextServer(parent, intraComm_, interComm_),
@@ -69,16 +71,18 @@ namespace xios
 
   bool CLegacyContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
   {
-    CTimer::get("listen request").resume();
+    if (info.isActive(logProfile)) CTimer::get("Recv event loop (legacy)").resume();
+    if (info.isActive(logTimers)) CTimer::get("listen request").resume();
     listen();
-    CTimer::get("listen request").suspend();
-    CTimer::get("check pending request").resume();
+    if (info.isActive(logTimers)) CTimer::get("listen request").suspend();
+    if (info.isActive(logTimers)) CTimer::get("check pending request").resume();
     checkPendingRequest();
     checkPendingProbe() ;
-    CTimer::get("check pending request").suspend();
-    CTimer::get("check event process").resume();
+    if (info.isActive(logTimers)) CTimer::get("check pending request").suspend();
+    if (info.isActive(logTimers)) CTimer::get("check event process").resume();
     processEvents(enableEventsProcessing);
-    CTimer::get("check event process").suspend();
+    if (info.isActive(logTimers)) CTimer::get("check event process").suspend();
+    if (info.isActive(logProfile)) CTimer::get("Recv event loop (legacy)").suspend();
     return finished;
   }
 
@@ -120,7 +124,7 @@ namespace xios
       // create windows dynamically for one-sided
       int dummy ;
       MPI_Send(&dummy, 0, MPI_INT, rank, 21,interCommMerged_) ;
-      CTimer::get("create Windows").resume() ;
+      if (info.isActive(logTimers)) CTimer::get("create Windows").resume() ;
       MPI_Comm interComm ;
       int tag = 0 ;
       xios::MPI_Intercomm_create(commSelf_, 0, interCommMerged_, rank, tag , &interComm) ;
@@ -137,7 +141,7 @@ namespace xios
       windows_[rank][1] -> create(winComm_[rank]) ;
       windows_[rank][0] -> setWinBufferAddress(winBufferAddress[0],0) ;
       windows_[rank][1] -> setWinBufferAddress(winBufferAddress[1],0) ;
-      CTimer::get("create Windows").suspend() ;
+      if (info.isActive(logTimers)) CTimer::get("create Windows").suspend() ;
       CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
       MPI_Barrier(winComm_[rank]) ;
 
@@ -199,8 +203,8 @@ namespace xios
     int count;
     MPI_Status status;
    
-    if (!pendingRequest.empty()) CTimer::get("receiving requests").resume();
-    else CTimer::get("receiving requests").suspend();
+    if (!pendingRequest.empty()) if (info.isActive(logTimers)) CTimer::get("receiving requests").resume();
+    else if (info.isActive(logTimers)) CTimer::get("receiving requests").suspend();
 
     for(it=pendingRequest.begin();it!=pendingRequest.end();it++)
     {
@@ -226,7 +230,7 @@ namespace xios
 
   void CLegacyContextServer::getBufferFromClient(size_t timeLine)
   {
-    CTimer::get("CLegacyContextServer::getBufferFromClient").resume() ;
+    if (info.isActive(logTimers)) CTimer::get("CLegacyContextServer::getBufferFromClient").resume() ;
 
     int rank ;
     char *buffer ;
@@ -243,7 +247,7 @@ namespace xios
         break ;
       }
     }
-    CTimer::get("CLegacyContextServer::getBufferFromClient").suspend() ;
+    if (info.isActive(logTimers)) CTimer::get("CLegacyContextServer::getBufferFromClient").suspend() ;
   }
          
        
@@ -422,10 +426,11 @@ namespace xios
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
+      if (info.isActive(logProfile)) CTimer::get("Context finalize").resume();
       finished=true;
       info(20)<<" CLegacyContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
       notifyClientsFinalize() ;
-      CTimer::get("receiving requests").suspend();
+      if (info.isActive(logTimers)) CTimer::get("receiving requests").suspend();
       context->finalize();
       
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
@@ -438,6 +443,7 @@ namespace xios
         totalBuf += itMap->second;
       }
       report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
+      if (info.isActive(logProfile)) CTimer::get("Context finalize").suspend();
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);

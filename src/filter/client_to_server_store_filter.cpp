@@ -10,6 +10,7 @@
 
 namespace xios
 {
+  extern CLogType logProfile ;
   CClientToServerStoreFilter::CClientToServerStoreFilter(CGarbageCollector& gc, CField* field, CContextClient* client)
     : CInputPin(gc, 1)
     , field_(field), client_(client), graphEnabled(false)
@@ -23,12 +24,12 @@ namespace xios
   {
     buildWorkflowGraph(data);
 
-    CTimer::get("Field : send data").resume();
+    if (info.isActive(logProfile)) CTimer::get("Field : send data").resume();
     CEventClient event(field_->getType(), CField::EVENT_ID_UPDATE_DATA);
     CMessage message ;
     message<<field_->getId() << data[0]->timestamp ;
     field_->getSentGrid()->getClientToServerConnector(client_)->transfer(data[0]->data, client_, event, message) ;
-    CTimer::get("Field : send data").suspend();
+    if (info.isActive(logProfile)) CTimer::get("Field : send data").suspend();
   }
 
   void CClientToServerStoreFilter::buildWorkflowGraph(std::vector<CDataPacketPtr> data)

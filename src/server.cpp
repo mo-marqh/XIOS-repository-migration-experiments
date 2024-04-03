@@ -51,7 +51,7 @@ namespace xios
     CEventScheduler* CServer::eventScheduler = 0;
     CServersRessource* CServer::serversRessource_=nullptr ;
     CThirdPartyDriver* CServer::driver_ =nullptr ;
-
+    extern CLogType logTimers ;
        
     void CServer::initialize(void)
     {
@@ -621,7 +621,13 @@ namespace xios
       report(0)<<"Performance report : Time spent for XIOS : "<<CTimer::get("XIOS server").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
-      report(100)<<CTimer::getAllCumulatedTime()<<endl ;
+
+      if (info.isActive(logProfile))
+      {
+        printProfile();
+      }
+      
+      if (info.isActive(logTimers)) report(0)<<"\n"<<CTimer::getAllCumulatedTime()<<endl ;
       if (CXios::reportMemory)
       {
         report(100)<<CMemChecker::getAllCumulatedMem()<<endl ;
@@ -629,6 +635,51 @@ namespace xios
       
       CWorkflowGraph::drawWorkFlowGraph_server();
       xios::releaseStaticAllocation() ; // free memory from static allocation
+    }
+    
+    void CServer::printProfile()
+    {
+      list< pair<string,int> > timer_name;
+      timer_name.push_back({"XIOS server",0});
+      timer_name.push_back({"XIOS initialize",0});
+      timer_name.push_back({"XIOS event loop",0});
+      //timer_name.push_back({"Recv event loop (p2p)",1});      // timer concerned by yield and thread (if reader embedded)
+      //timer_name.push_back({"Recv event loop (legacy)",1});   // timer concerned by yield and thread
+      timer_name.push_back({"Process events",2});
+      timer_name.push_back({"Context : close definition",3});
+      timer_name.push_back({"Reader workflow data entry",3});
+      timer_name.push_back({"Files : reading data",4});
+      //timer_name.push_back({"Field : send data (read)",4});   // timer concerned by yield and thread
+      timer_name.push_back({"Server workflow data entry",3});
+      timer_name.push_back({"Server workflow",3});
+      timer_name.push_back({"Applying filters",4});
+      timer_name.push_back({"Transformation transfers",5});
+      timer_name.push_back({"Transformation MPI",6});
+      timer_name.push_back({"Temporal filters",5});
+      timer_name.push_back({"Field : send data",4});
+      //timer_name.push_back({"Scatter event",5});              // timer concerned by yield and thread
+      //timer_name.push_back({"Blocking time",6});              // timer concerned by yield and thread
+      timer_name.push_back({"Files : create headers",4});
+      timer_name.push_back({"Files : writing data",4});
+      timer_name.push_back({"Context finalize",3});             // timer concerned by yield and thread
+      timer_name.push_back({"Files : close",4});
+      
+      report(0)<< endl;
+      double total_time = CTimer::get("Process events").getCumulatedTime();
+      for(auto it_timer_name = timer_name.begin(); it_timer_name != timer_name.end(); it_timer_name++)
+      {
+        double timer_time = CTimer::get(it_timer_name->first).getCumulatedTime();
+        if ( timer_time / total_time > 0.001 )
+        {
+          ostringstream printed_line;
+          printed_line << setprecision(3) << std::fixed;
+          for(int itab=0;itab<it_timer_name->second;itab++)
+              printed_line << "  ";
+          printed_line << it_timer_name->first << " : " << timer_time <<endl;
+          string string_line = printed_line.str();
+          report(0)<< string_line;
+        }
+      }
     }
 
     /*!

@@ -10,7 +10,7 @@
 
 namespace xios
 {
-
+  extern CLogType logTimers ;
   
 
   CServicesManager::CServicesManager(bool isXiosServer)
@@ -122,7 +122,7 @@ namespace xios
   
   void CServicesManager::eventLoop(void)
   {
-    CTimer::get("CServicesManager::eventLoop").resume();
+    if (info.isActive(logTimers)) CTimer::get("CServicesManager::eventLoop").resume();
     int flag ;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
     double time=MPI_Wtime() ;
@@ -131,7 +131,7 @@ namespace xios
       checkNotifications() ;
       lastEventLoop_=time ;
     }
-    CTimer::get("CServicesManager::eventLoop").suspend();
+    if (info.isActive(logTimers)) CTimer::get("CServicesManager::eventLoop").suspend();
   }
 
 
