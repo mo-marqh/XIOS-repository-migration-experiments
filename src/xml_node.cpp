@@ -1,5 +1,5 @@
 #include "xml_node.hpp"
-#include <boost/algorithm/string.hpp>
+#include <boost_extract.hpp>
 
 namespace xios
 {
@@ -86,8 +86,8 @@ namespace xios
              if (nextElement->type() == rapidxml::node_data) content=content+std::string(nextElement->value(),nextElement->value_size());
              nextElement = nextElement->next_sibling(); 
          }
-         boost::algorithm::replace_all(content,"\n"," ") ;
-         boost::algorithm::trim(content) ;
+         xios_replace_all(content,"\n"," ") ;
+         content = xios_trim_copy(content); 
          if (content.size()==0) return false ;
          else return true ;
       }

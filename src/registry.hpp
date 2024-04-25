@@ -7,8 +7,6 @@
 #include "message.hpp"
 
 // Those two headers can be replaced by the C++11 equivalent in the future
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits.hpp>
 
 namespace xios
 {
@@ -32,7 +30,7 @@ namespace xios
       void setKey(const std::string& key, const CBaseType& value) { this->setKey_(key,value); }
 
 /** insert a value associated to a key*/
-      template<typename T> typename boost::enable_if_c<!boost::is_convertible<T&, CBaseType&>::value>::type
+      template<typename T> typename std::enable_if<!std::is_convertible<T&, CBaseType&>::value>::type
       setKey(const std::string& key, const T& value) { this->setKey_(key,CType<T>(value)); }
 
 
@@ -40,7 +38,7 @@ namespace xios
       void getKey(const std::string& key, CBaseType& value) const { this->getKey_(key,value); }
 
 /** retrieve a value from a key */
-      template<typename T> typename boost::enable_if_c<!boost::is_convertible<T&, CBaseType&>::value>::type
+      template<typename T> typename std::enable_if<!std::is_convertible<T&, CBaseType&>::value>::type
       getKey(const std::string& key, T& value) const { CType_ref<T> valRef(value); this->getKey_(key,valRef); }
 
 

@@ -2,7 +2,7 @@
 #define __XIOS_SCALAR_EXPR_NODE_HPP__
 
 #include <string>
-#include <boost/smart_ptr/scoped_ptr.hpp>
+#include <memory>
 
 namespace xios
 {
@@ -80,7 +80,7 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IScalarExprNode> child; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child; //!< The scalar child node to which the operator is applied
   };
 
   /*!
@@ -104,7 +104,7 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IScalarExprNode> child1, child2; //!< The scalar child nodes to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child1, child2; //!< The scalar child nodes to which the operator is applied
   };
 
     class CScalarTernaryOpExprNode : public IScalarExprNode
@@ -125,7 +125,7 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IScalarExprNode> child1, child2, child3; //!< The scalar child nodes to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child1, child2, child3; //!< The scalar child nodes to which the operator is applied
   };
 }
 

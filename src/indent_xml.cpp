@@ -1,8 +1,7 @@
 #include "indent_xml.hpp"
 
 /// boost headers ///
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
+#include <boost_extract.hpp>
 
 namespace xios
 {
@@ -31,7 +30,7 @@ namespace xios
    {
       StdOStringStream retvalue;
       std::vector<StdString> str;
-      boost::split(str, content, boost::is_any_of("\n"));
+      xios_split<std::vector<StdString>>(str, content, "\n");
       
       std::vector<StdString>::iterator it = str.begin(), end = str.end();
       

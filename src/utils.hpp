@@ -184,7 +184,7 @@ namespace xios
       }
       return hash;
     }
-
+    
     static inline size_t hash_combine(size_t seed, const T& value)
     {
       seed ^= jenkins_hash(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -192,6 +192,16 @@ namespace xios
     }
 
   };
+  
+  struct pair_xios_hash {
+    template <class T>
+    std::size_t operator () (const std::pair<T,T> &p) const
+    {
+      const std::vector<T> hash_vec = {p.first, p.second};
+      return HashAlgorithm<T>::boost_hash(hash_vec );
+    }
+  };
+
 
   template<typename T, typename Algo = Int2Type<0> >
   struct HashXIOS

@@ -44,7 +44,7 @@ namespace xios
         if (ret) outputPin = field->getInstantDataFilter(); // if dependency is complete build the graph other return nullptr
         
       }
-      else ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+      else ERROR("std::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
                   << "The field " << id << " does not exist.");
     }
     return outputPin;

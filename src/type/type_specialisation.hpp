@@ -7,8 +7,8 @@
 #include "buffer_out.hpp"
 #include "type.hpp"
 #include <string>
-#include <boost/algorithm/string.hpp>
 #include "date.hpp"
+#include <boost_extract.hpp>
  
 namespace xios
 {
@@ -17,7 +17,7 @@ namespace xios
 
   template <> void CType<bool>::_fromString(const string& str)
   {
-    string tmpStr=boost::to_lower_copy(boost::trim_copy(str)) ;
+    string tmpStr=xios_to_lower_copy(xios_trim_copy(str)) ;
     if (tmpStr=="true" || tmpStr==".true." || tmpStr=="yes" || tmpStr=="y") set(true) ;
     else if (tmpStr=="false" || tmpStr==".false." || tmpStr=="no" || tmpStr=="n") set(false) ;
     else ERROR("template <> CType<bool>::fromString(const string& str)",<< tmpStr << " cannot be converted in a boolean value") ;
@@ -31,7 +31,7 @@ namespace xios
  
   template <> void CType_ref<bool>::_fromString(const string& str) const
   {
-    string tmpStr=boost::to_lower_copy(boost::trim_copy(str)) ;
+    string tmpStr=xios_to_lower_copy(xios_trim_copy(str)) ;
     if (tmpStr=="true" || tmpStr==".true." || tmpStr=="yes" || tmpStr=="y") set(true) ;
     else if (tmpStr=="false" || tmpStr==".false." || tmpStr=="no" || tmpStr=="n") set(false) ;
     else ERROR("template <> CType<bool>::fromString(const string& str)",<< tmpStr << " cannot be converted in a boolean value") ;
@@ -39,7 +39,7 @@ namespace xios
  
   template <> void CType_ref<bool>::_fromString(const string& str)
   {
-    string tmpStr=boost::to_lower_copy(boost::trim_copy(str)) ;
+    string tmpStr=xios_to_lower_copy(xios_trim_copy(str)) ;
     if (tmpStr=="true" || tmpStr==".true." || tmpStr=="yes" || tmpStr=="y") set(true) ;
     else if (tmpStr=="false" || tmpStr==".false." || tmpStr=="no" || tmpStr=="n") set(false) ;
     else ERROR("template <> CType<bool>::fromString(const string& str)",<< tmpStr << " cannot be converted in a boolean value") ;
@@ -425,13 +425,6 @@ namespace xios
 */
 
 
-/*
-template<size_t numDim>
-boost::detail::multi_array::extent_gen<numDim> getExtentNull(void) { return getExtentNull<numDim-1>()[0];}
-
-template<>
-boost::detail::multi_array::extent_gen<1> getExtentNull<1>(void) { return extents[0]; }
-*/
 /*
 #define CTYPE_ARRAY(ValueType,NumsDims)                                \
                                                                        \

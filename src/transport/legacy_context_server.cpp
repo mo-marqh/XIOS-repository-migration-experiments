@@ -21,7 +21,6 @@
 #include "contexts_manager.hpp"
 #include "timeline_events.hpp"
 
-#include <boost/functional/hash.hpp>
 #include <random>
 #include <chrono>
 

@@ -2,7 +2,6 @@
 #define __XIOS_CAttribute__
 
 /// boost headers ///
-#include <boost/any.hpp>
 
 /// XIOS headers ///
 #include "xios_spl.hpp"

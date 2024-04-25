@@ -509,7 +509,6 @@ namespace xios
      oss << " *               Interface auto generated - do not modify                     *" << iendl;
      oss << " * ************************************************************************** */" << iendl;
      oss << iendl;
-     oss << "#include <boost/multi_array.hpp>" << iendl;
      oss << "#include \"xios.hpp\"" << iendl;
      oss << "#include \"attribute_template.hpp\"" << iendl;
      oss << "#include \"object_template.hpp\"" << iendl;

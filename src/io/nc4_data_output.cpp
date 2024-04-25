@@ -13,6 +13,7 @@
 #include "uuid.hpp"
 
 #include <limits.h>
+#include <cfloat>
 #define X_FLOAT_MAX     FLT_MAX
 #define X_FLOAT_MIN     FLT_MIN
 #define X_SHORT_MAX     SHRT_MAX
@@ -1971,7 +1972,7 @@ namespace xios
 
            {  // Ecriture des coordonnes
 
-              StdString coordstr; //boost::algorithm::join(coodinates, " ")
+              StdString coordstr;
               std::vector<StdString>::iterator
                  itc = coodinates.begin(), endc = coodinates.end();
 

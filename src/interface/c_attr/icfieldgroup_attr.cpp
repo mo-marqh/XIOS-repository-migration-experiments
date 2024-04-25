@@ -2,7 +2,7 @@
  *               Interface auto generated - do not modify                     *
  * ************************************************************************** */
 
-#include <boost/multi_array.hpp>
+
 #include "xios.hpp"
 #include "attribute_template.hpp"
 #include "object_template.hpp"

@@ -4,6 +4,7 @@
 /// XIOS headers ///
 #include "xios_spl.hpp"
 #include "object.hpp"
+#include <boost_extract.hpp>
 #include <iomanip>
 #include <stdexcept>
 
@@ -58,11 +59,11 @@ namespace xios
 
 #define FILE_NAME (std::strrchr("/" __FILE__, '/') + 1)
 
-#define FUNCTION_NAME (StdString(BOOST_CURRENT_FUNCTION).length() > 100 ? \
-                       StdString(BOOST_CURRENT_FUNCTION).substr(0,100).append("...)") : BOOST_CURRENT_FUNCTION)
+#define FUNCTION_NAME (StdString(XIOS_CURRENT_FUNCTION).length() > 100 ? \
+                       StdString(XIOS_CURRENT_FUNCTION).substr(0,100).append("...)") : XIOS_CURRENT_FUNCTION)
 
 #define INFO(x) \
-   "In file \""<< FILE_NAME <<"\", function \"" << BOOST_CURRENT_FUNCTION <<"\",  line " << __LINE__ << " -> " x << std::endl;
+   "In file \""<< FILE_NAME <<"\", function \"" << XIOS_CURRENT_FUNCTION <<"\",  line " << __LINE__ << " -> " x << std::endl;
 
 #ifdef __XIOS_DEBUG
 #  define DEBUG(x) std::clog << "> Debug " << INFO(x)

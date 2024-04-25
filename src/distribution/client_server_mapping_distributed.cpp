@@ -9,7 +9,6 @@
  */
 #include "client_server_mapping_distributed.hpp"
 #include <limits>
-#include <boost/functional/hash.hpp>
 #include "utils.hpp"
 #include "mpi_tag.hpp"
 #include "context.hpp"

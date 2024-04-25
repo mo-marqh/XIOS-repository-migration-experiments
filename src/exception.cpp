@@ -1,7 +1,6 @@
 #include "exception.hpp"
 
 /// boost headers ///
-#include <boost/cast.hpp>
 #include "client.hpp"
 #include "server.hpp"
 #include "log.hpp"
@@ -51,7 +50,6 @@ namespace xios
    }
 
    StdOStringStream &  CException::getStream(void)
-//   { return (*boost::polymorphic_cast<StdOStringStream*>(this)); }
    { return stream; }
 
    std::string CException::toString(void) const

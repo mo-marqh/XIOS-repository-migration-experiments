@@ -2,7 +2,7 @@
 #define __XIOS_GroupParser__
 
 /// boost headers ///
-#include <boost/cast.hpp>
+#include <boost_extract.hpp>
 
 namespace xios
 {
@@ -32,7 +32,7 @@ namespace xios
       // PARSING POUR GESTION DES ENFANTS
            V* group_ptr = (this->hasId()) 
          ? V::get(this->getId())
-         : boost::polymorphic_downcast<V*>(this);
+         : xios_polymorphic_downcast<V*>(this);
 
       if (!(node.goToChildElement()))
       {
@@ -89,7 +89,7 @@ namespace xios
       // PARSING POUR GESTION DES ENFANTS
            V* group_ptr = (this->hasId()) 
          ? V::get(this->getId())
-         : boost::polymorphic_downcast<V*>(this);
+         : xios_polymorphic_downcast<V*>(this);
 
           StdString name = node.getElementName();
           attributes.clear();

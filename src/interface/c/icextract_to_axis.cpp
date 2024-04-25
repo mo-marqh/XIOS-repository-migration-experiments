@@ -2,7 +2,7 @@
  *      Copyright © IPSL/LSCE, xios, Avril 2010 - Octobre 2011         *
  * ************************************************************************** */
 
-#include <boost/multi_array.hpp>
+
 #include <memory>
 
 #include "xios.hpp"

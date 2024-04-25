@@ -2,7 +2,6 @@
 #define __XIOS_CAttributeTemplate__
 
 /// boost headers ///
-#include <boost/lexical_cast.hpp>
 
 /// XIOS headers ///
 #include "xios_spl.hpp"

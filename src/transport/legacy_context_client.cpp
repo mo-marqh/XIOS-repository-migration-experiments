@@ -13,7 +13,6 @@
 #include "server.hpp"
 #include "services.hpp"
 #include "ressources_manager.hpp"
-#include <boost/functional/hash.hpp>
 #include <random>
 #include <chrono>
 

@@ -2,7 +2,7 @@
 #include "netCdfInterface.hpp"
 #include "netCdf_cf_constant.hpp"
 
-#include <boost/algorithm/string.hpp>
+#include <boost_extract.hpp>
 
 namespace xios
 {
@@ -434,7 +434,7 @@ namespace xios
     std::list<StdString> retvalue;
     StdString value = this->getCoordinatesId(name, path);
 
-    boost::split(retvalue, value, boost::is_any_of(" "));
+    xios_split<std::list<StdString>>(retvalue, value, " ");
 
     std::list<StdString>::iterator it = retvalue.begin(), end = retvalue.end();
     for (; it != end; it++)

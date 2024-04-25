@@ -2,11 +2,6 @@
 #include "calendar.hpp"
 #include "calendar_type.hpp"
 #include "calendar_util.hpp"
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-
-using namespace boost::posix_time;
-using namespace boost::gregorian;
 
 namespace xios
 {

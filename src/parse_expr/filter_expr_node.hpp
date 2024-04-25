@@ -2,7 +2,7 @@
 #define __XIOS_FILTER_EXPR_NODE_HPP__
 
 #include <string>
-#include <boost/smart_ptr/scoped_ptr.hpp>
+#include <memory>
 #include "scalar_expr_node.hpp"
 
 namespace xios
@@ -89,7 +89,7 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IFilterExprNode> child; //!< The child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child; //!< The child node to which the operator is applied
   };
 
   /*!
@@ -114,8 +114,8 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
   };
 
   /*!
@@ -140,8 +140,8 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
   };
 
   /*!
@@ -165,7 +165,7 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IFilterExprNode> child1, child2; //!< The field child nodes to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child1, child2; //!< The field child nodes to which the operator is applied
   };
 
 
@@ -193,9 +193,9 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
-      boost::scoped_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
   };
 
 
@@ -222,9 +222,9 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IScalarExprNode> child3; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child3; //!< The scalar child node to which the operator is applied
   };
 
 
@@ -251,9 +251,9 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child1; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
   };
 
 
@@ -281,9 +281,9 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
-      boost::scoped_ptr<IScalarExprNode> child3; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child3; //!< The scalar child node to which the operator is applied
   };
 
 
@@ -310,9 +310,9 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child2; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
   };
 
   /*!
@@ -338,9 +338,9 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IScalarExprNode> child3; //!< The scalar child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
+      std::unique_ptr<IScalarExprNode> child3; //!< The scalar child node to which the operator is applied
   };
 
 
@@ -367,9 +367,9 @@ namespace xios
 
     private:
       std::string opId; //!< The identifier of the field
-      boost::scoped_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
-      boost::scoped_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child1; //!< The field child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child2; //!< The field child node to which the operator is applied
+      std::unique_ptr<IFilterExprNode> child3; //!< The field child node to which the operator is applied
   };
 
 

@@ -7,7 +7,7 @@
 #include "buffer_out.hpp"
 #include "message.hpp"
 #include <string>
-#include <boost/algorithm/string.hpp>
+#include <boost_extract.hpp>
 
 namespace xios
 {
@@ -137,12 +137,12 @@ namespace xios
   template <class T>
   void CEnum<T>::_fromString(const string& str)
   {
-    string tmpStr=boost::to_lower_copy(boost::trim_copy(str)) ;
+    string tmpStr=xios_to_lower_copy(xios_trim_copy(str)) ;
     
     bool found=false ;
     for(int i=0;i<T::getSize();i++)
     {
-      if (boost::to_lower_copy(string(T::getStr()[i]))==tmpStr)
+      if (xios_to_lower_copy(string(T::getStr()[i]))==tmpStr)
       {
         allocate() ;
         *ptrValue=(T_enum) i ;
@@ -154,7 +154,7 @@ namespace xios
     for(int i=0;i<T::getSize();i++) 
     {
       if (i>0) strList<<", " ;
-      strList<<boost::to_lower_copy(string(T::getStr()[i])) ;
+      strList<<xios_to_lower_copy(string(T::getStr()[i])) ;
     }
     
     ERROR("template <typename T> void CEnum<T>::_fromString(const string& str)",

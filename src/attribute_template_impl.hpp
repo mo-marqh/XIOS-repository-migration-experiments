@@ -244,59 +244,13 @@ namespace xios
          bool CAttributeTemplate<T>::_toBuffer (CBufferOut& buffer) const
       {
          return CType<T>::toBuffer(buffer) ;
-/*
-         if (isEmpty()) return buffer.put(true) ;
-         else
-         {
-           bool ret=true ;
-           CType<T> val(*boost::any_cast<T>(&value)) ;
-           ret&=buffer.put(false) ;
-           ret&=val.toBuffer(buffer) ;
-           return ret ;
-         }
-*/
       }
 
       template <class T>
       bool CAttributeTemplate<T>::_fromBuffer(CBufferIn& buffer)
       {
         return CType<T>::fromBuffer(buffer) ;
-/*
-        bool empty ;
-        bool ret=true ;
-        ret&=buffer.get(empty) ;
-        if (empty)
-        {
-          clear() ;
-          return ret ;
-        }
-        else
-        {
-          if (isEmpty())
-          {
-            T val ;
-            setValue(val) ;
-          }
-          T* V=const_cast<T*>(boost::any_cast<T>(&value)) ;
-          CType<T> val(*V) ;
-          return val.fromBuffer(buffer) ;
-        }
-*/
       }
-/*
-      template <class T>
-      size_t CAttributeTemplate<T>::size(void) const
-      {
-        return CType<T>::size() ;*/
-/*
-        if (isEmpty()) return sizeof(bool) ;
-        else
-        {
-          CType<T> val(*const_cast<T*>(boost::any_cast<T>(&value))) ;
-          return val.size()+sizeof(bool) ;
-        }
-*/
- /*     }*/
 
       template <typename T>
       void CAttributeTemplate<T>::generateCInterface(ostream& oss,const string& className)

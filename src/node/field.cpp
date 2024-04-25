@@ -24,6 +24,7 @@
 #include "grid_redistribute_filter.hpp"
 #include "tracer.hpp"
 #include "graph_package.hpp"
+#include <boost_extract.hpp>
 
 namespace xios
 {
@@ -681,7 +682,7 @@ namespace xios
     std::shared_ptr<COutputPin> filterExpr ;
     if (hasExpression())
     {
-      boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
+      std::unique_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
       filterExpr = expr->reduce(gc, *this);
       
       
@@ -1389,7 +1390,7 @@ namespace xios
          << " invalid group name !");
 
     CFieldGroup* group = CFieldGroup::get(gref);
-    CFieldGroup* owner = CFieldGroup::get(boost::polymorphic_downcast<CFieldGroup*>(this));
+    CFieldGroup* owner = CFieldGroup::get(xios_polymorphic_downcast<CFieldGroup*>(this));
     owner->setAttributes(group); // inherite of attributes of group reference
       
     std::vector<CField*> allChildren  = group->getAllChildren();

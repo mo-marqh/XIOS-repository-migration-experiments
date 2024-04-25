@@ -8,7 +8,7 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
-#include <boost/algorithm/string.hpp>
+#include <boost_extract.hpp>
 
 namespace xios {
 
@@ -59,7 +59,7 @@ namespace xios {
                << "[ variable id = " << id
                << " ] variable is not defined !. It does not have any content. See error log for more details.");
       }
-      content = boost::trim_copy(content) ;
+      content = xios_trim_copy(content) ;
    }
 
    void CVariable::checkInDictionary(StdString id)
@@ -230,12 +230,12 @@ namespace xios {
         {
            endid   = content.find_first_of ( " \r\n\t=", beginid );
            subid   = content.substr ( beginid, endid-beginid);
-           subid   = boost::to_lower_copy(boost::trim_copy(subid)) ;
+           subid   = xios_to_lower_copy(xios_trim_copy(subid)) ;
 
            begindata = content.find_first_of ( "=", endid ) + 1;
            enddata   = content.find_first_of ( ";", begindata );
            subdata   = content.substr ( begindata, enddata-begindata);
-           subdata   = boost::trim_copy(subdata) ;
+           subdata   = xios_trim_copy(subdata) ;
            group_ptr->createChild(subid)->content = subdata ;
         }
       }

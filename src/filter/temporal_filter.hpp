@@ -2,7 +2,6 @@
 #define __XIOS_CTemporalFilter__
 
 #include "filter.hpp"
-#include <boost/smart_ptr/scoped_ptr.hpp>
 #include "functor.hpp"
 #include "array_new.hpp"
 
@@ -59,7 +58,7 @@ namespace xios
     private:
       // Warning the declaration order matters here, double-check the constructor before changing it
       CArray<double, 1> tmpData; //!< The array of data used for temporary storage
-      const boost::scoped_ptr<func::CFunctor> functor; //!< The functor corresponding to the temporal operation
+      const std::unique_ptr<func::CFunctor> functor; //!< The functor corresponding to the temporal operation
       const bool isOnceOperation; //!< True if the operation should be computed just once
       const bool isInstantOperation; //!< True if the operation is instant
       const CDuration samplingFreq; //!< The sampling frequency, i.e. the frequency at which the input data will be used

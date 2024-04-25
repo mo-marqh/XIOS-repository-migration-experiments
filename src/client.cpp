@@ -2,7 +2,6 @@
 #include "xios_spl.hpp"
 #include "cxios.hpp"
 #include "client.hpp"
-#include <boost/functional/hash.hpp>
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"

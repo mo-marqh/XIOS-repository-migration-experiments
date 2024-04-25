@@ -5,7 +5,7 @@
 */
 
 #include "mesh.hpp"
-#include <boost/functional/hash.hpp>
+#include "utils.hpp"
 //#include <unordered_map>
 
 namespace xios {
@@ -2102,7 +2102,7 @@ namespace xios {
     // faceToNodes connectivity
     CArray<double, 2> faceToNodes (nvertex, nbFaces);
 
-    std::unordered_map <pairDouble, int, boost::hash<pairDouble> > mapNodes;
+    std::unordered_map <pairDouble, int, pair_xios_hash> mapNodes;
 
     for (int nf = 0; nf < nbFaces; ++nf)
       for (int nv = 0; nv < nvertex; ++nv)
@@ -2118,7 +2118,7 @@ namespace xios {
       }
 
     // faceToFaces connectivity
-    std::unordered_map <pairInt, int, boost::hash<pairInt> > mapEdges;
+    std::unordered_map <pairInt, int, pair_xios_hash> mapEdges;
     faceToFaces.resize(nvertex, nbFaces);
     CArray<int, 2> edgeToFaces(2, nbFaces*nvertex); // max possible
 

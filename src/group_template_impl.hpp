@@ -11,7 +11,7 @@
 #include "message.hpp"
 #include "type.hpp"
 #include "type_util.hpp"
-
+#include <boost_extract.hpp>
 
 namespace xios
 {
@@ -339,7 +339,7 @@ namespace xios
       // PARSING POUR GESTION DES ENFANTS
            V* group_ptr = (this->hasId()) 
          ? V::get(this->getId())
-         : boost::polymorphic_downcast<V*>(this);
+         : xios_polymorphic_downcast<V*>(this);
 
       if (!(node.goToChildElement()))
       {
@@ -395,7 +395,7 @@ namespace xios
       // PARSING POUR GESTION DES ENFANTS
            V* group_ptr = (this->hasId()) 
          ? V::get(this->getId())
-         : boost::polymorphic_downcast<V*>(this);
+         : xios_polymorphic_downcast<V*>(this);
 
           StdString name = node.getElementName();
           xml::THashAttributes attributes = node.getAttributes();

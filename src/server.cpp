@@ -7,8 +7,6 @@
 #include "context.hpp"
 #include "object_template.hpp"
 #include "oasis_cinterface.hpp"
-#include <boost/functional/hash.hpp>
-#include <boost/algorithm/string.hpp>
 #include "mpi.hpp"
 #include "tracer.hpp"
 #include "timer.hpp"
@@ -561,7 +559,7 @@ namespace xios
 
        if (eventSent)
        {
-         boost::hash<string> hashString;
+         std::hash<string> hashString;
          size_t hashId = hashString("oasis_enddef");
 
          if (CXios::getPoolRessource()->getEventScheduler()->queryEvent(0,hashId))
@@ -578,7 +576,7 @@ namespace xios
        if (flag==true)
        {
            MPI_Recv(&msg,1,MPI_INT,root,5,intraComm_,&status) ; // tags oasis_endded = 5
-           boost::hash<string> hashString;
+           std::hash<string> hashString;
            size_t hashId = hashString("oasis_enddef");
            CXios::getPoolRessource()->getEventScheduler()->registerEvent(0,hashId);
            eventSent=true ;

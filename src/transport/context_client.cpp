@@ -12,7 +12,6 @@
 #include "cxios.hpp"
 #include "server.hpp"
 #include "services.hpp"
-#include <boost/functional/hash.hpp>
 #include <random>
 #include <chrono>
 #include "one_sided_context_client.hpp"

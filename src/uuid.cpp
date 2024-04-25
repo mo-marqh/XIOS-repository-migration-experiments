@@ -1,15 +1,13 @@
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <string>
+#include <boost_uuid.hpp>
 
 namespace xios
 {
   
   std::string getUuidStr(void)
   {
-    boost::uuids::random_generator gen;
-    boost::uuids::uuid u = gen();
-    return boost::uuids::to_string(u) ;
+    boost_uuid uuid = gen_boost_uuid();
+    return to_string(uuid) ;
   }
   
   std::string getUuidStr(const std::string& format)

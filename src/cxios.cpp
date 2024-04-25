@@ -4,7 +4,6 @@
 #include "client.hpp"
 #include "server.hpp"
 #include "xml_parser.hpp"
-#include <boost/functional/hash.hpp>
 #include "mpi.hpp"
 #include "memory.hpp"
 #include <new>

@@ -2,8 +2,6 @@
 #include <sstream>
 #include <string>
 
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include "calendar_type.hpp"
 #include "date.hpp"
 #include "calendar_util.hpp"
@@ -20,8 +18,6 @@
 
 
 using namespace std ;
-using namespace boost::posix_time ;
-using namespace boost::gregorian ;
 using namespace xios;
 using namespace blitz;
 

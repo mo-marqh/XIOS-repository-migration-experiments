@@ -6,7 +6,6 @@ oasis="oasis3_mct"
 build_path="./"
 build_dir="./"
 build_suffixed="false"
-use_extern_boost="false"
 use_extern_blitz="false"
 use_memtrack="false"
 job="1"
@@ -36,7 +35,6 @@ while (($# > 0))
         echo "       [--build_path : absolute path to the build directory"
         echo "       [--build_dir : name of the build directory"
         echo "       [--build_suffixed : generate automatically suffixed name of the build directory (e.g. config_X64_CURIE_prod)"
-        echo "       [--use_extern_boost : to use external boost library"
         echo "       [--use_extern_blitz : to use external blitz library"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
@@ -57,7 +55,6 @@ while (($# > 0))
          "--build_path")  build_path=$2     ; shift ; shift ;;
          "--build_dir")  build_dir=$2     ; shift ; shift ;;
          "--build_suffixed")  build_suffixed="true" ; shift  ;;
-         "--use_extern_boost")  use_extern_boost="true" ; shift  ;;
          "--use_extern_blitz")  use_extern_blitz="true" ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
@@ -74,7 +71,7 @@ if [ ${nb_files_gz} -ne 0 ]
 then
     echo -e "- uncompress archives ..."		
     for tarname in `ls $install_dir/tools/archive/*.tar.gz` ; do
-        if  ( [[ ${tarname} == "${install_dir}/tools/archive/boost.tar.gz" ]] && [[ "$use_extern_boost" == "true" ]] ) || ( [[ ${tarname} == "${install_dir}/tools/archive/blitz.tar.gz" ]] && [[ "$use_extern_blitz" == "true" ]] )
+        if  ( [[ ${tarname} == "${install_dir}/tools/archive/blitz.tar.gz" ]] && [[ "$use_extern_blitz" == "true" ]] )
         then
                 continue
         fi
@@ -280,17 +277,8 @@ else
 fi
 # End "Detecting if parallel compression is available"
 
-
 # Setting path for boost
-if [[ "$use_extern_boost" == "true" ]]
-then
-   rm -r $PWD/extern/boost
-   ln -s $PWD/.void_dir $PWD/extern/boost
-else
-   export BOOST_INCDIR="-I${PWD}/extern/boost"
-   export BOOST_LIBDIR=""
-   export BOOST_LIB=""
-fi
+export BOOST_INCDIR="-I${PWD}/extern/boost_extraction/include"
 
 # Setting path for blitz
 if [[ "$use_extern_blitz" == "true" ]]

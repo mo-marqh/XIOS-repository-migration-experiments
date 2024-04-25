@@ -36,8 +36,6 @@
 #include <sstream>
 
 /// boost headers ///
-#include <boost/cast.hpp>
-#include <boost/current_function.hpp>
 
 /// Map ///
 #define xios_map std::map
@@ -68,6 +66,5 @@ const size_t stringArrayLen=255 ;
 #include "configure.hpp"
 #include "log.hpp"
 using namespace std;
-//using namespace boost ;
 
 #endif //__XIOS_SPL__
