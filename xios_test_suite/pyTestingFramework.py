@@ -147,7 +147,7 @@ for atest_dir in test_dirs:
                        os.path.join(run_test_dir, 'context_atm.xml'))
         # hold n processes at 2 whilst messaging issue persists
         # acall = ['mpiexec', '-np', str(config_dict["NumberClients"] + 1), 'generic_testcase.exe']
-        acall = ['mpiexec', '-np', '2', 'generic_testcase.exe']
+        acall = ['mpiexec', '-np', '2', '--use-hwthread-cpus', 'generic_testcase.exe']
 
         def make_a_test(the_test_dir, acall):
             """
