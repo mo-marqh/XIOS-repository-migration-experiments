@@ -15,8 +15,10 @@ jobs:
             sudo apt -yq install $(<dependencies)
       - name: build XIOS
         run: |
-          ./make_xios --debug --arch GCC_LINUX_APT
+          patch -p0 < ./patches/revert_svn2517_transport.patch
+          ./make_xios --job 2 --debug --arch GCC_LINUX_APT
           ls -l bin/
       - name: run xios_test_suite
         run: |
+          export GITHUB_ACTION_LIMIT_RANKS=1
           python3 -m xios_test_suite.pyTestingFramework
