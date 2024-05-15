@@ -19,4 +19,5 @@ jobs:
           ls -l bin/
       - name: run xios_test_suite
         run: |
+          export GITHUB_ACTION_LIMIT_RANKS=1
           python3 -m xios_test_suite.pyTestingFramework

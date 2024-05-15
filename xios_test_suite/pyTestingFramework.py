@@ -127,9 +127,12 @@ for atest_dir in test_dirs:
             # new param.def in run_test_dir
             fh.write("&params_run\n")
             fh.write("duration=\'"+config_dict["Duration"]+"\'\n")
-            # fh.write("nb_proc_atm=" + str(config_dict["NumberClients"])+"\n")
-            # hold n clients at 1 whilst messaging issue persists
-            fh.write("nb_proc_atm="+str(1)+"\n")
+            if os.environ.get('GITHUB_ACTION_LIMIT_RANKS'):
+                # hold n clients at 1 for limited github runner resources
+                fh.write("nb_proc_atm="+str(1)+"\n")
+            else:
+                fh.write("nb_proc_atm=" + str(config_dict["NumberClients"])+"\n")
+
             fh.write("/\n")
 
         #symbolically link required .xml, .nc & .exe into run_test_dir
@@ -142,12 +145,21 @@ for atest_dir in test_dirs:
         if not os.path.exists(os.path.join(run_test_dir, 'generic_testcase.exe')):
             os.symlink(os.path.join(os.path.dirname(test_root), 'bin', 'generic_testcase.exe'),
                        os.path.join(run_test_dir, 'generic_testcase.exe'))
+        if not os.path.exists(os.path.join(run_test_dir, 'xios_server.exe')):
+            os.symlink(os.path.join(os.path.dirname(test_root), 'bin', 'xios_server.exe'),
+                       os.path.join(run_test_dir, 'xios_server.exe'))
         if not os.path.exists(os.path.join(run_test_dir, 'context_atm.xml')):
             os.symlink(os.path.join(atest_dir, 'context_atm.xml'),
                        os.path.join(run_test_dir, 'context_atm.xml'))
-        # hold n processes at 2 whilst messaging issue persists
-        # acall = ['mpiexec', '-np', str(config_dict["NumberClients"] + 1), 'generic_testcase.exe']
-        acall = ['mpiexec', '-np', '2', '--use-hwthread-cpus', 'generic_testcase.exe']
+        # hold n processes at 2 got github action runners
+        if os.environ.get('GITHUB_ACTION_LIMIT_RANKS'):
+            acall = ['mpiexec', '--use-hwthread-cpus',
+                     '-n', '1', 'generic_testcase.exe', ':',
+                     '-n', '1', './xios_server.exe']
+        else:
+            acall = ['mpiexec', '--use-hwthread-cpus',
+                     '-n', str(config_dict["NumberClients"]), 'generic_testcase.exe', ':',
+                     '-n', str(config_dict["NumberServers"]), './xios_server.exe']
 
         def make_a_test(the_test_dir, acall):
             """
