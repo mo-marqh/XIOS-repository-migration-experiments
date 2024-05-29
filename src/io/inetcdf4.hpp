@@ -39,7 +39,6 @@ namespace xios
       //-------------------------------------------------------------
 
       /// Getters ///
-      StdSize getNbOfTimestep(const CVarPath* const path = NULL);
 
       StdString getUnlimitedDimensionName(const CVarPath* const path = NULL);
 
@@ -112,6 +111,9 @@ namespace xios
       /// Tests ///
       bool hasMissingValue(const StdString& name, const CVarPath* const path = NULL);
 
+      bool hasAttribute(const StdString& name, const StdString* const var  = NULL, const CVarPath* const path = NULL); 
+        
+      template <class T>
       bool hasAttribute(const StdString& name, const StdString* const var  = NULL, const CVarPath* const path = NULL);
 
       bool hasVariable(const StdString& name, const CVarPath* const path = NULL);
@@ -143,6 +145,7 @@ namespace xios
       int getVariable(const StdString& varname, const CVarPath* const path = NULL);
       int getDimension(const StdString& dimname, const CVarPath* const path = NULL);
       int getUnlimitedDimension(const CVarPath* const path = NULL);
+      bool hasUnlimitedDimension(const CVarPath* const path = NULL); 
       int getAttributeId(const StdString& name,
                          const StdString* const var = NULL,
                          const CVarPath* const path = NULL);

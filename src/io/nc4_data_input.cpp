@@ -35,7 +35,6 @@ namespace xios
 
     if (SuperClassWriter::isTemporal(fieldId))
     {
-//      return SuperClassWriter::getDimensions(&fieldId)[SuperClassWriter::getUnlimitedDimensionName()];
       return SuperClassWriter::getDimensions(&fieldId)[SuperClassWriter::getTimeCounterName()];
     }
 
@@ -150,7 +149,7 @@ namespace xios
     // Remove unlimited dimension from the map, we dont need it anymore
     if (SuperClassWriter::isTemporal(fieldId))
     {
-      dimSizeMap.erase(SuperClassWriter::getUnlimitedDimensionName());
+      dimSizeMap.erase(SuperClassWriter::getTimeCounterName()); 
       dimList.pop_front() ;  // assume time dimension is first
     }
 
@@ -186,6 +185,23 @@ namespace xios
        for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
         listDimSize.push_front(*dimSizeMap.find(*it));
     }
+     
+    // read specific field attribute 
+    if (field->add_offset.isEmpty()) 
+    { 
+      if (SuperClassWriter::hasAttribute<float>("add_offset",&fieldId))  
+        field->add_offset =  SuperClassWriter::getAttributeValue<float>("add_offset",&fieldId)[0] ; 
+      else if (SuperClassWriter::hasAttribute<double>("add_offset",&fieldId)) 
+        field->add_offset =  SuperClassWriter::getAttributeValue<double>("add_offset",&fieldId)[0] ; 
+    } 
+ 
+    if (field->scale_factor.isEmpty()) 
+    { 
+      if (SuperClassWriter::hasAttribute<float>("scale_factor",&fieldId))  
+        field->scale_factor =  SuperClassWriter::getAttributeValue<float>("scale_factor",&fieldId)[0] ; 
+      else if (SuperClassWriter::hasAttribute<double>("scale_factor",&fieldId)) 
+        field->scale_factor =  SuperClassWriter::getAttributeValue<double>("scale_factor",&fieldId)[0] ; 
+    } 
 
     // Now process domain and axis
     CArray<int,1> axisDomainOrder = grid->axis_domain_order;
@@ -570,7 +586,10 @@ namespace xios
         if (!axis->begin.isEmpty()) begin = axis->begin.getValue();
         if (!axis->n.isEmpty()) n = axis->n.getValue();
         axis->value.resize(n);
-        for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
+
+        double convertFromFactor=1.0 ; 
+        if (!axis->convert_from_factor.isEmpty()) convertFromFactor = axis->convert_from_factor ; 
+        for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i)*convertFromFactor; 
       }
     }
   }

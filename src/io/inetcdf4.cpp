@@ -88,6 +88,15 @@ namespace xios
     return retvalue;
   }
 
+  bool CINetCDF4::hasUnlimitedDimension(const CVarPath* const path) 
+  { 
+    int dimid = 0; 
+    int grpid = this->getGroup(path); 
+    CNetCdfInterface::inqUnLimDim(grpid, dimid); 
+    if (dimid==-1) return false ; 
+    else return true ; 
+  } 
+  
   int CINetCDF4::getUnlimitedDimension(const CVarPath* const path)
   {
     int dimid = 0;
@@ -171,11 +180,6 @@ namespace xios
 
     delete [] varid;
     return retvalue;
-  }
-
-  StdSize CINetCDF4::getNbOfTimestep(const CVarPath* const path)
-  {
-    return this->getDimensions(NULL, path)[this->getUnlimitedDimensionName(path)];
   }
 
   std::set<StdString> CINetCDF4::getBoundVariables(const CVarPath* const path)
@@ -336,6 +340,32 @@ namespace xios
     }
     return false;
   }
+
+ 
+  template <class T> 
+  bool CINetCDF4::hasAttribute(const StdString& name, const StdString* const var, const CVarPath* const path) 
+  { 
+    std::list<StdString> atts = this->getAttributes(var, path); 
+    std::list<StdString>::const_iterator it = atts.begin(), end = atts.end(); 
+    for (; it != end; it++) 
+    { 
+      const StdString& attname = *it; 
+      if (attname.compare(0, name.size(), name) == 0) 
+      {  
+        std::pair<nc_type , StdSize> attinfos = this->getAttribute(name, var, path); 
+        std::vector<T> retvalue(attinfos.second); 
+        nc_type type = CNetCdfInterface::getNcType<T>(); 
+        if (attinfos.first == type) return true; 
+        else return false ; 
+      } 
+    } 
+    return false; 
+  } 
+   
+  template bool  CINetCDF4::hasAttribute<double>(const StdString& name, const StdString* const var, const CVarPath* const path); 
+  template bool  CINetCDF4::hasAttribute<float>(const StdString& name, const StdString* const var, const CVarPath* const path); 
+  template bool  CINetCDF4::hasAttribute<int>(const StdString& name, const StdString* const var, const CVarPath* const path); 
+  template bool  CINetCDF4::hasAttribute<char>(const StdString& name, const StdString* const var, const CVarPath* const path); 
 
   bool CINetCDF4::hasVariable(const StdString& name,
                               const CVarPath* const path)
