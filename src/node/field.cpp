@@ -748,7 +748,7 @@ namespace xios
          grid_ref=grid_->getId() ; // for server 
          //grid_->completeGrid(); // grid generation, to be checked
          if (fileIn_->isClientSide()) fileIn_->readFieldAttributesValues(this);
-         grid_->checkElementsAttributes() ;
+         grid_->checkElementsAttributes(true) ; // need to recheck
 //         grid_->solveDomainAxisBaseRef();
          // probably in future tag grid incomplete if coming from a reading
          instantDataFilter=lastFilter ;
@@ -780,6 +780,9 @@ namespace xios
         this->solveServerOperation() ;
       }
     }
+
+    // do again ref inheritance for field attributes read from file
+    this->solveRefInheritance();
 
     buildWorkflowGraphDone_ = true ;
     workflowEnabled_ = true ;

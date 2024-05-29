@@ -115,9 +115,9 @@ namespace xios
       this->relFiles.insert(filename);
   }
 
-  void CScalar::checkAttributes(void)
+  void CScalar::checkAttributes(bool recheck)
   {
-    if (checkAttributes_done_) return ;
+    if (!recheck && checkAttributes_done_) return ;
     checkAttributes_done_ = true ; 
     
     if (n.isEmpty()) n=1 ;
@@ -133,7 +133,7 @@ namespace xios
     addWorkflowView() ;
     addModelView() ;
   }
-
+ 
   /*!
     Compare two scalar objects. 
     They are equal if only if they have identical attributes as well as their values.

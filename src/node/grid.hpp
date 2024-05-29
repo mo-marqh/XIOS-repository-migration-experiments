@@ -156,7 +156,7 @@ namespace xios {
          CScalar* getAssociatedScalar(const string& scalarId, bool noError=false) ;
       public:            
          void solveDomainAxisRef(bool areAttributesChecked);
-         void checkElementsAttributes(void) ;
+         void checkElementsAttributes(bool recheck=false) ;
 
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);

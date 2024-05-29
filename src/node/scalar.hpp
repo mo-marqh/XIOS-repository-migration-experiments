@@ -87,7 +87,7 @@ namespace xios
       static CField*  getFieldFromId(const string& id) ;
 
     public:
-      void checkAttributes(void);
+      void checkAttributes(bool recheck=false);
       bool checkAttributes_done_ = false ;
             
       void addRelFile(const StdString& filename);

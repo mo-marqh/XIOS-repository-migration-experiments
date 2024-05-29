@@ -1759,10 +1759,10 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CDomain::checkAttributes(void)
+   void CDomain::checkAttributes(bool recheck)
    TRY
    {
-      if (this->checkAttributes_done_) return;
+      if (!recheck && checkAttributes_done_) return ;
       this->checkDomain();
       this->compute2dBox() ;
       this->checkLonLat();
@@ -1803,6 +1803,8 @@ namespace xios {
       this->checkAttributes_done_ = true;
    }
    CATCH_DUMP_ATTR
+
+
 
    size_t CDomain::computeAttributesHash( MPI_Comm comm )
    {

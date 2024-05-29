@@ -1973,17 +1973,17 @@ namespace xios
  /*!
   \brief check attributes of all elements of the grid
   */
-  void CGrid::checkElementsAttributes(void)
+  void CGrid::checkElementsAttributes(bool recheck)
   TRY
   {
     setDomainList();
-    for (auto domainId : domList_) CDomain::get(domainId)->checkAttributes();
+    for (auto domainId : domList_) CDomain::get(domainId)->checkAttributes(recheck);
 
     setAxisList();
-    for (auto axisId : axisList_) CAxis::get(axisId)->checkAttributes();
+    for (auto axisId : axisList_) CAxis::get(axisId)->checkAttributes(recheck);
     
     setScalarList();
-    for (auto scalarId : scalarList_) CScalar::get(scalarId)->checkAttributes();
+    for (auto scalarId : scalarList_) CScalar::get(scalarId)->checkAttributes(recheck);
   }
   CATCH_DUMP_ATTR
 

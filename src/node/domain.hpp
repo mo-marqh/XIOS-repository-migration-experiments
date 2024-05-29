@@ -87,7 +87,7 @@ namespace xios
          void setContextClient(CContextClient* contextClient);
 
          /// Vérifications ///
-         void checkAttributes(void);
+         void checkAttributes(bool recheck=false);
          bool checkAttributes_done_ = false ;
 
          size_t computeAttributesHash( MPI_Comm comm );

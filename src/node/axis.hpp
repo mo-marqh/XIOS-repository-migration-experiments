@@ -123,7 +123,7 @@ namespace xios
          static bool dispatchEvent(CEventServer& event);         
         
          /// Vérifications ///
-         void checkAttributes(void);
+         void checkAttributes(bool recheck=false);
          bool checkAttributes_done_ = false ;
          bool checkGeometricAttributes(bool generateError) ; 
          void setGeometricAttributes(const CAxis& axisSrc) ;

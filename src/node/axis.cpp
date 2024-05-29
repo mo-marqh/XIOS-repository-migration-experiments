@@ -278,9 +278,9 @@ namespace xios {
      This check should be done in the very beginning of work flow
    */
    
-   void CAxis::checkAttributes(void)
+   void CAxis::checkAttributes(bool recheck)
    {
-      if (checkAttributes_done_) return ;
+      if (!recheck && checkAttributes_done_) return ;
       checkGeometricAttributes(true) ;
       initializeLocalElement() ;
       addFullView() ;
@@ -290,7 +290,7 @@ namespace xios {
       checkAttributes_done_ = true ;
    }
    
-   void CAxis::resetGeometricAttributes(void)
+    void CAxis::resetGeometricAttributes(void)
    {
      n_glo.reset();
      index.reset();
