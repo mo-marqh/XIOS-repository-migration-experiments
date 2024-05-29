@@ -950,8 +950,10 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
         }
       }
       
-      for (int j = 0; j < nbRecvNode[rank]; j++) recvElt[j].delete_intersections();
-            
+      // don't delete intersection because it is shared also with elt2 wich is a source element, and need for order 2 
+      //for (int j = 0; j < nbRecvNode[rank]; j++) recvElt[j].delete_intersections();
+      // mybe should be deleted later after usage in order 2
+           
       delete [] recvElt;
 
     }
