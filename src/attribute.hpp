@@ -71,8 +71,8 @@ namespace xios
             virtual bool hasInheritedValue(void) const = 0;
 
             bool canInherite(void) {return _canInherite ;}
-            bool setCannotInherit(void) {_canInherite=false ;}
-            bool setCanInherit(void) {_canInherite=true ;}
+            void setCannotInherit(void) {_canInherite=false ;}
+            void setCanInherit(void) {_canInherite=true ;}
          protected : 
             bool _canInherite ;
             static const StdString resetInheritanceStr ; 
