@@ -143,7 +143,7 @@ namespace xios
 
     // Verify the compatibility of dimension of declared grid and real grid in file
     int realGridDim = 1;
-    bool isUnstructuredGrid(true);
+    bool isUnstructuredGrid( (domainP.size()>0)  );
     bool domainNotExplicitelyDefined(false);
     for (int idom=0;idom<domainP.size();idom++)
     {
@@ -157,9 +157,9 @@ namespace xios
         domainNotExplicitelyDefined = true;
       }
     }
-    if ((domainNotExplicitelyDefined)||(domainP.size()==0))
+    if (domainNotExplicitelyDefined)
     {
-      isUnstructuredGrid = ((gridDim < 2) ? false :  SuperClassWriter::isUnstructured(fieldId));
+      isUnstructuredGrid = SuperClassWriter::isUnstructured(fieldId);
     }
     std::map<StdString, StdSize> dimSizeMap = SuperClassWriter::getDimensions(&fieldId);
     std::list<StdString> dimList = SuperClassWriter::getDimensionsList(&fieldId);
