@@ -1,3 +1,4 @@
+
 #include "domain.hpp"
 #include "attribute_template.hpp"
 #include "object_template.hpp"
@@ -1864,6 +1865,7 @@ namespace xios {
      excludedAttr.insert(excludedAttr.end(), { "lonvalue_rectilinear_read_from_file", "latvalue_rectilinear_read_from_file", "lonvalue_curvilinear_read_from_file", "latvalue_curvilinear_read_from_file" });
      excludedAttr.insert(excludedAttr.end(), { "bounds_lonvalue_curvilinear_read_from_file", "bounds_latvalue_curvilinear_read_from_file", "lonvalue_unstructured_read_from_file", "latvalue_unstructured_read_from_file" });
      excludedAttr.insert(excludedAttr.end(), { "bounds_lonvalue_unstructured_read_from_file", "bounds_latvalue_unstructured_read_from_file" });
+     excludedAttr.insert(excludedAttr.end(), { "long_name" });
      
      size_t globalHash = this->computeGlobalAttributesHash( excludedAttr );
 

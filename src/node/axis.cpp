@@ -350,6 +350,7 @@ namespace xios {
      excludedAttr.push_back("bounds");
      excludedAttr.push_back("label");
      excludedAttr.push_back("mask"); // ???
+     excludedAttr.insert(excludedAttr.end(), { "long_name" });
 
      size_t globalHash = this->computeGlobalAttributesHash( excludedAttr );
 
