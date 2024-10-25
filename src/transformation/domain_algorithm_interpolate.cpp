@@ -578,6 +578,20 @@ TRY
       transWeight[it->first].push_back(tmp[i].second);
     }      
   }      
+
+  std::map<int, std::vector<double> > transWeightOrdered(transWeight.begin(), transWeight.end());
+  transWeight.clear();
+  std::map<int, std::vector<double> >::const_iterator itWeightO = transWeightOrdered.begin();
+  for(; itWeightO!=transWeightOrdered.end() ; ++itWeightO) {
+      transWeight[itWeightO->first] = itWeightO->second;
+  }
+
+  std::map<int, std::vector<int> > transMapOrdered(transMap.begin(), transMap.end());
+  transMap.clear();
+  std::map<int, std::vector<int> >::const_iterator itMapO = transMapOrdered.begin();
+  for(; itMapO!=transMapOrdered.end() ; ++itMapO) {
+      transMap[itMapO->first] = itMapO->second;
+  }
 }
 CATCH
 
@@ -787,6 +801,20 @@ TRY
       transWeight[*(recvIndexDestBuff + receivedSize + idx)].push_back(*(recvWeightBuff + receivedSize + idx));
     }
     receivedSize += countBuff;
+  }
+  
+  std::map<int, std::vector<double> > transWeightOrdered(transWeight.begin(), transWeight.end());
+  transWeight.clear();
+  std::map<int, std::vector<double> >::const_iterator itWeightO = transWeightOrdered.begin();
+  for(; itWeightO!=transWeightOrdered.end() ; ++itWeightO) {
+      transWeight[itWeightO->first] = itWeightO->second;
+  }
+
+  std::map<int, std::vector<int> > transMapOrdered(transMap.begin(), transMap.end());
+  transMap.clear();
+  std::map<int, std::vector<int> >::const_iterator itMapO = transMapOrdered.begin();
+  for(; itMapO!=transMapOrdered.end() ; ++itMapO) {
+      transMap[itMapO->first] = itMapO->second;
   }
   
   MPI_Waitall(sendRequest.size(), &sendRequest[0], MPI_STATUS_IGNORE);
