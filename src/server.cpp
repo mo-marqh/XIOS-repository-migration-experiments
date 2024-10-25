@@ -614,7 +614,7 @@ namespace xios
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) delete driver_;
-        else MPI_Finalize() ;
+        MPI_Finalize() ;
       }
       report(0)<<"Performance report : Time spent for XIOS : "<<CTimer::get("XIOS server").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
