@@ -547,7 +547,21 @@ TRY
       transMap[it->first].push_back(tmp[i].first);
       transWeight[it->first].push_back(tmp[i].second);
     }      
-  }      
+  }
+  
+  std::map<int, std::vector<double> > transWeightOrdered(transWeight.begin(), transWeight.end());
+  transWeight.clear();
+  std::map<int, std::vector<double> >::const_iterator itWeightO = transWeightOrdered.begin();
+  for(; itWeightO!=transWeightOrdered.end() ; ++itWeightO) {
+      transWeight[itWeightO->first] = itWeightO->second;
+  }
+  
+  std::map<int, std::vector<int> > transMapOrdered(transMap.begin(), transMap.end());
+  transMap.clear();
+  std::map<int, std::vector<int> >::const_iterator itMapO = transMapOrdered.begin();
+  for(; itMapO!=transMapOrdered.end() ; ++itMapO) {
+      transMap[itMapO->first] = itMapO->second;
+  }
 }
 CATCH
 
@@ -598,10 +612,16 @@ TRY
   //Inform each client number of index they will receive
   int* sendBuff = new int[nbClient];
   int* recvBuff = new int[nbClient];
+
+  int* sendParticipants = new int[nbClient];
+  int* recvParticipants = new int[nbClient];
+  
   for (int i = 0; i < nbClient; ++i)
   {
     sendBuff[i] = 0;
     recvBuff[i] = 0;
+    sendParticipants[i]=0 ;
+    recvParticipants[i]=0 ;
   }
   int sendBuffSize = 0;
   CClientServerMapping::GlobalIndexMap::const_iterator itbMap = globalIndexInterpSendToClient.begin(), itMap,
@@ -616,11 +636,12 @@ TRY
       sizeIndex += (interpMapValue[(int)(itMap->second)[idx]]).size();
     }
     sendBuff[itMap->first] = sizeIndex;
+    sendParticipants[itMap->first] = 1 ;
     sendBuffSize += sizeIndex;
   }
 
-
   MPI_Allreduce(sendBuff, recvBuff, nbClient, MPI_INT, MPI_SUM, context->intraComm_);
+  MPI_Allreduce(sendParticipants, recvParticipants, nbClient, MPI_INT, MPI_SUM, context->intraComm_);
 
   int* sendIndexDestBuff = new int [sendBuffSize];
   int* sendIndexSrcBuff  = new int [sendBuffSize];
@@ -646,6 +667,15 @@ TRY
         ++l;
       }
     }
+    
+    sendRequest.push_back(MPI_Request());
+    MPI_Isend(&clientRank,
+             1,
+             MPI_INT,
+             itMap->first,
+             MPI_DOMAIN_INTERPOLATION_SOURCE_RANK,
+             context->intraComm_,
+             &sendRequest.back());
 
     sendRequest.push_back(MPI_Request());
     MPI_Isend(sendIndexDestBuff + sendOffSet,
@@ -675,25 +705,45 @@ TRY
   }
 
   int recvBuffSize = recvBuff[clientRank];
+  int numberOfParticipants = recvParticipants[clientRank] ;
+
   int* recvIndexDestBuff = new int [recvBuffSize];
   int* recvIndexSrcBuff  = new int [recvBuffSize];
   double* recvWeightBuff = new double [recvBuffSize];
   int receivedSize = 0;
   int clientSrcRank;
-  while (receivedSize < recvBuffSize)
+ 
+ 
+  // this part is done to impose a specific order for reception to retrive reproducibility 
+  set<int> rankOrder ; 
+  for (int np=0 ; np < numberOfParticipants; ++np)
+  {
+    MPI_Status recvStatus;
+    int rank ;
+    MPI_Recv(&rank,
+             1,
+             MPI_INT,
+             MPI_ANY_SOURCE,
+             MPI_DOMAIN_INTERPOLATION_SOURCE_RANK,
+             context->intraComm_,
+             &recvStatus);
+    rankOrder.insert(rank) ;
+  }
+  
+  for (auto  clientSrcRank : rankOrder)
   {
     MPI_Status recvStatus;
     MPI_Recv((recvIndexDestBuff + receivedSize),
              recvBuffSize,
              MPI_INT,
-             MPI_ANY_SOURCE,
+             clientSrcRank,
              MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
              context->intraComm_,
              &recvStatus);
 
     int countBuff = 0;
     MPI_Get_count(&recvStatus, MPI_INT, &countBuff);
-    clientSrcRank = recvStatus.MPI_SOURCE;
+//    clientSrcRank = recvStatus.MPI_SOURCE;
 
     MPI_Recv((recvIndexSrcBuff + receivedSize),
              recvBuffSize,
@@ -719,9 +769,25 @@ TRY
     receivedSize += countBuff;
   }
 
+  std::map<int, std::vector<double> > transWeightOrdered(transWeight.begin(), transWeight.end());
+  transWeight.clear();
+  std::map<int, std::vector<double> >::const_iterator itWeightO = transWeightOrdered.begin();
+  for(; itWeightO!=transWeightOrdered.end() ; ++itWeightO) {
+      transWeight[itWeightO->first] = itWeightO->second;
+  }
+  
+  std::map<int, std::vector<int> > transMapOrdered(transMap.begin(), transMap.end());
+  transMap.clear();
+  std::map<int, std::vector<int> >::const_iterator itMapO = transMapOrdered.begin();
+  for(; itMapO!=transMapOrdered.end() ; ++itMapO) {
+      transMap[itMapO->first] = itMapO->second;
+  }
+  
   std::vector<MPI_Status> requestStatus(sendRequest.size());
   MPI_Waitall(sendRequest.size(), &sendRequest[0], MPI_STATUS_IGNORE);
 
+  delete [] sendParticipants ;                                                                                                                              
+  delete [] recvParticipants ;
   delete [] sendIndexDestBuff;
   delete [] sendIndexSrcBuff;
   delete [] sendWeightBuff;

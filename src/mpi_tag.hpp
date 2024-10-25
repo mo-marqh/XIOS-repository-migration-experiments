@@ -43,6 +43,7 @@
 /* Tag for mpi communication to send and receive info of DOMAIN in domain interpolation*/
 #define MPI_DOMAIN_INTERPOLATION_WEIGHT 9
 
-
+/* Tag for mpi communication to send and receive info of DOMAIN in domain interpolation*/ 
+#define MPI_DOMAIN_INTERPOLATION_SOURCE_RANK 10 
 
 #endif
