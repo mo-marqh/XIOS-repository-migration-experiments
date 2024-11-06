@@ -755,6 +755,7 @@ namespace xios
       }  
       else if (hasCouplerIn())
       {
+        grid_->solveElementsRefInheritance() ;
         grid_->checkElementsAttributes() ;
         instantDataFilter=lastFilter ;
       }
