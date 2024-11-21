@@ -115,6 +115,10 @@ USE izoom_axis, ONLY : txios(zoom_axis), xios(is_valid_zoom_axis)
 
 USE izoom_axis_attr, ONLY : xios(set_zoom_axis_attr), xios(get_zoom_axis_attr), xios(is_defined_zoom_axis_attr)
 
+USE iextract_axis, ONLY : txios(extract_axis), xios(is_valid_extract_axis)
+
+USE iextract_axis_attr, ONLY : xios(set_extract_axis_attr), xios(get_extract_axis_attr), xios(is_defined_extract_axis_attr)
+
 
 USE iinterpolate_axis, ONLY : txios(interpolate_axis), xios(is_valid_interpolate_axis)
 

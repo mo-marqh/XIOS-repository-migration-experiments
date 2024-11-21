@@ -12,10 +12,10 @@ MODULE iaxisgroup_attr
 CONTAINS
 
   SUBROUTINE xios(set_axisgroup_attr)  &
-    ( axisgroup_id, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-    , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-    , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-    , unit, value )
+    ( axisgroup_id, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+    , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+    , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+    , prec, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
@@ -27,6 +27,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: bounds_name
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: chunking_weight
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
+      REAL (KIND=8) , OPTIONAL, INTENT(IN) :: convert_from_factor
       INTEGER  , OPTIONAL, INTENT(IN) :: data_begin
       INTEGER  , OPTIONAL, INTENT(IN) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_n
@@ -54,18 +55,18 @@ CONTAINS
       CALL xios(get_axisgroup_handle) &
       (axisgroup_id,axisgroup_hdl)
       CALL xios(set_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-      , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-      , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-      , unit, value )
+      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+      , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+      , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+      , prec, standard_name, unit, value )
 
   END SUBROUTINE xios(set_axisgroup_attr)
 
   SUBROUTINE xios(set_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-    , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-    , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-    , unit, value )
+    ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+    , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+    , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+    , prec, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -76,6 +77,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: bounds_name
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: chunking_weight
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
+      REAL (KIND=8) , OPTIONAL, INTENT(IN) :: convert_from_factor
       INTEGER  , OPTIONAL, INTENT(IN) :: data_begin
       INTEGER  , OPTIONAL, INTENT(IN) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_n
@@ -101,18 +103,18 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value(:)
 
       CALL xios(set_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-      , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-      , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-      , unit, value )
+      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+      , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+      , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+      , prec, standard_name, unit, value )
 
   END SUBROUTINE xios(set_axisgroup_attr_hdl)
 
   SUBROUTINE xios(set_axisgroup_attr_hdl_)   &
     ( axisgroup_hdl, axis_ref_, axis_type_, begin_, bounds_, bounds_name_, chunking_weight_, comment_  &
-    , data_begin_, data_index_, data_n_, dim_name_, formula_, formula_bounds_, formula_term_, formula_term_bounds_  &
-    , group_ref_, index_, label_, long_name_, mask_, n_, n_distributed_partition_, n_glo_, name_  &
-    , positive_, prec_, standard_name_, unit_, value_ )
+    , convert_from_factor_, data_begin_, data_index_, data_n_, dim_name_, formula_, formula_bounds_  &
+    , formula_term_, formula_term_bounds_, group_ref_, index_, label_, long_name_, mask_, n_, n_distributed_partition_  &
+    , n_glo_, name_, positive_, prec_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -123,6 +125,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: bounds_name_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: chunking_weight_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment_
+      REAL (KIND=8) , OPTIONAL, INTENT(IN) :: convert_from_factor_
       INTEGER  , OPTIONAL, INTENT(IN) :: data_begin_
       INTEGER  , OPTIONAL, INTENT(IN) :: data_index_(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_n_
@@ -180,6 +183,11 @@ CONTAINS
       IF (PRESENT(comment_)) THEN
         CALL cxios_set_axisgroup_comment &
       (axisgroup_hdl%daddr, comment_, len(comment_))
+      ENDIF
+
+      IF (PRESENT(convert_from_factor_)) THEN
+        CALL cxios_set_axisgroup_convert_from_factor &
+      (axisgroup_hdl%daddr, convert_from_factor_)
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN
@@ -298,10 +306,10 @@ CONTAINS
   END SUBROUTINE xios(set_axisgroup_attr_hdl_)
 
   SUBROUTINE xios(get_axisgroup_attr)  &
-    ( axisgroup_id, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-    , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-    , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-    , unit, value )
+    ( axisgroup_id, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+    , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+    , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+    , prec, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
@@ -313,6 +321,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: bounds_name
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: chunking_weight
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
+      REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: convert_from_factor
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_begin
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_n
@@ -340,18 +349,18 @@ CONTAINS
       CALL xios(get_axisgroup_handle) &
       (axisgroup_id,axisgroup_hdl)
       CALL xios(get_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-      , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-      , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-      , unit, value )
+      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+      , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+      , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+      , prec, standard_name, unit, value )
 
   END SUBROUTINE xios(get_axisgroup_attr)
 
   SUBROUTINE xios(get_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-    , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-    , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-    , unit, value )
+    ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+    , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+    , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+    , prec, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -362,6 +371,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: bounds_name
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: chunking_weight
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
+      REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: convert_from_factor
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_begin
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_n
@@ -387,18 +397,18 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value(:)
 
       CALL xios(get_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-      , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-      , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-      , unit, value )
+      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+      , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+      , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+      , prec, standard_name, unit, value )
 
   END SUBROUTINE xios(get_axisgroup_attr_hdl)
 
   SUBROUTINE xios(get_axisgroup_attr_hdl_)   &
     ( axisgroup_hdl, axis_ref_, axis_type_, begin_, bounds_, bounds_name_, chunking_weight_, comment_  &
-    , data_begin_, data_index_, data_n_, dim_name_, formula_, formula_bounds_, formula_term_, formula_term_bounds_  &
-    , group_ref_, index_, label_, long_name_, mask_, n_, n_distributed_partition_, n_glo_, name_  &
-    , positive_, prec_, standard_name_, unit_, value_ )
+    , convert_from_factor_, data_begin_, data_index_, data_n_, dim_name_, formula_, formula_bounds_  &
+    , formula_term_, formula_term_bounds_, group_ref_, index_, label_, long_name_, mask_, n_, n_distributed_partition_  &
+    , n_glo_, name_, positive_, prec_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -409,6 +419,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: bounds_name_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: chunking_weight_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment_
+      REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: convert_from_factor_
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_begin_
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_index_(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_n_
@@ -466,6 +477,11 @@ CONTAINS
       IF (PRESENT(comment_)) THEN
         CALL cxios_get_axisgroup_comment &
       (axisgroup_hdl%daddr, comment_, len(comment_))
+      ENDIF
+
+      IF (PRESENT(convert_from_factor_)) THEN
+        CALL cxios_get_axisgroup_convert_from_factor &
+      (axisgroup_hdl%daddr, convert_from_factor_)
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN
@@ -584,10 +600,10 @@ CONTAINS
   END SUBROUTINE xios(get_axisgroup_attr_hdl_)
 
   SUBROUTINE xios(is_defined_axisgroup_attr)  &
-    ( axisgroup_id, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-    , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-    , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-    , unit, value )
+    ( axisgroup_id, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+    , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+    , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+    , prec, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
@@ -606,6 +622,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: chunking_weight_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: comment
       LOGICAL(KIND=C_BOOL) :: comment_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: convert_from_factor
+      LOGICAL(KIND=C_BOOL) :: convert_from_factor_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_begin
       LOGICAL(KIND=C_BOOL) :: data_begin_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_index
@@ -654,18 +672,18 @@ CONTAINS
       CALL xios(get_axisgroup_handle) &
       (axisgroup_id,axisgroup_hdl)
       CALL xios(is_defined_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-      , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-      , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-      , unit, value )
+      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+      , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+      , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+      , prec, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_axisgroup_attr)
 
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-    , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-    , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-    , unit, value )
+    ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+    , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+    , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+    , prec, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -683,6 +701,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: chunking_weight_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: comment
       LOGICAL(KIND=C_BOOL) :: comment_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: convert_from_factor
+      LOGICAL(KIND=C_BOOL) :: convert_from_factor_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_begin
       LOGICAL(KIND=C_BOOL) :: data_begin_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_index
@@ -729,18 +749,18 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: value_tmp
 
       CALL xios(is_defined_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, data_begin  &
-      , data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds, group_ref  &
-      , index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive, prec, standard_name  &
-      , unit, value )
+      ( axisgroup_hdl, axis_ref, axis_type, begin, bounds, bounds_name, chunking_weight, comment, convert_from_factor  &
+      , data_begin, data_index, data_n, dim_name, formula, formula_bounds, formula_term, formula_term_bounds  &
+      , group_ref, index, label, long_name, mask, n, n_distributed_partition, n_glo, name, positive  &
+      , prec, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_axisgroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl_)   &
     ( axisgroup_hdl, axis_ref_, axis_type_, begin_, bounds_, bounds_name_, chunking_weight_, comment_  &
-    , data_begin_, data_index_, data_n_, dim_name_, formula_, formula_bounds_, formula_term_, formula_term_bounds_  &
-    , group_ref_, index_, label_, long_name_, mask_, n_, n_distributed_partition_, n_glo_, name_  &
-    , positive_, prec_, standard_name_, unit_, value_ )
+    , convert_from_factor_, data_begin_, data_index_, data_n_, dim_name_, formula_, formula_bounds_  &
+    , formula_term_, formula_term_bounds_, group_ref_, index_, label_, long_name_, mask_, n_, n_distributed_partition_  &
+    , n_glo_, name_, positive_, prec_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -758,6 +778,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: chunking_weight__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: comment_
       LOGICAL(KIND=C_BOOL) :: comment__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: convert_from_factor_
+      LOGICAL(KIND=C_BOOL) :: convert_from_factor__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_begin_
       LOGICAL(KIND=C_BOOL) :: data_begin__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_index_
@@ -843,6 +865,12 @@ CONTAINS
         comment__tmp = cxios_is_defined_axisgroup_comment &
       (axisgroup_hdl%daddr)
         comment_ = comment__tmp
+      ENDIF
+
+      IF (PRESENT(convert_from_factor_)) THEN
+        convert_from_factor__tmp = cxios_is_defined_axisgroup_convert_from_factor &
+      (axisgroup_hdl%daddr)
+        convert_from_factor_ = convert_from_factor__tmp
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN

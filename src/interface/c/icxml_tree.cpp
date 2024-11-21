@@ -47,6 +47,8 @@ extern "C"
 
    typedef xios::CTransformation<CDomain>   *  XTransformationDomainPtr;
    typedef xios::CZoomDomain                *  XZoomDomainPtr;
+   typedef xios::CExtractDomain             *  XExtractDomainPtr;
+
    typedef xios::CInterpolateDomain         *  XInterpolateDomainPtr;
    typedef xios::CGenerateRectilinearDomain *  XGenerateRectilinearDomainPtr;
    typedef xios::CComputeConnectivityDomain *  XComputeConnectivityDomainPtr;
@@ -54,6 +56,7 @@ extern "C"
 
    typedef xios::CTransformation<CAxis>     *  XTransformationAxisPtr;
    typedef xios::CZoomAxis                  *  XZoomAxisPtr;
+   typedef xios::CExtractAxis               *  XExtractAxisPtr;
    typedef xios::CInterpolateAxis           *  XInterpolateAxisPtr;
    typedef xios::CInverseAxis               *  XInverseAxisPtr;
    typedef xios::CExtractDomainToAxis       *  XExtractDomainToAxisPtr;
@@ -428,6 +431,24 @@ extern "C"
       CTimer::get("XIOS").suspend() ;
    }
 
+   void cxios_xml_tree_add_extractdomaintodomain
+      (XDomainPtr parent_, XExtractDomainPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationDomainPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_DOMAIN, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_DOMAIN);
+      }
+      *child_ = static_cast<XExtractDomainPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+  
    void cxios_xml_tree_add_interpolatedomaintodomain
       (XDomainPtr parent_, XInterpolateDomainPtr * child_, const char * child_id, int child_id_size)
    {
@@ -516,6 +537,24 @@ extern "C"
          tmpChild_ = parent_->addTransformation(TRANS_ZOOM_AXIS);
       }
       *child_ = static_cast<XZoomAxisPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+  
+   void cxios_xml_tree_add_extractaxistoaxis
+      (XAxisPtr parent_, XExtractAxisPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationAxisPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_AXIS, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_AXIS);
+      }
+      *child_ = static_cast<XExtractAxisPtr>(tmpChild_);
       CTimer::get("XIOS").suspend() ;
    }
 

@@ -11,12 +11,14 @@ MODULE IXML_TREE
    USE IVARIABLE
    
    USE IZOOM_DOMAIN
+   USE IEXTRACT_DOMAIN
    USE IINTERPOLATE_DOMAIN
    USE IGENERATE_RECTILINEAR_DOMAIN
    USE ICOMPUTE_CONNECTIVITY_DOMAIN
    USE IEXPAND_DOMAIN
 
    USE IZOOM_AXIS
+   USE IEXTRACT_AXIS
    USE IINTERPOLATE_AXIS
    USE IINVERSE_AXIS
    USE IREDUCE_DOMAIN_TO_AXIS
@@ -210,6 +212,14 @@ MODULE IXML_TREE
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_zoomdomaintodomain
 
+      SUBROUTINE cxios_xml_tree_add_extractdomaintodomain(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_extractdomaintodomain
+
       SUBROUTINE cxios_xml_tree_add_interpolatedomaintodomain(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
@@ -250,6 +260,14 @@ MODULE IXML_TREE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_zoomaxistoaxis
+
+      SUBROUTINE cxios_xml_tree_add_extractaxistoaxis(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_extractaxistoaxis
 
       SUBROUTINE cxios_xml_tree_add_interpolateaxistoaxis(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
@@ -622,6 +640,19 @@ MODULE IXML_TREE
 
    END SUBROUTINE xios(add_zoomdomaintodomain)
 
+   SUBROUTINE xios(add_extractdomaintodomain)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(domain))           , INTENT(IN) :: parent_hdl
+      TYPE(txios(extract_domain))      , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_extractdomaintodomain(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_extractdomaintodomain(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_extractdomaintodomain)
+
    SUBROUTINE xios(add_interpolatedomaintodomain)(parent_hdl, child_hdl, child_id)
       TYPE(txios(domain))             , INTENT(IN) :: parent_hdl
       TYPE(txios(interpolate_domain)) , INTENT(OUT):: child_hdl
@@ -687,6 +718,19 @@ MODULE IXML_TREE
       END IF
 
    END SUBROUTINE xios(add_zoomaxistoaxis)
+
+   SUBROUTINE xios(add_extractaxistoaxis)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(extract_axis))                 , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL           , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_extractaxistoaxis(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_extractaxistoaxis(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_extractaxistoaxis)
 
    SUBROUTINE xios(add_interpolateaxistoaxis)(parent_hdl, child_hdl, child_id)
       TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl

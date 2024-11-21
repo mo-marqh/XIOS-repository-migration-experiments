@@ -152,6 +152,25 @@ MODULE axisgroup_interface_attr
     END FUNCTION cxios_is_defined_axisgroup_comment
 
 
+    SUBROUTINE cxios_set_axisgroup_convert_from_factor(axisgroup_hdl, convert_from_factor) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: convert_from_factor
+    END SUBROUTINE cxios_set_axisgroup_convert_from_factor
+
+    SUBROUTINE cxios_get_axisgroup_convert_from_factor(axisgroup_hdl, convert_from_factor) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      REAL (KIND=C_DOUBLE)             :: convert_from_factor
+    END SUBROUTINE cxios_get_axisgroup_convert_from_factor
+
+    FUNCTION cxios_is_defined_axisgroup_convert_from_factor(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_convert_from_factor
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_convert_from_factor
+
+
     SUBROUTINE cxios_set_axisgroup_data_begin(axisgroup_hdl, data_begin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl

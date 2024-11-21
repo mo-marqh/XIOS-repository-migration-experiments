@@ -2,7 +2,6 @@
  *               Interface auto generated - do not modify                     *
  * ************************************************************************** */
 
-
 #include "xios.hpp"
 #include "attribute_template.hpp"
 #include "object_template.hpp"

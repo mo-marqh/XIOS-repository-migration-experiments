@@ -2,7 +2,6 @@
  *               Interface auto generated - do not modify                     *
  * ************************************************************************** */
 
-
 #include "xios.hpp"
 #include "attribute_template.hpp"
 #include "object_template.hpp"
@@ -186,6 +185,29 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = axis_hdl->comment.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axis_convert_from_factor(axis_Ptr axis_hdl, double convert_from_factor)
+  {
+    CTimer::get("XIOS").resume();
+    axis_hdl->convert_from_factor.setValue(convert_from_factor);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axis_convert_from_factor(axis_Ptr axis_hdl, double* convert_from_factor)
+  {
+    CTimer::get("XIOS").resume();
+    *convert_from_factor = axis_hdl->convert_from_factor.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axis_convert_from_factor(axis_Ptr axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axis_hdl->convert_from_factor.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
