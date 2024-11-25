@@ -10,6 +10,8 @@ To set this up, then my `Local` is configured to use `git svn` and to communicat
 
 #### Initial Creation
 
+> Note: you probably don't need to do this step unless you need the `svn` connector
+
 Create a `Local` git repository and link this to the IPSL subversion.
 
 ```
@@ -26,14 +28,10 @@ git svn fetch
 * `--ignore-paths` is essential, as
     * there are removed build artefacts in the subversion history which are large
     * and cause problems with the repository history, github uploads, etc.
-* use `http` for the IPSL SVN URI
-    * MO web proxy & firewall can struggle with the `git svn fetch` over HTTPS
-    * restarting a failed (timed out) fetch leaves inconsistencies in the git commit history which are problematic
-    * once the `git svn fetch` has run the first time, then we can update this URI to HTTPS for future connections
 * `git svn fetch` MUST complete first time, do not restart after failure!
     * this takes ages; sorry
     * if it fails, delete and start over, do not restart
-    * `~/.subversion/servers` can be configured, for example extending timeout in `global`: `http-timeout = {}` 
+    * `~/.subversion/servers` can be configured, for example: explicitly specifying the `http-proxy-{host/port}`  
     * once this has succeeded once, future `git svn fetch` should only try to update, and be fast
 )
 
