@@ -20,6 +20,7 @@ namespace xios
     const int localLeader_ = 0 ;
 
     CWindowManager* winNotify_ ;
+    size_t hashNotify_ ; 
     
     private:
     const int NOTIFY_NOTHING=0 ;
@@ -42,7 +43,7 @@ namespace xios
     const MPI_Comm& getCommunicator(void) { return poolComm_ ;}
 
   private:
-    void createServiceNotify(int rank, const string& serviceId, int type, int size, int nbPartitions, bool in) ;
+    void createServiceNotify(int rank, const string& serviceId, int type, int size, int nbPartitions) ;
     void createServiceOntoNotify(int rank, const string& serviceId, int type, const string& onServiceId) ;
     void sendNotification(int rank) ;
     void checkNotifications(void) ;
@@ -52,11 +53,7 @@ namespace xios
     void createServiceOnto(void) ;
     void synchronize(void) ;
     
-//    void createServiceNotify(int rank, const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
-//    void createServiceDumpOut(CBufferOut& buffer) ;
-//    void createServiceDumpIn(CBufferIn& buffer) ;
-//    void checkCreateServiceNotification(void) ;
-    void createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in) ;
+    void createNewService(const std::string& serviceId, int type, int size, int nbPartitions) ;
   public:
     void createNewServiceOnto(const std::string& serviceId, int type, const string& onServiceId) ;
   
@@ -66,6 +63,7 @@ namespace xios
     bool isFinished(void) { return finished_ ;}
 
   private:
+    bool useWindowManager_ ;
     MPI_Comm poolComm_ ;
     
     std::multimap<int,int> occupancy_ ;
@@ -73,7 +71,7 @@ namespace xios
 //    std::list<std::tuple<std::string, int, int, int, bool> > notifications_;
     
     int notifyType_ ;
-    tuple<std::string, int, int, int, bool> notifyCreateService_ ;
+    tuple<std::string, int, int, int> notifyCreateService_ ;
     tuple<std::string, int, std::string> notifyCreateServiceOnto_ ;
 
 

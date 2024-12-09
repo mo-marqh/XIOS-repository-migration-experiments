@@ -24,6 +24,9 @@ namespace xios
     const int NOTIFY_NOTHING=0 ;
     const int NOTIFY_CREATE_POOL=1 ;
     const int NOTIFY_FINALIZE=2 ;
+    const int NOTIFY_REGISTER_LEADER=3 ;
+    const int NOTIFY_REGISTER_RESSOURCE_SIZE=4 ;
+    const int NOTIFY_REGISTER_POOL=6 ;
 
     public:
     
@@ -58,14 +61,17 @@ namespace xios
     void registerRessourcesSize(int size) ;
     void registerPoolClient(const std::string& poolId,int size,int leader) ;
     void registerPoolServer(const std::string& poolId,int size,int leader) ;
-    //CTokenManager* getTokenManager(void) {return tokenManager_ ;} 
 
+    private:
+        
     int managerGlobalLeader_ ;
 
     CWindowManager* winRessources_ ;
+    size_t hashRessources_ ;
 
     CWindowManager* winNotify_ ;
-    //CTokenManager* tokenManager_ ;
+    size_t hashNotify_ ;
+    bool useWindowManager_ ;
 
     const size_t maxBufferSize_=1024*1024 ;
 
@@ -78,6 +84,7 @@ namespace xios
     int serverLeader_ ;
     int ressourcesSize_ ;
     int freeRessourcesSize_ ;
+    std::pair<std::string, std::tuple<int,int,int>> pool_ ;
 
     const double eventLoopLatency_=0; 
     double lastEventLoop_=0. ;

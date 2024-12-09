@@ -79,19 +79,19 @@ namespace xios
     MPI_Comm commSelf_ ; //!< Communicator for proc alone from interCommMerged 
 
     map<int,CP2pServerBuffer*> buffers_ ;
-    map<int,size_t> lastTimeLine ; //!< last event time line for a processed request
-    map<int,size_t>::iterator itLastTimeLine ; //!< iterator on lastTimeLine
-    map<int, list<std::pair<MPI_Message,MPI_Status> > > pendingProbe;
-    map<int,MPI_Request> pendingRequest ;
-    map<int,char*> bufferRequest ;
+    map<int,size_t> lastTimeLine_ ; //!< last event time line for a processed request
+    map<int,size_t>::iterator itLastTimeLine_ ; //!< iterator on lastTimeLine
+    map<int, list<std::pair<MPI_Message,MPI_Status> > > pendingProbe_;
+    map<int,MPI_Request> pendingRequest_ ;
+    map<int,char*> bufferRequest_ ;
 
-    map<size_t,CEventServer*> events ;
-    size_t currentTimeLine ;
+    map<size_t,CEventServer*> events_ ;
+    size_t currentTimeLine_ ;
       
-    bool finished ;
-    bool pendingEvent ;
-    bool scheduled  ;    /*!< event of current timeline is alreading scheduled ? */
-    bool pureOneSided ; //!< if true, client will communicated with servers only trough one sided communication. Otherwise the hybrid mode P2P /One sided is used.
+    bool finished_ ;
+    bool pendingEvent_ ;
+    bool scheduled_  ;    /*!< event of current timeline is alreading scheduled ? */
+    bool pureOneSided_ ; //!< if true, client will communicated with servers only trough one sided communication. Otherwise the hybrid mode P2P /One sided is used.
 
     private:
   

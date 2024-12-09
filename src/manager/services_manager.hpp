@@ -67,9 +67,12 @@ namespace xios
 
 
     private :
-   
+    
+    bool useWindowManager_ ;
     CWindowManager* winServices_ ;
     CWindowManager* winNotify_ ;
+    size_t hashServiceInfo_ ;
+    size_t hashServiceNotify_ ;
     const size_t maxBufferSize_=1024*1024 ;
 
     MPI_Comm xiosComm_ ;
@@ -79,7 +82,7 @@ namespace xios
     tuple<std::string, int, std::string> notifyCreateServiceOnto_ ;
    
     std::map<tuple<std::string, std::string, int>, std::tuple<int, int, int, int> > services_ ;
-
+    std::pair<tuple<std::string, std::string, int>, std::tuple<int, int, int, int> > registringService_ ;
     int managerGlobalLeader_ ;
 
     const double eventLoopLatency_=0; 

@@ -21,8 +21,9 @@ namespace xios
   public:
     CCouplerManager(bool isXiosServer);
     ~CCouplerManager() ;    
-    void registerCoupling(std::string srcCoupling, std::string dstCoupling) ;
+    void registerCoupling(std::string srcCoupling, std::string dstCoupling, bool master) ;
     bool isNextCoupling(string srcCoupling, string dstCoupling) ;
+    void eventLoop(void) ;
   private :
     void registredCouplingDumpOut(CBufferOut& buffer) ;
     void registredCouplingDumpIn(CBufferIn& buffer) ;
@@ -41,7 +42,15 @@ namespace xios
 
     std::set<size_t> registredCoupling_ ;
     std::list<pair<size_t,int>> nextCoupling_ ;
-    
+
+    std::set<size_t> masterRegistred_ ;
+    std::hash<string> hashString ;
+
+    size_t hashRegistredCoupling_ ;
+    size_t hashNextCoupling_ ;
+    bool useWindowManager_ ;
+    size_t hashCurrentRegistredCoupling_;
+    size_t hashCurrentNextCoupling_;
     /** the rank of the mpi proc where the data are kept in memory*/
     int managerGlobalLeader_ ;
   } ;

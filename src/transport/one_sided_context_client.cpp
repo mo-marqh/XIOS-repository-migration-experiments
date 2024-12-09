@@ -22,20 +22,20 @@ namespace xios
     \param [in] interComm_ communicator of group server
     \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode --> obsolete ).
     */
-    COneSidedContextClient::COneSidedContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
-     : CContextClient(parent, intraComm_, interComm_, cxtSer),
-       mapBufferSize_(), maxBufferedEvents(4)
+    COneSidedContextClient::COneSidedContextClient(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtSer)
+     : CContextClient(parent, intraComm, interComm, cxtSer),
+       mapBufferSize_(), maxBufferedEvents_(4)
     {
       
-      pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
+      pureOneSided_=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
 
       xios::MPI_Intercomm_merge(interComm_,false, &interCommMerged_) ;
       CXios::getMpiGarbageCollector().registerCommunicator(interCommMerged_) ;
       
-      xios::MPI_Comm_split(intraComm_,clientRank,clientRank, &commSelf_) ; // for windows
+      xios::MPI_Comm_split(intraComm_,clientRank_,clientRank_, &commSelf_) ; // for windows
       CXios::getMpiGarbageCollector().registerCommunicator(commSelf_) ;
       eventScheduler_ = parent->getEventScheduler() ;  
-      timeLine = 1;
+      timeLine_ = 1;
     }
 
 
@@ -49,35 +49,35 @@ namespace xios
  
 //      ostringstream str ;
 //      for(auto& rank : ranks) str<<rank<<" ; " ;
-//      info(100)<<"Event "<<timeLine<<" of context "<<context_->getId()<<"  for ranks : "<<str.str()<<endl ;
+//      info(100)<<"Event "<<timeLine_<<" of context "<<context_->getId()<<"  for ranks : "<<str.str()<<endl ;
 
       if (CXios::checkEventSync)
       {
         int typeId, classId, typeId_in, classId_in;
         long long timeLine_out;
-        long long timeLine_in( timeLine );
+        long long timeLine_in( timeLine_ );
         typeId_in=event.getTypeId() ;
         classId_in=event.getClassId() ;
-//        MPI_Allreduce(&timeLine,&timeLine_out, 1, MPI_UINT64_T, MPI_SUM, intraComm) ; // MPI_UINT64_T standardized by MPI 3
-        MPI_Allreduce(&timeLine_in,&timeLine_out, 1, MPI_LONG_LONG_INT, MPI_SUM, intraComm) ; 
-        MPI_Allreduce(&typeId_in,&typeId, 1, MPI_INT, MPI_SUM, intraComm) ;
-        MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm) ;
-        if (typeId/clientSize!=event.getTypeId() || classId/clientSize!=event.getClassId() || timeLine_out/clientSize!=timeLine)
+//        MPI_Allreduce(&timeLine_,&timeLine_out, 1, MPI_UINT64_T, MPI_SUM, intraComm_) ; // MPI_UINT64_T standardized by MPI 3
+        MPI_Allreduce(&timeLine_in,&timeLine_out, 1, MPI_LONG_LONG_INT, MPI_SUM, intraComm_) ; 
+        MPI_Allreduce(&typeId_in,&typeId, 1, MPI_INT, MPI_SUM, intraComm_) ;
+        MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm_) ;
+        if (typeId/clientSize_!=event.getTypeId() || classId/clientSize_!=event.getClassId() || timeLine_out/clientSize_!=timeLine_)
         {
            ERROR("void COneSidedContextClient::sendEvent(CEventClient& event)",
-               << "Event are not coherent between client for timeline = "<<timeLine);
+               << "Event are not coherent between client for timeline = "<<timeLine_);
         }
         
-        vector<int> servers(serverSize,0) ;
+        vector<int> servers(serverSize_,0) ;
         auto ranks=event.getRanks() ;
         for(auto& rank : ranks) servers[rank]=1 ;
-        MPI_Allreduce(MPI_IN_PLACE, servers.data(), serverSize,MPI_INT,MPI_SUM,intraComm) ;
+        MPI_Allreduce(MPI_IN_PLACE, servers.data(), serverSize_,MPI_INT,MPI_SUM,intraComm_) ;
         ostringstream osstr ;
-        for(int i=0;i<serverSize;i++)  if (servers[i]==0) osstr<<i<<" , " ;
+        for(int i=0;i<serverSize_;i++)  if (servers[i]==0) osstr<<i<<" , " ;
         if (!osstr.str().empty())
         {
           ERROR("void COneSidedContextClient::sendEvent(CEventClient& event)",
-                 <<" Some servers will not receive the message for timeline = "<<timeLine<<endl
+                 <<" Some servers will not receive the message for timeline = "<<timeLine_<<endl
                  <<"Servers are : "<<osstr.str()) ;
         }
 
@@ -96,7 +96,7 @@ namespace xios
         }
         itBuffer->second->eventLoop() ;
         double time=CTimer::getTime() ;
-        bool succed = itBuffer->second->writeEvent(timeLine, event)  ;
+        bool succed = itBuffer->second->writeEvent(timeLine_, event)  ;
         if (succed) 
         {
           time=CTimer::getTime()-time ;
@@ -116,7 +116,7 @@ namespace xios
 
       synchronize() ;
       
-      timeLine++;
+      timeLine_++;
     }
 
 
@@ -159,10 +159,10 @@ namespace xios
       {
         error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
         mapBufferSize_[rank] = CXios::minBufferSize;
-        maxEventSizes[rank] = CXios::minBufferSize;
+        maxEventSizes_[rank] = CXios::minBufferSize;
       }
 
-      COneSidedClientBuffer* buffer = buffers[rank] = new COneSidedClientBuffer(interComm, rank, commSelf_, interCommMerged_, clientSize+rank );
+      COneSidedClientBuffer* buffer = buffers[rank] = new COneSidedClientBuffer(interComm_, rank, commSelf_, interCommMerged_, clientSize_+rank );
       if (isGrowableBuffer_) { buffer->setGrowable(growingFactor_) ; }
       else buffer->setFixed(mapBufferSize_[rank]) ;
   
@@ -232,18 +232,18 @@ namespace xios
   {
     bool stop = false;
 
-    int* nbServerConnectionLocal  = new int[serverSize] ;
-    int* nbServerConnectionGlobal  = new int[serverSize] ;
-    for(int i=0;i<serverSize;++i) nbServerConnectionLocal[i]=0 ;
+    int* nbServerConnectionLocal  = new int[serverSize_] ;
+    int* nbServerConnectionGlobal  = new int[serverSize_] ;
+    for(int i=0;i<serverSize_;++i) nbServerConnectionLocal[i]=0 ;
     for (auto itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)  nbServerConnectionLocal[itBuff->first]=1 ;
-    for (auto ItServerLeader = ranksServerLeader.begin(); ItServerLeader != ranksServerLeader.end(); ItServerLeader++)  nbServerConnectionLocal[*ItServerLeader]=1 ;
+    for (auto ItServerLeader = ranksServerLeader_.begin(); ItServerLeader != ranksServerLeader_.end(); ItServerLeader++)  nbServerConnectionLocal[*ItServerLeader]=1 ;
     
-    MPI_Allreduce(nbServerConnectionLocal, nbServerConnectionGlobal, serverSize, MPI_INT, MPI_SUM, intraComm);
+    MPI_Allreduce(nbServerConnectionLocal, nbServerConnectionGlobal, serverSize_, MPI_INT, MPI_SUM, intraComm_);
     
     CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_FINALIZE);
     CMessage msg;
 
-    for (int i=0;i<serverSize;++i) if (nbServerConnectionLocal[i]==1) event.push(i, nbServerConnectionGlobal[i], msg) ;
+    for (int i=0;i<serverSize_;++i) if (nbServerConnectionLocal[i]==1) event.push(i, nbServerConnectionGlobal[i], msg) ;
     sendEvent(event);
 
     delete[] nbServerConnectionLocal ;

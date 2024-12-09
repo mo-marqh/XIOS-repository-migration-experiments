@@ -27,7 +27,7 @@ namespace xios
   class CContextClient
   {
     public:
-      enum ETransport { generic, legacy, oneSided, p2p, online}  ;
+      enum ETransport { generic, legacy, legacyV2, oneSided, p2p, online}  ;
       
       template<ETransport transport=generic> 
       static CContextClient* getNew(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0) ;
@@ -43,11 +43,11 @@ namespace xios
       static void computeLeader(int clientRank, int clientSize, int serverSize,
                                 std::list<int>& rankRecvLeader,
                                 std::list<int>& rankRecvNotLeader);
-      int getRemoteSize(void) {return serverSize;}
-      int getServerSize(void) {return serverSize;}
-      MPI_Comm getIntraComm(void)  {return intraComm ;} 
-      int getIntraCommSize(void) {return clientSize ;}
-      int getIntraCommRank(void) {return clientRank ;}
+      int getRemoteSize(void) {return serverSize_;}
+      int getServerSize(void) {return serverSize_;}
+      MPI_Comm getIntraComm(void)  {return intraComm_ ;} 
+      int getIntraCommSize(void) {return clientSize_ ;}
+      int getIntraCommRank(void) {return clientRank_ ;}
       /*! set the associated server (dual chanel client/server) */      
       void setAssociatedServer(CContextServer* associatedServer) { associatedServer=associatedServer_;}
       /*! get the associated server (dual chanel client/server) */      
@@ -74,21 +74,21 @@ namespace xios
 
       CContext* context_; //!< Context for client
 
-      CContext* parentServer; //!< Context for server (Only used in attached mode)
+      CContext* parentServer_; //!< Context for server (Only used in attached mode)
 
-      int clientRank; //!< Rank of current client
+      int clientRank_; //!< Rank of current client
 
-      int clientSize; //!< Size of client group
+      int clientSize_; //!< Size of client group
 
-      int serverSize; //!< Size of server group
+      int serverSize_; //!< Size of server group
 
-      MPI_Comm interComm; //!< Communicator of server group (interCommunicator)
+      MPI_Comm interComm_; //!< Communicator of server group (interCommunicator)
 
-      MPI_Comm intraComm; //!< Communicator of client group
+      MPI_Comm intraComm_; //!< Communicator of client group
      
-      std::list<int> ranksServerLeader; //!< List of server ranks for which the client is leader
+      std::list<int> ranksServerLeader_; //!< List of server ranks for which the client is leader
 
-      std::list<int> ranksServerNotLeader; //!< List of server ranks for which the client is not leader
+      std::list<int> ranksServerNotLeader_; //!< List of server ranks for which the client is not leader
 
       size_t hashId_ ; //!< hash id on the context client that will be used for context server to identify the remote calling context client.
 
@@ -106,6 +106,9 @@ namespace xios
 
   template<>
   CContextClient* CContextClient::getNew<CContextClient::legacy>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer) ;
+
+  template<>
+  CContextClient* CContextClient::getNew<CContextClient::legacyV2>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer) ;
 
   template<>
   CContextClient* CContextClient::getNew<CContextClient::online>(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer) ;

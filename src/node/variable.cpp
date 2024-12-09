@@ -94,7 +94,9 @@ namespace xios {
                                     "using_oasis",
                                     "using_server",
                                     "using_server2",
-                                    "xios_stack"                        
+                                    "xios_stack",
+                                    "services_use_window_manager",
+                                    "max_attached_mem_window"                        
      };
      if (dictionary_.find(id)==dictionary_.end())
      {

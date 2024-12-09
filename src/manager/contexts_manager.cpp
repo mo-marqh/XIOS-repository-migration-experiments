@@ -7,6 +7,7 @@
 #include "servers_ressource.hpp"
 #include "server.hpp"
 #include "timer.hpp"
+#include "notifications_manager.hpp"
 #include <functional>
 
 
@@ -17,6 +18,8 @@ namespace xios
 
   CContextsManager::CContextsManager(bool isXiosServer)
   {
+    useWindowManager_ = CXios::servicesUseWindowManager ;
+
     xiosComm_ = CXios::getXiosComm()  ;
     
     int commRank ;  
@@ -25,13 +28,18 @@ namespace xios
     else commRank=0 ;
     MPI_Allreduce(&commRank, &managerGlobalLeader_, 1, MPI_INT, MPI_SUM, xiosComm_) ;
 
-    MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_,"CContextsManager::winNotify_") ;
-    winNotify_->updateToExclusiveWindow(commRank, this, &CContextsManager::notificationsDumpOut) ;
+    if (useWindowManager_)
+    {
+      MPI_Comm_rank(xiosComm_, &commRank) ;
+      winNotify_ = new CWindowManager(xiosComm_, maxBufferSize_,"CContextsManager::winNotify_") ;
+      winNotify_->updateToExclusiveWindow(commRank, this, &CContextsManager::notificationsDumpOut) ;
    
-
-    winContexts_ = new CWindowManager(xiosComm_, maxBufferSize_,"CContextsManager::winContexts_") ;
-    winContexts_->updateToExclusiveWindow(commRank, this, &CContextsManager::contextsDumpOut) ;
+      winContexts_ = new CWindowManager(xiosComm_, maxBufferSize_,"CContextsManager::winContexts_") ;
+      winContexts_->updateToExclusiveWindow(commRank, this, &CContextsManager::contextsDumpOut) ;
+    }
+    std::hash<string> hashString ;
+    hashContextNotify_ = hashString("CContextsManager::contextNotify_") ;
+    hashContextInfo_   = hashString("CContextsManager::contextInfo_") ;
   
     MPI_Barrier(xiosComm_)  ;    
   }
@@ -39,8 +47,8 @@ namespace xios
 
   CContextsManager::~CContextsManager()
   {
-    delete winNotify_ ;
-    delete winContexts_ ;
+    if (useWindowManager_) delete winNotify_ ;
+    if (useWindowManager_) delete winContexts_ ;
   }
 
   bool CContextsManager::createServerContext(const std::string& poolId, const std::string& serviceId, const int& partitionId,
@@ -108,16 +116,20 @@ namespace xios
 
   void CContextsManager::sendNotification(int rank)
   {
-    winNotify_->lockWindowExclusive(rank) ;
-    winNotify_->pushToLockedWindow(rank, this, &CContextsManager::notificationsDumpOut) ;
-    winNotify_->unlockWindowExclusive(rank) ;
+    if (useWindowManager_)
+    {
+      winNotify_->lockWindowExclusive(rank) ;
+      winNotify_->pushToLockedWindow(rank, this, &CContextsManager::notificationsDumpOut) ;
+      winNotify_->unlockWindowExclusive(rank) ;
+    }
+    else CXios::getNotificationsManager()->sendLockedNotification(rank, hashContextNotify_, this, &CContextsManager::notificationsDumpOut) ;
   }
 
-  
+
   void CContextsManager::notificationsDumpOut(CBufferOut& buffer)
   {
     
-    buffer.realloc(maxBufferSize_) ;
+    if (useWindowManager_) buffer.realloc(maxBufferSize_) ;
     
     if (notifyType_==NOTIFY_CREATE_CONTEXT)
     {
@@ -154,24 +166,37 @@ namespace xios
   void CContextsManager::eventLoop(void)
   {
     if (info.isActive(logTimers)) CTimer::get("CContextsManager::eventLoop").resume();
-    int flag ;
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-    double time=MPI_Wtime() ;
-    if (time-lastEventLoop_ > eventLoopLatency_) 
-    {
-      checkNotifications() ;
-      lastEventLoop_=time ;
-    }
+    checkNotifications() ;
     if (info.isActive(logTimers)) CTimer::get("CContextsManager::eventLoop").suspend();
   }
-  
+
   void CContextsManager::checkNotifications(void)
   {
-    int commRank ;
-    MPI_Comm_rank(xiosComm_, &commRank) ;
-    winNotify_->popFromExclusiveWindow(commRank, this, &CContextsManager::notificationsDumpIn) ;
-    if (notifyType_==NOTIFY_CREATE_CONTEXT) createServerContext() ;
-    else if (notifyType_==NOTIFY_CREATE_INTERCOMM) createServerContextIntercomm() ;
+    if (useWindowManager_)
+    {
+      int flag ;
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+      double time=MPI_Wtime() ;
+      if (time-lastEventLoop_ > eventLoopLatency_) 
+      {
+        int commRank ;
+        MPI_Comm_rank(xiosComm_, &commRank) ;
+        winNotify_->popFromExclusiveWindow(commRank, this, &CContextsManager::notificationsDumpIn) ;
+        if (notifyType_==NOTIFY_CREATE_CONTEXT) createServerContext() ;
+        else if (notifyType_==NOTIFY_CREATE_INTERCOMM) createServerContextIntercomm() ;
+        lastEventLoop_=time ;
+      }
+    
+    }
+    else
+    {
+      while (CXios::getNotificationsManager()->recvNotification(hashContextInfo_,   this, &CContextsManager::contextsDumpIn)) ;
+      while (CXios::getNotificationsManager()->recvNotification(hashContextNotify_, this, &CContextsManager::notificationsDumpIn))
+      {
+        if (notifyType_==NOTIFY_CREATE_CONTEXT) createServerContext() ;
+        else if (notifyType_==NOTIFY_CREATE_INTERCOMM) createServerContextIntercomm() ;
+      }
+    }
 
   }
 
@@ -207,12 +232,20 @@ namespace xios
 
   void CContextsManager::registerContext(const string& fullContextId, const SRegisterContextInfo& contextInfo)
   {
-    winContexts_->lockWindowExclusive(managerGlobalLeader_) ;
-    winContexts_->updateFromLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
-    winContexts_->flushWindow(managerGlobalLeader_) ;
-    contexts_[fullContextId] = contextInfo ;
-    winContexts_->updateToLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpOut) ;
-    winContexts_->unlockWindowExclusive(managerGlobalLeader_) ;
+    if (useWindowManager_)
+    {
+      winContexts_->lockWindowExclusive(managerGlobalLeader_) ;
+      winContexts_->updateFromLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
+      winContexts_->flushWindow(managerGlobalLeader_) ;
+      contexts_[fullContextId] = contextInfo ;
+      winContexts_->updateToLockedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpOut) ;
+      winContexts_->unlockWindowExclusive(managerGlobalLeader_) ;
+    }
+    else
+    {
+      registringContext_ = {fullContextId , contextInfo } ;
+      CXios::getNotificationsManager()->sendLockedNotification(hashContextInfo_, this, &CContextsManager::contextsDumpOut) ;
+    }
   }
 
   bool CContextsManager::getContextInfo(const string& fullContextId, SRegisterContextInfo& contextInfo, MPI_Comm comm)
@@ -223,10 +256,13 @@ namespace xios
 
     if (commRank==0)
     {
-
-      winContexts_->updateFromSharedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
-
       auto it=contexts_.find(fullContextId) ;
+      if ( it == contexts_.end())
+      {
+        if (useWindowManager_) winContexts_->updateFromSharedWindow(managerGlobalLeader_, this, &CContextsManager::contextsDumpIn) ;
+      }
+      
+      it=contexts_.find(fullContextId) ;
       if ( it == contexts_.end()) ret=false ;
       else
       {
@@ -319,34 +355,65 @@ namespace xios
     return getContextInfo(fullContextId, contextInfo) ;
   }
 
+ 
   void CContextsManager::contextsDumpOut(CBufferOut& buffer)
   {
-    buffer.realloc(maxBufferSize_) ;
-    buffer<<(int)contexts_.size();
+    if (useWindowManager_)
+    {
+      buffer.realloc(maxBufferSize_) ;
+      buffer<<(int)contexts_.size();
     
-    for(auto it=contexts_.begin();it!=contexts_.end(); ++it)
-    { 
-      auto key = it->first ;
-      auto val = it->second ; 
+      for(auto it=contexts_.begin();it!=contexts_.end(); ++it)
+      { 
+        auto key = it->first ;
+        auto val = it->second ; 
+        buffer << key << val.poolId<<val.serviceId<<val.partitionId<<val.serviceType<<val.id<<val.size<<val.leader  ;
+      }
+    }
+    else
+    {
+      auto key = registringContext_.first ;
+      auto val = registringContext_.second ; 
       buffer << key << val.poolId<<val.serviceId<<val.partitionId<<val.serviceType<<val.id<<val.size<<val.leader  ;
     }
   } 
 
   void CContextsManager::contextsDumpIn(CBufferIn& buffer)
   {
-    std::string contextId ;
-    SRegisterContextInfo ci;
-    int size; 
-    int leader ;
-
-    contexts_.clear() ;
-    int nbContexts ;
-    buffer>>nbContexts ;
-    for(int i=0;i<nbContexts;i++) 
+    if (useWindowManager_)
     {
-      buffer>>contextId>>ci.poolId>>ci.serviceId>>ci.partitionId>>ci.serviceType>>ci.id>>ci.size>>ci.leader ;
+      std::string contextId ;
+      SRegisterContextInfo ci;
+      int size; 
+      int leader ;
+
+      contexts_.clear() ;
+      int nbContexts ;
+      buffer>>nbContexts ;
+      for(int i=0;i<nbContexts;i++) 
+      {
+        buffer>>contextId>>ci.poolId>>ci.serviceId>>ci.partitionId>>ci.serviceType>>ci.id>>ci.size>>ci.leader ;
+        contexts_[contextId]=ci ;
+      }
+    }
+    else
+    {
+      if (buffer.bufferSize()==0) return ;
+
+      std::string contextId ;
+      SRegisterContextInfo ci;
+      int size; 
+      int leader ;
+
+      buffer>>contextId;
+      buffer>>ci.poolId;
+      buffer>>ci.serviceId;
+      buffer>>ci.partitionId;
+      buffer>>ci.serviceType;
+      buffer>>ci.id;
+      buffer>>ci.size;
+      buffer>>ci.leader ;
       contexts_[contextId]=ci ;
     }
-
   }
 }

@@ -42,6 +42,7 @@ namespace xios
     void checkNotifications(void) ;
 
     void eventLoop(void) ;
+    void checkNotificationsManager(); 
     void notificationsDumpOut(CBufferOut& buffer) ;
     void notificationsDumpIn(CBufferIn& buffer) ;
     
@@ -65,9 +66,12 @@ namespace xios
     void createServerContextIntercomm(void) ; //private
 
     private :
-
+    
+    bool useWindowManager_ ;
     CWindowManager* winContexts_ ;
     CWindowManager* winNotify_ ;
+    size_t hashContextInfo_ ;
+    size_t hashContextNotify_ ;
 
 
     const size_t maxBufferSize_=1024*1024 ;
@@ -79,6 +83,7 @@ namespace xios
     tuple<std::string, std::string, int, std::string, int, std::string> notifyCreateIntercomm_ ;
 
     std::map<std::string, SRegisterContextInfo> contexts_ ;
+    std::pair<std::string, SRegisterContextInfo> registringContext_ ;
 
     int managerGlobalLeader_ ;
 

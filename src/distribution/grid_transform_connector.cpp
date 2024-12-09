@@ -71,6 +71,7 @@ namespace xios
       }
       vector<MPI_Status> sendStatus(sendReq.size()) ;
       MPI_Waitall(sendReq.size(),sendReq.data(),sendStatus.data()) ;
+      MPI_Barrier( localComm_ );
       
       // create gatherer connector
 

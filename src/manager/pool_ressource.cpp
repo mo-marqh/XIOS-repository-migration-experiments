@@ -15,10 +15,17 @@ namespace xios
   
   CPoolRessource::CPoolRessource(MPI_Comm poolComm, shared_ptr<CEventScheduler> eventScheduler, const std::string& Id, bool isServer) : Id_(Id), finalizeSignal_(false)
   {
+    useWindowManager_ = CXios::servicesUseWindowManager ;
+
     int commRank, commSize ;
     xios::MPI_Comm_dup(poolComm, &poolComm_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(poolComm_) ;
-    winNotify_ = new CWindowManager(poolComm_, maxBufferSize_,"CPoolRessource::winNotify_") ;
+    std::hash<string> hashString ;
+    hashId_ = hashString("CPoolRessource::"+Id) ;
+
+    if (useWindowManager_) winNotify_ = new CWindowManager(poolComm_, maxBufferSize_,"CPoolRessource::winNotify_") ;
+    hashNotify_ = hashString("CPoolRessource::"+Id) ;
+
     MPI_Comm_rank(poolComm, &commRank) ;
     MPI_Comm_size(poolComm, &commSize) ;
     info(40)<<"CPoolRessource::CPoolRessource  : creating new pool : "<<Id<<endl ;
@@ -31,13 +38,12 @@ namespace xios
     }
     
     notifyType_=NOTIFY_NOTHING;
-    winNotify_->updateToExclusiveWindow(commRank, this, &CPoolRessource::notificationsDumpOut) ;
+     if (useWindowManager_) winNotify_->updateToExclusiveWindow(commRank, this, &CPoolRessource::notificationsDumpOut) ;
     MPI_Barrier(poolComm_) ;
     if (eventScheduler) eventScheduler_=eventScheduler ;
     else eventScheduler_= make_shared<CEventScheduler>(poolComm) ;
     freeRessourceEventScheduler_ = eventScheduler_ ;
-    std::hash<string> hashString ;
-    hashId_ = hashString("CPoolRessource::"+Id) ;
+    
     if (CThreadManager::isUsingThreads()) CThreadManager::spawnThread(&CPoolRessource::threadEventLoop, this) ;
   }
 
@@ -55,115 +61,84 @@ namespace xios
     }
   }
 
-  void CPoolRessource::createService(const std::string& serviceId, int type, int size, int nbPartitions)
-  {
-    // for now suppose nbPartitions=1
-    
-    auto it=occupancy_.begin() ;
-
-    // ym obsolete, service cannot overlap, only created on separate ressource or matching excatly existing service
-    // occupancy management must not be used anymore => simplification
-    // for now raise a message error when no ressources are availables
-    
-    int commSize ;
-    MPI_Comm_size(poolComm_, &commSize) ;
-    vector<bool> procs_in(commSize,false) ;
-    vector<pair<int,int>> procs_update ;
-
-    for(int i=0; i<size; i++) 
-    {
-      if (it->first != 0) ERROR("void CPoolRessource::createService(const std::string& serviceId, int type, int size, int nbPartitions)",
-                                 << "No enough free ressources on pool id="<<getId()<<" to launch service id="<<serviceId);
-      procs_in[it->second]=true ;
-      procs_update.push_back(std::pair<int,int>(it->first+1,it->second)) ;
-      ++it ;
-    }
-
-
-    occupancy_.erase(occupancy_.begin(),it) ;
-    occupancy_.insert(procs_update.begin(),procs_update.end()) ;
-    
-    info(40)<<"CPoolRessource::createService  : notify createService to all pool members ; serviceId : "<<serviceId<<endl ;
-    for(int rank=0; rank<commSize; rank++)
-    {
-      if (procs_in[rank]) createServiceNotify(rank, serviceId, type, size, nbPartitions, true) ;
-      else createServiceNotify(rank, serviceId, type, size, nbPartitions, false) ;
-    }
-  }
-
-  void CPoolRessource::createServiceOnto(const std::string& serviceId, int type, const std::string& onServiceId)
-  {
-    // for now suppose nbPartitions=1
-    
-    auto it=occupancy_.begin() ;
-    int commSize ;
-    MPI_Comm_size(poolComm_, &commSize) ;
-    
-    info(40)<<"CPoolRessource::createService  : notify createServiceOnto to all pool members ; serviceId : "<<serviceId
-            <<"  onto service Id  :"<< serviceId<<endl ;
-    for(int rank=0; rank<commSize; rank++) createServiceOntoNotify(rank, serviceId, type, onServiceId) ;
-  }
-
-/*  
-  void CPoolRessource::createServiceNotify(int rank, const std::string& serviceId, int type, int size, int nbPartitions, 
-                                           bool in)
-  {
-    winNotify_->lockWindow(rank,0) ;
-    winNotify_->updateFromWindow(rank, this, &CPoolRessource::createServiceDumpIn) ;
-    notifications_.push_back(std::make_tuple(serviceId,type,size,nbPartitions,in)) ;
-    winNotify_->updateToWindow(rank, this, &CPoolRessource::createServiceDumpOut) ;  
-    winNotify_->unlockWindow(rank,0) ;   
-  }
-*/
-  
-  void CPoolRessource::createServiceNotify(int rank, const string& serviceId, int type, int size, int nbPartitions, bool in)
-  {
-    notifyType_=NOTIFY_CREATE_SERVICE ;
-    notifyCreateService_=make_tuple(serviceId, type, size, nbPartitions, in ) ;
-    sendNotification(rank) ;
-  }
-
-
-  void CPoolRessource::createServiceOntoNotify(int rank, const string& serviceId, int type, const string& onServiceId)
-  {
-    notifyType_=NOTIFY_CREATE_SERVICE_ONTO ;
-    notifyCreateServiceOnto_=make_tuple(serviceId, type, onServiceId) ;
-    sendNotification(rank) ;
-  }
-
 
   void CPoolRessource::sendNotification(int rank)
   {
     winNotify_->pushToExclusiveWindow(rank, this, &CPoolRessource::notificationsDumpOut) ;
   }
 
-  void CPoolRessource::checkNotifications(void)
+  void CPoolRessource::createService(const std::string& serviceId, int type, int size, int nbPartitions)
   {
-    int commRank ;
-    MPI_Comm_rank(poolComm_, &commRank) ;
-    winNotify_->popFromExclusiveWindow(commRank, this, &CPoolRessource::notificationsDumpIn) ;
-    if (notifyType_==NOTIFY_CREATE_SERVICE) 
+    info(40)<<"CPoolRessource::createService  : notify createService to all pool members ; serviceId : "<<serviceId<<endl ;
+    notifyType_=NOTIFY_CREATE_SERVICE ;
+    notifyCreateService_=make_tuple(serviceId, type, size, nbPartitions) ;
+    if (useWindowManager_)
     {
-      if (CThreadManager::isUsingThreads()) synchronize() ;
-      createService() ;
+      int commSize ;
+      MPI_Comm_size(poolComm_, &commSize) ; 
+      for(int rank=0; rank<commSize; rank++) sendNotification(rank) ;
     }
-    else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO) 
+    else CXios::getNotificationsManager()->sendLockedNotification(hashNotify_, this, &CPoolRessource::notificationsDumpOut) ;
+  }
+  
+  void CPoolRessource::createServiceOnto(const std::string& serviceId, int type, const std::string& onServiceId)
+  {
+    info(40)<<"CPoolRessource::createServiceOnto  : notify createServiceOnto to all pool members ; serviceId : "<<serviceId
+            <<"  onto service Id  :"<< serviceId<<endl ;
+    notifyType_=NOTIFY_CREATE_SERVICE_ONTO ;
+    notifyCreateServiceOnto_=make_tuple(serviceId, type, onServiceId) ;
+    if (useWindowManager_)
     {
-      if (CThreadManager::isUsingThreads()) synchronize() ;
-      createServiceOnto() ;
+      int commSize ;
+      MPI_Comm_size(poolComm_, &commSize) ; 
+      for(int rank=0; rank<commSize; rank++) sendNotification(rank) ;
     }
+    CXios::getNotificationsManager()->sendLockedNotification(hashNotify_, this, &CPoolRessource::notificationsDumpOut) ;
   }
 
 
+  void CPoolRessource::checkNotifications(void)
+  {
+    bool recv=false ;
+    if (useWindowManager_)
+    { 
+      double time=MPI_Wtime() ;
+      int flag ;
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+      int commRank ;
+      MPI_Comm_rank(poolComm_, &commRank) ;
+      if (time-lastEventLoop_ > eventLoopLatency_) 
+      {
+        winNotify_->popFromExclusiveWindow(commRank, this, &CPoolRessource::notificationsDumpIn) ;
+        if (notifyType_==NOTIFY_CREATE_SERVICE || notifyType_==NOTIFY_CREATE_SERVICE_ONTO) recv=true ;
+        lastEventLoop_=time ;
+      }
+    }
+    else if (CXios::getNotificationsManager()->recvNotification(hashNotify_,   this, &CPoolRessource::notificationsDumpIn)) recv=true ;
+
+    if (recv)
+    {
+      if (notifyType_==NOTIFY_CREATE_SERVICE) 
+      {
+        if (CThreadManager::isUsingThreads()) synchronize() ;
+        createService() ;
+      }
+      else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO) 
+      {
+        if (CThreadManager::isUsingThreads()) synchronize() ;
+        createServiceOnto() ;
+      }
+    }
+  }
+
   void CPoolRessource::notificationsDumpOut(CBufferOut& buffer)
   {
-
-    buffer.realloc(maxBufferSize_) ;
+    if (useWindowManager_) buffer.realloc(maxBufferSize_) ;
     
     if (notifyType_==NOTIFY_CREATE_SERVICE)
     {
       auto& arg=notifyCreateService_ ;
-      buffer << notifyType_<< get<0>(arg) << get<1>(arg) << std::get<2>(arg) << get<3>(arg) << get<4>(arg);
+      buffer << notifyType_<< get<0>(arg) << get<1>(arg) << std::get<2>(arg) << get<3>(arg) ;
     }
     else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO)
     {
@@ -171,6 +146,7 @@ namespace xios
       buffer << notifyType_<< get<0>(arg) << get<1>(arg)<< get<2>(arg)  ;
     }
   }
+
 
   void CPoolRessource::notificationsDumpIn(CBufferIn& buffer)
   {
@@ -181,7 +157,7 @@ namespace xios
       if (notifyType_==NOTIFY_CREATE_SERVICE)
       {
         auto& arg=notifyCreateService_ ;
-        buffer >> get<0>(arg) >> get<1>(arg) >> std::get<2>(arg)>> get<3>(arg)>> get<4>(arg) ;
+        buffer >> get<0>(arg) >> get<1>(arg) >> std::get<2>(arg)>> get<3>(arg) ;
       }
       else if (notifyType_==NOTIFY_CREATE_SERVICE_ONTO)
       {
@@ -194,7 +170,7 @@ namespace xios
   void CPoolRessource::createService(void)
   {
     auto& arg = notifyCreateService_ ;
-    createNewService(get<0>(arg), get<1>(arg), get<2>(arg), get<3>(arg), get<4>(arg)) ;
+    createNewService(get<0>(arg), get<1>(arg), get<2>(arg), get<3>(arg)) ;
   }
   
   void CPoolRessource::createServiceOnto(void)
@@ -203,52 +179,11 @@ namespace xios
     createNewServiceOnto(get<0>(arg), get<1>(arg), get<2>(arg)) ;
   }
 
-/*
-  void CPoolRessource::createServiceDumpOut(CBufferOut& buffer)
-  {
-    buffer.realloc(maxBufferSize_) ;
-   
-    buffer << (int) (notifications_.size());
-    
-    for(auto it=notifications_.begin();it!=notifications_.end(); ++it) 
-      buffer << std::get<0>(*it) << static_cast<int>(std::get<1>(*it))<< std::get<2>(*it)<< std::get<3>(*it) << std::get<4>(*it)  ;
-  }
-
-*/
-
-/*
-  void CPoolRessource::createServiceDumpIn(CBufferIn& buffer)
-  {
-    std::string serviceId ;
-    int type ;
-    int size; 
-    int nbPartitions; 
-    bool in ;
-
-    notifications_.clear() ;
-    int nbNotifications ;
-    buffer>>nbNotifications ;
-    for(int i=0;i<nbNotifications;i++) 
-    {
-      buffer>>serviceId>>type>>size>>nbPartitions>>in ;
-      notifications_.push_back(std::make_tuple(serviceId,type,size,nbPartitions,in)) ;
-    }
-  }
-*/
-
   bool CPoolRessource::eventLoop(bool serviceOnly)
   {
     if (info.isActive(logTimers)) CTimer::get("CPoolRessource::eventLoop").resume();
    
-    double time=MPI_Wtime() ;
-    int flag ;
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-    if (time-lastEventLoop_ > eventLoopLatency_) 
-    {
-      //checkCreateServiceNotification() ;
-      checkNotifications() ;
-      lastEventLoop_=time ;
-    }
+    checkNotifications() ;
     
     for (auto it=services_.begin(); it!=services_.end() ; ++it) 
     {
@@ -273,16 +208,7 @@ namespace xios
     
     do
     {
-
-      double time=MPI_Wtime() ;
-      int flag ;
-      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-      if (time-lastEventLoop_ > eventLoopLatency_) 
-      {
-        //checkCreateServiceNotification() ;
-        checkNotifications() ;
-        lastEventLoop_=time ;
-      }
+      checkNotifications() ;
     
       for(auto it=services_.begin();it!=services_.end();++it) 
       {
@@ -306,27 +232,7 @@ namespace xios
     info(100)<<"Close thread for  CPoolRessource::threadEventLoop, pool id = "<<Id_<<endl ;
   }
 
-/*
-  void CPoolRessource::checkCreateServiceNotification(void)
-  {
-    int commRank ;
-    MPI_Comm_rank(poolComm_, &commRank) ;
-    winNotify_->lockWindow(commRank,0) ;
-    winNotify_->updateFromWindow(commRank, this, &CPoolRessource::createServiceDumpIn) ;
-    
-    if (!notifications_.empty())
-    {
-      auto info = notifications_.front() ;
-      createNewService(get<0>(info), get<1>(info), get<2>(info), get<3>(info), get<4>(info)) ;
-      notifications_.pop_front() ;
-      winNotify_->updateToWindow(commRank, this, &CPoolRessource::createServiceDumpOut) ;     
-    }
-    winNotify_->unlockWindow(commRank,0) ;
-
-  }
-*/
-
-  void CPoolRessource::createNewService(const std::string& serviceId, int type, int size, int nbPartitions, bool in)
+  void CPoolRessource::createNewService(const std::string& serviceId, int type, int size, int nbPartitions)
   {
      
     info(40)<<"CPoolRessource::createNewService  : receive createService notification ; serviceId : "<<serviceId<<endl ;
@@ -338,12 +244,24 @@ namespace xios
     else color=1 ; 
     MPI_Comm_rank(poolComm_,&commRank) ;
     xios::MPI_Comm_split(poolComm_, color, commRank, &freeComm) ;  // workaround
+
     
     if (services_.empty()) 
     {
-      MPI_Comm_rank(freeComm,&commRank) ;
-      xios::MPI_Comm_split(freeComm, in, commRank, &serviceComm) ;
+      int commSize ;
+      MPI_Comm_size(freeComm,&commSize) ;
+      if (commSize<size) ERROR("void CPoolRessource::createNewService(const std::string& serviceId, int type, int size, int nbPartitions)",
+                               << "No enough free ressources on pool id="<<getId()<<" to launch service id="<<serviceId);
 
+
+      MPI_Comm_rank(freeComm,&commRank) ;
+      bool in ;
+      if (commRank < size) in=true ;
+      else in=false ;
+
+      xios::MPI_Comm_split(freeComm, in, commRank, &serviceComm) ;
+      
+      
       // temporary for event scheduler, we must using hierarchical split of free ressources communicator.
       // we hope for now that spliting using occupancy make this match
 
@@ -432,7 +350,7 @@ namespace xios
   
   CPoolRessource::~CPoolRessource()
   {
-    delete winNotify_ ;
+    if (useWindowManager_) delete winNotify_ ;
     for(auto& service : services_) delete service.second ;
   }
 }

@@ -14,28 +14,30 @@ namespace xios
   class CWindowDynamic
   {
     private:
-      void * winBuffer_ ;   
+      std::map<size_t, void *> winBuffer_ ;   
       const MPI_Aint OFFSET_LOCK=0 ;
-      const int SIZE_LOCK=sizeof(long) ;
+      const int SIZE_LOCK=2*sizeof(uint64_t) ;
       const MPI_Aint OFFSET_BUFFER =  SIZE_LOCK ;
       const MPI_Aint OFFSET_BUFFER_SIZE = SIZE_LOCK   ;
-      MPI_Aint bufferSize_ ;
+      std::map<size_t, MPI_Aint> bufferSize_ ;
       const double maxLatency_ = 1e-3 ; // 1ms latency maximum
+      const double minLatency_ = 1e-5 ;
+      const uint32_t maxStackValue_ = 1073741824 ; //2^30 
+      double timeLastLock_=0 ;
       MPI_Win window_ ;
-      MPI_Aint windowSize_ ;
+      std::map<size_t, MPI_Aint> windowSize_ ;
       int winCommRank_ ;
-      map<int,MPI_Aint> winBufferAddress_ ;
+      std::map< std::pair<int, size_t>, MPI_Aint> winBufferAddress_ ;
+      
+    public:
 
-
-    public :
-
-    void allocateBuffer(MPI_Aint size)
+    void allocateBuffer(MPI_Aint size, size_t tag)
     {
-      bufferSize_ = size ;
-      windowSize_ = size+OFFSET_BUFFER_SIZE ;
-      MPI_Alloc_mem(windowSize_, MPI_INFO_NULL, &winBuffer_) ;
-      MPI_Aint& lock = *((MPI_Aint*)(static_cast<char*>(winBuffer_)+OFFSET_LOCK)) ;
-      lock=0 ;
+      bufferSize_[tag] = size ;
+      windowSize_[tag] = size+OFFSET_BUFFER_SIZE ;
+      MPI_Alloc_mem(windowSize_[tag], MPI_INFO_NULL, &winBuffer_[tag]) ;
+      uint64_t* lock = (uint64_t*)((char*)(winBuffer_[tag])+OFFSET_LOCK) ;
+      lock[0]=0 ; lock[1]=0 ; 
     }  
 
     void create(MPI_Comm winComm)
@@ -49,7 +51,7 @@ namespace xios
     
     void lockAll()
     {
-      MPI_Win_lock_all(0, window_) ;
+      MPI_Win_lock_all(MPI_MODE_NOCHECK, window_) ;
     }
 
     void unlockAll()
@@ -57,136 +59,240 @@ namespace xios
       MPI_Win_unlock_all(window_) ;
     }
 
-    void setWinBufferAddress(MPI_Aint addr, int rank)
+    void setWinBufferAddress(MPI_Aint addr, int rank, size_t tag)
     {
-      winBufferAddress_[rank]=addr ;
+      winBufferAddress_[{rank,tag}]=addr ;
     }
     
-    MPI_Aint getWinBufferAddress()
+    MPI_Aint getWinBufferAddress(size_t tag)
     {
       MPI_Aint ret ;
-      MPI_Get_address(winBuffer_, &ret) ;
+      MPI_Get_address(winBuffer_[tag], &ret) ;
       return ret ;
     }
 
-    void* getBufferAddress()
+    void* getBufferAddress(size_t tag)
     {
-      return static_cast<char*>(winBuffer_)+OFFSET_BUFFER_SIZE ;
+      return static_cast<char*>(winBuffer_[tag])+OFFSET_BUFFER_SIZE ;
     }
     
-    bool tryLockExclusive(int rank)
+    
+    void rescaleStack(int rank, size_t tag)
     {
-      long lock = 1;
-      long unlock = 0;
-      long state;
-
-      int flag ;
-      if (rank==winCommRank_) MPI_Win_sync(window_) ;
-      MPI_Compare_and_swap(&lock, &unlock, &state, MPI_LONG, rank, winBufferAddress_[rank]+OFFSET_LOCK, window_) ;
-      MPI_Win_flush(rank, window_);
-//      if (rank==winCommRank_) MPI_Win_sync(window_) ;
-      bool locked = (state == unlock) ;
-      return locked ;
-    }
-
-    bool tryLockShared(int rank, MPI_Op op)
-    {
-      long one = 0x100000000;
-      long res;
-
-      MPI_Fetch_and_op(&one, &res, MPI_LONG, rank, winBufferAddress_[rank]+OFFSET_LOCK, op, window_);
-      MPI_Win_flush(rank, window_);
+      int32_t inc = -maxStackValue_  ;
+      int32_t state ;
+      int32_t state_before[4] ;
+      int32_t state_after[4] ;
+            
       
-      bool locked =  ! (res & 1) ;
-      return locked ;
-    }
+      lockExclusive(rank, tag) ;
+      MPI_Fetch_and_op(&inc, state_before, MPI_INT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK, MPI_NO_OP, window_) ;
+      MPI_Fetch_and_op(&inc, state_before+2, MPI_INT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_NO_OP, window_) ;
+      MPI_Win_flush(rank, window_);
 
-    void unlockExclusive(int rank)
-    {
-      int lock = 1;
-      int unlock = 0;
-      int state;
-      
-      if (rank==winCommRank_) MPI_Win_sync(window_) ;
+
+      MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK, MPI_NO_OP, window_) ;
       MPI_Win_flush(rank, window_);
-      MPI_Compare_and_swap(&unlock, &lock, &state, MPI_INT, rank, winBufferAddress_[rank]+OFFSET_LOCK, window_) ;
-      MPI_Win_flush(rank, window_);
-//      if (rank==winCommRank_) MPI_Win_sync(window_) ;
-      if (lock != state) 
+      if (state>=maxStackValue_) 
       {
-        info(100)<<"Bad State : "<<((long*)winBuffer_)[0]<<endl ;
-        ERROR("CWindowBase::unlockWindowExclusive",<<"unlockWindow failed: bad state"<<endl) ; 
+        MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK, MPI_SUM, window_) ;
+        MPI_Win_flush(rank, window_);
       }
-    }
-
-    void unlockShared(int rank)
-    {
-      int minusone = -1;
-      int res;
-      MPI_Fetch_and_op(&minusone, &res, MPI_INT, rank, winBufferAddress_[rank]+OFFSET_LOCK+4, MPI_SUM, window_);
+      MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(int32_t), MPI_NO_OP, window_) ;
       MPI_Win_flush(rank, window_);
+      if (state>=maxStackValue_) 
+      {
+        MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(int32_t), MPI_SUM, window_) ;
+        MPI_Win_flush(rank, window_);
+      }
+
+      MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+2*sizeof(int32_t), MPI_NO_OP, window_) ;
+      MPI_Win_flush(rank, window_);
+      if (state>=maxStackValue_) 
+      {
+        MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+2*sizeof(int32_t), MPI_SUM, window_) ;
+        MPI_Win_flush(rank, window_);
+      }
+
+      MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+3*sizeof(int32_t), MPI_NO_OP, window_) ;
+      MPI_Win_flush(rank, window_);
+      if (state>=maxStackValue_)
+      {
+        MPI_Fetch_and_op(&inc, &state, MPI_INT32_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+3*sizeof(int32_t), MPI_SUM, window_) ;
+        MPI_Win_flush(rank, window_);
+      }
+
+      MPI_Fetch_and_op(&inc, state_after, MPI_INT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK, MPI_NO_OP, window_) ;
+      MPI_Fetch_and_op(&inc, state_after+2, MPI_INT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_NO_OP, window_) ;
+      MPI_Win_flush(rank, window_);
+
+      if (state_after[0]>=maxStackValue_ || state_after[1]>=maxStackValue_ || state_after[2]>=maxStackValue_ || state_after[3]>=maxStackValue_ )
+      {
+        info(100)<<"CWindowBase::rescaleStack : new stack state for windows rank ; before "<<rank<<" => "<<state_before[0]<<"  "<<state_before[1]<<"  "<<state_before[2]<<"  "<<state_before[3]<<endl ;
+        info(100)<<"CWindowBase::rescaleStack : new stack state for windows rank ; after "<<rank<<" => "<<state_after[0]<<"  "<<state_after[1]<<"  "<<state_after[2]<<"  "<<state_after[3]<<endl ;
+        info(100)<<"Warning Bad state value !!!!"<< endl ;
+      }
+      unlockExclusive(rank, tag) ;
     }
 
-    void lockExclusive(int rank)
+    void unlockExclusive(int rank, size_t tag)
     {
-      double time =  MPI_Wtime() ;
-      bool locked = tryLockExclusive(rank);
+      CTimer::get("unlock exclusive").resume();
+      uint32_t inc[2] = {1 , 1} ;
+      uint32_t state[2] ;
+      
+      MPI_Fetch_and_op(inc, state, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_SUM, window_) ;
+      MPI_Win_flush(rank, window_);
+      CTimer::get("unlock exclusive").suspend();
+      if (state[0] > maxStackValue_ || state[1] > maxStackValue_ ) rescaleStack(rank, tag) ;
+    }
+
+    void unlockShared(int rank, size_t tag)
+    {
+      double t0 = CTimer::getTime(); 
+      CTimer::get("unlock shared").resume();
+      
+      uint32_t inc[2] = {1 , 0} ;
+      uint32_t state[2] ;
+      
+      MPI_Fetch_and_op(inc, state, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_SUM, window_) ;
+      MPI_Win_flush(rank, window_);
+      
+      CTimer::get("unlock shared").suspend();
+
+      if (state[0] > maxStackValue_ || state[1] > maxStackValue_ ) rescaleStack(rank, tag) ;
+    }
+
+    void lockExclusive(int rank, size_t tag)
+    {
+      CTimer::get("lock exclusive").resume();
+      uint32_t inc[2] = {1 , 1} ;
+      uint32_t state[2] ;
+      uint32_t res[2] ;
+      bool locked ;
+      int flag ;
+
+      double time = MPI_Wtime() ;
+      while (time-timeLastLock_<minLatency_)
+      {
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+        time = MPI_Wtime() ;
+      }
+      timeLastLock_ = time ; 
+
+      locked=false; 
+      MPI_Fetch_and_op(inc, state, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK, MPI_SUM, window_) ;
+      MPI_Win_flush(rank, window_);
+      
+      time =  MPI_Wtime() ;
+      MPI_Fetch_and_op(inc, res, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_NO_OP, window_) ;
+      MPI_Win_flush(rank, window_);
       double lastTime = MPI_Wtime() ;
       double delta = lastTime-time ;
-      
+      if (res[0] % maxStackValue_ == state[0] % maxStackValue_) locked=true ;
+
       while (!locked)
       {
         time = MPI_Wtime() ;
         if (delta > maxLatency_) delta = maxLatency_ ;
         if (time >= lastTime+delta)
         { 
-          locked = tryLockExclusive(rank);
-          delta=delta*2.;
-          lastTime = time ;      
+          MPI_Fetch_and_op(inc, res, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_NO_OP, window_) ;
+          MPI_Win_flush(rank, window_);
+          if (res[0] % maxStackValue_ == state[0] % maxStackValue_) locked=true ;
+          else
+          {
+            delta=delta*2.;
+            lastTime = time ;
+          }      
         }
+        else MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+
       }  
+      CTimer::get("lock exclusive").suspend();
     }
 
-    void lockShared(int rank)
+    void lockShared(int rank, size_t tag)
     {
-      double time =  MPI_Wtime() ;
-      bool locked = tryLockShared(rank, MPI_SUM);
+      double t0 ;
+      {
+        t0 = CTimer::getTime(); 
+        CTimer::get("lock shared").resume();
+      }
+      uint32_t inc[2] = {1 , 0} ;
+      uint32_t state[2] ;
+      uint32_t res[2] ;
+      bool locked ;
+
+      double time = MPI_Wtime() ;
+      int flag ;
+      while (time-timeLastLock_<minLatency_)
+      {
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+        time = MPI_Wtime() ;
+      }
+      timeLastLock_ = time ; 
+
+
+      locked=false; 
+
+      MPI_Fetch_and_op(inc, state, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK, MPI_SUM, window_) ;
+      MPI_Win_flush(rank, window_);
+
+      MPI_Fetch_and_op(inc, res, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_NO_OP, window_) ;
+      MPI_Win_flush(rank, window_);
+
       double lastTime = MPI_Wtime() ;
       double delta = lastTime-time ;
-      
+      if (res[1] % maxStackValue_ == state[1] % maxStackValue_ ) locked=true ;
+
       while (!locked)
       {
-        time = MPI_Wtime() ;
+        double time = MPI_Wtime() ;
         if (delta > maxLatency_) delta = maxLatency_ ;
         if (time >= lastTime+delta)
         { 
-          locked = tryLockShared(rank, MPI_NO_OP);
-          delta=delta*2.;
-          lastTime = time ;      
+          MPI_Fetch_and_op(inc, res, MPI_UINT64_T, rank, winBufferAddress_[{rank,tag}]+OFFSET_LOCK+sizeof(uint64_t), MPI_NO_OP, window_) ;
+          MPI_Win_flush(rank, window_);
+          if (res[1] % maxStackValue_ == state[1] % maxStackValue_ ) locked=true ;
+          else
+          {
+            delta=delta*2.;
+            lastTime = time ;
+          }      
         }
-      }  
-    }
-    
-    void attach(MPI_Aint size) 
-    {
-      windowSize_ = size+OFFSET_BUFFER_SIZE ;
-      MPI_Alloc_mem(windowSize_, MPI_INFO_NULL, &winBuffer_) ;
-      MPI_Aint& lock = *((MPI_Aint*)(static_cast<char*>(winBuffer_)+OFFSET_LOCK)) ;
-      lock=0 ;
-      MPI_Win_attach(window_, winBuffer_, size+OFFSET_BUFFER_SIZE) ;
-      setWinBufferAddress(getWinBufferAddress(),winCommRank_) ;
-    }
-    
-    void attach() 
-    {
-      MPI_Win_attach(window_, winBuffer_, windowSize_) ;
-      setWinBufferAddress(getWinBufferAddress(),winCommRank_) ;
+        else MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+      }
+
+      CTimer::get("lock shared").suspend();
     }
 
-    void detach() 
+  
+    void attach(MPI_Aint size, size_t tag) 
     {
-      MPI_Win_detach(window_, winBuffer_) ;
-      MPI_Free_mem(winBuffer_) ;        
+      
+      windowSize_[tag] = size+OFFSET_BUFFER_SIZE ;
+      MPI_Alloc_mem(windowSize_[tag], MPI_INFO_NULL, &winBuffer_[tag]) ;
+      uint64_t* lock = (uint64_t*)((char*)(winBuffer_[tag])+OFFSET_LOCK) ;
+      lock[0]=0 ; lock[1]=0 ; 
+
+      info(100)<<"Attach Buffer  =>  "<<winBuffer_[tag]<<endl ;
+      MPI_Win_attach(window_, winBuffer_[tag], windowSize_[tag]) ;
+      setWinBufferAddress(getWinBufferAddress(tag),winCommRank_,tag) ;
+    }
+    
+    void attach(size_t tag) 
+    {
+      info(100)<<"Attach Buffer  =>  "<<winBuffer_[tag]<<endl ;
+      MPI_Win_attach(window_, winBuffer_[tag], windowSize_[tag]) ;
+      setWinBufferAddress(getWinBufferAddress(tag),winCommRank_, tag) ;
+    }
+
+    void detach(size_t tag) 
+    {
+      info(100)<<"Detach Buffer  =>  "<<winBuffer_[tag]<<endl ;
+      MPI_Win_detach(window_, winBuffer_[tag]) ;
+      MPI_Free_mem(winBuffer_[tag]) ;        
     }
 
     int flush(int rank)

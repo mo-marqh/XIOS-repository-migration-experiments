@@ -18,6 +18,28 @@ namespace xios
     MPI_Comm splitComm ;
     xios::MPI_Comm_split(xiosComm,isXiosServer,commRank,&splitComm) ;
     
+    int isMasterNotification ;
+    if (isXiosServer)
+    {
+      MPI_Comm_rank(splitComm,&commRank) ;
+      if (commRank==0) isMasterNotification=true ;
+      else isMasterNotification=false ;
+    }
+    else 
+    {
+      int xiosSize, clientSize ;
+      MPI_Comm_size(xiosComm,&xiosSize) ;
+      MPI_Comm_size(splitComm,&clientSize) ;
+      if (clientSize == xiosSize)
+      {
+        MPI_Comm_rank(splitComm,&commRank) ;
+        if (commRank==0) isMasterNotification=true ;
+        else isMasterNotification=false ;
+      }
+      else isMasterNotification=false ;
+    }
+    CXios::launchNotificationsManager(isMasterNotification) ;
+
     CXios::launchRegistryManager(isXiosServer) ;
     CXios::launchRessourcesManager(isXiosServer) ;
     CXios::launchServicesManager(isXiosServer) ;
@@ -37,10 +59,11 @@ namespace xios
 
   bool CDaemonsManager::eventLoop(void)
   {
-    
+    CXios::getNotificationsManager()->eventLoop() ;
     CXios::getRessourcesManager()->eventLoop() ;
     CXios::getServicesManager()->eventLoop() ;
     CXios::getContextsManager()->eventLoop() ;
+    CXios::getCouplerManager()->eventLoop() ;
     if (isServer_) 
     {
       if (CServer::isRoot) 
@@ -79,6 +102,7 @@ namespace xios
       CXios::finalizeRessourcesManager() ;
       CXios::finalizeRegistryManager() ;
       CXios::finalizeThreadManager() ;
+      CXios::finalizeNotificationsManager() ;
       isFinalized_=true ;
     }
     return isFinalized_;

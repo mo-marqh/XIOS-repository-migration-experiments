@@ -31,41 +31,41 @@ namespace xios
   extern CLogType logTimers ;
   extern CLogType logProfile ;
 
-  CLegacyContextServer::CLegacyContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) 
-    : CContextServer(parent, intraComm_, interComm_),
+  CLegacyContextServer::CLegacyContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) 
+    : CContextServer(parent, intraComm, interComm),
       isProcessingEvent_(false)
   {
  
-    xios::MPI_Comm_dup(intraComm, &processEventBarrier_) ;
+    xios::MPI_Comm_dup(intraComm_, &processEventBarrier_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(processEventBarrier_) ;
 
-    currentTimeLine=1;
-    scheduled=false;
-    finished=false;
+    currentTimeLine_=1;
+    scheduled_=false;
+    finished_=false;
 
     xios::MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(interCommMerged_) ;
-    xios::MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
+    xios::MPI_Comm_split(intraComm_, intraCommRank_, intraCommRank_, &commSelf_) ; // for windows
     CXios::getMpiGarbageCollector().registerCommunicator(commSelf_) ;
   
-    itLastTimeLine=lastTimeLine.begin() ;
+    itLastTimeLine_=lastTimeLine_.begin() ;
 
-    pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
+    pureOneSided_=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
   }
  
   void CLegacyContextServer::setPendingEvent(void)
   {
-    pendingEvent=true;
+    pendingEvent_=true;
   }
 
   bool CLegacyContextServer::hasPendingEvent(void)
   {
-    return (pendingRequest.size()!=0);
+    return (pendingRequest_.size()!=0);
   }
 
   bool CLegacyContextServer::hasFinished(void)
   {
-    return finished;
+    return finished_;
   }
 
   bool CLegacyContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
@@ -82,7 +82,7 @@ namespace xios
     processEvents(enableEventsProcessing);
     if (info.isActive(logTimers)) CTimer::get("check event process").suspend();
     if (info.isActive(logProfile)) CTimer::get("Recv event loop (legacy)").suspend();
-    return finished;
+    return finished_;
   }
 
  void CLegacyContextServer::listen(void)
@@ -109,8 +109,8 @@ namespace xios
     map<int,CServerBuffer*>::iterator it;
     int rank=status.MPI_SOURCE ;
 
-    it=buffers.find(rank);
-    if (it==buffers.end()) // Receive the buffer size and allocate the buffer
+    it=buffers_.find(rank);
+    if (it==buffers_.end()) // Receive the buffer size and allocate the buffer
     {
       MPI_Aint recvBuff[4] ;
       MPI_Mrecv(recvBuff, 4, MPI_AINT,  &message, &status);
@@ -129,13 +129,16 @@ namespace xios
       xios::MPI_Intercomm_create(commSelf_, 0, interCommMerged_, rank, tag , &interComm) ;
       xios::MPI_Intercomm_merge(interComm, true, &winComm_[rank]) ;
       xios::MPI_Comm_free(&interComm) ;
+      winDynamics_[rank].resize(2) ;
+      winDynamics_[rank][0] = new CWindowDynamic() ;
+      winDynamics_[rank][1] = new CWindowDynamic() ;
       windows_[rank].resize(2) ;
       //MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][0]);
       //CXios::getMpiGarbageCollector().registerWindow(windows_[rank][0]) ;
       //MPI_Win_create_dynamic(MPI_INFO_NULL, winComm_[rank], &windows_[rank][1]);
       //CXios::getMpiGarbageCollector().registerWindow(windows_[rank][1]) ;
-      windows_[rank][0] = new CWindowDynamic() ;
-      windows_[rank][1] = new CWindowDynamic() ;
+      windows_[rank][0] = new CWindowDynamicView(winDynamics_[rank][0],0) ;
+      windows_[rank][1] = new CWindowDynamicView(winDynamics_[rank][1],0) ;
       windows_[rank][0] -> create(winComm_[rank]) ;
       windows_[rank][1] -> create(winComm_[rank]) ;
       windows_[rank][0] -> setWinBufferAddress(winBufferAddress[0],0) ;
@@ -144,16 +147,16 @@ namespace xios
       CXios::getMpiGarbageCollector().registerCommunicator(winComm_[rank]) ;
       MPI_Barrier(winComm_[rank]) ;
 
-      it=(buffers.insert(pair<int,CServerBuffer*>(rank, new CServerBuffer(rank, windows_[rank], winBufferAddress, 0, buffSize)))).first;
-      lastTimeLine[rank]=0 ;
-      itLastTimeLine=lastTimeLine.begin() ;
+      it=(buffers_.insert(pair<int,CServerBuffer*>(rank, new CServerBuffer(rank, windows_[rank], winBufferAddress, 0, buffSize)))).first;
+      lastTimeLine_[rank]=0 ;
+      itLastTimeLine_=lastTimeLine_.begin() ;
 
       return true;
     }
     else
     {
         std::pair<MPI_Message,MPI_Status> mypair(message,status) ;
-        pendingProbe[rank].push_back(mypair) ;
+        pendingProbe_[rank].push_back(mypair) ;
         return false;
     }
   }
@@ -165,30 +168,30 @@ namespace xios
     list<int>::iterator itRecv ;
     map<int, list<std::pair<MPI_Message,MPI_Status> > >::iterator itProbe;
 
-    for(itProbe=pendingProbe.begin();itProbe!=pendingProbe.end();itProbe++)
+    for(itProbe=pendingProbe_.begin();itProbe!=pendingProbe_.end();itProbe++)
     {
       int rank=itProbe->first ;
-      if (pendingRequest.count(rank)==0)
+      if (pendingRequest_.count(rank)==0)
       {
         MPI_Message& message = itProbe->second.front().first ;
         MPI_Status& status = itProbe->second.front().second ;
         int count ;
         MPI_Get_count(&status,MPI_CHAR,&count);
-        map<int,CServerBuffer*>::iterator it = buffers.find(rank);
+        map<int,CServerBuffer*>::iterator it = buffers_.find(rank);
         if ( (it->second->isBufferFree(count) && !it->second->isResizing()) // accept new request if buffer is free
           || (it->second->isResizing() && it->second->isBufferEmpty()) )    // or if resizing wait for buffer is empty
         {
           char * addr;
           addr=(char*)it->second->getBuffer(count);
-          MPI_Imrecv(addr,count,MPI_CHAR, &message, &pendingRequest[rank]);
-          bufferRequest[rank]=addr;
+          MPI_Imrecv(addr,count,MPI_CHAR, &message, &pendingRequest_[rank]);
+          bufferRequest_[rank]=addr;
           recvProbe.push_back(rank) ;
           itProbe->second.pop_front() ;
         }
       }
     }
 
-    for(itRecv=recvProbe.begin(); itRecv!=recvProbe.end(); itRecv++) if (pendingProbe[*itRecv].empty()) pendingProbe.erase(*itRecv) ;
+    for(itRecv=recvProbe.begin(); itRecv!=recvProbe.end(); itRecv++) if (pendingProbe_[*itRecv].empty()) pendingProbe_.erase(*itRecv) ;
   }
 
 
@@ -202,10 +205,10 @@ namespace xios
     int count;
     MPI_Status status;
    
-    if (!pendingRequest.empty()) if (info.isActive(logTimers)) CTimer::get("receiving requests").resume();
+    if (!pendingRequest_.empty()) if (info.isActive(logTimers)) CTimer::get("receiving requests").resume();
     else if (info.isActive(logTimers)) CTimer::get("receiving requests").suspend();
 
-    for(it=pendingRequest.begin();it!=pendingRequest.end();it++)
+    for(it=pendingRequest_.begin();it!=pendingRequest_.end();it++)
     {
       rank=it->first;
       traceOff();
@@ -213,17 +216,17 @@ namespace xios
       traceOn();
       if (flag==true)
       {
-        buffers[rank]->updateCurrentWindows() ;
+        buffers_[rank]->updateCurrentWindows() ;
         recvRequest.push_back(rank);
         MPI_Get_count(&status,MPI_CHAR,&count);
-        processRequest(rank,bufferRequest[rank],count);
+        processRequest(rank,bufferRequest_[rank],count);
       }
     }
 
     for(itRecv=recvRequest.begin();itRecv!=recvRequest.end();itRecv++)
     {
-      pendingRequest.erase(*itRecv);
-      bufferRequest.erase(*itRecv);
+      pendingRequest_.erase(*itRecv);
+      bufferRequest_.erase(*itRecv);
     }
   }
 
@@ -235,14 +238,14 @@ namespace xios
     char *buffer ;
     size_t count ; 
 
-    if (itLastTimeLine==lastTimeLine.end()) itLastTimeLine=lastTimeLine.begin() ;
-    for(;itLastTimeLine!=lastTimeLine.end();++itLastTimeLine)
+    if (itLastTimeLine_==lastTimeLine_.end()) itLastTimeLine_=lastTimeLine_.begin() ;
+    for(;itLastTimeLine_!=lastTimeLine_.end();++itLastTimeLine_)
     {
-      rank=itLastTimeLine->first ;
-      if (itLastTimeLine->second < timeLine &&  pendingRequest.count(rank)==0 && buffers[rank]->isBufferEmpty())
+      rank=itLastTimeLine_->first ;
+      if (itLastTimeLine_->second < timeLine &&  pendingRequest_.count(rank)==0 && buffers_[rank]->isBufferEmpty())
       {
-        if (buffers[rank]->getBufferFromClient(timeLine, buffer, count)) processRequest(rank, buffer, count);
-        if (count >= 0) ++itLastTimeLine ;
+        if (buffers_[rank]->getBufferFromClient(timeLine, buffer, count)) processRequest(rank, buffer, count);
+        if (count >= 0) ++itLastTimeLine_ ;
         break ;
       }
     }
@@ -269,33 +272,33 @@ namespace xios
 
       if (timeLine==timelineEventNotifyChangeBufferSize)
       {
-        buffers[rank]->notifyBufferResizing() ;
-        buffers[rank]->updateCurrentWindows() ;
-        buffers[rank]->popBuffer(count) ;
-        info(100)<<"Context id "<<context->getId()<<" : Receive NotifyChangeBufferSize from client rank "<<rank<<endl
-                 <<"isBufferEmpty ? "<<buffers[rank]->isBufferEmpty()<<"  remaining count : "<<buffers[rank]->getUsed()<<endl;
+        buffers_[rank]->notifyBufferResizing() ;
+        buffers_[rank]->updateCurrentWindows() ;
+        buffers_[rank]->popBuffer(count) ;
+        info(100)<<"Context id "<<context_->getId()<<" : Receive NotifyChangeBufferSize from client rank "<<rank<<endl
+                 <<"isBufferEmpty ? "<<buffers_[rank]->isBufferEmpty()<<"  remaining count : "<<buffers_[rank]->getUsed()<<endl;
       } 
       else if (timeLine==timelineEventChangeBufferSize)
       {
         size_t newSize ;
         vector<MPI_Aint> winBufferAdress(2) ;
         newBuffer>>newSize>>winBufferAdress[0]>>winBufferAdress[1] ;
-        buffers[rank]->freeBuffer(count) ;
-        delete buffers[rank] ;
+        buffers_[rank]->freeBuffer(count) ;
+        delete buffers_[rank] ;
         windows_[rank][0] -> setWinBufferAddress(winBufferAdress[0],0) ;
         windows_[rank][1] -> setWinBufferAddress(winBufferAdress[1],0) ;
-        buffers[rank] = new CServerBuffer(rank, windows_[rank], winBufferAdress, 0, newSize) ;
-        info(100)<<"Context id "<<context->getId()<<" : Receive ChangeBufferSize from client rank "<<rank
+        buffers_[rank] = new CServerBuffer(rank, windows_[rank], winBufferAdress, 0, newSize) ;
+        info(100)<<"Context id "<<context_->getId()<<" : Receive ChangeBufferSize from client rank "<<rank
                  <<"  newSize : "<<newSize<<" Address : "<<winBufferAdress[0]<<" & "<<winBufferAdress[1]<<endl ;
       }
       else
       {
-        info(100)<<"Context id "<<context->getId()<<" : Receive standard event from client rank "<<rank<<"  with timeLine : "<<timeLine<<endl ;
-        it=events.find(timeLine);
+        info(100)<<"Context id "<<context_->getId()<<" : Receive standard event from client rank "<<rank<<"  with timeLine : "<<timeLine<<endl ;
+        it=events_.find(timeLine);
        
-        if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
-        it->second->push(rank,buffers[rank],startBuffer,size);
-        if (timeLine>0) lastTimeLine[rank]=timeLine ;
+        if (it==events_.end()) it=events_.insert(pair<int,CEventServer*>(timeLine,new CEventServer(this))).first;
+        it->second->push(rank,buffers_[rank],startBuffer,size);
+        if (timeLine>0) lastTimeLine_[rank]=timeLine ;
       }
       buffer.advance(size);
       count=buffer.remain();
@@ -311,20 +314,20 @@ namespace xios
     
     if (isProcessingEvent_) return ;
 
-    it=events.find(currentTimeLine);
-    if (it!=events.end())
+    it=events_.find(currentTimeLine_);
+    if (it!=events_.end())
     {
       event=it->second;
 
       if (event->isFull())
       {
-        if (!scheduled)
+        if (!scheduled_)
         {
-          eventScheduler_->registerEvent(currentTimeLine,hashId);
-          info(100)<<"Context id "<<context->getId()<<"Schedule event : "<< currentTimeLine <<"  "<<hashId<<endl ;
-          scheduled=true;
+          eventScheduler_->registerEvent(currentTimeLine_,hashId_);
+          info(100)<<"Context id "<<context_->getId()<<"Schedule event : "<< currentTimeLine_ <<"  "<<hashId_<<endl ;
+          scheduled_=true;
         }
-        else if (eventScheduler_->queryEvent(currentTimeLine,hashId) )
+        else if (eventScheduler_->queryEvent(currentTimeLine_,hashId_) )
         {
           if (!enableEventsProcessing && isCollectiveEvent(*event)) return ;
 
@@ -343,54 +346,54 @@ namespace xios
             eventScheduled_=false ;
           }
           
-          if (CXios::checkEventSync && context->getServiceType()!=CServicesManager::CLIENT)
+          if (CXios::checkEventSync && context_->getServiceType()!=CServicesManager::CLIENT)
           {
             int typeId, classId, typeId_in, classId_in;
             long long timeLine_out;
-            long long timeLine_in( currentTimeLine );
+            long long timeLine_in( currentTimeLine_ );
             typeId_in=event->type ;
             classId_in=event->classId ;
-   //        MPI_Allreduce(&timeLine,&timeLine_out, 1, MPI_UINT64_T, MPI_SUM, intraComm) ; // MPI_UINT64_T standardized by MPI 3
-            MPI_Allreduce(&timeLine_in,&timeLine_out, 1, MPI_LONG_LONG_INT, MPI_SUM, intraComm) ; 
-            MPI_Allreduce(&typeId_in,&typeId, 1, MPI_INT, MPI_SUM, intraComm) ;
-            MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm) ;
-            if (typeId/intraCommSize!=event->type || classId/intraCommSize!=event->classId || timeLine_out/intraCommSize!=currentTimeLine)
+   //        MPI_Allreduce(&timeLine,&timeLine_out, 1, MPI_UINT64_T, MPI_SUM, intraComm_) ; // MPI_UINT64_T standardized by MPI 3
+            MPI_Allreduce(&timeLine_in,&timeLine_out, 1, MPI_LONG_LONG_INT, MPI_SUM, intraComm_) ; 
+            MPI_Allreduce(&typeId_in,&typeId, 1, MPI_INT, MPI_SUM, intraComm_) ;
+            MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm_) ;
+            if (typeId/intraCommSize_!=event->type || classId/intraCommSize_!=event->classId || timeLine_out/intraCommSize_!=currentTimeLine_)
             {
                ERROR("void CLegacyContextClient::sendEvent(CEventClient& event)",
-                  << "Event are not coherent between client for timeline = "<<currentTimeLine);
+                  << "Event are not coherent between client for timeline = "<<currentTimeLine_);
             }
           }
 
           isProcessingEvent_=true ;
           CTimer::get("Process events").resume();
-          info(100)<<"Context id "<<context->getId()<<" : Process Event "<<currentTimeLine<<" of class "<<event->classId<<" of type "<<event->type<<endl ;
+          info(100)<<"Context id "<<context_->getId()<<" : Process Event "<<currentTimeLine_<<" of class "<<event->classId<<" of type "<<event->type<<endl ;
           eventScheduler_->popEvent() ;
           dispatchEvent(*event);
           CTimer::get("Process events").suspend();
           isProcessingEvent_=false ;
-          pendingEvent=false;
+          pendingEvent_=false;
           delete event;
-          events.erase(it);
-          currentTimeLine++;
-          scheduled = false;
+          events_.erase(it);
+          currentTimeLine_++;
+          scheduled_ = false;
         }
       }
-      else if (pendingRequest.empty()) getBufferFromClient(currentTimeLine) ;
+      else if (pendingRequest_.empty()) getBufferFromClient(currentTimeLine_) ;
     }
-    else if (pendingRequest.empty()) getBufferFromClient(currentTimeLine) ; // if pure one sided check buffer even if no event recorded at current time line
+    else if (pendingRequest_.empty()) getBufferFromClient(currentTimeLine_) ; // if pure one sided check buffer even if no event recorded at current time line
   }
 
   CLegacyContextServer::~CLegacyContextServer()
   {
     map<int,CServerBuffer*>::iterator it;
-    for(it=buffers.begin();it!=buffers.end();++it) delete it->second;
-    buffers.clear() ;
+    for(it=buffers_.begin();it!=buffers_.end();++it) delete it->second;
+    buffers_.clear() ;
   }
 
   void CLegacyContextServer::releaseBuffers()
   {
-    //for(auto it=buffers.begin();it!=buffers.end();++it) delete it->second ;
-    //buffers.clear() ; 
+    //for(auto it=buffers_.begin();it!=buffers_.end();++it) delete it->second ;
+    //buffers_.clear() ; 
     freeWindows() ;
   }
 
@@ -399,6 +402,8 @@ namespace xios
     for(auto& it : winComm_)
     {
       int rank = it.first ;
+      delete winDynamics_[rank][0];
+      delete winDynamics_[rank][1];
       delete windows_[rank][0];
       delete windows_[rank][1];
     }
@@ -406,7 +411,7 @@ namespace xios
 
   void CLegacyContextServer::notifyClientsFinalize(void)
   {
-    for(auto it=buffers.begin();it!=buffers.end();++it)
+    for(auto it=buffers_.begin();it!=buffers_.end();++it)
     {
       it->second->notifyClientFinalize() ;
     }
@@ -419,18 +424,18 @@ namespace xios
     int MsgSize;
     int rank;
     list<CEventServer::SSubEvent>::iterator it;
-    StdString ctxId = context->getId();
+    StdString ctxId = context_->getId();
     CContext::setCurrent(ctxId);
     StdSize totalBuf = 0;
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       if (info.isActive(logProfile)) CTimer::get("Context finalize").resume();
-      finished=true;
-      info(20)<<" CLegacyContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
+      finished_=true;
+      info(20)<<" CLegacyContextServer: Receive context <"<<context_->getId()<<"> finalize."<<endl;
       notifyClientsFinalize() ;
       if (info.isActive(logTimers)) CTimer::get("receiving requests").suspend();
-      context->finalize();
+      context_->finalize();
       
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;

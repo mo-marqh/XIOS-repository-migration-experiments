@@ -238,8 +238,11 @@ namespace xios
             servicesManager->createServicesOnto(CXios::defaultPoolId, CXios::defaultReaderId, CServicesManager::READER, CXios::defaultWriterId) ;
             if (CThreadManager::isUsingThreads()) 
             {
-              daemonsManager->eventLoop() ;
-              while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultReaderId, 0)) CThreadManager::yield() ;
+              while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultReaderId, 0))
+              {  
+                daemonsManager->eventLoop() ;
+                CThreadManager::yield() ;
+              }
             }
             else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
           }
@@ -619,6 +622,18 @@ namespace xios
       report(0)<<"Performance report : Time spent for XIOS : "<<CTimer::get("XIOS server").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
+      report(0)<< "lock exclusive : accumulated time : "<<CTimer::get("lock exclusive").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("lock exclusive").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("lock exclusive").getAverageTime()<<endl ;
+      report(0)<< "lock shared : accumulated time : "<<CTimer::get("lock shared").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("lock shared").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("lock shared").getAverageTime()<<endl ;
+      report(0)<< "unlock exclusive : accumulated time : "<<CTimer::get("unlock exclusive").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("unlock exclusive").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("unlock exclusive").getAverageTime()<<endl ;
+      report(0)<< "unlock shared : accumulated time : "<<CTimer::get("unlock shared").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("unlock shared").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("unlock shared").getAverageTime()<<endl ;
 
       if (info.isActive(logProfile))
       {

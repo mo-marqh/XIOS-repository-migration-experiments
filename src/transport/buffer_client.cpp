@@ -26,11 +26,15 @@ namespace xios
   {
       if (hasWindows_)
       { 
+        winDynamics_.resize(2) ;
+        winDynamics_[0] = new CWindowDynamic() ;
+        winDynamics_[1] = new CWindowDynamic() ;
+
         windows_.resize(2) ;
-        windows_[0] = new CWindowDynamic() ;
+        windows_[0] = new CWindowDynamicView(winDynamics_[0], 0) ;
         windows_[0]->allocateBuffer(bufferSize+headerSize_) ;
         bufferHeader[0] = (char*) windows_[0]->getBufferAddress() ;
-        windows_[1] = new CWindowDynamic() ;
+        windows_[1] = new CWindowDynamicView(winDynamics_[1],0) ;
         windows_[1]->allocateBuffer(bufferSize+headerSize_) ;
         bufferHeader[1] = (char*) windows_[1]->getBufferAddress() ;
       }
@@ -110,6 +114,8 @@ namespace xios
       windows_[1]->detach() ;
       delete windows_[0] ;
       delete windows_[1] ;
+      delete winDynamics_[0] ;
+      delete winDynamics_[1] ;
     }
     else 
     {

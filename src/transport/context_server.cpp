@@ -23,6 +23,7 @@
 #include "one_sided_context_server.hpp"
 #include "p2p_context_server.hpp"
 #include "legacy_context_server.hpp"
+#include "legacy_context_server_v2.hpp"
 
 
 
@@ -34,30 +35,30 @@ namespace xios
 {
   using namespace std ;
 
-  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_) 
+  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm, MPI_Comm interComm) 
     : associatedClient_(nullptr)
   {
-    context=parent;
-    intraComm=intraComm_;
-    MPI_Comm_size(intraComm,&intraCommSize);
-    MPI_Comm_rank(intraComm,&intraCommRank);
+    context_=parent;
+    intraComm_=intraComm;
+    MPI_Comm_size(intraComm_,&intraCommSize_);
+    MPI_Comm_rank(intraComm_,&intraCommRank_);
 
-    interComm=interComm_;
+    interComm_=interComm;
     int flag;
-    MPI_Comm_test_inter(interComm,&flag);
-    if (flag) MPI_Comm_remote_size(interComm,&clientSize_);
-    else MPI_Comm_size(interComm,&clientSize_);
+    MPI_Comm_test_inter(interComm_,&flag);
+    if (flag) MPI_Comm_remote_size(interComm_,&clientSize_);
+    else MPI_Comm_size(interComm_,&clientSize_);
     
     SRegisterContextInfo contextInfo ;
-    CXios::getContextsManager()->getContextInfo(context->getId(), contextInfo, intraComm) ;
+    CXios::getContextsManager()->getContextInfo(context_->getId(), contextInfo, intraComm_) ;
     eventScheduler_=CXios::getPoolRessource()->getService(contextInfo.serviceId,contextInfo.partitionId)->getEventScheduler() ;
 
     // generate unique hash for server
     auto time=chrono::system_clock::now().time_since_epoch().count() ;
     std::default_random_engine rd(time); // not reproducible from a run to another
     std::uniform_int_distribution<size_t> dist;
-    hashId=dist(rd) ;
-    MPI_Bcast(&hashId,1,MPI_SIZE_T,0,intraComm) ; // Bcast to all server of the context
+    hashId_=dist(rd) ;
+    MPI_Bcast(&hashId_,1,MPI_SIZE_T,0,intraComm_) ; // Bcast to all server of the context
       
   }
 
@@ -68,6 +69,7 @@ namespace xios
     if (defaultProtocol=="one_sided") return new COneSidedContextServer(parent, intraComm, interComm) ;
     else if  (defaultProtocol=="p2p") return new CP2pContextServer(parent, intraComm, interComm) ;
     else if  (defaultProtocol=="legacy") return new CLegacyContextServer(parent, intraComm, interComm) ;
+    else if  (defaultProtocol=="legacy_v2") return new CLegacyContextServerV2(parent, intraComm, interComm) ;
     else if  (defaultProtocol=="default") return new CLegacyContextServer(parent, intraComm, interComm) ;
     else ERROR("CContextServer* CContextServer::getNew<CContextServer::generic>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm)",
               <<"Protocol name <"<<defaultProtocol<<"> is undefined,  must be <default>, <one_sided> or <legacy>" ) ;     
@@ -88,7 +90,12 @@ namespace xios
   template<>
   CContextServer* CContextServer::getNew<CContextServer::legacy>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) 
   { 
-    return new COneSidedContextServer(parent, intraComm, interComm) ; 
+    return new CLegacyContextServer(parent, intraComm, interComm) ; 
   }
 
+  template<>
+  CContextServer* CContextServer::getNew<CContextServer::legacyV2>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) 
+  { 
+    return new CLegacyContextServerV2(parent, intraComm, interComm) ; 
+  }
 }

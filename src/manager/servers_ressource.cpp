@@ -22,6 +22,8 @@ namespace xios
   CServersRessource::CServersRessource(MPI_Comm serverComm) : poolRessource_(nullptr), finalizeSignal_(false)
   {
 
+    useWindowManager_ = CXios::servicesUseWindowManager ;
+
     xios::MPI_Comm_dup(serverComm, &serverComm_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(serverComm_) ; 
     MPI_Comm xiosComm=CXios::getXiosComm() ;
@@ -30,7 +32,10 @@ namespace xios
     MPI_Comm_rank(xiosComm,&globalRank) ;
     MPI_Comm_rank(serverComm_,&localRank) ;
     
-    winNotify_ = new CWindowManager(serverComm_, maxBufferSize_,"CServersRessource::winNotify_") ;
+    if(useWindowManager_)  winNotify_ = new CWindowManager(serverComm_, maxBufferSize_,"CServersRessource::winNotify_") ;
+    std::hash<string> hashString ;
+    hashNotify_ = hashString("CServersRessource") ;
+
     MPI_Barrier(serverComm_) ;
     if (localRank==localLeader_) 
     {
@@ -38,9 +43,7 @@ namespace xios
       MPI_Comm_size(serverComm_,&commSize) ;
       CXios::getRessourcesManager()->registerServerLeader(globalRank) ;
       CXios::getRessourcesManager()->registerRessourcesSize(commSize) ;
-      freeRessourcesRank_.resize(commSize) ;
-      for(int i=0;i<commSize;i++) freeRessourcesRank_[i]=i ;
-    }
+   }
 
     xios::MPI_Comm_dup(serverComm_, &freeRessourcesComm_) ; 
     CXios::getMpiGarbageCollector().registerCommunicator(freeRessourcesComm_) ;
@@ -51,52 +54,60 @@ namespace xios
 
   void CServersRessource::createPool(const string& poolId, const int size)
   {
-    int commSize ;
-    MPI_Comm_size(serverComm_,&commSize) ;
-    vector<int> newFreeRessourcesRank(freeRessourcesRank_.size()-size) ;
-
-    bool isPartOf ;
-
-    for(int i=0, j=0; i<freeRessourcesRank_.size();i++) 
+    
+    if (useWindowManager_)
     {
-       if (i<size) isPartOf=true ;
-       else 
-       {
-         isPartOf=false ;
-         newFreeRessourcesRank[j]=freeRessourcesRank_[i] ;
-         j++ ;
-       }
-       
-       notifyOutType_=NOTIFY_CREATE_POOL ;
-       notifyOutCreatePool_ = make_tuple(poolId, isPartOf) ;
-       sendNotification(freeRessourcesRank_[i]) ;
+      int commSize, rank ;
+      MPI_Comm_size(serverComm_,&commSize) ;
+
+      for(int rank=0; rank<commSize;rank++) 
+      {
+         notifyOutType_=NOTIFY_CREATE_POOL ;
+         notifyOutCreatePool_ = make_tuple(poolId, size) ;
+         sendNotification(rank) ;
+      }
     }
-    freeRessourcesRank_ = std::move(newFreeRessourcesRank) ;
+    else
+    {
+      int commSize, rank ;
+      MPI_Comm_size(serverComm_,&commSize) ;
+
+      notifyOutType_=NOTIFY_CREATE_POOL ;
+      notifyOutCreatePool_ = make_tuple(poolId, size) ;
+      CXios::getNotificationsManager()->sendLockedNotification(hashNotify_, this, &CServersRessource::notificationsDumpOut) ;
+    }
   }
 
   void CServersRessource::finalize(void)
   {
-    int commSize ;
-    MPI_Comm_size(serverComm_,&commSize) ;
-
-    for(int rank=0; rank<commSize;rank++)
-    { 
+    notifyOutType_=NOTIFY_FINALIZE ;
+    if (useWindowManager_)
+    {
+      int commSize ;
+      MPI_Comm_size(serverComm_,&commSize) ;
+      for(int rank=0; rank<commSize;rank++)
+      { 
+        notifyOutType_=NOTIFY_FINALIZE ;
+        sendNotification(rank) ;
+      }
+    }
+    else
+    {
       notifyOutType_=NOTIFY_FINALIZE ;
-      sendNotification(rank) ;
+      CXios::getNotificationsManager()->sendLockedNotification(hashNotify_, this, &CServersRessource::notificationsDumpOut) ;
     }
   }
+
 
   void CServersRessource::sendNotification(int rank)
   {
     winNotify_->pushToExclusiveWindow(rank, this, &CServersRessource::notificationsDumpOut) ;
   }
 
-
   void CServersRessource::notificationsDumpOut(CBufferOut& buffer)
   {
-    
-    buffer.realloc(maxBufferSize_) ;
-    
+    if (useWindowManager_) buffer.realloc(maxBufferSize_) ;
+
     if (notifyOutType_==NOTIFY_CREATE_POOL)
     {
       auto& arg=notifyOutCreatePool_ ;
@@ -104,6 +115,7 @@ namespace xios
     }
     else if (notifyOutType_==NOTIFY_FINALIZE) buffer << notifyOutType_ ;
   }
+
 
   void CServersRessource::notificationsDumpIn(CBufferIn& buffer)
   {
@@ -156,15 +168,7 @@ namespace xios
 
     do
     {
-      double time=MPI_Wtime() ;
-      int flag ;
-      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-
-      if (time-lastEventLoop_ > eventLoopLatency_) 
-      {
-        checkNotifications() ;
-        lastEventLoop_=time ;
-      }
+      checkNotifications() ;
 
       if (poolRessource_!=nullptr) 
       {
@@ -185,34 +189,60 @@ namespace xios
     info(100)<<"Close thread for CServersRessource::threadEventLoop"<<endl ; ;
   }
 
-
   void CServersRessource::checkNotifications(void)
   {
-    int commRank ;
-    MPI_Comm_rank(serverComm_, &commRank) ;
-    winNotify_->popFromExclusiveWindow(commRank, this, &CServersRessource::notificationsDumpIn) ;
-    if (notifyInType_==NOTIFY_CREATE_POOL) 
+    if (useWindowManager_)
     {
-      if (CThreadManager::isUsingThreads()) synchronize() ;
-      createPool() ;
+      double time=MPI_Wtime() ;
+      int flag ;
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+
+      if (time-lastEventLoop_ > eventLoopLatency_) 
+      {
+        int commRank ;
+        MPI_Comm_rank(serverComm_, &commRank) ;
+        winNotify_->popFromExclusiveWindow(commRank, this, &CServersRessource::notificationsDumpIn) ;
+        if (notifyInType_==NOTIFY_CREATE_POOL) 
+        {
+          if (CThreadManager::isUsingThreads()) synchronize() ;
+          createPool() ;
+        }
+        else if (notifyInType_==NOTIFY_FINALIZE) finalizeSignal() ;
+
+        lastEventLoop_=time ;
+      }
     }
-    else if (notifyInType_==NOTIFY_FINALIZE) finalizeSignal() ;
+    else
+    {
+      if (CXios::getNotificationsManager()->recvNotification(hashNotify_,   this, &CServersRessource::notificationsDumpIn) )
+      {
+        if (notifyInType_==NOTIFY_CREATE_POOL) 
+        {
+          if (CThreadManager::isUsingThreads()) synchronize() ;
+          createPool() ;
+        }
+        else if (notifyInType_==NOTIFY_FINALIZE) finalizeSignal() ;
+      }
+    }
   }
 
   void CServersRessource::synchronize(void)
   {
-    bool out=false ; 
-    size_t timeLine=0 ;
-    std::hash<string> hashString ;
-    int commSize ;
-    MPI_Comm_size(freeRessourcesComm_,&commSize) ;
-    size_t hashId = hashString("CServersRessource::"+to_string(commSize)) ;
-    freeRessourceEventScheduler_->registerEvent(timeLine, hashId) ;
-    while (!out)
+    if (!isAssigned_)
     {
-      CThreadManager::yield() ;
-      out = eventScheduler_->queryEvent(timeLine,hashId) ;
-      if (out) eventScheduler_->popEvent() ;
+      bool out=false ; 
+      size_t timeLine=0 ;
+      std::hash<string> hashString ;
+      int commSize ;
+      MPI_Comm_size(freeRessourcesComm_,&commSize) ;
+      size_t hashId = hashString("CServersRessource::"+to_string(commSize)) ;
+      freeRessourceEventScheduler_->registerEvent(timeLine, hashId) ;
+      while (!out)
+      {
+        CThreadManager::yield() ;
+        out = eventScheduler_->queryEvent(timeLine,hashId) ;
+        if (out) eventScheduler_->popEvent() ;
+      }
     }
   }
 
@@ -220,31 +250,41 @@ namespace xios
   {
     auto& arg=notifyInCreatePool_ ;
     string poolId=get<0>(arg) ;
-    bool isPartOf=get<1>(arg) ;
+    size_t size=get<1>(arg) ;
     
-    int commRank ;
-    MPI_Comm poolComm ;
-    MPI_Comm_rank(freeRessourcesComm_,&commRank) ;
-    xios::MPI_Comm_split(freeRessourcesComm_, isPartOf, commRank, &poolComm) ;
-    
-    shared_ptr<CEventScheduler> parentScheduler, childScheduler ;
-    freeRessourceEventScheduler_->splitScheduler(poolComm, parentScheduler, childScheduler) ;
-    
-    if (isFirstSplit_) eventScheduler_ = parentScheduler ; 
-    isFirstSplit_ = false ;
-
-    if (isPartOf)
-    {  
-      poolRessource_ = new CPoolRessource(poolComm, childScheduler, poolId, true) ;
-      CXios::getMpiGarbageCollector().registerCommunicator(poolComm) ;
-    }
-    else 
+    if (!isAssigned_)
     {
-      freeRessourceEventScheduler_ = childScheduler ;
-      freeRessourcesComm_=poolComm ;
-      CXios::getMpiGarbageCollector().registerCommunicator(freeRessourcesComm_) ;
-    }
+      int commRank, commSize ;
+      MPI_Comm poolComm ;
+      bool isPartOf ;
+      MPI_Comm_size(freeRessourcesComm_,&commSize) ;
+      if (commSize < size) ERROR("void CServersRessource::createPool(void)",
+                               << "No enough free ressources on server ressources to create pool with id="<<poolId<<" of size "<<size);
 
+      MPI_Comm_rank(freeRessourcesComm_,&commRank) ;
+      if (commRank<size) isPartOf = true; 
+      else isPartOf = false ;
+      xios::MPI_Comm_split(freeRessourcesComm_, isPartOf, commRank, &poolComm) ;
+    
+      shared_ptr<CEventScheduler> parentScheduler, childScheduler ;
+      freeRessourceEventScheduler_->splitScheduler(poolComm, parentScheduler, childScheduler) ;
+    
+      if (isFirstSplit_) eventScheduler_ = parentScheduler ; 
+      isFirstSplit_ = false ;
+
+      if (isPartOf)
+      {  
+        isAssigned_ = true ;
+        poolRessource_ = new CPoolRessource(poolComm, childScheduler, poolId, true) ;
+        CXios::getMpiGarbageCollector().registerCommunicator(poolComm) ;
+      }
+      else 
+      {
+        freeRessourceEventScheduler_ = childScheduler ;
+        freeRessourcesComm_=poolComm ;
+        CXios::getMpiGarbageCollector().registerCommunicator(freeRessourcesComm_) ;
+      }
+    }
   }
   
   void CServersRessource::finalizeSignal(void)
@@ -263,6 +303,6 @@ namespace xios
 
   CServersRessource::~CServersRessource()
   {
-    delete winNotify_ ;
+    if (useWindowManager_) delete winNotify_ ;
   }
 }

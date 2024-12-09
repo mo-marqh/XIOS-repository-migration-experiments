@@ -25,11 +25,6 @@ namespace xios
     bool eventLoop(bool serviceOnly=false) ;
     void threadEventLoop(void) ;
     void createContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
-    void checkCreateContextNotification(void) ;
-    void createContextNotify(int rank, const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
-    void createContextDumpOut(CBufferOut& buffer) ;
-    void createContextDumpIn(CBufferIn& buffer) ;
-    void createNewContext(const std::string& poolId, const std::string& serviceId, const int& partitionId, const std::string& contextId) ;
     CServerContext* getServerContext(const std::string& contextId) { return contexts_[contextId]; }
     void finalizeSignal(void) ;
     shared_ptr<CEventScheduler> getEventScheduler(void) ;
@@ -55,11 +50,13 @@ namespace xios
 
     MPI_Comm serviceComm_ ;
     MPI_Comm globalComm_ ;
-
+    
+    bool useWindowManager_ ;
     const size_t maxBufferSize_=1024*1024 ;
     const int localLeader_=0 ;
     int globalLeader_ ;
     CWindowManager* winNotify_ ;
+    size_t hashNotify_ ;
     
     std::string name_ ;
 

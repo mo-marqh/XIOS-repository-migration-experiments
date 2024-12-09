@@ -12,6 +12,7 @@
 #include "ressources_manager.hpp"
 #include "services_manager.hpp"
 #include "servers_ressource.hpp"
+#include "notifications_manager.hpp"
 #include "mem_checker.hpp"
 #include <unistd.h>
 
@@ -57,13 +58,15 @@ namespace xios
   bool CXios::checkSumSend=false ;
   bool CXios::logMemory=false ;
   bool CXios::reportMemory=true ;
+  bool CXios::servicesUseWindowManager=true ;
 
-  CDaemonsManager*    CXios::daemonsManager_=nullptr ;
-  CRessourcesManager* CXios::ressourcesManager_=nullptr ;
-  CServicesManager*   CXios::servicesManager_=nullptr ;
-  CContextsManager*   CXios::contextsManager_=nullptr ;
-  CCouplerManager*    CXios::couplerManager_=nullptr ;
-  CRegistryManager*   CXios::registryManager_=nullptr ;
+  CDaemonsManager*        CXios::daemonsManager_=nullptr ;
+  CRessourcesManager*     CXios::ressourcesManager_=nullptr ;
+  CServicesManager*       CXios::servicesManager_=nullptr ;
+  CContextsManager*       CXios::contextsManager_=nullptr ;
+  CCouplerManager*        CXios::couplerManager_=nullptr ;
+  CRegistryManager*       CXios::registryManager_=nullptr ;
+  CNotificationsManager*  CXios::notificationsManager_=nullptr ;
 
   CMpiGarbageCollector CXios::MpiGarbageCollector_  ;
 
@@ -131,6 +134,7 @@ namespace xios
 
     logMemory = getin<bool>("log_memory", false);
     reportMemory = getin<bool>("memory_report", true);
+    servicesUseWindowManager = getin<bool>("services_use_window_manager", true);
 
     globalComm=MPI_COMM_WORLD ;
   }
@@ -281,6 +285,7 @@ namespace xios
     usingServer = false;
   }
 
+
   void CXios::launchRegistryManager(bool isXiosServer)
   {
     registryManager_ = new CRegistryManager(isXiosServer) ;
@@ -309,6 +314,11 @@ namespace xios
   void CXios::launchDaemonsManager(bool isXiosServer)
   {
     daemonsManager_ = new CDaemonsManager(isXiosServer) ;
+  }
+  
+  void CXios::launchNotificationsManager(bool isMaster)
+  {
+    notificationsManager_ = new CNotificationsManager(isMaster) ;
   }
 
   void CXios::launchThreadManager(bool isXiosServer)
@@ -351,6 +361,12 @@ namespace xios
     delete daemonsManager_  ;
   }
   
+  void CXios::finalizeNotificationsManager()
+  {
+    delete notificationsManager_  ;
+  }
+  
+
   CPoolRessource* CXios::getPoolRessource(void)
   {
     if (isClient) return CClient::getPoolRessource() ;

@@ -56,22 +56,22 @@ namespace xios
       void setGrowableBuffer(void) { isGrowableBuffer_=true;}
       void setFixedBuffer(void) { isGrowableBuffer_=false;}
 
-      size_t timeLine; //!< Timeline of each event
+      size_t timeLine_; //!< Timeline of each event
 
       MPI_Comm interCommMerged_; //!< Communicator of the client group + server group (intraCommunicator) needed for one sided communication.
       MPI_Comm commSelf_ ; //!< Communicator for proc alone from interCommMerged 
       map<int,COneSidedClientBuffer*> buffers; //!< Buffers for connection to servers
 
-      bool pureOneSided ; //!< if true, client will communicated with servers only trough one sided communication. Otherwise the hybrid mode P2P /One sided is used.
+      bool pureOneSided_ ; //!< if true, client will communicated with servers only trough one sided communication. Otherwise the hybrid mode P2P /One sided is used.
 
     private:
       
       //! Mapping of server and buffer size for each connection to server
       std::map<int,StdSize> mapBufferSize_;
       //! Maximum event sizes estimated for each connection to server
-      std::map<int,StdSize> maxEventSizes;
+      std::map<int,StdSize> maxEventSizes_;
       //! Maximum number of events that can be buffered
-      StdSize maxBufferedEvents;
+      StdSize maxBufferedEvents_;
 
       std::map<int, MPI_Comm> winComm_ ; //! Window communicators
       std::map<int, MPI_Win >window_ ; //! one sided mpi windows to expose client buffers to servers == windows[nbServers][2]

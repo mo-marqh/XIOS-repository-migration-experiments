@@ -7,6 +7,8 @@
 #include "mpi.hpp"
 #include "cxios.hpp"
 #include "window_dynamic.hpp"
+#include "window_dynamic_view.hpp"
+
 
 namespace xios
 {
@@ -69,7 +71,8 @@ namespace xios
 
       CBufferOut* retBuffer;
       const MPI_Comm interComm;
-      std::vector<CWindowDynamic*> windows_ ;
+      std::vector<CWindowDynamic*> winDynamics_ ;
+      std::vector<CWindowDynamicView*> windows_ ;
       bool hasWindows_=false ;
       bool isAttachedWindows_=false ;
       double latency_=0 ;

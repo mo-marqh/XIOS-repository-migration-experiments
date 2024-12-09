@@ -8,7 +8,7 @@
 namespace xios
 {
 
-  CServerBuffer::CServerBuffer(int clientRank, vector<CWindowDynamic*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize buffSize) 
+  CServerBuffer::CServerBuffer(int clientRank, vector<CWindowDynamicView*>& windows, vector<MPI_Aint>& winAddress, int windowsRank, StdSize buffSize) 
   : hasWindows(true), clientRank_(clientRank), windows_(windows), windowsRank_(windowsRank), winAddress_(winAddress)
   {
     size = 3 * buffSize;

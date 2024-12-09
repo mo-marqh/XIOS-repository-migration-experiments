@@ -2026,11 +2026,11 @@ void CContext::removeAllContexts(void)
       CCouplerManager* couplerManager = CXios::getCouplerManager() ;
       if (rank==0)
       {
-        for(auto couplerOut : listCouplerOut) couplerManager->registerCoupling(this->getContextId(),couplerOut.first) ;
-        for(auto couplerIn : listCouplerIn) couplerManager->registerCoupling(couplerIn.first,this->getContextId()) ;
+        for(auto couplerOut : listCouplerOut) couplerManager->registerCoupling(this->getContextId(),couplerOut.first, true) ;
+        for(auto couplerIn : listCouplerIn) couplerManager->registerCoupling(couplerIn.first,this->getContextId(), false) ;
       }
 
-      do
+      while (!listCouplerOut.empty() || !listCouplerIn.empty())
       {
         for(auto couplerOut : listCouplerOut) 
         {
@@ -2056,8 +2056,9 @@ void CContext::removeAllContexts(void)
             break ;
           }           
         }
-
-      } while (!listCouplerOut.empty() || !listCouplerIn.empty()) ;
+        
+        if (!listCouplerOut.empty() || !listCouplerIn.empty()) yield() ;
+      } 
 
    }
    CATCH_DUMP_ATTR

@@ -7,6 +7,7 @@
 #include "ressources_manager.hpp"
 #include "services_manager.hpp"
 #include "contexts_manager.hpp"
+#include "notifications_manager.hpp"
 #include "daemons_manager.hpp"
 #include "coupler_manager.hpp"
 #include "registry_manager.hpp"
@@ -70,6 +71,7 @@ namespace xios
 
      static bool logMemory; //!< Activate memory monitoring for all XIOS process (generate CSV file for https://forge.ipsl.jussieu.fr/ioserver/chrome/site/XIOS_TOOLS/xios_memory.html)
      static bool reportMemory; //!< Activate memory reporting for all XIOS process (report in log files)
+     static bool servicesUseWindowManager; //!< define if services use one sided protocol or collective broadcast
 
      static const string defaultPoolId ;
      static const string defaultServerId ;
@@ -83,6 +85,7 @@ namespace xios
      static CCouplerManager* couplerManager_ ;
      static CServicesManager* servicesManager_ ;
      static CContextsManager* contextsManager_ ;
+     static CNotificationsManager* notificationsManager_ ;
      static CDaemonsManager* daemonsManager_ ;
      static CMpiGarbageCollector MpiGarbageCollector_  ;
     public:
@@ -107,6 +110,7 @@ namespace xios
      static void launchCouplerManager(bool isXiosServer) ;
      static void launchRegistryManager(bool isXiosServer) ;
      static void launchThreadManager(bool isXiosServer) ;
+     static void launchNotificationsManager(bool isMaster) ;
     
      static void finalizeServicesManager() ;
      static void finalizeContextsManager() ;
@@ -115,12 +119,14 @@ namespace xios
      static void finalizeCouplerManager() ;
      static void finalizeRegistryManager() ;
      static void finalizeThreadManager() ;
+     static void finalizeNotificationsManager() ;
 
      static CRegistryManager*   getRegistryManager(void) { return registryManager_ ;}
      static CRessourcesManager* getRessourcesManager(void) { return ressourcesManager_ ;}
      static CCouplerManager*    getCouplerManager(void) { return couplerManager_ ;}
      static CServicesManager*   getServicesManager(void) { return servicesManager_ ;}
      static CContextsManager*   getContextsManager(void) { return contextsManager_ ;}
+     static CNotificationsManager*   getNotificationsManager(void) { return notificationsManager_ ;}
      static CDaemonsManager*    getDaemonsManager(void) { return daemonsManager_ ;}
      static CPoolRessource*     getPoolRessource(void) ;
      

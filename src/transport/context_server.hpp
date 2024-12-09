@@ -15,7 +15,7 @@ namespace xios
   {
     public:
     
-    enum ETransport { generic, legacy, p2p, oneSided}  ;
+    enum ETransport { generic, legacy, legacyV2, p2p, oneSided}  ;
       
     template<ETransport transport=generic> 
     static CContextServer* getNew(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
@@ -24,8 +24,8 @@ namespace xios
     virtual ~CContextServer() {} 
     void setAssociatedClient(CContextClient* associatedClient) {associatedClient_=associatedClient ;}
     CContextClient* getAssociatedClient(void) { return associatedClient_ ;}
-    int getIntraCommRank(void) { return intraCommRank ;}
-    int getIntraCommSize(void) { return intraCommSize ;}
+    int getIntraCommRank(void) { return intraCommRank_ ;}
+    int getIntraCommSize(void) { return intraCommSize_ ;}
 
     virtual bool eventLoop(bool enableEventsProcessing = true) = 0 ;
     virtual void releaseBuffers(void)=0;
@@ -33,18 +33,18 @@ namespace xios
     
     protected :
 
-      MPI_Comm intraComm ;
-      int intraCommSize ;
-      int intraCommRank ;
+      MPI_Comm intraComm_ ;
+      int intraCommSize_ ;
+      int intraCommRank_ ;
 
-      MPI_Comm interComm ;
-      int commSize ;
+      MPI_Comm interComm_ ;
+      int commSize_ ;
       int clientSize_ ;
 
-      CContext* context ;
+      CContext* context_ ;
       CContextClient* associatedClient_ ;
 
-      size_t hashId ;
+      size_t hashId_ ;
       shared_ptr<CEventScheduler> eventScheduler_=nullptr ;
   } ;
   
@@ -58,7 +58,7 @@ namespace xios
   CContextServer* CContextServer::getNew<CContextServer::p2p>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
 
   template<>
-  CContextServer* CContextServer::getNew<CContextServer::legacy>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
+  CContextServer* CContextServer::getNew<CContextServer::legacyV2>(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
 
 }
 

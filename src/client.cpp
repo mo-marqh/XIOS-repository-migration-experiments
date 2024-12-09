@@ -542,6 +542,19 @@ namespace xios
 //      report(0)<< " Memory report : Current buffer_size : "<<CXios::bufferSize<<endl ;
       report(0)<< " Memory report : Minimum buffer size required : " << CClientBuffer::maxRequestSize << " bytes" << endl ;
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
+      
+      report(0)<< "lock exclusive : accumulated time : "<<CTimer::get("lock exclusive").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("lock exclusive").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("lock exclusive").getAverageTime()<<endl ;
+      report(0)<< "lock shared : accumulated time : "<<CTimer::get("lock shared").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("lock shared").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("lock shared").getAverageTime()<<endl ;
+      report(0)<< "unlock exclusive : accumulated time : "<<CTimer::get("unlock exclusive").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("unlock exclusive").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("unlock exclusive").getAverageTime()<<endl ;
+      report(0)<< "unlock shared : accumulated time : "<<CTimer::get("unlock shared").getCumulatedTime()
+                                                        <<" --- call number : "<<CTimer::get("unlock shared").getNumCall()
+                                                        <<" --- average time : "<<CTimer::get("unlock shared").getAverageTime()<<endl ;
 
       if (info.isActive(logProfile))
       {

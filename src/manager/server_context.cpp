@@ -20,6 +20,8 @@ namespace xios
                                  const int& partitionId, const std::string& contextId) : finalizeSignal_(false), parentService_(parentService),
                                  hasNotification_(false)
   {
+   useWindowManager_ = CXios::servicesUseWindowManager ;
+
    info(40)<<"CCServerContext::CServerContext  : new context creation ; contextId : "<<contextId<<endl ;
    int localRank, globalRank, commSize ;
 
@@ -30,35 +32,36 @@ namespace xios
     MPI_Comm_rank(xiosComm_,&globalRank) ;
     MPI_Comm_rank(contextComm_,&localRank) ;
  
-    winNotify_ = new CWindowManager(contextComm_, maxBufferSize_,"CServerContext::winNotify_") ;
+    if (useWindowManager_) winNotify_ = new CWindowManager(contextComm_, maxBufferSize_,"CServerContext::winNotify_") ;
+
     MPI_Barrier(contextComm_) ;
     
-    int type;
     if (localRank==localLeader_) 
     {
       globalLeader_=globalRank ;
-      MPI_Comm_rank(contextComm_,&commSize) ;
+      MPI_Comm_size(contextComm_,&commSize) ;
       
-      CXios::getServicesManager()->getServiceType(poolId,serviceId, 0, type) ;
-      SRegisterContextInfo contextInfo = {poolId, serviceId, partitionId, type, contextId, commSize, globalLeader_} ;
-      name_ = CXios::getContextsManager()->getServerContextName(poolId, serviceId, partitionId, type, contextId) ;
+      CXios::getServicesManager()->getServiceType(poolId,serviceId, 0, type_) ;
+      SRegisterContextInfo contextInfo = {poolId, serviceId, partitionId, type_, contextId, commSize, globalLeader_} ;
+      name_ = CXios::getContextsManager()->getServerContextName(poolId, serviceId, partitionId, type_, contextId) ;
       CXios::getContextsManager()->registerContext(name_, contextInfo) ;
     }
-    MPI_Bcast(&type, 1, MPI_INT, localLeader_,contextComm_) ;
-    name_ = CXios::getContextsManager()->getServerContextName(poolId, serviceId, partitionId, type, contextId) ;
+    MPI_Bcast(&type_, 1, MPI_INT, localLeader_,contextComm_) ;
+    name_ = CXios::getContextsManager()->getServerContextName(poolId, serviceId, partitionId, type_, contextId) ;
     context_=CContext::create(name_);
 
-    context_->init(this, contextComm, type) ;
-
-    info(10)<<"Context "<< CXios::getContextsManager()->getServerContextName(poolId, serviceId, partitionId, type, contextId)<<" created, on local rank "<<localRank
+    std::hash<string> hashString ;
+    hashNotify_ = hashString("CServerContext::"+name_);
+  
+    info(10)<<"Context "<< CXios::getContextsManager()->getServerContextName(poolId, serviceId, partitionId, type_, contextId)<<" created, on local rank "<<localRank
                         <<" and global rank "<<globalRank<<endl  ;
-   
+    
     if (CThreadManager::isUsingThreads()) CThreadManager::spawnThread(&CServerContext::threadEventLoop, this) ;
   }
 
   CServerContext::~CServerContext()
   {
-    delete winNotify_ ;
+    if (useWindowManager_)  delete winNotify_ ;
     cout<<"Server Context destructor"<<endl;
   } 
 
@@ -117,16 +120,7 @@ namespace xios
       if (contextLeader==globalRank) overlap=1 ;
       else overlap=0 ;
       MPI_Allreduce(&overlap, &nOverlap, 1, MPI_INT, MPI_SUM, contextComm_) ;
-/*
-      int overlap  ;
-      if (get<0>(overlapedComm_[name_])) overlap=1 ;
-      else overlap=0 ;
 
-      int nOverlap ;  
-      MPI_Allreduce(&overlap, &nOverlap, 1, MPI_INT, MPI_SUM, contextComm_) ;
-      int commSize ;
-      MPI_Comm_size(contextComm_,&commSize ) ;
-*/
       if (nOverlap==0)
       { 
         xios::MPI_Intercomm_create(intraComm, 0, xiosComm_, contextLeader, 3141, &interCommClient) ;
@@ -145,32 +139,33 @@ namespace xios
     return ok ;
   }
 
-
   void CServerContext::createIntercomm(int remoteLeader, const string& sourceContext)
   {
-     int commSize ;
-     MPI_Comm_size(contextComm_,&commSize) ;
-     info(40)<<"CServerContext::createIntercomm  : notify createContextIntercomm to all context members ; sourceContext : "<<sourceContext<<endl ;
+    info(40)<<"CServerContext::createIntercomm  : notify createContextIntercomm to all context members ; sourceContext : "<<sourceContext<<endl ;
     
-     for(int rank=0; rank<commSize; rank++)
-     {
-       notifyOutType_=NOTIFY_CREATE_INTERCOMM ;
-       notifyOutCreateIntercomm_ = make_tuple(remoteLeader, sourceContext) ;
-       sendNotification(rank) ;
-     }
-  }
-  
-  void CServerContext::sendNotification(int rank)
-  {
-    winNotify_->pushToExclusiveWindow(rank, this, &CServerContext::notificationsDumpOut) ;
+    if (useWindowManager_)
+    {
+      int commSize ;
+      MPI_Comm_size(contextComm_,&commSize) ;
+      for(int rank=0; rank<commSize; rank++)
+      {
+        notifyOutType_=NOTIFY_CREATE_INTERCOMM ;
+        notifyOutCreateIntercomm_ = make_tuple(remoteLeader, sourceContext) ;
+        winNotify_->pushToExclusiveWindow(rank, this, &CServerContext::notificationsDumpOut) ;
+      }      
+    }
+    else
+    {  
+      notifyOutType_=NOTIFY_CREATE_INTERCOMM ;
+      notifyOutCreateIntercomm_ = make_tuple(remoteLeader, sourceContext) ;
+      CXios::getNotificationsManager()->sendLockedNotification(hashNotify_, this, &CServerContext::notificationsDumpOut) ;
+    }
   }
 
-  
   void CServerContext::notificationsDumpOut(CBufferOut& buffer)
   {
-    
-    buffer.realloc(maxBufferSize_) ;
-    
+    if (useWindowManager_) buffer.realloc(maxBufferSize_) ;
+
     if (notifyOutType_==NOTIFY_CREATE_INTERCOMM)
     {
       auto& arg=notifyOutCreateIntercomm_ ;
@@ -196,23 +191,30 @@ namespace xios
   {
     if (!hasNotification_)
     {
-      double time=MPI_Wtime() ;
-      if (time-lastEventLoop_ > eventLoopLatency_) 
+      if (useWindowManager_)
       {
-        int commRank ;
-        MPI_Comm_rank(contextComm_, &commRank) ;
-        winNotify_->popFromExclusiveWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
-       
-        if (notifyInType_!= NOTIFY_NOTHING)
+        if (winNotify_==nullptr) return ;
+        int flag ;
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+        double time=MPI_Wtime() ;
+        if (time-lastEventLoop_ > eventLoopLatency_) 
         {
-          hasNotification_=true ;
-          auto eventScheduler=parentService_->getEventScheduler() ;
-          std::hash<string> hashString ;
-          size_t hashId = hashString(name_) ;
-          size_t currentTimeLine=0 ;
-          eventScheduler->registerEvent(currentTimeLine,hashId); 
+          int commRank ;
+          MPI_Comm_rank(contextComm_, &commRank) ;
+          winNotify_->popFromExclusiveWindow(commRank, this, &CServerContext::notificationsDumpIn) ;
+          if (notifyInType_!= NOTIFY_NOTHING)  hasNotification_=true ;
+          lastEventLoop_=time ;
         }
-        lastEventLoop_=time ;
+      }
+      else if (CXios::getNotificationsManager()->recvNotification(hashNotify_,   this, &CServerContext::notificationsDumpIn)) hasNotification_=true ;
+     
+      if (hasNotification_)
+      {
+        auto eventScheduler=parentService_->getEventScheduler() ;
+        std::hash<string> hashString ;
+        size_t hashId = hashString(name_) ;
+        size_t currentTimeLine=0 ;
+        eventScheduler->registerEvent(currentTimeLine,hashId); 
       }
     }
     
@@ -231,19 +233,21 @@ namespace xios
     }
   }
 
+
   bool CServerContext::eventLoop(bool serviceOnly)
   {
-    if (info.isActive(logTimers)) CTimer::get("CServerContext::eventLoop").resume();
     bool finished=false ;
-    int flag ;
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+    if (!CXios::getContextsManager()->hasContext(name_)) return finished; // sure to be registered
 
-//    double time=MPI_Wtime() ;
-//    if (time-lastEventLoop_ > eventLoopLatency_) 
-//    {
-      if (winNotify_!=nullptr) checkNotifications() ;
-//      lastEventLoop_=time ;
-//    }
+    if (info.isActive(logTimers)) CTimer::get("CServerContext::eventLoop").resume();
+    
+    if (!isContextInitialized_)
+    {
+      context_->init(this, contextComm_, type_) ;
+      isContextInitialized_=true ;
+    }
+
+    checkNotifications() ;
 
 
     if (!serviceOnly && context_!=nullptr)  
@@ -269,10 +273,16 @@ namespace xios
     CThreadManager::threadInitialize() ; 
     do
     {
-      int flag ;
-      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
 
-      if (winNotify_!=nullptr) checkNotifications() ;
+      while(!CXios::getContextsManager()->hasContext(name_)) CThreadManager::yield() ; // sure to be registered)
+
+      if (!isContextInitialized_)
+      {
+        context_->init(this, contextComm_, type_) ;
+        isContextInitialized_=true ;
+      }
+
+      checkNotifications() ;
 
 
       if (context_!=nullptr)  

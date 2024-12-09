@@ -31,32 +31,32 @@ namespace xios
   extern CLogType logTimers ;
   extern CLogType logProfile ;
 
-  COneSidedContextServer::COneSidedContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
-                         : CContextServer(parent, intraComm_, interComm_), 
+  COneSidedContextServer::COneSidedContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm)
+                         : CContextServer(parent, intraComm, interComm), 
                            isProcessingEvent_(false)
   {
    
-    xios::MPI_Comm_dup(intraComm, &processEventBarrier_) ;
+    xios::MPI_Comm_dup(intraComm_, &processEventBarrier_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(processEventBarrier_) ;
     
-    currentTimeLine=1;
-    scheduled=false;
-    finished=false;
+    currentTimeLine_=1;
+    scheduled_=false;
+    finished_=false;
 
     xios::MPI_Intercomm_merge(interComm_,true,&interCommMerged_) ;
     CXios::getMpiGarbageCollector().registerCommunicator(interCommMerged_) ;
-    xios::MPI_Comm_split(intraComm_, intraCommRank, intraCommRank, &commSelf_) ; // for windows
+    xios::MPI_Comm_split(intraComm_, intraCommRank_, intraCommRank_, &commSelf_) ; // for windows
     CXios::getMpiGarbageCollector().registerCommunicator(commSelf_) ;
 
-    itLastTimeLine=lastTimeLine.begin() ;
+    itLastTimeLine_=lastTimeLine_.begin() ;
 
-    pureOneSided=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
+    pureOneSided_=CXios::getin<bool>("pure_one_sided",false); // pure one sided communication (for test)
       
   }
 
   void COneSidedContextServer::setPendingEvent(void)
   {
-    pendingEvent=true;
+    pendingEvent_=true;
   }
 
   bool COneSidedContextServer::hasPendingEvent(void)
@@ -66,7 +66,7 @@ namespace xios
 
   bool COneSidedContextServer::hasFinished(void)
   {
-    return finished;
+    return finished_;
   }
 
   bool COneSidedContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
@@ -86,7 +86,7 @@ namespace xios
     if (info.isActive(logTimers)) CTimer::get("check event process").resume();
     processEvents(enableEventsProcessing);
     if (info.isActive(logTimers)) CTimer::get("check event process").suspend();
-    return finished;
+    return finished_;
 
   }
 
@@ -169,18 +169,18 @@ namespace xios
   
     if (isProcessingEvent_) return ;
 
-    auto it=completedEvents_.find(currentTimeLine);
+    auto it=completedEvents_.find(currentTimeLine_);
 
     if (it!=completedEvents_.end())
     {
       if (it->second.nbSenders == it->second.currentNbSenders)
       {
-        if (!scheduled) 
+        if (!scheduled_) 
         {
-          eventScheduler_->registerEvent(currentTimeLine,hashId);
-          scheduled=true;
+          eventScheduler_->registerEvent(currentTimeLine_,hashId_);
+          scheduled_=true;
         }
-        else if (eventScheduler_->queryEvent(currentTimeLine,hashId) )
+        else if (eventScheduler_->queryEvent(currentTimeLine_,hashId_) )
         {
           //if (!enableEventsProcessing && isCollectiveEvent(event)) return ;
 
@@ -203,18 +203,18 @@ namespace xios
 
           isProcessingEvent_=true ;
           CEventServer event(this) ;
-          for(auto& buffer : it->second.buffers) buffer->fillEventServer(currentTimeLine, event) ;
+          for(auto& buffer : it->second.buffers) buffer->fillEventServer(currentTimeLine_, event) ;
 //          MPI_Barrier(intraComm) ;
           CTimer::get("Process events").resume();
-          info(100)<<"Context id "<<context->getId()<<" : Process Event "<<currentTimeLine<<" of class "<<event.classId<<" of type "<<event.type<<endl ;
+          info(100)<<"Context id "<<context_->getId()<<" : Process Event "<<currentTimeLine_<<" of class "<<event.classId<<" of type "<<event.type<<endl ;
           dispatchEvent(event);
           CTimer::get("Process events").suspend();
           isProcessingEvent_=false ;
-//         context->unsetProcessingEvent() ;
-          pendingEvent=false;
+//         context_->unsetProcessingEvent() ;
+          pendingEvent_=false;
           completedEvents_.erase(it);
-          currentTimeLine++;
-          scheduled = false;
+          currentTimeLine_++;
+          scheduled_ = false;
         }
       }
     }
@@ -259,18 +259,18 @@ namespace xios
     int MsgSize;
     int rank;
     list<CEventServer::SSubEvent>::iterator it;
-    StdString ctxId = context->getId();
+    StdString ctxId = context_->getId();
     CContext::setCurrent(ctxId);
     StdSize totalBuf = 0;
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       if (info.isActive(logProfile)) CTimer::get("Context finalize").resume();
-      finished=true;
-      info(20)<<" COneSidedContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
+      finished_=true;
+      info(20)<<" COneSidedContextServer: Receive context <"<<context_->getId()<<"> finalize."<<endl;
       notifyClientsFinalize() ;
       if (info.isActive(logTimers)) CTimer::get("receiving requests").suspend();
-      context->finalize();
+      context_->finalize();
       
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;

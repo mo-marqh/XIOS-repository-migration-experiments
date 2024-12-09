@@ -24,7 +24,6 @@ namespace xios
                          const MPI_Comm& intraComm, MPI_Comm& interCommClient, MPI_Comm& interCommServer, bool wait=true) ;
     void createIntercomm(int remoteLeader, const string& sourceContext) ;
 
-    void sendNotification(int rank);  
     void checkNotifications(void) ;
 
     bool eventLoop(bool serviceOnly=false) ;
@@ -50,12 +49,16 @@ namespace xios
     CContext* context_ ;
     CService* parentService_ ;
     std::string name_ ;
+    int type_ ;
 
     vector<MPI_Comm> clientsInterComm_ ;
+    bool isContextInitialized_=false; 
 
 
     const size_t maxBufferSize_=1024*1024 ;
+    bool useWindowManager_ ;
     CWindowManager* winNotify_ ;
+    size_t hashNotify_ ;
     int notifyInType_, notifyOutType_ ;
     tuple<int, std::string> notifyInCreateIntercomm_, notifyOutCreateIntercomm_ ;
 
