@@ -1,0 +1,19 @@
+NETCDF_INCDIR="$(pkg-config --cflags netcdf-fortran)"
+NETCDF_LIBDIR="$(pkg-config --libs-only-L netcdf) $(pkg-config --libs-only-L netcdf-fortran)"
+NETCDF_LIB="-lnetcdff -lnetcdf"
+
+MPI_INCDIR=""
+MPI_LIBDIR=""
+MPI_LIB="-lcurl"
+
+HDF5_INCDIR="$(pkg-config --cflags hdf5)"
+HDF5_LIBDIR="$(pkg-config --libs-only-L hdf5)"
+HDF5_LIB="-lhdf5_hl -lhdf5 -lhdf5 -lz"
+
+BOOST_INCDIR="-I $BOOST_ROOT/include"
+BOOST_LIBDIR=""
+BOOST_LIB=""
+
+OASIS_INCDIR="-I$PWD/../../oasis3-mct/BLD/build/lib/psmile.MPI1"
+OASIS_LIBDIR="-L$PWD/../../oasis3-mct/BLD/lib"
+OASIS_LIB="-lpsmile.MPI1 -lscrip -lmct -lmpeu"
