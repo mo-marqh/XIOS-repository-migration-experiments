@@ -383,7 +383,7 @@ namespace xios
   bool CINetCDF4::hasCoordinates(const StdString& name,
                                  const CVarPath* const path)
   {
-    return this->hasAttribute(CCFKeywords::XIOS_CF_coordinates, &name, path);
+    return ( this->hasAttribute(CCFKeywords::XIOS_CF_coordinates, &name, path) && (this->getAttributeValue(CCFKeywords::XIOS_CF_coordinates, &name, path)!=""));
   }
 
   bool CINetCDF4::hasBounds(const StdString& name,
@@ -478,7 +478,7 @@ namespace xios
   StdString CINetCDF4::getCoordinatesId(const StdString& name, const CVarPath* const path)
   {
     StdString retvalue;
-    if (this->hasAttribute(CCFKeywords::XIOS_CF_coordinates, &name, path))
+    if (this->hasAttribute(CCFKeywords::XIOS_CF_coordinates, &name, path) && (this->getAttributeValue(CCFKeywords::XIOS_CF_coordinates, &name, path)!="") )
     {
       return this->getAttributeValue(CCFKeywords::XIOS_CF_coordinates, &name, path);
     }
