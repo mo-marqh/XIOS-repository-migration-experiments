@@ -776,7 +776,7 @@ namespace xios {
     if (hasClient) this->sendCloseDefinition();
 
     // Nettoyage de l'arborescence
-    if (hasClient) CleanTree(); // Only on client side??
+    //if (hasClient) CleanTree(); // Only on client side??
 
     if (hasClient)
     {
