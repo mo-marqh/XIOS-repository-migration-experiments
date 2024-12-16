@@ -261,6 +261,16 @@ namespace xios
                 CThreadManager::yield() ;
               }
             else ressourcesManager->waitPoolRegistration(CXios::defaultPoolId) ;
+            
+            servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultWriterId, CServicesManager::WRITER, nprocsServer, nbPoolsServer2) ;
+            if (CThreadManager::isUsingThreads())
+              for(int i=0; i<nbPoolsServer2; i++)
+                while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultWriterId,i)) 
+                {
+                  daemonsManager->eventLoop() ;
+                  CThreadManager::yield() ;
+                }
+            else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
 
             servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultGathererId, CServicesManager::GATHERER, nprocsGatherer, 1) ;
             if (CThreadManager::isUsingThreads()) 
@@ -279,16 +289,6 @@ namespace xios
                 CThreadManager::yield() ;
               }
             else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultReaderId) ;
-            
-            servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultWriterId, CServicesManager::WRITER, nprocsServer, nbPoolsServer2) ;
-            if (CThreadManager::isUsingThreads())
-              for(int i=0; i<nbPoolsServer2; i++)
-                while(!servicesManager->hasService(CXios::defaultPoolId, CXios::defaultWriterId,i)) 
-                {
-                  daemonsManager->eventLoop() ;
-                  CThreadManager::yield() ;
-                }
-            else servicesManager->waitServiceRegistration(CXios::defaultPoolId, CXios::defaultWriterId) ;
           }
         }
 //        servicesManager->createServices(CXios::defaultPoolId,  CXios::defaultServicesId, CServicesManager::ALL_SERVICES, nbRessources, 1) ;
