@@ -239,10 +239,10 @@ namespace xios
                  {
                     this->setAttribute(el.first, el.second);
                  }
-                 else if (currentAtt->isEmpty() && currentAtt->canInherite() && el.second->isEmpty() && !el.second->canInherite())
-                 {
-                    currentAtt->setCannotInherit() ; // propagate non-inheritance
-                 }
+                 //else if (currentAtt->isEmpty() && currentAtt->canInherite() && el.second->isEmpty() && !el.second->canInherite())
+                 //{
+                 //   currentAtt->setCannotInherit() ; // propagate non-inheritance
+                 //}
                }
                else currentAtt->setInheritedValue(*parentAtt);
             }
