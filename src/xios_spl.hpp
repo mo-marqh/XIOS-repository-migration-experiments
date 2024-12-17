@@ -16,6 +16,7 @@
 
 // Conteneurs.
 #include <vector>
+#include <array>
 #include <set>
 #include <stack>
 #include <list>

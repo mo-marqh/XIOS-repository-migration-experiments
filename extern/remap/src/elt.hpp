@@ -3,6 +3,7 @@
 #include <list>
 #include "triple.hpp"
 #include <vector>
+#include <array>
 
 #define NMAX 0 /**< maximum number of vertices for polygons */
 

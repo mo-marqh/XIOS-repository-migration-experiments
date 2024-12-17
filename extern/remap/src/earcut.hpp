@@ -7,7 +7,7 @@
 #include <vector>
 #include <limits>
 //#include <tuple>
-//#include <cstdint> 
+#include <cstdint> 
 //#include <cstddef>
 
 namespace mapbox {

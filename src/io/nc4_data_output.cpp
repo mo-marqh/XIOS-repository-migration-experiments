@@ -14,6 +14,8 @@
 #include "mesh_values.hpp"
 
 #include <limits.h>
+#include <cfloat> 
+
 #define X_FLOAT_MAX     FLT_MAX
 #define X_FLOAT_MIN     FLT_MIN
 #define X_SHORT_MAX     SHRT_MAX
