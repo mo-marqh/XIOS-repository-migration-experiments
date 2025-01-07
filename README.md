@@ -17,7 +17,7 @@ git init XIOS-repository-migration-experiments
 
 cd XIOS-repository-migration-experiments
 
-git svn init -s --prefix=ipsl/ --ignore-paths="(test_client\.exe|xios_server\.exe|xios_server1\.exe|xios_server2\.exe)" http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS3/
+git svn init -s --prefix=ipsl/ --ignore-paths="(test_client\.exe|xios_server\.exe|xios_server1\.exe|xios_server2\.exe)" https://forge.ipsl.fr/ioserver/svn/XIOS3/
 
 git svn fetch
 ```
@@ -26,10 +26,6 @@ git svn fetch
 * `--ignore-paths` is essential, as
     * there are removed build artefacts in the subversion history which are large
     * and cause problems with the repository history, github uploads, etc.
-* use `http` for the IPSL SVN URI
-    * MO web proxy & firewall can struggle with the `git svn fetch` over HTTPS
-    * restarting a failed (timed out) fetch leaves inconsistencies in the git commit history which are problematic
-    * once the `git svn fetch` has run the first time, then we can update this URI to HTTPS for future connections
 * `git svn fetch` MUST complete first time, do not restart after failure!
     * this takes ages; sorry
     * if it fails, delete and start over, do not restart
