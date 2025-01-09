@@ -1,0 +1,26 @@
+__pycache__
+.cache
+.void_dir
+.void_file
+
+# XIOS build artifacts
+arch.*
+bin
+cfg
+done
+etc
+flags
+inc
+lib
+obj
+ppsrc
+Makefile
+bld_dir.cfg
+config.fcm
+fcm_env.*
+fcm.bld.lock
+
+# Tracked folders that contain dependencies
+extern
+/tools
+*.tar.gz

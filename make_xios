@@ -79,7 +79,7 @@ then
         then
                 continue
         fi
-	gunzip -f "$tarname"
+	gunzip -cf "$tarname" > ${tarname%.gz}
 	tar -xf ${tarname%.gz}
     done
 fi
