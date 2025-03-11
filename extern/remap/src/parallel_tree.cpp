@@ -260,23 +260,6 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
   assert(tree.root->incluCheck() == 0);
 }
 
-struct compareElts
-{
-  bool operator()(const std::tuple<double, double, double>& lhs, const std::tuple<double, double, double>& rhs) const
-  {
-    if (get<0>(lhs) < get<0>(rhs)) return true;
-    else if (get<0>(lhs) > get<0>(rhs)) return false;
-    else {
-      if (get<1>(lhs) < get<1>(rhs)) return true;
-      else if (get<1>(lhs) > get<1>(rhs)) return false;
-      else {
-        if (get<2>(lhs) < get<2>(rhs)) return true;
-        else if (get<2>(lhs) > get<2>(rhs)) return false;
-        else return true;
-      }
-    }
-  }
-};
 
 void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& route)
 {
@@ -298,28 +281,18 @@ void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& 
 	for (int i = 0; i < nbLocalElements; i++)
 		ptLocalElement[i] = &localElements[i];
 
-        
 	CTimer::get("buildLocalTree(transfer)").resume();
 	MPIRoute.transferToTarget(&ptElement[0], &ptLocalElement[0], packElement, unpackElement);
 	CTimer::get("buildLocalTree(transfer)").suspend();
 	CTimer::get("buildLocalTree(transfer)").print();
 
 	CTimer::get("buildLocalTree(local)").resume();
-        
-	// Force order access to localElements for reproductibilty using the map below
-	std::map<std::tuple<double, double, double>, int, compareElts> indexesFromCoords;
-	for (int i = 0; i < nbLocalElements; i++)
-	{
-	    Elt& elt = localElements[i];
-	    indexesFromCoords[{elt.x.x,elt.x.y,elt.x.z}] = i;
-	}
 
 	int mpiRank;
 	MPI_Comm_rank(communicator, &mpiRank);
 	localTree.leafs.reserve(nbLocalElements);
-	for (const auto& itIndex : indexesFromCoords)
+	for (int i = 0; i < nbLocalElements; i++)
 	{
-		int i = itIndex.second; 
 		Elt& elt = localElements[i];
 		elt.id.ind = i;
 		elt.id.rank = mpiRank;

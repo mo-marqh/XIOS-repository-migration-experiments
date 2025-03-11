@@ -167,10 +167,12 @@ destRanks.push_back(i);
 	CTimer::get("CMPIRouting::init(get_source)").resume();
 
 	indexRequest = 0;
+	int indexRecvRequest = 0;
 	for (int i = 0; i < nbSource; i++)
 	{
 		MPI_Irecv(&sourceRank[i], 1, MPI_INT, MPI_ANY_SOURCE, 0, communicator, &request[indexRequest]);
 		indexRequest++;
+		indexRecvRequest++;
 	}
 
 	for (int i = 0; i < nbTarget; i++)
@@ -182,6 +184,14 @@ destRanks.push_back(i);
 	MPI_Barrier(communicator);
 	CTimer::get("CMPIRouting::init(get_source)").suspend();
 	CTimer::get("CMPIRouting::init(get_source)").print();
+
+        if (indexRecvRequest>0)
+	{
+            std::vector<int> vecSourceRank( indexRecvRequest );
+            for (int i=0 ; i<indexRecvRequest ; i++) vecSourceRank[i] = sourceRank[i];
+            std::sort( vecSourceRank.begin(), vecSourceRank.end() );
+            for (int i=0 ; i<indexRecvRequest ; i++) sourceRank[i] = vecSourceRank[i];
+        }
 
 	CTimer::get("CMPIRouting::init(send_element)").reset();
 	CTimer::get("CMPIRouting::init(send_element)").resume();
