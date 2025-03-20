@@ -243,7 +243,7 @@ namespace xios
         std::ifstream ifs ;
         string fileName=("__xios_publisher::"+CXios::xiosCodeId+"__to_remove__") ;
       
-        double timeout = CXios::getin<double>("server_puplish_timeout",serverPublishDefaultTimeout) ;
+        double timeout = CXios::getin<double>("server_publish_timeout",serverPublishDefaultTimeout) ;
         double time ;
           
         do
@@ -321,9 +321,11 @@ namespace xios
         
         int pos=0 ;
         for(int i=0 ; codeId!=clientsCodeId[i]; i++) pos=pos+1 ;
+	// The clientsCodeId[0] is the pseudo server leader, must create interComm with others components, but not with itself
+        if (codeId==clientsCodeId[0]) pos++;
         
         bool high=true ;
-        for(int i=pos+1 ; i<clientsCodeId.size(); i++)
+        for(int i=pos ; i<clientsCodeId.size(); i++)
         {  
           if (codeId==clientsCodeId[0])   // first model play the server rule
           {          
