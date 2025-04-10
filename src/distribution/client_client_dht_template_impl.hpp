@@ -187,8 +187,10 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
     sendIndexToClients(itIndex->first, (itIndex->second), sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
 
-  std::vector<MPI_Status> status(request.size());
-  MPI_Waitall(request.size(), &request[0], &status[0]);
+  if (request.size() > 0) {
+    std::vector<MPI_Status> status(request.size());
+    MPI_Waitall(request.size(), &request[0], &status[0]);
+  }
 
   CArray<size_t,1>* tmpGlobalIndex;
   if (0 != recvNbIndexCount)
@@ -292,8 +294,10 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     currentIndex += recvNbIndexClientCount[idx];
   }
 
-  std::vector<MPI_Status> statusOnReturn(requestOnReturn.size());
-  MPI_Waitall(requestOnReturn.size(), &requestOnReturn[0], &statusOnReturn[0]);
+  if (requestOnReturn.size() > 0) {
+    std::vector<MPI_Status> statusOnReturn(requestOnReturn.size());
+    MPI_Waitall(requestOnReturn.size(), &requestOnReturn[0], &statusOnReturn[0]);
+  }
 
   Index2VectorInfoTypeMap indexToInfoMapping;
   indexToInfoMapping.rehash(std::ceil(recvNbIndexCountOnReturn/indexToInfoMapping.max_load_factor()));
@@ -463,8 +467,10 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
   for (itInfo = itbInfo; itInfo != iteInfo; ++itInfo)
     sendInfoToClients(itInfo->first, itInfo->second, sendNbInfo[itInfo->first-groupRankBegin], commLevel, request);
 
-  std::vector<MPI_Status> status(request.size());
-  MPI_Waitall(request.size(), &request[0], &status[0]);
+  if (request.size() > 0) {
+    std::vector<MPI_Status> status(request.size());
+    MPI_Waitall(request.size(), &request[0], &status[0]);
+  }
 
   Index2VectorInfoTypeMap indexToInfoMapping;
   indexToInfoMapping.rehash(std::ceil(currentIndex/indexToInfoMapping.max_load_factor()));
