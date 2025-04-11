@@ -2163,6 +2163,7 @@ void CContext::removeAllContexts(void)
 
              CField* tsField = tsFile->addField();
              tsField->field_ref = field->getId();
+             if (field->enabled.isEmpty() || field->enabled) tsField->enabled = true; // to not inherits from only/exclusive disabled
 
              // Add variables originating from file and targeted to timeserie field
              for (size_t k = 0; k < fieldVars.size(); k++)
