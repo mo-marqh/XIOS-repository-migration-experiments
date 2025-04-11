@@ -2154,7 +2154,15 @@ void CContext::removeAllContexts(void)
              if (!field->name.isEmpty())
                tsFile->name.get() += field->name;
              else if (field->hasDirectFieldReference()) // We cannot use getBaseFieldReference() just yet
-               tsFile->name.get() += field->field_ref;
+             {
+               CField* fieldRef = CField::get(field->field_ref);
+               if (!fieldRef->name.isEmpty())
+               {
+                 tsFile->name.get() += fieldRef->name;
+               }
+               else
+                 tsFile->name.get() += field->field_ref;
+             }
              else
                tsFile->name.get() += field->getId();
 
