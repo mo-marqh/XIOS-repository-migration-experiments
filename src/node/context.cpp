@@ -1899,7 +1899,10 @@ namespace xios {
              tsFile->solveFieldRefInheritance(true);
 
              if (file->timeseries == CFile::timeseries_attr::exclusive)
+             {
                field->enabled = false;
+               tsField->enabled = true;
+             }
            }
          }
 
