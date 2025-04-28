@@ -16,6 +16,8 @@ MODULE IXML_TREE
    USE IGENERATE_RECTILINEAR_DOMAIN
    USE ICOMPUTE_CONNECTIVITY_DOMAIN
    USE IEXPAND_DOMAIN
+   USE IREDISTRIBUTE_DOMAIN
+
 
    USE IZOOM_AXIS
    USE IEXTRACT_AXIS
@@ -23,10 +25,13 @@ MODULE IXML_TREE
    USE IINVERSE_AXIS
    USE IREDUCE_DOMAIN_TO_AXIS
    USE IEXTRACT_DOMAIN_TO_AXIS
+   USE IREDISTRIBUTE_AXIS
+
 
    USE IREDUCE_AXIS_TO_SCALAR
    USE IEXTRACT_AXIS_TO_SCALAR
    USE IREDUCE_DOMAIN_TO_SCALAR
+   USE IREDISTRIBUTE_SCALAR
 
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
@@ -252,6 +257,14 @@ MODULE IXML_TREE
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_expanddomaintodomain
 
+      SUBROUTINE cxios_xml_tree_add_redistributedomain(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_redistributedomain
+
       !!!! AXIS
       SUBROUTINE cxios_xml_tree_add_zoomaxistoaxis(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
@@ -301,6 +314,14 @@ MODULE IXML_TREE
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_extractdomaintoaxistoaxis
 
+      SUBROUTINE cxios_xml_tree_add_redistributeaxis(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_redistributeaxis
+
       !!! SCALAR
       SUBROUTINE cxios_xml_tree_add_reduceaxistoscalartoscalar(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
@@ -325,6 +346,14 @@ MODULE IXML_TREE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_reducedomaintoscalartoscalar
+
+      SUBROUTINE cxios_xml_tree_add_redistributescalar(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_redistributescalar
 
       SUBROUTINE cxios_xml_tree_show(filename, filename_size) BIND(C)
          USE ISO_C_BINDING
@@ -626,7 +655,7 @@ MODULE IXML_TREE
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!         TRANSFORMATIONS
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !!!         DOAMIN
+   !!!         DOMAIN
    SUBROUTINE xios(add_zoomdomaintodomain)(parent_hdl, child_hdl, child_id)
       TYPE(txios(domain))           , INTENT(IN) :: parent_hdl
       TYPE(txios(zoom_domain))      , INTENT(OUT):: child_hdl
@@ -704,6 +733,19 @@ MODULE IXML_TREE
       END IF
 
    END SUBROUTINE xios(add_expanddomaintodomain)
+
+   SUBROUTINE xios(add_redistributedomain)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(domain))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(redistribute_domain))               , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL             , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_redistributedomain(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_redistributedomain(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_redistributedomain)
 
    !!!  AXIS
    SUBROUTINE xios(add_zoomaxistoaxis)(parent_hdl, child_hdl, child_id)
@@ -784,6 +826,19 @@ MODULE IXML_TREE
 
    END SUBROUTINE xios(add_extractdomaintoaxistoaxis)
 
+   SUBROUTINE xios(add_redistributeaxis)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(axis))                        , INTENT(IN) :: parent_hdl
+      TYPE(txios(redistribute_axis))      , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL             , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_redistributeaxis(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_redistributeaxis(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_redistributeaxis)
+
    !!! SCALAR
    SUBROUTINE xios(add_reduceaxistoscalartoscalar)(parent_hdl, child_hdl, child_id)
       TYPE(txios(scalar))                    , INTENT(IN) :: parent_hdl
@@ -823,5 +878,19 @@ MODULE IXML_TREE
       END IF
 
    END SUBROUTINE xios(add_reducedomaintoscalartoscalar)
+
+   SUBROUTINE xios(add_redistributescalar)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(scalar))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(redistribute_scalar))     , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL             , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_redistributescalar(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_redistributescalar(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_redistributescalar)
+
 
 END MODULE IXML_TREE

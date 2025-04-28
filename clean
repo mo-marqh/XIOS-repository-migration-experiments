@@ -1,0 +1,16 @@
+rm -rf .cache 
+rm -rf .void_dir
+rm -rf bin
+rm -rf cfg
+rm -rf done
+rm -rf etc
+rm -rf flags
+rm -rf inc
+rm -rf lib
+rm -rf obj
+rm -rf ppsrc
+rm .void_file
+rm arch.*
+rm bld_dir.cfg
+rm config.fcm
+rm Makefile

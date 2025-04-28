@@ -1,4 +1,5 @@
 #!/bin/bash
+
 install_dir=$PWD
 compil_full="false"
 use_oasis="false"

@@ -110,6 +110,12 @@ USE iexpand_domain_attr, ONLY : xios(set_expand_domain_attr), &
                                 xios(get_expand_domain_attr), &
                                 xios(is_defined_expand_domain_attr)
 
+USE iredistribute_domain, ONLY : txios(redistribute_domain), xios(is_valid_redistribute_domain)
+
+USE iredistribute_domain_attr, ONLY : xios(set_redistribute_domain_attr), &
+                                      xios(get_redistribute_domain_attr), &
+                                      xios(is_defined_redistribute_domain_attr)
+
 !!! AXIS TRANSFORMATIONS
 USE izoom_axis, ONLY : txios(zoom_axis), xios(is_valid_zoom_axis)
 
@@ -141,6 +147,13 @@ USE iextract_domain_to_axis_attr, ONLY : xios(set_extract_domain_to_axis_attr), 
                                          xios(get_extract_domain_to_axis_attr), &
                                          xios(is_defined_extract_domain_to_axis_attr)
 
+USE iredistribute_axis, ONLY : txios(redistribute_axis), xios(is_valid_redistribute_axis)
+
+USE iredistribute_axis_attr, ONLY : xios(set_redistribute_axis_attr), &
+                                    xios(get_redistribute_axis_attr), &
+                                    xios(is_defined_redistribute_axis_attr)
+
+
 !!! SCALAR TRANSFORMATIONS
 USE ireduce_domain_to_scalar, ONLY : txios(reduce_domain_to_scalar), xios(is_valid_reduce_domain_to_scalar)
 
@@ -161,5 +174,12 @@ USE iextract_axis_to_scalar_attr, ONLY : xios(set_extract_axis_to_scalar_attr), 
 USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
                             xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar), &
                             xios(field_get_domain),xios(field_get_axis),xios(field_get_scalar)
+
+
+USE iredistribute_scalar, ONLY : txios(redistribute_scalar), xios(is_valid_redistribute_scalar)
+
+USE iredistribute_scalar_attr, ONLY : xios(set_redistribute_scalar_attr), &
+                                      xios(get_redistribute_scalar_attr), &
+                                      xios(is_defined_redistribute_scalar_attr)
 
 END MODULE XIOS

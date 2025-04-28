@@ -105,6 +105,13 @@ USE iexpand_domain_attr, ONLY : xios(set_expand_domain_attr_hdl), &
                                 xios(get_expand_domain_attr_hdl), &
                                 xios(is_defined_expand_domain_attr_hdl)
 
+USE iredistribute_domain, ONLY : xios(get_redistribute_domain_handle)
+
+USE  iredistribute_domain_attr, ONLY : xios(set_redistribute_domain_attr_hdl), &
+                                       xios(get_redistribute_domain_attr_hdl), &
+                                       xios(is_defined_redistribute_domain_attr_hdl)
+
+
 !!! AXIS TRANSFORMATIONS
 USE izoom_axis, ONLY : xios(get_zoom_axis_handle)
 
@@ -138,6 +145,12 @@ USE iextract_domain_to_axis_attr, ONLY : xios(set_extract_domain_to_axis_attr_hd
                                          xios(get_extract_domain_to_axis_attr_hdl), &
                                          xios(is_defined_extract_domain_to_axis_attr_hdl)
 
+USE iredistribute_axis, ONLY : xios(get_redistribute_axis_handle)
+
+USE  iredistribute_axis_attr, ONLY : xios(set_redistribute_axis_attr_hdl), &
+                                     xios(get_redistribute_axis_attr_hdl), &
+                                     xios(is_defined_redistribute_axis_attr_hdl)
+
 !!! SCALAR TRANSFORMATIONS
 
 
@@ -159,6 +172,12 @@ USE iextract_axis_to_scalar_attr, ONLY : xios(set_extract_axis_to_scalar_attr_hd
                                          xios(get_extract_axis_to_scalar_attr_hdl), &
                                          xios(is_defined_extract_axis_to_scalar_attr_hdl)
 
+USE iredistribute_scalar, ONLY : xios(get_redistribute_scalar_handle)
+
+USE  iredistribute_scalar_attr, ONLY : xios(set_redistribute_scalar_attr_hdl), &
+                                       xios(get_redistribute_scalar_attr_hdl), &
+                                       xios(is_defined_redistribute_scalar_attr_hdl)                                        
+
 USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),   &
                       xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),          &
                       xios(add_axisgroup), xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), &
@@ -171,7 +190,9 @@ USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_f
                       xios(add_computeconnectivitydomaintodomain), xios(add_reducedomaintoaxistoaxis),     &
                       xios(add_extractdomaintoaxistoaxis), xios(add_reducedomaintoscalartoscalar),         &
                       xios(add_extractaxistoscalartoscalar), xios(add_expanddomaintodomain),               &
-                      xios(add_extractdomaintodomain), xios(add_extractaxistoaxis)
+                      xios(add_extractdomaintodomain), xios(add_extractaxistoaxis),                        &
+                      xios(add_redistributedomain), xios(add_redistributeaxis),                            &
+                      xios(add_redistributescalar)
 
 PRIVATE
 
@@ -188,7 +209,10 @@ INTERFACE xios(set_attr)
                    xios(set_compute_connectivity_domain_attr_hdl), xios(set_reduce_domain_to_scalar_attr_hdl), &
                    xios(set_reduce_domain_to_axis_attr_hdl), xios(set_extract_domain_to_axis_attr_hdl),        &
                    xios(set_extract_axis_to_scalar_attr_hdl), xios(set_expand_domain_attr_hdl),              &
-                   xios(set_extract_domain_attr_hdl), xios(set_extract_axis_attr_hdl)
+                   xios(set_extract_domain_attr_hdl), xios(set_extract_axis_attr_hdl),                       &       
+                   xios(set_redistribute_domain_attr_hdl), xios(set_redistribute_axis_attr_hdl),           &      
+                   xios(set_redistribute_scalar_attr_hdl)
+                   
 END INTERFACE xios(set_attr)
 
 
@@ -205,7 +229,9 @@ INTERFACE xios(get_attr)
                    xios(get_compute_connectivity_domain_attr_hdl), xios(get_reduce_domain_to_scalar_attr_hdl), &
                    xios(get_reduce_domain_to_axis_attr_hdl), xios(get_extract_domain_to_axis_attr_hdl),        &
                    xios(get_extract_axis_to_scalar_attr_hdl), xios(get_expand_domain_attr_hdl),              &
-                   xios(get_extract_domain_attr_hdl), xios(get_extract_axis_attr_hdl)
+                   xios(get_extract_domain_attr_hdl), xios(get_extract_axis_attr_hdl),                        &
+                   xios(get_redistribute_domain_attr_hdl), xios(get_redistribute_axis_attr_hdl),           &      
+                   xios(get_redistribute_scalar_attr_hdl)
 END INTERFACE xios(get_attr)
 
 INTERFACE xios(is_defined_attr)
@@ -222,7 +248,9 @@ INTERFACE xios(is_defined_attr)
                    xios(is_defined_reduce_domain_to_scalar_attr_hdl), xios(is_defined_reduce_domain_to_axis_attr_hdl),            &
                    xios(is_defined_extract_domain_to_axis_attr_hdl), xios(is_defined_extract_axis_to_scalar_attr_hdl),            &
                    xios(is_defined_expand_domain_attr_hdl), xios(is_defined_extract_domain_attr_hdl),                             &
-                   xios(is_defined_extract_axis_attr_hdl)
+                   xios(is_defined_extract_axis_attr_hdl),                                                                         &
+                   xios(is_defined_redistribute_domain_attr_hdl), xios(is_defined_redistribute_axis_attr_hdl),           &      
+                   xios(is_defined_redistribute_scalar_attr_hdl)
 END INTERFACE xios(is_defined_attr)
 
 INTERFACE xios(get_handle)
@@ -238,7 +266,9 @@ INTERFACE xios(get_handle)
                    xios(get_compute_connectivity_domain_handle), xios(get_reduce_domain_to_scalar_handle),           &
                    xios(get_reduce_domain_to_axis_handle), xios(get_extract_domain_to_axis_handle),                  &
                    xios(get_extract_axis_to_scalar_handle), xios(get_expand_domain_handle),                          &
-                   xios(get_extract_domain_handle), xios(get_extract_axis_handle)
+                   xios(get_extract_domain_handle), xios(get_extract_axis_handle),                                    &
+                   xios(get_redistribute_domain_handle), xios(get_redistribute_axis_handle),           &      
+                   xios(get_redistribute_scalar_handle)
 END INTERFACE xios(get_handle)
 
 INTERFACE xios(add_child)
@@ -253,7 +283,8 @@ INTERFACE xios(add_child)
                    xios(add_computeconnectivitydomaintodomain), xios(add_reducedomaintoscalartoscalar),              &
                    xios(add_reducedomaintoaxistoaxis), xios(add_extractdomaintoaxistoaxis),                          &
                    xios(add_extractaxistoscalartoscalar), xios(add_expanddomaintodomain),                            &
-                   xios(add_extractdomaintodomain), xios(add_extractaxistoaxis)
+                   xios(add_extractdomaintodomain), xios(add_extractaxistoaxis),                                      &
+                   xios(add_redistributedomain), xios(add_redistributeaxis), xios(add_redistributescalar) 
 END INTERFACE xios(add_child)
 
 INTERFACE xios(send_field)
