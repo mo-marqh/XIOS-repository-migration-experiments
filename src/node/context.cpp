@@ -1095,7 +1095,7 @@ void CContext::removeAllContexts(void)
        if (!default_pool_reader.isEmpty()) defaultPoolReaderId_ = default_pool_reader ;
        if (!default_pool_gatherer.isEmpty()) defaultPoolGathererId_ = default_pool_gatherer ;
        if (!default_writer.isEmpty()) defaultWriterId_ = default_writer ;
-       if (!default_reader.isEmpty()) defaultWriterId_ = default_reader ;
+       if (!default_reader.isEmpty()) defaultReaderId_ = default_reader ;
        if (!default_gatherer.isEmpty()) defaultGathererId_ = default_gatherer ;
        if (!default_using_server2.isEmpty()) defaultUsingServer2_ = default_using_server2 ;
      }
