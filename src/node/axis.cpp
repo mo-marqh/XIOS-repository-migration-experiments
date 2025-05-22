@@ -305,12 +305,12 @@ namespace xios {
      label.reset() ;
    }
 
-   size_t CAxis::computeAttributesHash( MPI_Comm comm )
+   size_t CAxis::computeAttributesHash( MPI_Comm comm, bool isDistributed )
    {
      int sz(1);
      MPI_Comm_size( comm, &sz );
      unsigned long long distributedHash = 0;
-     if (sz!=1) // compute the connector only if the element is distributed
+     if ((sz!=1) && (isDistributed)) // compute the connector only if the element is distributed (Multiple_file, sz > 1)
      {
        // Compute the hash of distributed attributs (value ...)
        int globalSize = this->n_glo.getValue();

@@ -90,7 +90,7 @@ namespace xios
          void checkAttributes(bool recheck=false);
          bool checkAttributes_done_ = false ;
 
-         size_t computeAttributesHash( MPI_Comm comm );
+         size_t computeAttributesHash( MPI_Comm comm, bool isDistributed );
          void renameAttributesBeforeWriting(CDomain* writtenDomain=NULL);
          
       //////////////////////////

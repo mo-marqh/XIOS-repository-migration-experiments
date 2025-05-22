@@ -70,7 +70,7 @@ namespace xios
         if (!domain->lonvalue.isEmpty() )
         {
           // The hash of the element will be associated to the default element name (= map key), and to the name really written
-          int globalHash = domain->computeAttributesHash( comm_file ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
+          int globalHash = domain->computeAttributesHash( comm_file, SuperClass::type==ONE_FILE ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
         
           StdString defaultNameKey = domain->getDomainOutputName();
           if ( !relDomains_.count ( defaultNameKey ) )
@@ -1065,7 +1065,7 @@ namespace xios
         if (!axis->value.isEmpty() )
         {
           // The hash of the element will be associated to the default element name (= map key), and to the name really written
-          int globalHash = axis->computeAttributesHash( comm_file ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
+          int globalHash = axis->computeAttributesHash( comm_file, SuperClass::type==ONE_FILE ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
 
           StdString defaultNameKey = axis->getAxisOutputName();
           if ( !relAxis_.count ( defaultNameKey ) )
