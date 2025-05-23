@@ -183,7 +183,6 @@ namespace xios
     domainDestination->i_index = globalIndex ;
     domainDestination->j_index.resize(globalIndex.numElements()) ;
     domainDestination->j_index = 0 ;
-    
     if (!domainSource->nvertex.isEmpty()) domainDestination->nvertex=domainSource->nvertex ;
     if (!domainSource->radius.isEmpty()) domainDestination->radius = domainSource->radius ;
     
@@ -206,7 +205,8 @@ namespace xios
     if (domainSource->hasBounds)
     {
       int nv ;
-      if (domainDestination->type == CDomain::type_attr::rectilinear) nv=2 ;
+      if ( (domainDestination->type == CDomain::type_attr::rectilinear) && (!domainSource->nvertex.isEmpty()) ) nv=domainSource->nvertex ;
+      else if (domainDestination->type == CDomain::type_attr::rectilinear) nv=2 ;
       else if (domainDestination->type == CDomain::type_attr::curvilinear) nv=4 ;
       else if (domainDestination->type == CDomain::type_attr::unstructured) nv=domainDestination->nvertex ;
 
