@@ -1812,7 +1812,7 @@ namespace xios {
      int sz(1);
      MPI_Comm_size( comm, &sz );
      unsigned long long distributedHash = 0;
-     if ((sz!=1) && (isDistributed))  // compute the connector only if the element is distributed (Multiple_file, sz > 1)
+     if ((sz!=1) && (isDistributed))  // compute the connector only if the element is distributed (One_file, sz > 1)
      {
        // Compute the hash of distributed attributs (value ...)
        int globalSize = this->ni_glo.getValue()*this->nj_glo.getValue();
@@ -1839,7 +1839,8 @@ namespace xios {
      else // if the element is not distributed, the local hash is valid
      {
        int globalSize = this->ni_glo.getValue()*this->nj_glo.getValue();
-       int localSize = globalSize;
+       int localSize = globalSize;                                     // sz==1
+       if (sz!=1) localSize = this->ni.getValue()*this->nj.getValue(); // Multiple_file
        unsigned long long localHash = 0;
        for (int iloc=0; iloc<localSize ; iloc++ ) localHash+=((unsigned long long)(abs(iloc*this->lonvalue(iloc)*this->latvalue(iloc))))%LLONG_MAX;
        distributedHash = localHash;
