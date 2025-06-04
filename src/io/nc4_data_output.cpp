@@ -73,6 +73,12 @@ namespace xios
           int globalHash = domain->computeAttributesHash( comm_file, SuperClass::type==ONE_FILE ); // Need a MPI_Comm to distribute without redundancy some attributs (value)
         
           StdString defaultNameKey = domain->getDomainOutputName();
+          if ((domain->type == CDomain::type_attr::unstructured) && (!SuperClassWriter::useCFConvention) )
+          {
+            if (domain->nvertex == 1) defaultNameKey += ( "_node" );
+            if (domain->nvertex == 2) defaultNameKey += ( "_edge" );
+            if (domain->nvertex  > 2) defaultNameKey += ( "_face" );
+          }
           if ( !relDomains_.count ( defaultNameKey ) )
           {
             // if defaultNameKey not in the map, write the element such as it is defined
