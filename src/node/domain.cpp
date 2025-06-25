@@ -1809,6 +1809,9 @@ namespace xios {
 
    size_t CDomain::computeAttributesHash( MPI_Comm comm, bool isDistributed )
    {
+     if (attributesHash_ > 0)
+       return attributesHash_;
+     
      int sz(1);
      MPI_Comm_size( comm, &sz );
      unsigned long long distributedHash = 0;
@@ -1870,7 +1873,8 @@ namespace xios {
      
      size_t globalHash = this->computeGlobalAttributesHash( excludedAttr );
 
-     return distributedHash + globalHash;
+     attributesHash_ = distributedHash + globalHash;
+     return attributesHash_;
    }
   
    void CDomain::renameAttributesBeforeWriting(CDomain* writtenDomain)
