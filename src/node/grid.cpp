@@ -2124,9 +2124,11 @@ namespace xios
               CGrid* tmpGridDst=CGrid::create(); // destination Grid
               tmpGridDst->addDomain(dstDomain->getId()) ;
 
+	      CTimer::get("createTransformationAlgorithm").resume();
               algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
                                                        posInGrid,posInGrid,posInGrid,
                                                        posInGrid,posInGrid,posInGrid );
+	      CTimer::get("createTransformationAlgorithm").suspend();
 
 
               dstDomain->setTransformationAlgorithm(algo) ;
@@ -2185,9 +2187,11 @@ namespace xios
               transformation->inheritFrom(srcTransform) ;
               tmpGridDst->addAxis(dstAxis->getId()) ;
 
+	      CTimer::get("createTransformationAlgorithm").resume();
               algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
                                                       posInGrid,posInGrid,posInGrid,
                                                       posInGrid,posInGrid,posInGrid );
+	      CTimer::get("createTransformationAlgorithm").suspend();
 
               dstAxis->setTransformationAlgorithm(algo) ;
               dstAxis->setTransformationPaths(transformationPath) ;
@@ -2246,9 +2250,11 @@ namespace xios
               transformation->inheritFrom(srcTransform) ;
               tmpGridDst->addScalar(dstScalar->getId()) ;
 
+	      CTimer::get("createTransformationAlgorithm").resume();
               algo = transformation -> createAlgorithm(false, tmpGridDst, tmpGridSrc, 0, 
                                                        posInGrid,posInGrid,posInGrid,
                                                        posInGrid,posInGrid,posInGrid );
+	      CTimer::get("createTransformationAlgorithm").suspend();
               
               dstScalar->setTransformationAlgorithm(algo) ;
               dstScalar->setTransformationPaths(transformationPath) ;
