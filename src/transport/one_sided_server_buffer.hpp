@@ -34,7 +34,7 @@ namespace xios
           }
           ~CBuffer() 
           { 
-            if (count_>0) ERROR("COneSidedServerBuffer::~CBuffer()",<<"Try to delete buffer that is not empty"<<std::endl) ;
+            if (count_>0) error(0) << "COneSidedServerBuffer::~CBuffer() : Try to delete buffer that is not empty"<<std::endl ;
             MPI_Free_mem(buffer_) ;
           }
        

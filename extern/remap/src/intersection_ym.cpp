@@ -144,8 +144,8 @@ double intersect_ym(Elt *a, Elt *b)
 
   double xoffset=(xmin+xmax)*0.5 ;
   double yoffset=(ymin+ymax)*0.5 ;
-  double xscale= 1e-4*0.5*hiRange/(xmax-xoffset) ;
-  double yscale= 1e-4*0.5*hiRange/(ymax-yoffset) ;
+  double xscale= 1e-4*0.5*((double)hiRange)/(xmax-xoffset) ;
+  double yscale= 1e-4*0.5*((double)hiRange)/(ymax-yoffset) ;
 // Problem with numerical precision if using larger scaling factor
 
 // 2) Compute intersection with clipper

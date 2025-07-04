@@ -60,7 +60,7 @@ namespace xios
 
       static void yield(void)
       {
-        if (isMasterThread) checkJoin() ;
+        if (isMasterThread()) checkJoin() ;
         std::thread::id id = std::this_thread::get_id() ;
         if (getNumThreads()>0)
         {

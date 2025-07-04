@@ -145,8 +145,8 @@ TRY
           axisDestination->value(globalToLocalIndex[srcGlobalIndex(i)/ni_glo]) = domainSource->latvalue(i) ;
           if (domainSource->hasBounds) 
           {
-            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)/ni_glo,0]) = domainSource->bounds_latvalue(i,0) ;
-            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)/ni_glo,1]) = domainSource->bounds_latvalue(i,1) ;
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)/ni_glo],0) = domainSource->bounds_latvalue(i,0) ;
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)/ni_glo],1) = domainSource->bounds_latvalue(i,1) ;
           }
         } 
       }
@@ -189,8 +189,8 @@ TRY
           axisDestination->value(globalToLocalIndex[srcGlobalIndex(i)%ni_glo]) = domainSource->lonvalue(i) ;
           if (domainSource->hasBounds) 
           {
-            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)%ni_glo,0]) = domainSource->bounds_lonvalue(i,0) ;
-            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)%ni_glo,1]) = domainSource->bounds_lonvalue(i,1) ;
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)%ni_glo],0) = domainSource->bounds_lonvalue(i,0) ;
+            axisDestination->bounds(globalToLocalIndex[srcGlobalIndex(i)%ni_glo],1) = domainSource->bounds_lonvalue(i,1) ;
           }
         } 
       }

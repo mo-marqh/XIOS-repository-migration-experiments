@@ -95,8 +95,10 @@ namespace xios {
         if (fieldId.empty()) ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
         if (!CField::has(fieldId)) 
+	{
           if (noError)  return nullptr ;
           else ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+	}
         CField* field=CField::get(fieldId) ;
         return field->getAssociatedDomain(suffix, noError) ;
      }

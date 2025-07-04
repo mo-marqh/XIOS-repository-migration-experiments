@@ -25,6 +25,7 @@ namespace xios
      * \return the output pin of the filter producing the result of the expression 
      */
     virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const = 0;
+    virtual ~IFilterExprNode() {};
   };
 
   /*!

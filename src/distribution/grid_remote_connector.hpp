@@ -59,31 +59,31 @@ namespace xios
       vector<map<int, CArray<size_t,1>>> elements_ ;
     
       /**
-      /* internal copy of the local communicator (client workflow). Feed at construction time.
+       * internal copy of the local communicator (client workflow). Feed at construction time.
        */
       MPI_Comm localComm_ ;
 
       /**
-      /* size of the remote communicator (== nb of servers). Feed at consctruction time
+       * size of the remote communicator (== nb of servers). Feed at consctruction time
        */
       int remoteSize_ ;
 
       /**
-      /* for each view composing the source grid, the vector store the information about the distribution of the element, i.e. 
+       * for each view composing the source grid, the vector store the information about the distribution of the element, i.e. 
        * if each ranks of the local view has exactly the same global indices than each other. This is computed when calling  
        * \b computeViewDistribution method.  
        */
       vector<bool> isSrcViewDistributed_ ;
 
      /**
-      /* for each view composing the destination grid, the vector store the information about the distribution of the element, i.e. 
+       * for each view composing the destination grid, the vector store the information about the distribution of the element, i.e. 
        * if each ranks of the remote view has exactly the same global indices than each other. This is computed when calling  
        * \b computeViewDistribution method. 
        */
       vector<bool> isDstViewDistributed_ ;
 
       /**
-      /* Redondant ranks of the \b elements_ are stored there by calling computeRedondantRanks(), to be removed latter or to be retrieve from elsewhere. 
+       * Redondant ranks of the \b elements_ are stored there by calling computeRedondantRanks(), to be removed latter or to be retrieve from elsewhere. 
        */
       set<int> rankToRemove_ ;
       

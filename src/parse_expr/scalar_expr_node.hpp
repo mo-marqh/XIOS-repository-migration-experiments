@@ -18,6 +18,7 @@ namespace xios
      * \return the output pin of the filter producing the result of the expression 
      */
     virtual double reduce() const = 0;
+    virtual ~IScalarExprNode() {};
   };
 
   /*!

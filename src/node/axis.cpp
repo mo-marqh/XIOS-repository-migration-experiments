@@ -240,8 +240,10 @@ namespace xios {
         if (fieldId.empty()) ERROR("CAxis* CAxis::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
         if (!CField::has(fieldId)) 
+	{
           if (noError)  return nullptr ;
           else ERROR("CAxis* CAxis::get(string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+	}
         CField* field=CField::get(fieldId) ;
         return field->getAssociatedAxis(suffix, noError) ;
      }
@@ -424,10 +426,12 @@ namespace xios {
      CContext* context=CContext::getCurrent();
 
      if (this->n_glo.isEmpty())
+     {
         if (generateError) ERROR("CAxis::checkAttributes(void)",
                                 << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
                                 << "The axis is wrongly defined, attribute 'n_glo' must be specified")
         else return false ; 
+     }
       StdSize size = this->n_glo.getValue();
 
       if (!this->index.isEmpty())
@@ -437,30 +441,36 @@ namespace xios {
         // It's not so correct but if begin is not the first value of index 
         // then data on the local axis has user-defined distribution. In this case, begin has no meaning.
         if (begin.isEmpty()) 
+	{
           if (n==0) begin=0 ;
           else begin = index(0);         
+	}
       }
       else 
       {
         if (!this->begin.isEmpty())
         {
           if (begin < 0 || begin > size - 1)
+	  {
              if (generateError) ERROR("CAxis::checkAttributes(void)",
                                       << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
                                       << "The axis is wrongly defined, attribute 'begin' (" 
                                       << begin.getValue() << ") must be non-negative and smaller than size-1 (" << size - 1 << ").")
               else return false ; 
+	  }
         }
         else this->begin.setValue(0);
 
         if (!this->n.isEmpty())
         {
           if (n < 0 || n > size)
+	  {
             if (generateError) ERROR("CAxis::checkAttributes(void)",
                                       << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
                                       << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" 
                                       << size << ").")
             else return false ; 
+	  }
         }
         else this->n.setValue(size);
 
@@ -474,11 +484,13 @@ namespace xios {
       {
         StdSize true_size = value.numElements();
         if (this->n.getValue() != true_size)
+	{
           if (generateError) ERROR("CAxis::checkAttributes(void)",
                                    << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
                                    << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
                                    << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").")
           else return false ; 
+	}
         this->hasValue_ = true;
       }
 
@@ -584,11 +596,13 @@ namespace xios {
      if (!bounds.isEmpty())
      {
        if (bounds.extent(0) != 2 || bounds.extent(1) != n)
+       {
          if (generateError) ERROR("CAxis::checkAttributes(void)",
                                << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
                                << "Axis size is " << n.getValue() << "." << std::endl
                                << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".")
          else return false ;
+       }
        hasBounds_ = true;
      }
      else hasBounds_ = false;
@@ -602,11 +616,13 @@ namespace xios {
     if (!label.isEmpty())
     {
       if (label.extent(0) != n)
+      {
         if (generateError) ERROR("CAxis::checkLabel(void)",
                               << "The label array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension of axis size." << std::endl
                               << "Axis size is " << n.getValue() << "." << std::endl
                               << "label size is "<< label.extent(0)<<  " .")
         else return false ;
+      }
       hasLabel_ = true;
     }
     else hasLabel_ = false;

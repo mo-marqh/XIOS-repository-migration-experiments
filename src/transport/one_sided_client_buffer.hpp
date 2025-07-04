@@ -38,7 +38,7 @@ namespace xios
         }
         ~CBuffer() 
         { 
-          if (count_>0) ERROR("COneSidedClientBuffer::~CBuffer()",<<"Try to delete buffer that is not empty"<<std::endl) ;
+          if (count_>0) error(0) <<"COneSidedClientBuffer::~CBuffer() : Try to delete buffer that is not empty"<<std::endl ;
           MPI_Win_detach(window_, buffer_) ;
           MPI_Free_mem(buffer_) ;
           info(logProtocol)<<"Detach memory from windows : addr="<<(MPI_Aint)buffer_<<"   count="<<size_<<endl ;

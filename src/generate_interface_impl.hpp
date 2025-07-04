@@ -913,7 +913,7 @@ macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
     oss << "CHARACTER(len=*) , OPTIONAL, INTENT(IN) :: " << name << "("<<EXTENT<<")"; \
   }\
 \
-  template <>\ 
+  template <>\
   void CInterface::AttributeFortranInterfaceGetDeclaration<CArray<StdString,T> >(ostream& oss, const string& className, const string& name)\
   {\
     oss << "CHARACTER(len=*) , OPTIONAL, INTENT(OUT) :: " << name << "("<<EXTENT<<")"; \

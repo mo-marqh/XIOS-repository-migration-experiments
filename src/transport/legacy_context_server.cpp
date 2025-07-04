@@ -205,7 +205,10 @@ namespace xios
     int count;
     MPI_Status status;
    
-    if (!pendingRequest_.empty()) if (info.isActive(logTimers)) CTimer::get("receiving requests").resume();
+    if (!pendingRequest_.empty())
+    {
+      if (info.isActive(logTimers)) CTimer::get("receiving requests").resume();
+    }
     else if (info.isActive(logTimers)) CTimer::get("receiving requests").suspend();
 
     for(it=pendingRequest_.begin();it!=pendingRequest_.end();it++)

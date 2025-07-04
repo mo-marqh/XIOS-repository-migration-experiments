@@ -262,8 +262,8 @@ namespace xios
          virtual bool hasChild(void) const;
 
          bool isProcessingEvent(void) {return isProcessingEvent_;}
-         bool setProcessingEvent(void) {isProcessingEvent_=true ;}
-         bool unsetProcessingEvent(void) {isProcessingEvent_=false ;}
+         void setProcessingEvent(void) {isProcessingEvent_=true ;}
+         void unsetProcessingEvent(void) {isProcessingEvent_=false ;}
          
          void addCouplingChanel(const std::string& contextId, bool out) ;
 

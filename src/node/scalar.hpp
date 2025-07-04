@@ -175,8 +175,14 @@ namespace xios
       */
       bool isCompleted(void)
       {
-        if (hasDirectScalarReference()) if (!getDirectScalarReference()->isCompleted()) return false;
-        else return isCompleted_ ;
+        if (hasDirectScalarReference())
+	{
+	  if (!getDirectScalarReference()->isCompleted()) return false;
+	}
+        else
+	{
+	  return isCompleted_ ;
+	}
 
         MISSING_RETURN( "bool CAxis::isCompleted() " );
         return true;

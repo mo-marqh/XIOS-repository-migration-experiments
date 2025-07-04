@@ -197,8 +197,10 @@ namespace xios
         string suffix=m.suffix() ;
         if (!suffix.empty()) ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> bad format id, suffix is not empty");
         if (!CField::has(fieldId)) 
+	{
           if (noError)  return nullptr ;
           else ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+	}
         CField* field=CField::get(fieldId) ;
         return field->getAssociatedGrid() ;
      }
@@ -463,8 +465,10 @@ namespace xios
     }
     std::vector<CDomain*> domainList = this->getDomains();
     if (domainList.empty()) 
+    {
       if (noError) return nullptr ;
       else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain is composing the grid");
+    }
     if (id.empty())
     {
       if (pos==-1)
@@ -489,13 +493,17 @@ namespace xios
         int nbDomain=0 ;
         for(int i=0; i<domainList.size();i++) if (domainList[i]->getTemplateId()==id) nbDomain++ ;
         if (nbDomain>1) 
+	{
           if (noError) return nullptr ;
           else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"no domain with the id = "<<id
                               <<" is composing the grid") ;
+	}
         if (nbDomain==0) 
+	{
           if (noError) return nullptr ;
           else ERROR("CGrid::getAssociatedDomain(const string& domainId)", <<"the grid contain more than 1 domain with the id = "
                                <<id<<" , use [#n] to specify which one must be retrieved") ;
+	}
         for(int i=0; i<domainList.size();i++) if (domainList[i]->getTemplateId()==id) return domainList[i]  ;
       }
       else
@@ -529,8 +537,10 @@ namespace xios
     }
     std::vector<CAxis*> axisList = this->getAxis();
     if (axisList.empty())
+    {
       if (noError) return nullptr;
       else ERROR("CGrid::getAssociatedAxis(const string& AxisId)", <<"no axis is composing the grid");
+    }
     if (id.empty())
     {
       if (pos==-1)
@@ -544,9 +554,11 @@ namespace xios
       {
         if (axisList.size()>pos) return axisList[pos] ;
         else
+	{
           if (noError) return nullptr;
           else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the position of the requested axis [ pos = "<<pos
                    <<" ] is greater than the number of axis composing the grid  [ numAxis = "<<axisList.size()<<" ]");
+	}
       }
     }
     else
@@ -556,13 +568,17 @@ namespace xios
         int nbAxis=0 ;
         for(int i=0; i<axisList.size();i++) if (axisList[i]->getTemplateId()==id) nbAxis++ ;
         if (nbAxis>1) 
+	{
           if (noError) return nullptr;
           else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"no axis with the id = "<<id
                               <<" is composing the grid") ;
-        if (nbAxis==0) 
+	}
+        if (nbAxis==0)
+	{	
           if (noError) return nullptr;
           else ERROR("CGrid::getAssociatedAxis(const string& axisId)", <<"the grid contain more than 1 axis with the id = "
                                <<id<<" , use [#n] to specify which one must be retrieved") ;
+	}
         for(int i=0; i<axisList.size();i++) if (axisList[i]->getTemplateId()==id) return axisList[i]  ;
       }
       else
@@ -596,8 +612,10 @@ namespace xios
     }
     std::vector<CScalar*> scalarList = this->getScalars();
     if (scalarList.empty()) 
+    {
       if (noError) return nullptr;
       else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar is composing the grid");
+    }
     if (id.empty())
     {
       if (pos==-1)
@@ -611,9 +629,11 @@ namespace xios
       {
         if (scalarList.size()>pos) return scalarList[pos] ;
         else 
+	{
           if (noError) return nullptr;
           else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the position of the requested scalar [ pos = "<<pos
                    <<" ] is greater than the number of scalar composing the grid  [ numScalar = "<<scalarList.size()<<" ]");
+	}
       }
     }
     else
@@ -623,13 +643,17 @@ namespace xios
         int nbScalar=0 ;
         for(int i=0; i<scalarList.size();i++) if (scalarList[i]->getTemplateId()==id) nbScalar++ ;
         if (nbScalar>1) 
+	{
           if (noError) return nullptr;
           else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"no scalar with the id = "<<id
                               <<" is composing the grid") ;
+	}
         if (nbScalar==0) 
+	{
           if (noError) return nullptr;
           else ERROR("CGrid::getAssociatedScalar(const string& scalarId)", <<"the grid contain more than 1 scalar with the id = "
                                <<id<<" , use [#n] to specify which one must be retrieved") ;
+	}
         for(int i=0; i<scalarList.size();i++) if (scalarList[i]->getTemplateId()==id) return scalarList[i]  ;
       }
       else

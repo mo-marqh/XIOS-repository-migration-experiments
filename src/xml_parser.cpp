@@ -124,7 +124,8 @@ namespace xios
          {
             const char* ptr = exc.where<char>() ;
             const char* begin = xmlcontent.c_str() ;
-            const char* content=oss.str().c_str() ;
+            const string content_str = oss.str();
+            const char* content=content_str.c_str() ;
             size_t pos=ptr-begin ;
             int lineNumber = 1 ;
             int columnNumber = 0 ;
