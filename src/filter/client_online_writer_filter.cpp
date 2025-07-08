@@ -15,6 +15,7 @@ CClientOnlineWriterFilter::CClientOnlineWriterFilter(CGarbageCollector& gc, CFie
   {
     CField* fieldOut ;
     redistributeFilter_ = std::shared_ptr<CGridRedistributeFilter>(new CGridRedistributeFilter(gc, field, fieldOut));
+    fieldOut->setVirtualVariableGroup( field->getVirtualVariableGroup() );
     fieldOut->setFileOut(field->getFileOut());
     field->getFileOut()->replaceEnabledFields(field, fieldOut) ;
     fieldOut->solveServerOperation() ; // might not be called, create a new time functor.... find a better solution later
