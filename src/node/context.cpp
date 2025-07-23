@@ -1247,7 +1247,7 @@ void CContext::removeAllContexts(void)
     for (auto field : CField::getAll() ) if (field->getModelIn()) fieldModelIn.push_back(field) ;
 
     // Distribute files between secondary servers according to the data size => assign a context to a file and then to fields
-    
+
     if (serviceType_==CServicesManager::CLIENT || serviceType_==CServicesManager::GATHERER) distributeFiles(this->enabledWriteModeFiles) ;
     /*
     if (serviceType_==CServicesManager::CLIENT )
@@ -1706,7 +1706,7 @@ void CContext::removeAllContexts(void)
    {
      double eps=std::numeric_limits<double>::epsilon()*10 ;
      
-     std::ofstream ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
+     std::stringstream ofs;
      auto writers = getContextClient(poolId, serviceId) ;
      int nbPools = writers.size();
      //int nbPools = writerClientOut_.size();
@@ -1748,6 +1748,12 @@ void CContext::removeAllContexts(void)
      }
      dataPerPool /= nbPools;
      std::sort(dataSizeMap.begin(), dataSizeMap.end());
+
+     if (!intraCommRank_)
+     {
+       std::ofstream real_ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
+       real_ofs << ofs.str();
+     }
 
      // (3) Assign contextClient to each enabled file
 
