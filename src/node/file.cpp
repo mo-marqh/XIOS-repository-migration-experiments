@@ -552,7 +552,10 @@ namespace xios {
          if (!multifile)
          {
             info(0) << "!!! Warning -> Using non parallel version of netcdf, switching in multiple_file mode for file : " << filename << " ..." << endl;
-            multifile = true;
+            int size = 1;
+            CContext* context = CContext::getCurrent();
+            MPI_Comm_size(context->intraComm_, &size );
+            if (size!=1) multifile = true;
           }
 #endif
          if (multifile)
@@ -674,7 +677,10 @@ namespace xios {
       if (!multifile)
       {
         info(0) << "!!! Warning -> Using non parallel version of netcdf, switching in multiple_file mode for file : " << filename << " ..." << endl;
-        multifile = true;
+        int size = 1;
+        CContext* context = CContext::getCurrent();
+        MPI_Comm_size(context->intraComm_, &size );
+        if (size!=1) multifile = true;
       }
   #endif
       if (multifile)
