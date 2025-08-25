@@ -102,7 +102,7 @@ namespace xios
       }
     }
     
-    MPI_Bcast(&ok, 1, MPI_INT, 0, intraComm) ;
+    MPI_Bcast(&ok, 1, MPI_C_BOOL, 0, intraComm) ;
 
     if (ok)  
     {

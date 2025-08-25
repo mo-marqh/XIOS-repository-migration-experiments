@@ -273,10 +273,7 @@ namespace xios
     
     if (comm!=MPI_COMM_NULL) 
     {
-      int cast_ret = 0;
-      if (commRank==0) cast_ret = ret;
-      MPI_Bcast(&cast_ret,1,MPI_INT,0,comm) ;
-      ret = cast_ret;
+      MPI_Bcast(&ret,1,MPI_C_BOOL,0,comm) ;
       if (ret)
       {
         MPI_Bcast(&contextInfo.leader,1,MPI_INT,0,comm) ;
