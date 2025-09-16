@@ -41,9 +41,9 @@ namespace xios
       
       std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
       
-      CWorkflowGraph::addNode("Client to Server Store filter", 6, true, 1, data[0]);
+      CWorkflowGraph::addNode(getContext(), "Client to Server Store filter", 6, true, 1, data[0]);
      
-      CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
+      CWorkflowGraph::addEdge(getContext(), data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
       // flux can be redirected to other filters. So don't change the 'from' parameter
       data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
     }

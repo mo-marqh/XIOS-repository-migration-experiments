@@ -21,8 +21,8 @@
 namespace xios 
 {
 
-CGenericAlgorithmTransformation::CGenericAlgorithmTransformation(bool isSource)
- : isSource_(isSource)
+CGenericAlgorithmTransformation::CGenericAlgorithmTransformation(CContext* context, bool isSource)
+ : isSource_(isSource), context_(context)
 {
 }
 

@@ -15,6 +15,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "domain.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -33,7 +34,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CDomain::get(id);
+      *_ret = CDomain::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -45,7 +46,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = CDomainGroup::get(id);
+      *_ret = CDomainGroup::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -59,7 +60,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = CDomain::has(id);
+      *_ret = CDomain::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -70,7 +71,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CDomainGroup::has(id);
+      *_ret = CDomainGroup::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

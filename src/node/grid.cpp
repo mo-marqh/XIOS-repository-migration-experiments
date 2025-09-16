@@ -40,8 +40,8 @@ namespace xios
 
    /// ////////////////////// Dfinitions ////////////////////// ///
 
-   CGrid::CGrid(void)
-      : CObjectTemplate<CGrid>(), CGridAttributes()
+   CGrid::CGrid(CContext* context)
+      : CObjectTemplate<CGrid>(context), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
       , vDomainGroup_(), domList_(), isDomListSet(false)
       , vAxisGroup_(), axisList_(), isAxisListSet(false)
@@ -52,13 +52,13 @@ namespace xios
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), order_()
    {
-     setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
-     setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
-     setVirtualScalarGroup(CScalarGroup::create(getId() + "_virtual_scalar_group"));
+     setVirtualDomainGroup(CDomainGroup::create(context_, getId() + "_virtual_domain_group"));
+     setVirtualAxisGroup(CAxisGroup::create(context_, getId() + "_virtual_axis_group"));
+     setVirtualScalarGroup(CScalarGroup::create(context_, getId() + "_virtual_scalar_group"));
    }
 
-   CGrid::CGrid(const StdString& id)
-      : CObjectTemplate<CGrid>(id), CGridAttributes()
+   CGrid::CGrid(CContext* context, const StdString& id)
+      : CObjectTemplate<CGrid>(context, id), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
       , vDomainGroup_(), domList_(), isDomListSet(false)
       , vAxisGroup_(), axisList_(), isAxisListSet(false)
@@ -69,9 +69,9 @@ namespace xios
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), order_()
    {
-     setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
-     setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
-     setVirtualScalarGroup(CScalarGroup::create(getId() + "_virtual_scalar_group"));
+     setVirtualDomainGroup(CDomainGroup::create(context_, getId() + "_virtual_domain_group"));
+     setVirtualAxisGroup(CAxisGroup::create(context_, getId() + "_virtual_axis_group"));
+     setVirtualScalarGroup(CScalarGroup::create(context_, getId() + "_virtual_scalar_group"));
    }
 
    CGrid::~CGrid(void)
@@ -93,43 +93,43 @@ namespace xios
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-   CGrid* CGrid::createGrid(CDomain* domain)
+   CGrid* CGrid::createGrid(CContext* context, CDomain* domain)
    TRY
    {
      std::vector<CDomain*> vecDom(1, domain);
      std::vector<CAxis*> vecAxis;
-     return createGrid(vecDom, vecAxis);
+     return createGrid(context, vecDom, vecAxis);
    }
    CATCH
 
-   CGrid* CGrid::createGrid(CDomain* domain, CAxis* axis)
+   CGrid* CGrid::createGrid(CContext* context, CDomain* domain, CAxis* axis)
    TRY
   {
       std::vector<CDomain*> vecDom(1, domain);
       std::vector<CAxis*> vecAxis(1, axis);
 
-      return createGrid(vecDom, vecAxis);
+      return createGrid(context, vecDom, vecAxis);
    }
    CATCH
 
-   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+   CGrid* CGrid::createGrid(CContext* context, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                             const CArray<int,1>& axisDomainOrder)
    TRY
    {
      std::vector<CScalar*> vecScalar;
-     return createGrid(generateId(domains, axis, vecScalar, axisDomainOrder), domains, axis, vecScalar, axisDomainOrder);
+     return createGrid(context, generateId(domains, axis, vecScalar, axisDomainOrder), domains, axis, vecScalar, axisDomainOrder);
    }
    CATCH
 
-   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+   CGrid* CGrid::createGrid(CContext* context, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                             const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
    TRY
    {
-     return createGrid(generateId(domains, axis, scalars, axisDomainOrder), domains, axis, scalars, axisDomainOrder);
+     return createGrid(context, generateId(domains, axis, scalars, axisDomainOrder), domains, axis, scalars, axisDomainOrder);
    }
    CATCH
 
-   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+   CGrid* CGrid::createGrid(CContext* context, StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                             const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
    TRY
    {
@@ -138,7 +138,7 @@ namespace xios
               << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
               << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
 
-      CGrid* grid = CGridGroup::get("grid_definition")->createChild(id);
+      CGrid* grid = CGridGroup::get(context, "grid_definition")->createChild(id);
       grid->setDomainList(domains);
       grid->setAxisList(axis);
       grid->setScalarList(scalars);
@@ -185,51 +185,51 @@ namespace xios
    CATCH
 
 
-   CGrid* CGrid::get(const string& id, bool noError)
+   CGrid* CGrid::get(CContext* context, const string& id, bool noError)
    {
      const regex r("::");
      smatch m;
      if (regex_search(id, m, r))
      {
-        if (m.size()!=1) ERROR("CGrid* Cgrid::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        if (m.size()!=1) ERROR("CGrid* CGrid::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
         string fieldId=m.prefix() ;
-        if (fieldId.empty()) ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        if (fieldId.empty()) ERROR("CGrid* CGrid::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
-        if (!suffix.empty()) ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> bad format id, suffix is not empty");
-        if (!CField::has(fieldId)) 
-	{
+        if (!suffix.empty()) ERROR("CGrid* CGrid::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, suffix is not empty");
+        if (!CField::has(context, fieldId)) 
+	      {
           if (noError)  return nullptr ;
           else ERROR("CGrid* CGrid::get(string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
-	}
-        CField* field=CField::get(fieldId) ;
+	      }
+        CField* field=CField::get(context, fieldId) ;
         return field->getAssociatedGrid() ;
      }
      else 
      {
-       if (noError) if(!CObjectFactory::HasObject<CGrid>(id)) return nullptr ;
-       return CObjectFactory::GetObject<CGrid>(id).get();
+       if (noError) if(!CObjectFactory::HasObject<CGrid>(context->getId(), id)) return nullptr ;
+       return CObjectFactory::GetObject<CGrid>(context->getId(), id).get();
      }
    }
    
-   bool CGrid::has(const string& id)
+   bool CGrid::has(CContext* context, const string& id)
    {
-     if (CGrid::get(id,true)==nullptr) return false ;
+     if (CGrid::get(context, id,true)==nullptr) return false ;
      else return true ;
    }
    
-   CField* CGrid::getFieldFromId(const string& id)
+   CField* CGrid::getFieldFromId(CContext* context, const string& id)
    {
      const regex r("::");
      smatch m;
      if (regex_search(id, m, r))
      {
-        if (m.size()!=1) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        if (m.size()!=1) ERROR("CField* CGrid::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
         string fieldId=m.prefix() ;
-        if (fieldId.empty()) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        if (fieldId.empty()) ERROR("CField* CGrid::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
-        if (!suffix.empty()) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, suffix is not empty");
-        if (!CField::has(fieldId)) ERROR("CField* CGrid::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
-        return CField::get(fieldId) ;
+        if (!suffix.empty()) ERROR("CField* CGrid::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> bad format id, suffix is not empty");
+        if (!CField::has(context, fieldId)) ERROR("CField* CGrid::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+        return CField::get(context, fieldId) ;
      } 
      else return nullptr ;
    }
@@ -338,7 +338,7 @@ namespace xios
     std::vector<CDomain*> domList;
     if (!domList_.empty())
     {
-      for (int i = 0; i < domList_.size(); ++i) domList.push_back(CDomain::get(domList_[i]));
+      for (int i = 0; i < domList_.size(); ++i) domList.push_back(CDomain::get(context_, domList_[i]));
     }
     return domList;
   }
@@ -354,7 +354,7 @@ namespace xios
     setAxisList();
     std::vector<CAxis*> aList;
     if (!axisList_.empty())
-      for (int i =0; i < axisList_.size(); ++i) aList.push_back(CAxis::get(axisList_[i]));
+      for (int i =0; i < axisList_.size(); ++i) aList.push_back(CAxis::get(context_, axisList_[i]));
 
     return aList;
   }
@@ -370,7 +370,7 @@ namespace xios
     setScalarList() ;
     std::vector<CScalar*> sList;
     if (!scalarList_.empty())
-      for (int i =0; i < scalarList_.size(); ++i) sList.push_back(CScalar::get(scalarList_[i]));
+      for (int i =0; i < scalarList_.size(); ++i) sList.push_back(CScalar::get(context_, scalarList_[i]));
 
     return sList;
   }
@@ -1107,7 +1107,7 @@ namespace xios
    void CGrid::checkMaskIndex(bool doSendingIndex)
    TRY
    {
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      
      if (this->isChecked) return;
      this->checkElementsAttributes();
@@ -1194,7 +1194,7 @@ namespace xios
      if (computeClientDistribution_done_) return ;
      else computeClientDistribution_done_ = true ;
 
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      int rank = context-> getIntraCommRank();
      clientDistribution_ = new CDistributionClient(rank, this);
    }
@@ -1210,13 +1210,15 @@ namespace xios
    CGrid* CGrid::cloneGrid(const StdString& idNewGrid, CGrid* gridSrc)
    TRY
    {
+     CContext* context = gridSrc->getContext() ;
+
      std::vector<CDomain*> domainSrcTmp = gridSrc->getDomains(), domainSrc;
      std::vector<CAxis*> axisSrcTmp = gridSrc->getAxis(), axisSrc;
      std::vector<CScalar*> scalarSrcTmp = gridSrc->getScalars(), scalarSrc;
 
      for (int idx = 0; idx < domainSrcTmp.size(); ++idx)
      {
-       CDomain* domain = CDomain::createDomain();
+       CDomain* domain = CDomain::createDomain(context);
        domain->duplicateAttributes(domainSrcTmp[idx]);
        domain->duplicateTransformation(domainSrcTmp[idx]);
        domain->solveRefInheritance(true);
@@ -1226,7 +1228,7 @@ namespace xios
 
      for (int idx = 0; idx < axisSrcTmp.size(); ++idx)
      {
-       CAxis* axis = CAxis::createAxis();
+       CAxis* axis = CAxis::createAxis(context);
        axis->duplicateAttributes(axisSrcTmp[idx]);
        axis->duplicateTransformation(axisSrcTmp[idx]);
        axis->solveRefInheritance(true);
@@ -1236,7 +1238,7 @@ namespace xios
 
      for (int idx = 0; idx < scalarSrcTmp.size(); ++idx)
      {
-       CScalar* scalar = CScalar::createScalar();
+       CScalar* scalar = CScalar::createScalar(context);
        scalar->duplicateAttributes(scalarSrcTmp[idx]);
        scalar->duplicateTransformation(scalarSrcTmp[idx]);
        scalar->solveRefInheritance(true);
@@ -1244,7 +1246,7 @@ namespace xios
        scalarSrc.push_back(scalar);
      }
 
-      CGrid* grid = CGrid::createGrid(idNewGrid, domainSrc, axisSrc, scalarSrc, gridSrc->axis_domain_order);
+      CGrid* grid = CGrid::createGrid(context, idNewGrid, domainSrc, axisSrc, scalarSrc, gridSrc->axis_domain_order);
 
       return grid;
    }
@@ -1434,32 +1436,32 @@ namespace xios
    it processed on server side.
    \param [in] event: Received message
    */
-  bool CGrid::dispatchEvent(CEventServer& event)
+  bool CGrid::dispatchEvent(CContext* context, CEventServer& event)
   TRY
   {
 
-    if (SuperClass::dispatchEvent(event)) return true;
+    if (SuperClass::dispatchEvent(context, event)) return true;
     else
     {
       switch(event.type)
       {
          case EVENT_ID_ADD_DOMAIN :
-           recvAddDomain(event);
+           recvAddDomain(context, event);
            return true;
            break;
 
          case EVENT_ID_ADD_AXIS :
-           recvAddAxis(event);
+           recvAddAxis(context, event);
            return true;
            break;
 
          case EVENT_ID_ADD_SCALAR :
-           recvAddScalar(event);
+           recvAddScalar(context, event);
            return true;
            break;
 
          case EVENT_ID_SEND_MASK :
-           recvMask(event);
+           recvMask(context, event);
            return true;
            break;
         default :
@@ -1479,7 +1481,7 @@ namespace xios
     else sendGridToFileServer_done_.insert(client) ;
 
     StdString gridDefRoot("grid_definition");
-    CGridGroup* gridPtr = CGridGroup::get(gridDefRoot);
+    CGridGroup* gridPtr = CGridGroup::get(context_, gridDefRoot);
     gridPtr->sendCreateChild(this->getId(),client);
     this->sendAllAttributesToServer(client);
     distributeGridToServer(client, inOut) ;
@@ -1496,13 +1498,12 @@ namespace xios
 
   CGrid* CGrid::redistributeGridToWriter(void)
   {
-    CContext* context = CContext::getCurrent();
     CGrid* redistributedGrid ;
     string redistributeGridId="redistributedToWriter__"+getId() ;
-    if (has(redistributeGridId)) redistributedGrid = get(redistributeGridId) ;
+    if (CGrid::has(context_, redistributeGridId)) redistributedGrid = CGrid::get(context_, redistributeGridId) ;
     else
     {
-      redistributedGrid = CGrid::create(redistributeGridId) ;
+      redistributedGrid = CGrid::create(context_, redistributeGridId) ;
       // simple Distribution for now 
       // distribute over the fisrt element except if it is a scalar
       auto& elements = getElements() ;
@@ -1552,7 +1553,7 @@ namespace xios
 
   void CGrid::distributeGridToServer(CContextClient* client, bool inOut, const string& fieldId)
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     bool isCoupling = !fieldId.empty() ;
     // simple Distribution for now 
     // distribute over the fisrt element except if it is a scalar
@@ -1695,11 +1696,11 @@ namespace xios
   }
 
 
-  void CGrid::recvMask(CEventServer& event)
+  void CGrid::recvMask(CContext* context, CEventServer& event)
   {
     string gridId;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> gridId  ;
-    get(gridId)->receiveMask(event);
+    CGrid::get(context, gridId)->receiveMask(event);
   }
   
   void CGrid::receiveMask(CEventServer& event)
@@ -1800,14 +1801,14 @@ namespace xios
    \brief Receive a message annoucing the creation of a domain on server side
    \param[in] event Received event
    */
-   void CGrid::recvAddDomain(CEventServer& event)
+   void CGrid::recvAddDomain(CContext* context, CEventServer& event)
    TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer >> id;
-      get(id)->recvAddDomain(*buffer);
+      CGrid::get(context, id)->recvAddDomain(*buffer);
    }
    CATCH
 
@@ -1828,14 +1829,14 @@ namespace xios
    \brief Receive a message annoucing the creation of an axis on server side
    \param[in] event Received event
    */
-   void CGrid::recvAddAxis(CEventServer& event)
+   void CGrid::recvAddAxis(CContext* context, CEventServer& event)
    TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer >> id;
-      get(id)->recvAddAxis(*buffer);
+      get(context, id)->recvAddAxis(*buffer);
    }
    CATCH
 
@@ -1856,14 +1857,14 @@ namespace xios
    \brief Receive a message annoucing the creation of an scalar on server side
    \param[in] event Received event
    */
-   void CGrid::recvAddScalar(CEventServer& event)
+   void CGrid::recvAddScalar(CContext* context, CEventServer& event)
    TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer >> id;
-      get(id)->recvAddScalar(*buffer);
+      get(context, id)->recvAddScalar(*buffer);
    }
    CATCH
 
@@ -1889,11 +1890,11 @@ namespace xios
   bool CGrid::isCompleted(void)
   {
     setDomainList();
-    for (auto domainId : domList_) if (!CDomain::get(domainId)->isCompleted()) return false ;
+    for (auto domainId : domList_) if (!CDomain::get(context_, domainId)->isCompleted()) return false ;
     setAxisList() ;
-    for (auto axisId : axisList_) if (!CAxis::get(axisId)->isCompleted()) return false ;
+    for (auto axisId : axisList_) if (!CAxis::get(context_, axisId)->isCompleted()) return false ;
     setScalarList() ;
-    for (auto scalarId : scalarList_) if (!CScalar::get(scalarId)->isCompleted()) return false ;
+    for (auto scalarId : scalarList_) if (!CScalar::get(context_, scalarId)->isCompleted()) return false ;
     return true ;
   }
 
@@ -1906,11 +1907,11 @@ namespace xios
   void CGrid::setCompleted(void)
   {
     setDomainList();
-    for (auto domainId : domList_) CDomain::get(domainId)->setCompleted() ;
+    for (auto domainId : domList_) CDomain::get(context_, domainId)->setCompleted() ;
     setAxisList() ;
-    for (auto axisId : axisList_) CAxis::get(axisId)->setCompleted() ;
+    for (auto axisId : axisList_) CAxis::get(context_, axisId)->setCompleted() ;
     setScalarList() ;
-    for (auto scalarId : scalarList_) CScalar::get(scalarId)->setCompleted() ;
+    for (auto scalarId : scalarList_) CScalar::get(context_, scalarId)->setCompleted() ;
   }
 
 /*!
@@ -1922,11 +1923,11 @@ namespace xios
   void CGrid::unsetCompleted(void)
   {
     setDomainList();
-    for (auto domainId : domList_) CDomain::get(domainId)->unsetCompleted() ;
+    for (auto domainId : domList_) CDomain::get(context_, domainId)->unsetCompleted() ;
     setAxisList() ;
-    for (auto axisId : axisList_) CAxis::get(axisId)->unsetCompleted() ;
+    for (auto axisId : axisList_) CAxis::get(context_, axisId)->unsetCompleted() ;
     setScalarList() ;
-    for (auto scalarId : scalarList_) CScalar::get(scalarId)->unsetCompleted() ;
+    for (auto scalarId : scalarList_) CScalar::get(context_, scalarId)->unsetCompleted() ;
   }
 
   /*!
@@ -1941,7 +1942,7 @@ namespace xios
     setDomainList();
     for (auto domainId : domList_)
     {
-      CDomain* pDom = CDomain::get(domainId);
+      CDomain* pDom = CDomain::get(context_, domainId);
       pDom->solveRefInheritance(apply);
       if (apply) pDom->solveInheritanceTransformation();
     }
@@ -1949,7 +1950,7 @@ namespace xios
     setAxisList();
     for (auto axisId : axisList_)
     {
-      CAxis* pAxis = CAxis::get(axisId);
+      CAxis* pAxis = CAxis::get(context_, axisId);
       pAxis->solveRefInheritance(apply);
       if (apply) pAxis->solveInheritanceTransformation();
     }
@@ -1957,7 +1958,7 @@ namespace xios
     setScalarList();
     for (auto scalarId : scalarList_)
     {
-      CScalar* pScalar = CScalar::get(scalarId);
+      CScalar* pScalar = CScalar::get(context_, scalarId);
       pScalar->solveRefInheritance(apply);
       if (apply) pScalar->solveInheritanceTransformation();
     }
@@ -1970,7 +1971,7 @@ namespace xios
     setDomainList();
     for (auto domainId : domList_)
     {
-      CDomain* pDom = CDomain::get(domainId);
+      CDomain* pDom = CDomain::get(context_, domainId);
       bool ret = pDom->activateFieldWorkflow(gc);
       if (!ret) return false ;
     }
@@ -1978,7 +1979,7 @@ namespace xios
     setAxisList();
     for (auto axisId : axisList_)
     {
-      CAxis* pAxis = CAxis::get(axisId);
+      CAxis* pAxis = CAxis::get(context_, axisId);
       bool ret = pAxis->activateFieldWorkflow(gc);
       if (!ret) return false ;
     }
@@ -1986,7 +1987,7 @@ namespace xios
     setScalarList();
     for (auto scalarId : scalarList_)
     {
-      CScalar* pScalar = CScalar::get(scalarId);
+      CScalar* pScalar = CScalar::get(context_, scalarId);
       bool ret = pScalar->activateFieldWorkflow(gc);
       if (!ret) return false ;
     }
@@ -2001,13 +2002,13 @@ namespace xios
   TRY
   {
     setDomainList();
-    for (auto domainId : domList_) CDomain::get(domainId)->checkAttributes(recheck);
+    for (auto domainId : domList_) CDomain::get(context_, domainId)->checkAttributes(recheck);
 
     setAxisList();
-    for (auto axisId : axisList_) CAxis::get(axisId)->checkAttributes(recheck);
+    for (auto axisId : axisList_) CAxis::get(context_, axisId)->checkAttributes(recheck);
     
     setScalarList();
-    for (auto scalarId : scalarList_) CScalar::get(scalarId)->checkAttributes(recheck);
+    for (auto scalarId : scalarList_) CScalar::get(context_, scalarId)->checkAttributes(recheck);
   }
   CATCH_DUMP_ATTR
 
@@ -2034,16 +2035,16 @@ namespace xios
     if (gridSrc!=nullptr) newId = gridSrc->getId() + " --> " + this->getId()  ;
     else newId = " --> " + this->getId()  ;
     bool isNewGrid ;
-    if (CGrid::has(newId))
+    if (CGrid::has(context_, newId))
     {
       info(100)<<"Retrive existing grid : "<<newId<<endl ;
-      newGrid = CGrid::get(newId);
+      newGrid = CGrid::get(context_, newId);
       isNewGrid = false ;
     }
     else  
     {
       info(100)<<"Create new grid : "<<newId<<endl ;
-      newGrid = CGrid::create(newId) ;
+      newGrid = CGrid::create(context_, newId) ;
       isNewGrid = true ;
     }
 
@@ -2097,13 +2098,13 @@ namespace xios
         auto transType = transformationPath.getNextTransformationType() ;
         auto transId = transformationPath.getNextTransformationId() ;
 
-        CGrid* tmpGridSrc=CGrid::create(); // source grid 
+        CGrid* tmpGridSrc=CGrid::create(context_); // source grid 
         if (srcElement.type==TYPE_DOMAIN)      tmpGridSrc->addDomain(srcElement.domain->getId()) ;
         else if (srcElement.type==TYPE_AXIS)   tmpGridSrc->addAxis(srcElement.axis->getId()) ;
         else if (srcElement.type==TYPE_SCALAR) tmpGridSrc->addScalar(srcElement.scalar->getId()) ;
         // WARNING -> suppress checkElement attribute ? What append ?
         // tmpGridSrc->checkElementsAttributes() ;
-        CGrid* tmpGridDst=CGrid::create(); // destination Grid
+        CGrid* tmpGridDst=CGrid::create(context_); // destination Grid
         map<int,int> posInGrid={{0,0}} ;
                
         info(100)<<"--> New transform from "<<srcElementId<<" to "<<dstElementId<<endl ;
@@ -2116,14 +2117,14 @@ namespace xios
           do 
           {
 
-            if (CDomain::has(dstElementId)) 
+            if (CDomain::has(context_, dstElementId)) 
             {
-              dstDomain = CDomain::get(dstElementId) ;
+              dstDomain = CDomain::get(context_, dstElementId) ;
               info(100)<<"Retrive existing domain : "<<dstElementId<<endl ;
             }
             else
             {
-              dstDomain = CDomain::create() ;
+              dstDomain = CDomain::create(context_) ;
               dstDomain->createAlias(dstElementId) ;
               info(100)<<"Create new domain : "<<dstDomain->getId()<<" with alias : "<<dstElementId<<endl ;
 
@@ -2142,10 +2143,10 @@ namespace xios
                 dstDomain->duplicateAttributes(dstElement.domain) ; // make a copy
                 dstDomain->setTemplateId(dstElement.domain) ;
               }
-              CTransformation<CDomain>* transformation = CTransformation<CDomain>::createTransformation(transType,"") ;
-              auto srcTransform = CTransformation<CDomain>::getTransformation(transType, transId) ;
+              CTransformation<CDomain>* transformation = CTransformation<CDomain>::createTransformation(transType, context_, "") ;
+              auto srcTransform = CTransformation<CDomain>::getTransformation(transType, context_, transId) ;
               transformation->inheritFrom(srcTransform) ;
-              CGrid* tmpGridDst=CGrid::create(); // destination Grid
+              CGrid* tmpGridDst=CGrid::create(context_); // destination Grid
               tmpGridDst->addDomain(dstDomain->getId()) ;
 
 	      CTimer::get("createTransformationAlgorithm").resume();
@@ -2180,14 +2181,14 @@ namespace xios
 
           do 
           {
-            if (CAxis::has(dstElementId)) 
+            if (CAxis::has(context_, dstElementId)) 
             {
-              dstAxis = CAxis::get(dstElementId) ;
+              dstAxis = CAxis::get(context_, dstElementId) ;
               info(100)<<"Retrive existing axis : "<<dstElementId<<endl ;
             }
             else
             {
-              dstAxis = CAxis::create() ;
+              dstAxis = CAxis::create(context_) ;
               dstAxis->createAlias(dstElementId) ;
               info(100)<<"Create new axis : "<<dstAxis->getId()<<" with alias : "<<dstElementId<<endl ;
               
@@ -2206,8 +2207,8 @@ namespace xios
                 dstAxis->duplicateAttributes(dstElement.axis) ; // make a copy$
                 dstAxis->setTemplateId(dstElement.axis) ;
               }
-              CTransformation<CAxis>* transformation = CTransformation<CAxis>::createTransformation(transType,"") ;
-              auto srcTransform = CTransformation<CAxis>::getTransformation(transType, transId) ;
+              CTransformation<CAxis>* transformation = CTransformation<CAxis>::createTransformation(transType, context_, "") ;
+              auto srcTransform = CTransformation<CAxis>::getTransformation(transType, context_, transId) ;
               transformation->inheritFrom(srcTransform) ;
               tmpGridDst->addAxis(dstAxis->getId()) ;
 
@@ -2243,14 +2244,14 @@ namespace xios
 
           do 
           {
-            if (CScalar::has(dstElementId)) 
+            if (CScalar::has(context_, dstElementId)) 
             {
-              dstScalar = CScalar::get(dstElementId) ;
+              dstScalar = CScalar::get(context_, dstElementId) ;
               info(100)<<"Retrive existing scalar : "<<dstElementId<<endl ;
             }
             else
             {
-              dstScalar = CScalar::create() ;
+              dstScalar = CScalar::create(context_) ;
               dstScalar->createAlias(dstElementId) ;
               info(100)<<"Create new scalar : "<<dstScalar->getId()<<" with alias : "<<dstElementId<<endl ;
               
@@ -2269,8 +2270,8 @@ namespace xios
                 dstScalar->duplicateAttributes(dstElement.scalar) ; // make a copy
                 dstScalar->setTemplateId(dstElement.scalar) ;
               }
-              CTransformation<CScalar>* transformation = CTransformation<CScalar>::createTransformation(transType,"") ;
-              auto srcTransform = CTransformation<CScalar>::getTransformation(transType, transId) ;
+              CTransformation<CScalar>* transformation = CTransformation<CScalar>::createTransformation(transType, context_, "") ;
+              auto srcTransform = CTransformation<CScalar>::getTransformation(transType, context_, transId) ;
               transformation->inheritFrom(srcTransform) ;
               tmpGridDst->addScalar(dstScalar->getId()) ;
 
@@ -2310,12 +2311,12 @@ namespace xios
         {
           CDomain* domain ;
           if (srcElementId=="") srcElementId=srcElement.domain->getId() ; 
-          if (!CDomain::has(srcElementId)) 
+          if (!CDomain::has(context_, srcElementId)) 
           {
             domain=srcElement.domain ;
             domain->createAlias(srcElementId) ;
           }
-          else domain = CDomain::get(srcElementId) ;
+          else domain = CDomain::get(context_, srcElementId) ;
           domain->checkAttributes() ;
          
           if (isNewGrid) newGrid->addDomain(srcElementId) ;
@@ -2324,12 +2325,12 @@ namespace xios
         {   
           CAxis* axis ;
           if (srcElementId=="") srcElementId=srcElement.axis->getId() ; 
-          if (!CAxis::has(srcElementId)) 
+          if (!CAxis::has(context_, srcElementId)) 
           {
             axis=srcElement.axis ;
             axis->createAlias(srcElementId) ;
           }
-          else axis = CAxis::get(srcElementId) ;
+          else axis = CAxis::get(context_, srcElementId) ;
           axis->checkAttributes() ;
          
           if (isNewGrid) newGrid->addAxis(srcElementId) ;
@@ -2338,12 +2339,12 @@ namespace xios
         {
           CScalar* scalar ;
           if (srcElementId=="") srcElementId=srcElement.scalar->getId() ; 
-          if (!CScalar::has(srcElementId)) 
+          if (!CScalar::has(context_, srcElementId)) 
           {
             scalar=srcElement.scalar ;
             scalar->createAlias(srcElementId) ;
           }
-          else scalar = CScalar::get(srcElementId) ;
+          else scalar = CScalar::get(context_, srcElementId) ;
           scalar->checkAttributes() ;
          
           if (isNewGrid) newGrid->addScalar(srcElementId) ;
@@ -2381,7 +2382,7 @@ namespace xios
         int i=1; 
         for (auto& it : auxFieldId)
         {
-          CField* auxField = CField::get(it) ;
+          CField* auxField = CField::get(context_, it) ;
           auxField->buildWorkflowGraph(gc) ;
           auxField->getInstantDataFilter()->connectOutput(transformFilter,i) ;
           i++ ;
@@ -2415,15 +2416,15 @@ namespace xios
   {
     CGrid* newGrid ;
     string sentGridId="sent__"+getId() ;
-    if (has(sentGridId)) newGrid = get(sentGridId) ;
+    if (CGrid::has(context_, sentGridId)) newGrid = get(context_, sentGridId) ;
     else
     {
-      newGrid = CGrid::create(sentGridId) ;
+      newGrid = CGrid::create(context_, sentGridId) ;
       for(auto element : elements_)
       {
         if (element.type==TYPE_DOMAIN)      
         {
-          CDomain* domain = CDomain::create();
+          CDomain* domain = CDomain::create(context_);
           domain->duplicateAttributes(element.domain) ;
           domain->setTemplateId(element.domain) ;
           domain->name = domain->getDomainOutputName() ;
@@ -2431,7 +2432,7 @@ namespace xios
         }
         else if (element.type==TYPE_AXIS)      
         {
-          CAxis* axis = CAxis::create();
+          CAxis* axis = CAxis::create(context_);
           axis->duplicateAttributes(element.axis) ;
           axis->setTemplateId(element.axis) ;
           axis->name = axis->getAxisOutputName() ;
@@ -2439,7 +2440,7 @@ namespace xios
         }
         else if (element.type==TYPE_SCALAR)      
         {
-          CScalar* scalar = CScalar::create();
+          CScalar* scalar = CScalar::create(context_);
           scalar->duplicateAttributes(element.scalar) ;
           scalar->setTemplateId(element.scalar) ;
           scalar->name = scalar->getScalarOutputName() ;
@@ -2555,7 +2556,7 @@ namespace xios
 
   void CGrid::computeRedistributeToWriterConnector(CGrid* gridSrc)
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
 
     vector<shared_ptr<CLocalView>> srcViews ;
     vector<shared_ptr<CLocalView>> dstViews ;

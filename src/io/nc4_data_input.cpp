@@ -45,7 +45,7 @@ namespace xios
   void CNc4DataInput::readFieldData_(CField* field, int record, CArray<double,1>& dataOut)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = field->getContext(); 
 
     CGrid* grid = field->getGrid();
 
@@ -79,7 +79,7 @@ namespace xios
         {
           if (2 == axisDomainOrder(i))
           {
-            CDomain* domain = CDomain::get(domainList[idxDomain]);
+            CDomain* domain = CDomain::get(context, domainList[idxDomain]);
             if ((domain->type) != CDomain::type_attr::unstructured)
             {
               start.push_back(domain->jbeginValue_);
@@ -91,7 +91,7 @@ namespace xios
           }
           else if (1 == axisDomainOrder(i))
           {
-            CAxis* axis = CAxis::get(axisList[idxAxis]);
+            CAxis* axis = CAxis::get(context, axisList[idxAxis]);
             start.push_back(axis->begin);
             count.push_back(axis->n);
             --idxAxis ;
@@ -100,7 +100,7 @@ namespace xios
           {
             if (1 == axisDomainOrder.numElements())
             {
-              CScalar* scalar = CScalar::get(scalarList[0]);
+              CScalar* scalar = CScalar::get(context, scalarList[0]);
               start.push_back(0);
               count.push_back(scalar->n);
             }

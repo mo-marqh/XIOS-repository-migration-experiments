@@ -69,7 +69,7 @@ namespace xios
                continue;
             }
 
-            DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
+            DEBUG(<< "Dans le contexte \'" << getContext()->getId()
                   << "\', un objet de type \'" << V::GetName()
                   << "\' ne peut contenir qu'un objet de type \'" << V::GetName()
                   << "\' ou de type \'" << U::GetName()
@@ -115,7 +115,7 @@ namespace xios
              continue;
           }
 
-          DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
+          DEBUG(<< "Dans le contexte \'" << getContext()->getId()
                 << "\', un objet de type \'" << V::GetName()
                 << "\' ne peut contenir qu'un objet de type \'" << V::GetName()
                 << "\' ou de type \'" << U::GetName()

@@ -47,7 +47,7 @@ TRY
 CATCH
 
 CScalarAlgorithmExtractAxis::CScalarAlgorithmExtractAxis(bool isSource, CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo)
- : CAlgorithmTransformationTransfer(isSource)
+ : CAlgorithmTransformationTransfer(algo->getContext(), isSource)
 TRY
 {
   scalarDestination->mask.reset();

@@ -52,6 +52,7 @@ namespace xios
    class CDomain ;
    class CAxis ;
    class CScalar ;
+   class CContext ;
 
    class CGarbageCollector;
    class COutputPin;
@@ -99,8 +100,8 @@ namespace xios
          };
 
          /// Constructeurs ///
-         CField(void);
-         explicit CField(const StdString& id);
+         CField(CContext* context);
+         explicit CField(CContext* context, const StdString& id);
          CField(const CField& field);       // Not implemented yet.
          CField(const CField* const field); // Not implemented yet.
 
@@ -183,18 +184,18 @@ namespace xios
 
         template <int N> void setData(const CArray<double, N>& _data);
         void checkSumLike( const double* array, int numElements, bool output ) const;
-        static bool dispatchEvent(CEventServer& event);
-        static bool isCollectiveEvent(CEventServer& event);
+        static bool dispatchEvent(CContext* context, CEventServer& event);
+        static bool isCollectiveEvent(CContext* context, CEventServer& event);
         void sendAllAttributesToServer(CContextClient* client) ; 
         
-        static void recvUpdateData(CEventServer& event);
+        static void recvUpdateData(CContext* context, CEventServer& event);
         void receiveUpdateData(CEventServer& event);  
 
         bool sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
-        static void recvReadDataRequest(CEventServer& event);
+        static void recvReadDataRequest(CContext* context, CEventServer& event);
         void recvReadDataRequest(void);
-        static void recvReadDataReady(CEventServer& event);
+        static void recvReadDataReady(CContext* context, CEventServer& event);
         void receiveReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers); // old interface to remove
         void recvDataFromCoupler(vector<int> ranks, vector<CBufferIn*> buffers) ; // old interface to remove
@@ -214,9 +215,9 @@ namespace xios
         CVariableGroup* addVariableGroup(const string& id = "");        
         void sendAddVariable(const string& id, CContextClient* client);
         void sendAddVariableGroup(const string& id, CContextClient* client);
-        static void recvAddVariable(CEventServer& event);
+        static void recvAddVariable(CContext* context, CEventServer& event);
         void recvAddVariable(CBufferIn& buffer);
-        static void recvAddVariableGroup(CEventServer& event);
+        static void recvAddVariableGroup(CContext* context, CEventServer& event);
         void recvAddVariableGroup(CBufferIn& buffer);        
         void sendAddAllVariables(CContextClient* client);
 
@@ -256,7 +257,7 @@ namespace xios
       public:     
           void sendGridCompleted(void) ;
       private:   
-          static void recvGridCompleted(CEventServer& event);
+          static void recvGridCompleted(CContext* context, CEventServer& event);
           void recvGridCompleted(CBufferIn& buffer);
 
 

@@ -33,6 +33,7 @@ namespace xios
    class CAxisAttributes;
    class CAxis;
    class CField;
+   class CContext ;
 
    ///--------------------------------------------------------------
 
@@ -66,16 +67,18 @@ namespace xios
 
       public:
          /// Constructeurs ///
-         CAxis(void);
-         explicit CAxis(const StdString & id);
+//         CAxis(void) : CAxis((CContext*)nullptr){}
+//         explicit CAxis(const StdString & id) : CAxis((CContext*)nullptr), id) {}
+         CAxis(CContext* context);
+         explicit CAxis(CContext* context, const StdString & id);
          CAxis(const CAxis & axis);       // Not implemented yet.
          CAxis(const CAxis * const axis); // Not implemented yet.
          static void releaseStaticAllocation(void) ; // release static allocation on heap
 
-         static CAxis* createAxis();
-         static CAxis* get(const string& id, bool noError=false) ; //<! return axis pointer using id
-         static bool has(const string& id) ; //<! return domain pointer using id
-         static CField*  getFieldFromId(const string& id) ;
+         static CAxis* createAxis(CContext* context);
+         static CAxis* get(CContext* context, const string& id, bool noError=false) ; //<! return axis pointer using id
+         static bool has(CContext* context, const string& id) ; //<! return domain pointer using id
+         static CField*  getFieldFromId(CContext* context, const string& id) ;
 
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
@@ -120,7 +123,7 @@ namespace xios
          static StdString GetDefName(void);
          static ENodeType GetType(void);
 
-         static bool dispatchEvent(CEventServer& event);         
+         static bool dispatchEvent(CContext* context, CEventServer& event);         
         
          /// Vérifications ///
          void checkAttributes(bool recheck=false);
@@ -266,11 +269,11 @@ namespace xios
          void distributeToServer(CContextClient* client, bool inOut, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn, 
                                  shared_ptr<CScattererConnector>& scattererConnector, const string& axisId="") ;
 
-         static void recvAxisDistribution(CEventServer& event) ;
+         static void recvAxisDistribution(CContext* context, CEventServer& event) ;
          void receivedAxisDistribution(CEventServer& event, int phasis) ;
          void setServerMask(CArray<bool,1>& serverMask, CContextClient* client ) ;
          void sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scattererConnector, const string& axisId) ;
-         static void recvDistributedAttributes(CEventServer& event) ;
+         static void recvDistributedAttributes(CContext* context, CEventServer& event) ;
          void recvDistributedAttributes(CEventServer& event, const string& type) ;
        private:
          map<CContextClient*, shared_ptr<CDistributedElement>> remoteElement_ ;

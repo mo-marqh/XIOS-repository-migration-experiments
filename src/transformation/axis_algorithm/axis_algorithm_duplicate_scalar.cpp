@@ -43,7 +43,7 @@ CATCH
 
 
 CAxisAlgorithmDuplicateScalar::CAxisAlgorithmDuplicateScalar(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CDuplicateScalarToAxis* algo)
- : CAlgorithmTransformationTransfer(isSource)
+ : CAlgorithmTransformationTransfer(algo->getContext(), isSource)
 {
   axisDestination->checkAttributes() ;
   

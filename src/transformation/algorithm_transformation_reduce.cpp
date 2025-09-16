@@ -27,7 +27,7 @@ namespace xios
     CArray<size_t,1> srcArrayIndex(srcIndex.size()) ;
     int i=0 ;
     for(size_t index : srcIndex) { srcArrayIndex(i) = index ; i++ ;}
-    recvElement_ = make_shared<CLocalElement>(CContext::getCurrent()->getIntraCommRank(), srcView->getGlobalSize(), srcArrayIndex) ;
+    recvElement_ = make_shared<CLocalElement>(getContext()->getIntraCommRank(), srcView->getGlobalSize(), srcArrayIndex) ;
     recvElement_->addFullView() ;
   }
 }

@@ -15,6 +15,7 @@
 #include "redistribute_scalar.hpp"
 #include "redistribute_domain.hpp"
 #include "redistribute_axis.hpp"
+#include "context.hpp"
  
  extern "C"
  {
@@ -33,7 +34,7 @@
        std::string id;
        if (!cstr2string(_id, _id_len, id)) return;
        CTimer::get("XIOS").resume() ;
-       *_ret = xios::CRedistributeDomain::get(id);
+       *_ret = xios::CRedistributeDomain::get(CContext::getCurrent(), id); 
        CTimer::get("XIOS").suspend() ;
     }
     CATCH_DUMP_STACK
@@ -46,7 +47,7 @@
        if (!cstr2string(_id, _id_len, id)) return;
  
        CTimer::get("XIOS").resume() ;
-       *_ret = xios::CRedistributeDomain::has(id);
+       *_ret = xios::CRedistributeDomain::has(CContext::getCurrent(), id);
        CTimer::get("XIOS").suspend() ;
     }
     CATCH_DUMP_STACK
@@ -58,7 +59,7 @@
     std::string id;
     if (!cstr2string(_id, _id_len, id)) return;
     CTimer::get("XIOS").resume() ;
-    *_ret = xios::CRedistributeAxis::get(id);
+    *_ret = xios::CRedistributeAxis::get(CContext::getCurrent(), id); 
     CTimer::get("XIOS").suspend() ;
  }
  CATCH_DUMP_STACK
@@ -71,7 +72,7 @@
     if (!cstr2string(_id, _id_len, id)) return;
 
     CTimer::get("XIOS").resume() ;
-    *_ret = xios::CRedistributeAxis::has(id);
+    *_ret = xios::CRedistributeAxis::has(CContext::getCurrent(), id);
     CTimer::get("XIOS").suspend() ;
  }
  CATCH_DUMP_STACK
@@ -83,7 +84,7 @@
      std::string id;
      if (!cstr2string(_id, _id_len, id)) return;
      CTimer::get("XIOS").resume() ;
-     *_ret = xios::CRedistributeScalar::get(id);
+     *_ret = xios::CRedistributeScalar::get(CContext::getCurrent(), id); 
      CTimer::get("XIOS").suspend() ;
   }
   CATCH_DUMP_STACK
@@ -96,7 +97,7 @@
      if (!cstr2string(_id, _id_len, id)) return;
 
      CTimer::get("XIOS").resume() ;
-     *_ret = xios::CRedistributeScalar::has(id);
+     *_ret = xios::CRedistributeScalar::has(CContext::getCurrent(), id);
      CTimer::get("XIOS").suspend() ;
   }
   CATCH_DUMP_STACK

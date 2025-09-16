@@ -7,31 +7,15 @@ namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
    template <typename U>
-       int CObjectFactory::GetObjectNum(void)
+       int CObjectFactory::GetObjectNum(const string& contextId)
    {
-      if (CurrContext.size() == 0)
-         ERROR("CObjectFactory::GetObjectNum(void)",
-               << "please define current context id !");
-      return (U::AllVectObj[CObjectFactory::CurrContext].size());
+      return (U::AllVectObj[contextId].size());
    }
 
    template <typename U>
-      int CObjectFactory::GetObjectIdNum(void)
+      int CObjectFactory::GetObjectIdNum(const string& contextId)
    {
-      if (CurrContext.size() == 0)
-         ERROR("CObjectFactory::GetObjectIdNum(void)",
-               << "please define current context id !");
-      return (U::AllMapObj[CObjectFactory::CurrContext].size());
-   }
-
-   template <typename U>
-      bool CObjectFactory::HasObject(const StdString & id)
-   {
-      if (CurrContext.size() == 0)
-         ERROR("CObjectFactory::HasObject(const StdString & id)",
-               << "[ id = " << id << " ] please define current context id !");
-      return (U::AllMapObj[CObjectFactory::CurrContext].find(id) !=
-              U::AllMapObj[CObjectFactory::CurrContext].end());
+      return (U::AllMapObj[contextId].size());
    }
 
    template <typename U>
@@ -42,13 +26,32 @@ namespace xios
    }
 
    template <typename U>
+      std::shared_ptr<U> CObjectFactory::GetObject(const StdString & contextId, const U * const object)
+   {
+      std::vector<std::shared_ptr<U> > & vect =
+                     U::AllVectObj[contextId];
+
+      typename std::vector<std::shared_ptr<U> >::const_iterator
+         it = vect.begin(), end = vect.end();
+
+      for (; it != end; it++)
+      {
+         std::shared_ptr<U> ptr = *it;
+         if (ptr.get() == object)
+            return (ptr);
+      }
+
+      ERROR("CObjectFactory::GetObject(const StdString & contextId, const U * const object)",
+               << "[type = " << U::GetName() << ", adress = " << object << "] "
+               << "object was not found.");
+      return (std::shared_ptr<U>()); // jamais atteint
+   }
+
+   template <typename U>
       std::shared_ptr<U> CObjectFactory::GetObject(const U * const object)
    {
-      if (CurrContext.size() == 0)
-         ERROR("CObjectFactory::GetObject(const U * const object)",
-               << "please define current context id !");
       std::vector<std::shared_ptr<U> > & vect =
-                     U::AllVectObj[CObjectFactory::CurrContext];
+                     U::AllVectObj[object->getContext()->getId()];
 
       typename std::vector<std::shared_ptr<U> >::const_iterator
          it = vect.begin(), end = vect.end();
@@ -67,19 +70,6 @@ namespace xios
    }
 
    template <typename U>
-      std::shared_ptr<U> CObjectFactory::GetObject(const StdString & id)
-   {
-      if (CurrContext.size() == 0)
-         ERROR("CObjectFactory::GetObject(const StdString & id)",
-               << "[ id = " << id << " ] please define current context id !");
-      if (!CObjectFactory::HasObject<U>(id))
-         ERROR("CObjectFactory::GetObject(const StdString & id)",
-               << "[ id = " << id << ", U = " << U::GetName() << " ] "
-               << "object was not found.");
-      return (U::AllMapObj[CObjectFactory::CurrContext][id]);
-   }
-
-   template <typename U>
       std::shared_ptr<U> CObjectFactory::GetObject(const StdString & context, const StdString & id)
    {
       if (!CObjectFactory::HasObject<U>(context,id))
@@ -90,82 +80,94 @@ namespace xios
    }
 
    template <typename U>
-   std::shared_ptr<U> CObjectFactory::CreateObject(const StdString& id)
+   std::shared_ptr<U> CObjectFactory::CreateObject(const StdString& contextId, const StdString& id)
    {
-      if (CurrContext.empty())
-         ERROR("CObjectFactory::CreateObject(const StdString& id)",
-               << "[ id = " << id << " ] please define current context id !");
-
-      if (CObjectFactory::HasObject<U>(id))
+      if (CObjectFactory::HasObject<U>(contextId, id))
       {
-         return CObjectFactory::GetObject<U>(id);
+         return CObjectFactory::GetObject<U>(contextId, id);
       }
       else
       {
-         std::shared_ptr<U> value(new U(id.empty() ? CObjectFactory::GenUId<U>() : id));
+         std::shared_ptr<U> value(new U(id.empty() ? CObjectFactory::GenUId<U>(contextId) : id));
 
-         U::AllVectObj[CObjectFactory::CurrContext].insert(U::AllVectObj[CObjectFactory::CurrContext].end(), value);
-         U::AllMapObj[CObjectFactory::CurrContext].insert(std::make_pair(value->getId(), value));
+         U::AllVectObj[contextId].insert(U::AllVectObj[contextId].end(), value);
+         U::AllMapObj[contextId].insert(std::make_pair(value->getId(), value));
 
          return value;
       }
    }
 
    template <typename U>
-   std::shared_ptr<U> CObjectFactory::CreateAlias(const StdString& id, const StdString& alias)
+   std::shared_ptr<U> CObjectFactory::CreateObject(CContext* context, const StdString& id)
    {
-      if (CurrContext.empty())
-         ERROR("CObjectFactory::CreateAlias(const StdString& id, const StdString& alias)",
-               << "[ id = " << id << " alias = "<<alias<<" ] please define current context id !");
+      string contextId = (context == nullptr) ? id : context->getId() ;
 
-      if (CObjectFactory::HasObject<U>(alias))
+      if (CObjectFactory::HasObject<U>(contextId, id))
       {
-         return CObjectFactory::GetObject<U>(alias);
+         return CObjectFactory::GetObject<U>(contextId, id);
       }
       else
       {
-        if (! CObjectFactory::HasObject<U>(id))
+         std::shared_ptr<U> value(new U(context, id.empty() ? CObjectFactory::GenUId<U>(contextId) : id));
+
+         U::AllVectObj[contextId].insert(U::AllVectObj[contextId].end(), value);
+         U::AllMapObj[contextId].insert(std::make_pair(value->getId(), value));
+
+         return value;
+      }
+   }
+
+
+   template <typename U>
+   std::shared_ptr<U> CObjectFactory::CreateAlias(const StdString& ContextId, const StdString& id, const StdString& alias)
+   {
+
+      if (CObjectFactory::HasObject<U>(ContextId, alias))
+      {
+         return CObjectFactory::GetObject<U>(ContextId, alias);
+      }
+      else
+      {
+        if (! CObjectFactory::HasObject<U>(ContextId, id))
         {
             ERROR("CObjectFactory::CreateAlias(const StdString& id, const StdString& alias)",
                << "[ id = " << id << " alias = "<<alias<<" ] object id doesn't exist"); 
         }
         else  
         {
-          std::shared_ptr<U> value = CObjectFactory::GetObject<U>(id);  
-          U::AllMapObj[CObjectFactory::CurrContext].insert(std::make_pair(alias, value));
+          std::shared_ptr<U> value = CObjectFactory::GetObject<U>(ContextId, id);  
+          U::AllMapObj[ContextId].insert(std::make_pair(alias, value));
           return value;
          }
       }
    }
 
    template <typename U>
-      const std::vector<std::shared_ptr<U> > &
-         CObjectFactory::GetObjectVector(const StdString & context)
+      const std::vector<std::shared_ptr<U> >& CObjectFactory::GetObjectVector(const StdString & context)
    {
       return (U::AllVectObj[context]);
    }
 
    template <typename U>
-   const StdString CObjectFactory::GetUIdBase(void)
+   const StdString CObjectFactory::GetUIdBase(const string& contextId)
    {
       StdString base ; 
-//      base = "__"+CObjectFactory::CurrContext + "::" + U::GetName() + "_undef_id_";
-      base = CObjectFactory::CurrContext + "__" + U::GetName() + "_undef_id_";
+      base = contextId + "__" + U::GetName() + "_undef_id_";
       return base;
    }
 
    template <typename U>
-   StdString CObjectFactory::GenUId(void)
+   StdString CObjectFactory::GenUId(const StdString& contextId)
    {
       StdOStringStream oss;
-      oss << GetUIdBase<U>() << U::GenId[CObjectFactory::CurrContext]++;
+      oss << GetUIdBase<U>(contextId) << U::GenId[contextId]++;
       return oss.str();
    }
 
    template <typename U>
-   bool CObjectFactory::IsGenUId(const StdString& id)
+   bool CObjectFactory::IsGenUId(const string& contextId, const StdString& id)
    {
-      const StdString base = GetUIdBase<U>();
+      const StdString base = GetUIdBase<U>(contextId);
       return (id.size() > base.size() && id.compare(0, base.size(), base) == 0);
    }
 

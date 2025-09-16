@@ -37,7 +37,7 @@ TRY
 CATCH
 
 CDomainAlgorithmExtract::CDomainAlgorithmExtract(bool isSource, CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain)
-: CAlgorithmTransformationTransfer(isSource), domainSrc_(domainSource), domainDest_(domainDestination)
+: CAlgorithmTransformationTransfer(extractDomain->getContext(), isSource), domainSrc_(domainSource), domainDest_(domainDestination)
 TRY
 {
    // Reset geometrical attributes to avoid incompatible (user/domainSource) attributs

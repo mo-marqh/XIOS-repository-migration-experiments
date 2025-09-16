@@ -96,10 +96,7 @@ namespace xios
       void CDataOutput::writeFieldTimeAxis(CField* field)
       TRY
       {
-         CContext* context = CContext::getCurrent() ;
-         std::shared_ptr<CCalendar> calendar = context->getCalendar();
-
-         this->writeTimeAxis_(field, calendar);
+        this->writeTimeAxis_(field);
       }
       CATCH
 

@@ -1,25 +1,26 @@
 #include "extract_axis.hpp"
 #include "axis_algorithm_extract.hpp"
 #include "type.hpp"
+#include "context.hpp"
 
 namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CExtractAxis::CExtractAxis(void)
-    : CObjectTemplate<CExtractAxis>(), CExtractAxisAttributes(), CTransformation<CAxis>()
+  CExtractAxis::CExtractAxis(CContext* context)
+    : CObjectTemplate<CExtractAxis>(context), CExtractAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CExtractAxis::CExtractAxis(const StdString & id)
-    : CObjectTemplate<CExtractAxis>(id), CExtractAxisAttributes(), CTransformation<CAxis>()
+  CExtractAxis::CExtractAxis(CContext* context, const StdString & id)
+    : CObjectTemplate<CExtractAxis>(context, id), CExtractAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CExtractAxis::~CExtractAxis(void)
   {}
 
-  CTransformation<CAxis>* CExtractAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CExtractAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CExtractAxis* extractAxis = CExtractAxisGroup::get("extract_axis_definition")->createChild(id);
+    CExtractAxis* extractAxis = CExtractAxisGroup::get(context, "extract_axis_definition")->createChild(id);
     if (node) extractAxis->parse(*node);
     return static_cast<CTransformation<CAxis>*>(extractAxis);
   }
@@ -65,12 +66,12 @@ namespace xios {
         || n < 1 || n > axisGlobalSize || begin > end)
       ERROR("CExtractAxis::checkValid(CAxis* axisDest)",
             << "One or more attributes among 'begin' (" << begin << "), 'end' (" << end << "), 'n' (" << n << ") "
-            << "of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
+            << "of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << context_->getId() << "' ] are not well specified");
     
     if (extractByIndex && (!this->begin.isEmpty() || !this->n.isEmpty()))
       ERROR("CExtractAxis::checkValid(CAxis* axisDest)",
             << "Only one type of extract is accepted. Define extract by index with global_extract_index or define extract with begin and n. "
-            << "Axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
+            << "Axis transformation [ id = '" << axisDest->getId() << "' , context = '" << context_->getId() << "' ] are not well specified");
 
     this->begin.setValue(begin);
     this->n.setValue(n);

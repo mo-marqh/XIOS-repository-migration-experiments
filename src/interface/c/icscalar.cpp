@@ -14,6 +14,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "scalar.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -32,7 +33,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CScalar::get(id);
+      *_ret = xios::CScalar::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -43,7 +44,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CScalarGroup::get(id);
+      *_ret = xios::CScalarGroup::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
     }
    CATCH_DUMP_STACK
@@ -57,7 +58,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CScalar::has(id);
+      *_ret = xios::CScalar::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -69,7 +70,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CScalarGroup::has(id);
+      *_ret = xios::CScalarGroup::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
 
    }

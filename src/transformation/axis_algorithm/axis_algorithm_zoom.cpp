@@ -40,7 +40,7 @@ TRY
 CATCH
 
 CAxisAlgorithmZoom::CAxisAlgorithmZoom(bool isSource, CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)
-: CAlgorithmTransformationTransfer(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
+: CAlgorithmTransformationTransfer(zoomAxis->getContext(), isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
   zoomAxis->checkValid(axisSource);

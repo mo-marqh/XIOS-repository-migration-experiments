@@ -8,20 +8,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CExtractDomainToAxis::CExtractDomainToAxis(void)
-    : CObjectTemplate<CExtractDomainToAxis>(), CExtractDomainToAxisAttributes(), CTransformation<CAxis>()
+  CExtractDomainToAxis::CExtractDomainToAxis(CContext* context)
+    : CObjectTemplate<CExtractDomainToAxis>(context), CExtractDomainToAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CExtractDomainToAxis::CExtractDomainToAxis(const StdString & id)
-    : CObjectTemplate<CExtractDomainToAxis>(id), CExtractDomainToAxisAttributes(), CTransformation<CAxis>()
+  CExtractDomainToAxis::CExtractDomainToAxis(CContext* context, const StdString & id)
+    : CObjectTemplate<CExtractDomainToAxis>(context, id), CExtractDomainToAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CExtractDomainToAxis::~CExtractDomainToAxis(void)
   {}
 
-  CTransformation<CAxis>* CExtractDomainToAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CExtractDomainToAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CExtractDomainToAxis* extractDomain = CExtractDomainToAxisGroup::get("extract_domain_to_axis_definition")->createChild(id);
+    CExtractDomainToAxis* extractDomain = CExtractDomainToAxisGroup::get(context, "extract_domain_to_axis_definition")->createChild(id);
     if (node) extractDomain->parse(*node);
     return static_cast<CTransformation<CAxis>*>(extractDomain);
   }

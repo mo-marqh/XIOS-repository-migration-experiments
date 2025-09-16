@@ -6,7 +6,7 @@
 namespace xios
 {
   CInputPin::CInputPin(CGarbageCollector& gc, size_t slotsCount)
-    : gc(gc)
+    : CPin(gc), gc(gc)
     , slotsCount(slotsCount)
     , triggers(slotsCount)
     , hasTriggers(false)

@@ -14,14 +14,14 @@ namespace xios {
 
    /// ////////////////////// Définitions ////////////////////// ///
 
-   CVariable::CVariable(void)
-      : CObjectTemplate<CVariable>()
+   CVariable::CVariable(CContext* context)
+      : CObjectTemplate<CVariable>(context)
       , CVariableAttributes()
       , content()
    { /* Ne rien faire de plus */ }
 
-   CVariable::CVariable(const StdString & id)
-      : CObjectTemplate<CVariable>(id)
+   CVariable::CVariable(CContext* context, const StdString & id)
+      : CObjectTemplate<CVariable>(context, id)
       , CVariableAttributes()
       , content()
    { /* Ne rien faire de plus */ }
@@ -37,7 +37,7 @@ namespace xios {
    {
       SuperClass::parse(node);
       StdString id = (this->hasId()) ? this->getId() : StdString("undefined");
-      if (CContext::getCurrent()->getId()=="xios") checkInDictionary(id);
+      if (context_->getId()=="xios") checkInDictionary(id);
       if (!node.getContent(this->content))
       {
         xml::THashAttributes attributes = node.getAttributes();
@@ -159,12 +159,12 @@ namespace xios {
    *\brief Receive value of a variable with its id from client to server
    *
    */
-   void CVariable::recvValue(CEventServer& event)
+   void CVariable::recvValue(CContext* context, CEventServer& event)
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
-      get(id)->recvValue(*buffer);
+      get(context, id)->recvValue(*buffer);
    }
 
    /*
@@ -178,15 +178,15 @@ namespace xios {
       setContent(str);
    }
 
-   bool CVariable::dispatchEvent(CEventServer& event)
+   bool CVariable::dispatchEvent(CContext* context, CEventServer& event)
    {
-    if (SuperClass::dispatchEvent(event)) return true ;
+    if (SuperClass::dispatchEvent(context, event)) return true ;
     else
     {
       switch(event.type)
       {
         case EVENT_ID_VARIABLE_VALUE :
-          recvValue(event) ;
+          recvValue(context, event) ;
           return true ;
           break ;
 
@@ -220,7 +220,7 @@ namespace xios {
    void CVariableGroup::parse(xml::CXMLNode & node, bool withAttr)
    {
       CVariableGroup* group_ptr = (this->hasId())
-         ? CVariableGroup::get(this->getId()) : CVariableGroup::get(this);
+         ? CVariableGroup::get(context_, this->getId()) : CVariableGroup::get(context_, this);
 
       StdString content;
       if (this->getId().compare(CVariableGroup::GetDefName()) != 0 && node.getContent(content))

@@ -9,16 +9,16 @@
 namespace xios
 {
 
-  CCouplerIn::CCouplerIn(void) : CObjectTemplate<CCouplerIn>(), CCouplerInAttributes(),
+  CCouplerIn::CCouplerIn(CContext* context) : CObjectTemplate<CCouplerIn>(context), CCouplerInAttributes(),
                                  virtualFieldGroup(), enabledFields() 
   {
-     setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
+     setVirtualFieldGroup(CFieldGroup::create(context_, getId() + "_virtual_field_group"));
   }
 
-   CCouplerIn::CCouplerIn(const StdString & id) : CObjectTemplate<CCouplerIn>(id), CCouplerInAttributes(),
+   CCouplerIn::CCouplerIn(CContext* context, const StdString & id) : CObjectTemplate<CCouplerIn>(context, id), CCouplerInAttributes(),
                                                   virtualFieldGroup(), enabledFields()
     {
-      setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
+      setVirtualFieldGroup(CFieldGroup::create(context_, getId() + "_virtual_field_group"));
     }
 
    CCouplerIn::~CCouplerIn(void)
@@ -73,7 +73,7 @@ namespace xios
         ERROR("void CCouplerOut::createInterCommunicator(void)",
                "The attribute <context> must be defined to specify the target coupling context");
      }
-     CContext* contextPtr = CContext::getCurrent();
+     CContext* contextPtr = context_;
      contextPtr->addCouplingChanel(getCouplingContextId(), false) ;
    }
    CATCH_DUMP_ATTR
@@ -151,7 +151,7 @@ namespace xios
    */
    void  CCouplerIn::assignContext(void)
    {
-     client_ = CContext::getCurrent()->getCouplerInClient(getCouplingContextId());
+     client_ = context_->getCouplerInClient(getCouplingContextId());
      for (auto& field : getEnabledFields()) field->setContextClient(client_) ; 
    }
 
@@ -170,7 +170,7 @@ namespace xios
    StdString CCouplerIn::dumpClassAttributes(void)
    {
      StdString str;
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      str.append("context=\"");
      str.append(context->getId());
      str.append("\"");

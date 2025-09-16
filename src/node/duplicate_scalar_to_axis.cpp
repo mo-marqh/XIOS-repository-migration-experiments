@@ -8,20 +8,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CDuplicateScalarToAxis::CDuplicateScalarToAxis(void)
-    : CObjectTemplate<CDuplicateScalarToAxis>(), CDuplicateScalarToAxisAttributes(), CTransformation<CAxis>()
+  CDuplicateScalarToAxis::CDuplicateScalarToAxis(CContext* context)
+    : CObjectTemplate<CDuplicateScalarToAxis>(context), CDuplicateScalarToAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CDuplicateScalarToAxis::CDuplicateScalarToAxis(const StdString & id)
-    : CObjectTemplate<CDuplicateScalarToAxis>(id), CDuplicateScalarToAxisAttributes(), CTransformation<CAxis>()
+  CDuplicateScalarToAxis::CDuplicateScalarToAxis(CContext* context,const StdString & id)
+    : CObjectTemplate<CDuplicateScalarToAxis>(context, id), CDuplicateScalarToAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CDuplicateScalarToAxis::~CDuplicateScalarToAxis(void)
   {}
 
-  CTransformation<CAxis>* CDuplicateScalarToAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CDuplicateScalarToAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CDuplicateScalarToAxis* duplicateScalar = CDuplicateScalarToAxisGroup::get("duplicate_scalar_to_axis_definition")->createChild(id);
+    CDuplicateScalarToAxis* duplicateScalar = CDuplicateScalarToAxisGroup::get(context, "duplicate_scalar_to_axis_definition")->createChild(id);
     if (node) duplicateScalar->parse(*node);
     return static_cast<CTransformation<CAxis>*>(duplicateScalar);
   }

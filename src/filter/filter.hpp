@@ -3,6 +3,7 @@
 
 #include "input_pin.hpp"
 #include "output_pin.hpp"
+#include "pin.hpp"
 #include "filter_engine.hpp"
 
 namespace xios
@@ -60,6 +61,8 @@ namespace xios
        * \param date the date associated to the data
        */
       bool virtual isDataExpected(const CDate& date) const;
+
+      CContext* getContext(void) { return CInputPin::getContext();}
 
     protected:
       IFilterEngine* engine; //!< The filter engine, might be the filter itself

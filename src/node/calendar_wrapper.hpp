@@ -16,6 +16,8 @@ namespace xios {
   /// ////////////////////// Déclarations ////////////////////// ///
   class CCalendarWrapperAttributes;
   class CCalendarWrapper;
+  class CContext ;
+
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
@@ -43,8 +45,8 @@ namespace xios {
     public :
 
       /// Constructeurs ///
-      CCalendarWrapper(void);
-      explicit CCalendarWrapper(const StdString& id);
+      CCalendarWrapper(CContext* context);
+      explicit CCalendarWrapper(CContext* context, const StdString& id);
 
       /// Destructeur ///
       virtual ~CCalendarWrapper(void);

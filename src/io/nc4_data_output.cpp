@@ -29,6 +29,7 @@ namespace xios
             , SuperClassWriter(filename, exist)
             , filename(filename)
             , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relAxis_(), relDomains_()
+            , context_(file->getContext())
       {
         SuperClass::type = MULTI_FILE;
         compressionLevel= file->compression_level.isEmpty() ? 0 :file->compression_level ;
@@ -43,6 +44,7 @@ namespace xios
             , filename(filename)
             , isCollective(isCollective)
             , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none), relAxis_(), relDomains_()
+            , context_(file->getContext())
       {
         SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
         if (file==NULL) compressionLevel = 0 ;
@@ -115,7 +117,7 @@ namespace xios
           return ;
         }
 
-         CContext* context = CContext::getCurrent() ;
+         CContext* context = getContext() ;
          if (domain->IsWritten(this->filename)) return;
          domain->checkAttributes();
 
@@ -490,7 +492,7 @@ namespace xios
 
     void CNc4DataOutput::writeUnstructuredDomainUgrid(CDomain* domain)
     {
-      CContext* context = CContext::getCurrent() ;
+      CContext* context = getContext() ;
 
       if (domain->IsWritten(this->filename)) return;
 
@@ -859,7 +861,7 @@ namespace xios
 
     void CNc4DataOutput::writeUnstructuredDomain(CDomain* domain)
       {
-         CContext* context = CContext::getCurrent() ;
+         CContext* context = getContext() ;
 
          if (domain->IsWritten(this->filename)) return;
          domain->checkAttributes();
@@ -1261,7 +1263,7 @@ namespace xios
           StdString msg("On writing the axis : ");
           msg.append(axisid); msg.append("\n");
           msg.append("In the context : ");
-          CContext* context = CContext::getCurrent() ;
+          CContext* context = getContext() ;
           msg.append(context->getId()); msg.append("\n");
           msg.append(e.what());
           ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)", << msg);
@@ -1426,7 +1428,7 @@ namespace xios
           StdString msg("On writing the scalar : ");
           msg.append(scalaId); msg.append("\n");
           msg.append("In the context : ");
-          CContext* context = CContext::getCurrent() ;
+          CContext* context = getContext() ;
           msg.append(context->getId()); msg.append("\n");
           msg.append(e.what());
           ERROR("CNc4DataOutput::writeScalar_(CScalar* scalar)", << msg);
@@ -1438,6 +1440,8 @@ namespace xios
 
      void CNc4DataOutput::writeGridCompressed_(CGrid* grid)
      {
+        CContext* context = grid->getContext() ;
+
         if (grid->isScalarGrid() || grid->isWrittenCompressed(this->filename)) return;
         
         // NOTA : The cuurent algorithm to write compress elements of the grid
@@ -1471,7 +1475,7 @@ namespace xios
             
             if (2 == axisDomainOrder(i))
             {
-              CDomain* domain = CDomain::get(domainList[idxDomain]);
+              CDomain* domain = CDomain::get(context, domainList[idxDomain]);
               StdString domId = domain->getDomainOutputName();
 
               if (!domain->isCompressible()
@@ -1527,7 +1531,7 @@ namespace xios
             }
             else if (1 == axisDomainOrder(i))
             {
-              CAxis* axis = CAxis::get(axisList[idxAxis]);
+              CAxis* axis = CAxis::get(context, axisList[idxAxis]);
               StdString axisId = axis->getAxisOutputName();
 
               if (!axis->isCompressible()
@@ -1602,7 +1606,7 @@ namespace xios
           StdString msg("On writing compressed grid : ");
           msg.append(grid->getId()); msg.append("\n");
           msg.append("In the context : ");
-          CContext* context = CContext::getCurrent();
+          CContext* context = getContext();
           msg.append(context->getId()); msg.append("\n");
           msg.append(e.what());
           ERROR("CNc4DataOutput::writeGridCompressed_(CGrid* grid)", << msg);
@@ -1621,7 +1625,7 @@ namespace xios
        {
          StdString msg("On writing time dimension : time_couter\n");
          msg.append("In the context : ");
-         CContext* context = CContext::getCurrent() ;
+         CContext* context = getContext() ;
          msg.append(context->getId()); msg.append("\n");
          msg.append(e.what());
          ERROR("CNc4DataOutput::writeTimeDimension_(void)", << msg);
@@ -1632,7 +1636,7 @@ namespace xios
 
       void CNc4DataOutput::writeField_(CField* field)
       {
-        CContext* context = CContext::getCurrent() ;
+        CContext* context = field->getContext() ;
 
         std::vector<StdString> dims, coodinates;
         CGrid* grid = field->getGrid();
@@ -1656,7 +1660,7 @@ namespace xios
         {
           if (2 == axisDomainOrder(i))
           {
-            CDomain* domain = CDomain::get(domainList[idxDomain]);
+            CDomain* domain = CDomain::get(context, domainList[idxDomain]);
             StdString domId = domain->getDomainOutputName();
             StdString appendDomId  = singleDomain ? "" : "_" + domId ;
             StdString lonName,latName ;
@@ -1768,7 +1772,7 @@ namespace xios
           }
           else if (1 == axisDomainOrder(i))
           {
-            CAxis* axis = CAxis::get(axisList[idxAxis]);
+            CAxis* axis = CAxis::get(context, axisList[idxAxis]);
             StdString axisId = axis->getAxisOutputName();
             StdString axisDim;
 
@@ -1788,7 +1792,7 @@ namespace xios
           }
           else
           {
-            CScalar* scalar = CScalar::get(scalarList[idxScalar]);
+            CScalar* scalar = CScalar::get(context, scalarList[idxScalar]);
             StdString scalarId = scalar->getScalarOutputName();
             if (!scalar->value.isEmpty() || !scalar->label.isEmpty())
               dimCoordList.push_back(scalarId);
@@ -1850,7 +1854,7 @@ namespace xios
            {
             if (!domainList.empty())
             {
-              CDomain* domain = CDomain::get(domainList[0]); // Suppose that we have only domain
+              CDomain* domain = CDomain::get(context, domainList[0]); // Suppose that we have only domain
               StdString mesh = domain->name;
               SuperClassWriter::addAttribute("mesh", mesh, &fieldid);
               StdString location;
@@ -2043,7 +2047,7 @@ namespace xios
            StdString msg("On writing file : ");
            msg.append(filename); msg.append("\n");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeFile_ (CFile* file)", << msg);
@@ -2075,7 +2079,7 @@ namespace xios
          StdString msg("On writing attributes of variable with name : ");
          msg.append(name); msg.append("in the field "); msg.append(fieldId); msg.append("\n");
          msg.append("In the context : ");
-         CContext* context = CContext::getCurrent() ;
+         CContext* context = getContext() ;
          msg.append(context->getId()); msg.append("\n");
          msg.append(e.what());
          ERROR("CNc4DataOutput::writeAttribute_ (CVariable* var, const string& fieldId)", << msg);
@@ -2107,7 +2111,7 @@ namespace xios
          StdString msg("On writing attributes of variable with name : ");
          msg.append(name); msg.append("\n");
          msg.append("In the context : ");
-         CContext* context = CContext::getCurrent() ;
+         CContext* context = getContext() ;
          msg.append(context->getId()); msg.append("\n");
          msg.append(e.what());
          ERROR("CNc4DataOutput::writeAttribute_ (CVariable* var)", << msg);
@@ -2124,7 +2128,7 @@ namespace xios
         {
          StdString msg("On synchronizing the write among processes");
          msg.append("In the context : ");
-         CContext* context = CContext::getCurrent() ;
+         CContext* context = getContext() ;
          msg.append(context->getId()); msg.append("\n");
          msg.append(e.what());
          ERROR("CNc4DataOutput::syncFile_ (void)", << msg);
@@ -2141,7 +2145,7 @@ namespace xios
         {
          StdString msg("On closing file");
          msg.append("In the context : ");
-         CContext* context = CContext::getCurrent() ;
+         CContext* context = getContext() ;
          msg.append(context->getId()); msg.append("\n");
          msg.append(e.what());
          ERROR("CNc4DataOutput::syncFile_ (void)", << msg);
@@ -2175,7 +2179,7 @@ namespace xios
       int CNc4DataOutput::writeFieldData_ (CField*  field, const CArray<double,1>& data, const CDate& lastWrite,
                                            const CDate& currentWrite, int nstep)
       {
-        CContext* context = CContext::getCurrent();
+        CContext* context = field->getContext();
         CGrid* grid = field->getGrid();
        
         if (nstep<1) 
@@ -2328,7 +2332,7 @@ namespace xios
                   {
                     if (2 == axisDomainOrder(i))
                     {
-                      CDomain* domain = CDomain::get(domainList[idxDomain]);
+                      CDomain* domain = CDomain::get(context, domainList[idxDomain]);
 
                       if (domain->isCompressible())
                       {
@@ -2361,7 +2365,7 @@ namespace xios
                     }
                     else if (1 == axisDomainOrder(i))
                     {
-                      CAxis* axis = CAxis::get(axisList[idxAxis]);
+                      CAxis* axis = CAxis::get(context, axisList[idxAxis]);
 
                       if (axis->isCompressible())
                       {
@@ -2406,7 +2410,7 @@ namespace xios
                   {
                     if (2 == axisDomainOrder(i))
                     {
-                      CDomain* domain = CDomain::get(domainList[idxDomain]);
+                      CDomain* domain = CDomain::get(context, domainList[idxDomain]);
                       if ((domain->type) != CDomain::type_attr::unstructured)
                       {
                         start.push_back(domain->jbeginValue_);
@@ -2421,7 +2425,7 @@ namespace xios
                     }
                     else if (1 == axisDomainOrder(i))
                     {
-                        CAxis* axis = CAxis::get(axisList[idxAxis]);
+                        CAxis* axis = CAxis::get(context, axisList[idxAxis]);
                         start.push_back(axis->begin);
                         count.push_back(axis->n);
                       --idx;
@@ -2431,14 +2435,14 @@ namespace xios
                     {
                       if (idx ==-1) 
                       {
-                        CScalar* scalar = CScalar::get(scalarList[idxScalar]);
+                        CScalar* scalar = CScalar::get(context, scalarList[idxScalar]);
                         start.push_back(0);
                         count.push_back(scalar->n);
                         idx-- ;
                       }
                       else if (idx<-1)
                       {
-                        CScalar* scalar = CScalar::get(scalarList[idxScalar]);
+                        CScalar* scalar = CScalar::get(context, scalarList[idxScalar]);
                         count.back()*=scalar->n;
                         idx-- ;
                       }
@@ -2547,10 +2551,9 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      void CNc4DataOutput::writeTimeAxis_
-                  (CField*    field,
-                   const std::shared_ptr<CCalendar> cal)
+      void CNc4DataOutput::writeTimeAxis_(CField*    field)
       {
+         const std::shared_ptr<CCalendar> cal = getContext()->getCalendar();
          StdOStringStream oss;
          bool createInstantAxis=false ;
          bool createCenteredAxis=false ;
@@ -2768,7 +2771,7 @@ namespace xios
          {
            StdString msg("On writing time axis data: ");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeTimeAxis_ (CField*    field, \
@@ -2799,7 +2802,7 @@ namespace xios
          {
            StdString msg("On writing time axis Attribute: ");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeTimeAxisAttributes(const StdString & axis_name, \
@@ -2835,7 +2838,7 @@ namespace xios
          {
            StdString msg("On writing Axis Attribute: ");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeAxisAttributes(const StdString & axis_name, \
@@ -2863,7 +2866,7 @@ namespace xios
         {
            StdString msg("On writing Local Attributes: ");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeLocalAttributes \
@@ -2906,7 +2909,7 @@ namespace xios
          {
            StdString msg("On writing Local Attributes IOIPSL \n");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeLocalAttributes_IOIPSL \
@@ -2946,7 +2949,7 @@ namespace xios
          {
            StdString msg("On writing File Attributes \n ");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput:: writeFileAttributes(const StdString & name, \
@@ -2978,7 +2981,7 @@ namespace xios
          {
            StdString msg("On writing Mask Attributes \n ");
            msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
+           CContext* context = getContext() ;
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeMaskAttributes(const StdString & mask_name, \

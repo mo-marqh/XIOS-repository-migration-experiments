@@ -15,6 +15,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "field.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -39,7 +40,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CField::get(id);
+      *_ret = CField::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -50,7 +51,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CFieldGroup::get(id);
+      *_ret = CFieldGroup::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -63,7 +64,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CField::has(id);
+      *_ret = CField::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -74,7 +75,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CFieldGroup::has(id);
+      *_ret = CFieldGroup::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

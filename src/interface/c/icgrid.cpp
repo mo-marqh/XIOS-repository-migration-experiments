@@ -13,6 +13,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "grid.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -31,7 +32,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CGrid::get(id);
+      *_ret = CGrid::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -42,7 +43,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CGridGroup::get(id);
+      *_ret = CGridGroup::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -55,7 +56,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CGrid::has(id);
+      *_ret = CGrid::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -66,7 +67,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = CGridGroup::has(id);
+      *_ret = CGridGroup::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

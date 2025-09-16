@@ -53,7 +53,7 @@ CATCH
 CDomainAlgorithmGenerateRectilinear::CDomainAlgorithmGenerateRectilinear(bool isSource, CDomain* domainDestination, CDomain* domainSource,
                                                                          CGrid* gridDest, CGrid* gridSource,
                                                                          CGenerateRectilinearDomain* genRectDomain)
-: CAlgorithmTransformationNoDataModification(isSource), nbDomainDistributedPart_(0), domainDest_(domainDestination)
+: CAlgorithmTransformationNoDataModification(genRectDomain->getContext(), isSource), nbDomainDistributedPart_(0), domainDest_(domainDestination)
 TRY
 {
   genRectDomain->checkValid(domainDestination);
@@ -81,7 +81,7 @@ void CDomainAlgorithmGenerateRectilinear::computeIndexSourceMapping_(const std::
 void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource(CGrid* gridSrc)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int clientSize = context->intraCommSize_ ;
   int clientRank = context->intraCommRank_ ;
   
@@ -152,7 +152,7 @@ TRY
     }
   }
 
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int modPart = (context->intraCommSize_) % nbPartition;
   if (0 != modPart)
     ERROR("CDomainAlgorithmGenerateRectilinear::computeDistributionGridDestination(CGrid* gridDest)",

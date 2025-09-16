@@ -30,6 +30,7 @@ namespace xios
   class CScalarAttributes;
   class CScalar;
   class CField;
+  class CContext ;
   ///--------------------------------------------------------------
 
   // Declare/Define CVarAttribute
@@ -56,7 +57,7 @@ namespace xios
         EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE,
         EVENT_ID_NO_COLLECTIVE=1000,
       } ;
-      static bool dispatchEvent(CEventServer& event);      
+      static bool dispatchEvent(CContext* context, CEventServer& event);      
            
 
     public :
@@ -65,8 +66,8 @@ namespace xios
       typedef CScalarGroup      RelGroup;
 
       /// Constructeurs ///
-      CScalar(void);
-      explicit CScalar(const StdString & id);
+      CScalar(CContext* context);
+      explicit CScalar(CContext* context, const StdString & id);
       CScalar(const CScalar & var);       // Not implemented yet.
       CScalar(const CScalar * const var); // Not implemented yet.
       static void releaseStaticAllocation(void) ; // release static allocation on heap
@@ -81,10 +82,10 @@ namespace xios
       static ENodeType GetType(void);
 
     public:
-      static CScalar* createScalar();
-      static CScalar* get(const string& id, bool noError=false) ; //<! return scalar pointer using id
-      static bool     has(const string& id) ; //<! return domain pointer using id
-      static CField*  getFieldFromId(const string& id) ;
+      static CScalar* createScalar(CContext* context);
+      static CScalar* get(CContext* context, const string& id, bool noError=false) ; //<! return scalar pointer using id
+      static bool     has(CContext* context, const string& id) ; //<! return domain pointer using id
+      static CField*  getFieldFromId(CContext* context, const string& id) ;
 
     public:
       void checkAttributes(bool recheck=false);
@@ -219,11 +220,11 @@ namespace xios
       void distributeToServer(CContextClient* client, bool inOut, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn,
                               shared_ptr<CScattererConnector> &scattererConnector, const string& scalarId="") ;
 
-      static void recvScalarDistribution(CEventServer& event) ;
+      static void recvScalarDistribution(CContext*, CEventServer& event) ;
       void receivedScalarDistribution(CEventServer& event, int phasis) ;
       void setServerMask(CArray<bool,1>& serverMask, CContextClient* client) ;
       void sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scattererConnector, const string& scalarId) ;
-      static void recvDistributedAttributes(CEventServer& event) ;
+      static void recvDistributedAttributes(CContext*, CEventServer& event) ;
       void recvDistributedAttributes(CEventServer& event, const string& type) ;
 
     private:

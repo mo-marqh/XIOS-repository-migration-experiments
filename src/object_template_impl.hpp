@@ -32,17 +32,20 @@ namespace xios
    template <class T>
       xios_map<StdString,long int> CObjectTemplate<T>::GenId;
 
+ 
    template <class T>
-      CObjectTemplate<T>::CObjectTemplate(void)
+      CObjectTemplate<T>::CObjectTemplate(CContext* context)
          : CAttributeMap()
-         , CObject()
+         , CObject(), context_(context)
    { /* Ne rien faire de plus */ }
 
    template <class T>
-      CObjectTemplate<T>::CObjectTemplate(const StdString & id)
+      CObjectTemplate<T>::CObjectTemplate(CContext* context, const StdString & id)
          : CAttributeMap()
-         , CObject(id, CObjectFactory::IsGenUId<T>(id))
-   { /* Ne rien faire de plus */ }
+         , CObject(id) , context_(context)
+   { 
+     SuperClass::setId(id, (context==nullptr) ? false : CObjectFactory::IsGenUId<T>(context->getId(), id)) ;
+   }
 
    template <class T>
       CObjectTemplate<T>::CObjectTemplate
@@ -166,7 +169,7 @@ namespace xios
    template <class T>
    bool CObjectTemplate<T>::isEqual(const string& id, const vector<StdString>& excludedAttrs)
    {
-      T* obj = CObjectTemplate<T>::get(id);
+      T* obj = CObjectTemplate<T>::get(context_, id);
       return this->isEqual(obj, excludedAttrs);
    }
 
@@ -227,9 +230,9 @@ namespace xios
    //---------------------------------------------------------------
 
    template <class T>
-      void CObjectTemplate<T>::ClearAllAttributes(void)
+      void CObjectTemplate<T>::ClearAllAttributes(CContext* context)
    {
-      vector<T*> avect = CObjectTemplate<T>::getAll();
+      vector<T*> avect = CObjectTemplate<T>::getAll(context);
       typename vector<T*>::iterator
             it = avect.begin(), end = avect.end();
 
@@ -356,13 +359,13 @@ namespace xios
   }
 
   template <class T>
-  void CObjectTemplate<T>::recvAttributFromClient(CEventServer& event)
+  void CObjectTemplate<T>::recvAttributFromClient(CContext* context, CEventServer& event)
   {
 
     CBufferIn* buffer=event.subEvents.begin()->buffer;
     string id,attrId;
     *buffer>>id;
-    CAttributeMap & attrMap = *get(id);
+    CAttributeMap & attrMap = *get(context, id);
     *buffer>>attrId;
     CAttribute* attr=attrMap[attrId];
     info(50) << "attribut recu " << attrId << "  ";
@@ -376,12 +379,12 @@ namespace xios
 
 /* specialisation for context, because context Id on client is not the same on server and no need to transfer context Id */
   template <>
-  void CObjectTemplate<CContext>::recvAttributFromClient(CEventServer& event)
+  void CObjectTemplate<CContext>::recvAttributFromClient(CContext* context, CEventServer& event)
   {
 
     CBufferIn* buffer=event.subEvents.begin()->buffer;
     string attrId;
-    CAttributeMap & attrMap = *CContext::getCurrent();
+    CAttributeMap & attrMap = *context;
     *buffer>>attrId;
     CAttribute* attr=attrMap[attrId];
     info(50) << "attribut recu " << attrId << "  ";
@@ -395,12 +398,12 @@ namespace xios
 
 
    template <class T>
-   bool CObjectTemplate<T>::dispatchEvent(CEventServer& event)
+   bool CObjectTemplate<T>::dispatchEvent(CContext* context, CEventServer& event)
    {
       switch(event.type)
       {
          case EVENT_ID_SEND_ATTRIBUTE :
-           recvAttributFromClient(event);
+           recvAttributFromClient(context, event);
            return true;
            break;
 
@@ -411,9 +414,9 @@ namespace xios
    }
 
    template <typename T>
-   bool CObjectTemplate<T>::has(const string & id)
+   bool CObjectTemplate<T>::has(CContext* context, const string & id)
    {
-     return CObjectFactory::HasObject<T>(id);
+     return CObjectFactory::HasObject<T>(context->getId(),id);
    }
 
    template <typename T>
@@ -423,49 +426,15 @@ namespace xios
    }
 
    template <typename T>
-   T* CObjectTemplate<T>::get(const string & id)
+   T* CObjectTemplate<T>::get(CContext* context, const string & id)
    {
-     return CObjectFactory::GetObject<T>(id).get();
+     return CObjectFactory::GetObject<T>(context->getId(), id).get();
    }
 
    template <typename T>
-   T* CObjectTemplate<T>::get(const T* ptr)
+   T* CObjectTemplate<T>::get(CContext* context, const T* ptr)
    {
-     return CObjectFactory::GetObject<T>(ptr).get();
-   }
-
-   template <typename T>
-   std::shared_ptr<T> CObjectTemplate<T>::getShared(const T* ptr)
-   {
-     return CObjectFactory::GetObject<T>(ptr);
-   }
-
-   template <typename T>
-   std::shared_ptr<T> CObjectTemplate<T>::getShared(void)
-   {
-     return CObjectFactory::GetObject<T>((T*)this);
-   }
-
-   template <typename T>
-   const vector<T*> CObjectTemplate<T>::getAll()
-   {
-     const vector< std::shared_ptr<T> >& shared_vect= CObjectFactory::GetObjectVector<T>();
-     vector<T*> vect;
-
-     typename vector<std::shared_ptr<T> >::const_iterator it;
-     for(it=shared_vect.begin();it!=shared_vect.end();++it) vect.push_back(it->get());
-     return vect;
-   }
-
-   template <typename T>
-   const vector<T*> CObjectTemplate<T>::getAll(const string & id)
-   {
-     const vector< std::shared_ptr<T> >& shared_vect= CObjectFactory::GetObjectVector<T>(id);
-     vector<T*> vect;
-
-     typename vector<std::shared_ptr<T> >::const_iterator it;
-     for(it=shared_vect.begin();it!=shared_vect.end();++it) vect.push_back(it->get());
-     return vect;
+     return CObjectFactory::GetObject<T>(context->getId(), ptr).get();
    }
 
    template <typename T>
@@ -475,28 +444,61 @@ namespace xios
    }
 
    template <typename T>
-   T* CObjectTemplate<T>::create(const string & id)
+   T* CObjectTemplate<T>::get(void)
    {
-     return CObjectFactory::CreateObject<T>(id).get();
+     return CObjectFactory::GetObject<T>(this->getContext()->getId(),(T*)this).get();
+   }
+
+   template <typename T>
+   std::shared_ptr<T> CObjectTemplate<T>::getShared(CContext* context, const T* ptr)
+   {
+     return CObjectFactory::GetObject<T>(context->getId(), ptr);
+   }
+
+   template <typename T>
+   std::shared_ptr<T> CObjectTemplate<T>::getShared(void)
+   {
+     return CObjectFactory::GetObject<T>(this->getContext()->getId(), (T*)this);
+   }
+
+   template <typename T>
+   const vector<T*> CObjectTemplate<T>::getAll(CContext* context)
+   {
+     return getAll(context->getId()) ;
+   }
+
+   template <typename T>
+   const vector<T*> CObjectTemplate<T>::getAll(const string & contextId)
+   {
+     const vector< std::shared_ptr<T> >& shared_vect= CObjectFactory::GetObjectVector<T>(contextId);
+     vector<T*> vect;
+
+     typename vector<std::shared_ptr<T> >::const_iterator it;
+     for(it=shared_vect.begin();it!=shared_vect.end();++it) vect.push_back(it->get());
+     return vect;
+   }
+
+
+   template <typename T>
+   T* CObjectTemplate<T>::create(CContext* context, const string & id)
+   {
+     T* object = CObjectFactory::CreateObject<T>(context, id).get();
+    
+     return object;
    }   ///--------------------------------------------------------------
 
    template <typename T>
-   T* CObjectTemplate<T>::createAlias(const string & id, const string& alias)
+   T* CObjectTemplate<T>::createAlias(CContext* context, const string & id, const string& alias)
    {
-     return CObjectFactory::CreateAlias<T>(id, alias).get();
+     return CObjectFactory::CreateAlias<T>(context->getId(), id, alias).get();
    }   ///--------------------------------------------------------------
 
    template <typename T>
    void CObjectTemplate<T>::createAlias(const string& alias)
    {
-     get()->createAlias(getId(),alias) ;
+     get()->createAlias(context_, getId(),alias) ;
    }   //
 
-  template <typename T>
-  T* CObjectTemplate<T>::get(void)
-  {
-    return CObjectFactory::GetObject<T>((T*)this).get();
-  }
 
    template <typename T>
    void CObjectTemplate<T>::generateCInterface(ostream& oss)

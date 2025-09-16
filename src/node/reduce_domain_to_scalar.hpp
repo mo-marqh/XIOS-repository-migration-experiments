@@ -21,6 +21,7 @@ namespace xios {
   class CScalar;
   class CGenericAlgorithmTransformation ;
   class CGrid;
+  class CContext ;
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
@@ -46,8 +47,8 @@ namespace xios {
 
     public :
       /// Constructeurs ///
-      CReduceDomainToScalar(void);
-      explicit CReduceDomainToScalar(const StdString& id);
+      CReduceDomainToScalar(CContext* context);
+      explicit CReduceDomainToScalar(CContext* context, const StdString& id);
 
       /// Destructeur ///
       virtual ~CReduceDomainToScalar(void);
@@ -60,8 +61,8 @@ namespace xios {
       static ENodeType GetType(void);
       const string& getId(void) { return this->SuperClass::getId();}
       ETranformationType getTransformationType(void) { return TRANS_REDUCE_DOMAIN_TO_SCALAR ;}
-      static CTransformation<CScalar>* getTransformation(const StdString& id) { return SuperClass::get(id);}
-      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
+      static CTransformation<CScalar>* getTransformation(CContext* context, const StdString& id) { return SuperClass::get(context, id);}
+      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get(context_, (MyClass*)srcTransform)) ;}
       virtual shared_ptr<CGenericAlgorithmTransformation> createAlgorithm(bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                int elementPositionInGrid,
@@ -73,7 +74,7 @@ namespace xios {
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition)  ;
     private:
       static bool registerTrans();
-      static CTransformation<CScalar>* create(const StdString& id, xml::CXMLNode* node);
+      static CTransformation<CScalar>* create(CContext* context, const StdString& id, xml::CXMLNode* node);
       static bool _dummyRegistered;
   }; // class CReduceDomainToScalar
 

@@ -11,7 +11,6 @@ namespace xios
     : CInputPin(gc, 1)
     , gc_(gc), graphEnabled(false)
   {
-    context_ = CContext::getCurrent() ;
     grid_ = field->getGrid() ;
 
     detectMissingValues_ = (!field->detect_missing_value.isEmpty() && !field->default_value.isEmpty() && field->detect_missing_value == true);
@@ -127,7 +126,7 @@ namespace xios
     if(this->graphEnabled)
     {
       this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
-      CWorkflowGraph::addNode("Client to Model Store filter", 5, true, 1, packet);
+      CWorkflowGraph::addNode(getContext(), "Client to Model Store filter", 5, true, 1, packet);
     }
 
 

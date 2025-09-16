@@ -95,6 +95,7 @@ extern "C"
      CTimer::get("XIOS init context").resume();
      comm=MPI_Comm_f2c(*f_comm);
      CClient::registerContext(str, comm);
+     CContext::setCurrent(str) ;
      CTimer::get("XIOS init context").suspend();
      CTimer::get("XIOS").suspend();
    }
@@ -450,7 +451,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k80_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+      cxios_write_data_k80_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize) ;
    }
    CATCH_DUMP_STACK
 
@@ -482,7 +483,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k81_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+      cxios_write_data_k81_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize) ;
     
    }
    CATCH_DUMP_STACK
@@ -514,7 +515,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k82_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize) ;
+      cxios_write_data_k82_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize, data_Ysize) ;
    }
    CATCH_DUMP_STACK
 
@@ -548,7 +549,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k83_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize, data_Zsize) ;
+      cxios_write_data_k83_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize, data_Ysize, data_Zsize) ;
 
 
    }
@@ -587,7 +588,7 @@ extern "C"
 
       CTimer::get("XIOS").resume();
       CTimer::get("XIOS send field").resume();
-      cxios_write_data_k84_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size) ;
+      cxios_write_data_k84_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size) ;
    }
    CATCH_DUMP_STACK
 
@@ -624,7 +625,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k85_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size) ;
+      cxios_write_data_k85_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size) ;
 
    }
    CATCH_DUMP_STACK
@@ -661,7 +662,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k86_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
+      cxios_write_data_k86_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
 
   }
    CATCH_DUMP_STACK
@@ -700,7 +701,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k87_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
+      cxios_write_data_k87_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
    }
    CATCH_DUMP_STACK
    
@@ -733,7 +734,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k40_hdl(CField::get(fieldid_str), data_k4, data_Xsize);
+      cxios_write_data_k40_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_Xsize);
 
    }
    CATCH_DUMP_STACK
@@ -766,7 +767,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k41_hdl(CField::get(fieldid_str), data_k4, data_Xsize);
+      cxios_write_data_k41_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_Xsize);
    }
    CATCH_DUMP_STACK
 
@@ -798,7 +799,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k42_hdl(CField::get(fieldid_str), data_k4, data_Xsize,data_Ysize);
+      cxios_write_data_k42_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_Xsize,data_Ysize);
    }
    CATCH_DUMP_STACK
 
@@ -832,7 +833,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k43_hdl(CField::get(fieldid_str), data_k4, data_Xsize,data_Ysize, data_Zsize);
+      cxios_write_data_k43_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_Xsize,data_Ysize, data_Zsize);
     }
    CATCH_DUMP_STACK
    
@@ -869,7 +870,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k44_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size) ;
+      cxios_write_data_k44_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size) ;
     }
    CATCH_DUMP_STACK
 
@@ -907,7 +908,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k45_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size) ;
+      cxios_write_data_k45_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size) ;
     }
    CATCH_DUMP_STACK
 
@@ -944,7 +945,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k46_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
+      cxios_write_data_k46_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
     }
    CATCH_DUMP_STACK
 
@@ -982,7 +983,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_write_data_k47_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
+      cxios_write_data_k47_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
     }
    CATCH_DUMP_STACK
 
@@ -1014,7 +1015,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k80_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+      cxios_read_data_k80_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize) ;
    }
    CATCH_DUMP_STACK
    
@@ -1044,7 +1045,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k81_hdl(CField::get(fieldid_str), data_k8, data_Xsize) ;
+      cxios_read_data_k81_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize) ;
    }
    CATCH_DUMP_STACK
 
@@ -1073,7 +1074,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k82_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize) ;
+      cxios_read_data_k82_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize, data_Ysize) ;
    }
    CATCH_DUMP_STACK
 
@@ -1104,7 +1105,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k83_hdl(CField::get(fieldid_str), data_k8, data_Xsize, data_Ysize, data_Zsize) ;
+      cxios_read_data_k83_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_Xsize, data_Ysize, data_Zsize) ;
    }
    CATCH_DUMP_STACK
 
@@ -1137,7 +1138,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k84_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size) ;
+      cxios_read_data_k84_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size) ;
    }
    CATCH_DUMP_STACK
 
@@ -1170,7 +1171,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k85_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size) ;
+      cxios_read_data_k85_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size) ;
    }
    CATCH_DUMP_STACK
 
@@ -1203,7 +1204,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k86_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
+      cxios_read_data_k86_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
    }
    CATCH_DUMP_STACK
 
@@ -1238,7 +1239,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k87_hdl(CField::get(fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
+      cxios_read_data_k87_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k8, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
    }
    CATCH_DUMP_STACK
 
@@ -1274,7 +1275,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k40_hdl(CField::get(fieldid_str), data_k4, data_Xsize) ;
+      cxios_read_data_k40_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_Xsize) ;
    }
    CATCH_DUMP_STACK
 
@@ -1307,7 +1308,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k41_hdl(CField::get(fieldid_str), data_k4, data_Xsize) ;
+      cxios_read_data_k41_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_Xsize) ;
    }
    CATCH_DUMP_STACK
 
@@ -1341,7 +1342,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k42_hdl(CField::get(fieldid_str), data_k4, data_Xsize, data_Ysize) ;
+      cxios_read_data_k42_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_Xsize, data_Ysize) ;
    }
    CATCH_DUMP_STACK
 
@@ -1374,7 +1375,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k43_hdl(CField::get(fieldid_str), data_k4,data_Xsize, data_Ysize, data_Zsize) ;
+      cxios_read_data_k43_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4,data_Xsize, data_Ysize, data_Zsize) ;
     }
    CATCH_DUMP_STACK
 
@@ -1410,7 +1411,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k44_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size) ;
+      cxios_read_data_k44_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size) ;
     }
    CATCH_DUMP_STACK
 
@@ -1447,7 +1448,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k45_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size) ;
+      cxios_read_data_k45_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size) ;
     }
    CATCH_DUMP_STACK
 
@@ -1483,7 +1484,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k46_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
+      cxios_read_data_k46_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size) ;
     }
    CATCH_DUMP_STACK
 
@@ -1522,7 +1523,7 @@ extern "C"
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      cxios_read_data_k47_hdl(CField::get(fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
+      cxios_read_data_k47_hdl(CField::get(CContext::getCurrent(), fieldid_str), data_k4, data_0size, data_1size, data_2size, data_3size, data_4size, data_5size, data_6size) ;
     }
    CATCH_DUMP_STACK
 } // extern "C"

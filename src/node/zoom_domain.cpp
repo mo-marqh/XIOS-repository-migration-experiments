@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CZoomDomain::CZoomDomain(void)
-    : CObjectTemplate<CZoomDomain>(), CZoomDomainAttributes(), CTransformation<CDomain>()
+  CZoomDomain::CZoomDomain(CContext* context)
+    : CObjectTemplate<CZoomDomain>(context), CZoomDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CZoomDomain::CZoomDomain(const StdString & id)
-    : CObjectTemplate<CZoomDomain>(id), CZoomDomainAttributes(), CTransformation<CDomain>()
+  CZoomDomain::CZoomDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CZoomDomain>(context, id), CZoomDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CZoomDomain::~CZoomDomain(void)
   {}
 
-  CTransformation<CDomain>* CZoomDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CZoomDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CZoomDomain* zoomDomain = CZoomDomainGroup::get("zoom_domain_definition")->createChild(id);
+    CZoomDomain* zoomDomain = CZoomDomainGroup::get(context, "zoom_domain_definition")->createChild(id);
     if (node) zoomDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(zoomDomain);
   }

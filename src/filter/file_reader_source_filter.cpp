@@ -27,7 +27,7 @@ namespace xios
     if (info.isActive(logProfile)) CTimer::get("Reader workflow data entry").resume();
     Time timeStamp ;
     CDataPacketPtr packet(new CDataPacket);
-    packet->date = CContext::getCurrent()->getCalendar()->getCurrentDate();
+    packet->date = getContext()->getCalendar()->getCurrentDate();
     packet->timestamp = timeStamp;
     packet->status = CDataPacket::NO_ERROR;
 
@@ -50,7 +50,7 @@ namespace xios
     if(this->graphEnabled)
     {
       this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
-      CWorkflowGraph::addNode("File Reader Source filter", 1, false, 0, packet);
+      CWorkflowGraph::addNode(getContext(), "File Reader Source filter", 1, false, 0, packet);
     }
     if (info.isActive(logProfile)) CTimer::get("Reader workflow data entry").suspend();
            
@@ -59,7 +59,7 @@ namespace xios
 
   void CFileReaderSourceFilter::initialize()
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = getContext();
     file_->initRead();
     if (!file_->isEmptyZone())
     {      

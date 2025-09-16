@@ -16,6 +16,7 @@
 #include "timer.hpp"
 #include "extract_axis.hpp"
 #include "extract_domain.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -34,7 +35,7 @@ extern "C"
       cout << "WARNING : you are using the zoom_axis interface. zoom_domain is deprecated, replace it with extract_axis." << endl;
       cout << "\t Calls to xios_set/get_zoom_axis_attr must be replaced with xios_set/get_extract_axis_attr in your model." << endl;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CExtractAxis::get(id);
+      *_ret = xios::CExtractAxis::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -49,7 +50,7 @@ extern "C"
       cout << "\t Calls to xios_set/get_zoom_axis_attr must be replaced with xios_set/get_extract_axis_attr in your model." << endl;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CExtractAxis::has(id);
+      *_ret = xios::CExtractAxis::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -63,7 +64,7 @@ extern "C"
       cout << "WARNING : you are using the zoom_domain interface. zoom_domain is deprecated, replace it with extract_domain." << endl;
       cout << "\t Calls to xios_set/get_zoom_domain_attr must be replaced with xios_set/get_extract_domain_attr in your model." << endl;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CExtractDomain::get(id);
+      *_ret = xios::CExtractDomain::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -77,7 +78,7 @@ extern "C"
       cout << "WARNING : you are using the zoom_domain interface. zoom_domain is deprecated, replace it with extract_domain." << endl;
       cout << "\t Calls to xios_set/get_zoom_domain_attr must be replaced with xios_set/get_extract_domain_attr in your model." << endl;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CExtractDomain::has(id);
+      *_ret = xios::CExtractDomain::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

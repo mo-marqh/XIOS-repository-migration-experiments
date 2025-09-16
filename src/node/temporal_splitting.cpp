@@ -9,20 +9,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CTemporalSplitting::CTemporalSplitting(void)
-    : CObjectTemplate<CTemporalSplitting>(), CTemporalSplittingAttributes(), CTransformation<CAxis>()
+  CTemporalSplitting::CTemporalSplitting(CContext* context)
+    : CObjectTemplate<CTemporalSplitting>(context), CTemporalSplittingAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CTemporalSplitting::CTemporalSplitting(const StdString & id)
-    : CObjectTemplate<CTemporalSplitting>(id), CTemporalSplittingAttributes(), CTransformation<CAxis>()
+  CTemporalSplitting::CTemporalSplitting(CContext* context, const StdString & id)
+    : CObjectTemplate<CTemporalSplitting>(context, id), CTemporalSplittingAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CTemporalSplitting::~CTemporalSplitting(void)
   {}
 
-  CTransformation<CAxis>* CTemporalSplitting::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CTemporalSplitting::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CTemporalSplitting* temporalSplitting = CTemporalSplittingGroup::get("temporal_splitting_definition")->createChild(id);
+    CTemporalSplitting* temporalSplitting = CTemporalSplittingGroup::get(context, "temporal_splitting_definition")->createChild(id);
     if (node) temporalSplitting->parse(*node);
     return static_cast<CTransformation<CAxis>*>(temporalSplitting);
   }

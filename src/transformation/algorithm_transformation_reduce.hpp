@@ -10,11 +10,12 @@
 namespace xios
 {
 
+  class CContext ;
   class CAlgorithmTransformationReduce : public CGenericAlgorithmTransformation
   {
     public:
 
-      CAlgorithmTransformationReduce(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
+      CAlgorithmTransformationReduce(CContext* context, bool isSource) : CGenericAlgorithmTransformation(context, isSource) {}
       virtual ~CAlgorithmTransformationReduce() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
       virtual void computeRecvElement(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;

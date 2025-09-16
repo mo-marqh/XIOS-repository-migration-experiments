@@ -53,14 +53,14 @@ namespace xios
       if(graphCycleCompleted)
       {  
         this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
-        CWorkflowGraph::addNode("Temporal filter \\n("+getTemporalOperation()+")", 3, false, 0, data[0]);
+        CWorkflowGraph::addNode(getContext(), "Temporal filter \\n("+getTemporalOperation()+")", 3, false, 0, data[0]);
         graphCycleCompleted = false;
       }
       
       data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
       std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
       
-      CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
+      CWorkflowGraph::addEdge(getContext(), data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
       data[0]->graphPackage->fromFilter = this->graphPackage->filterId;
       // this->graphPackage->sourceFilterIds.push_back(data[0]->graphPackage->fromFilter); 
       data[0]->graphPackage->currentField = this->graphPackage->inFields[0];

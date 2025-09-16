@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CReduceAxisToScalar::CReduceAxisToScalar(void)
-    : CObjectTemplate<CReduceAxisToScalar>(), CReduceAxisToScalarAttributes(), CTransformation<CScalar>()
+  CReduceAxisToScalar::CReduceAxisToScalar(CContext* context)
+    : CObjectTemplate<CReduceAxisToScalar>(context), CReduceAxisToScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
-  CReduceAxisToScalar::CReduceAxisToScalar(const StdString & id)
-    : CObjectTemplate<CReduceAxisToScalar>(id), CReduceAxisToScalarAttributes(), CTransformation<CScalar>()
+  CReduceAxisToScalar::CReduceAxisToScalar(CContext* context, const StdString & id)
+    : CObjectTemplate<CReduceAxisToScalar>(context, id), CReduceAxisToScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
   CReduceAxisToScalar::~CReduceAxisToScalar(void)
   {}
 
-  CTransformation<CScalar>* CReduceAxisToScalar::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CScalar>* CReduceAxisToScalar::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CReduceAxisToScalar* reduceAxis = CReduceAxisToScalarGroup::get("reduce_axis_to_scalar_definition")->createChild(id);
+    CReduceAxisToScalar* reduceAxis = CReduceAxisToScalarGroup::get(context, "reduce_axis_to_scalar_definition")->createChild(id);
     if (node) reduceAxis->parse(*node);
     return static_cast<CTransformation<CScalar>*>(reduceAxis);
   }

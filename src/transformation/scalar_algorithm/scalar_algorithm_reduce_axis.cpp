@@ -48,7 +48,7 @@ TRY
 CATCH
 
 CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(bool isSource, CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
- : CAlgorithmTransformationReduce(isSource)
+ : CAlgorithmTransformationReduce(algo->getContext(), isSource)
 TRY
 {
   if (algo->operation.isEmpty())

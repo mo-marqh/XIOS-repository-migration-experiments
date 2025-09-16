@@ -20,6 +20,7 @@ namespace xios {
    class CFileGroup;
    class CFileAttributes;
    class CFile;
+   class CContext ;
 
    class CGarbageCollector;
 
@@ -61,8 +62,8 @@ namespace xios {
          typedef CFileGroup      RelGroup;
 
          /// Constructeurs ///
-         CFile(void);
-         explicit CFile(const StdString& id);
+         CFile(CContext* context);
+         explicit CFile(CContext* context, const StdString& id);
          CFile(const CFile& file);       // Not implemented yet.
          CFile(const CFile* const file); // Not implemented yet.
 
@@ -151,17 +152,17 @@ namespace xios {
 
       public:
          // Receive info from client
-         static void recvAddField(CEventServer& event);
+         static void recvAddField(CContext* context, CEventServer& event);
          void recvAddField(CBufferIn& buffer);
-         static void recvAddFieldGroup(CEventServer& event);
+         static void recvAddFieldGroup(CContext* context, CEventServer& event);
          void recvAddFieldGroup(CBufferIn& buffer);
-         static void recvAddVariable(CEventServer& event);
+         static void recvAddVariable(CContext* context, CEventServer& event);
          void recvAddVariable(CBufferIn& buffer);
-         static void recvAddVariableGroup(CEventServer& event);
+         static void recvAddVariableGroup(CContext* context, CEventServer& event);
          void recvAddVariableGroup(CBufferIn& buffer);
 
          // Dispatch event
-         static bool dispatchEvent(CEventServer& event);
+         static bool dispatchEvent(CContext* context, CEventServer& event);
 
       public:
          /// Accesseurs statiques ///

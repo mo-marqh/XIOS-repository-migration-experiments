@@ -14,6 +14,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "duplicate_scalar_to_axis.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -30,7 +31,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CDuplicateScalarToAxis::get(id);
+      *_ret = xios::CDuplicateScalarToAxis::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -43,7 +44,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CDuplicateScalarToAxis::has(id);
+      *_ret = xios::CDuplicateScalarToAxis::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CGenerateRectilinearDomain::CGenerateRectilinearDomain(void)
-    : CObjectTemplate<CGenerateRectilinearDomain>(), CGenerateRectilinearDomainAttributes(), CTransformation<CDomain>()
+  CGenerateRectilinearDomain::CGenerateRectilinearDomain(CContext* context)
+    : CObjectTemplate<CGenerateRectilinearDomain>(context), CGenerateRectilinearDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CGenerateRectilinearDomain::CGenerateRectilinearDomain(const StdString & id)
-    : CObjectTemplate<CGenerateRectilinearDomain>(id), CGenerateRectilinearDomainAttributes(), CTransformation<CDomain>()
+  CGenerateRectilinearDomain::CGenerateRectilinearDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CGenerateRectilinearDomain>(context, id), CGenerateRectilinearDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CGenerateRectilinearDomain::~CGenerateRectilinearDomain(void)
   {}
 
-  CTransformation<CDomain>* CGenerateRectilinearDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CGenerateRectilinearDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CGenerateRectilinearDomain* genDomain = CGenerateRectilinearDomainGroup::get("generate_rectilinear_domain_definition")->createChild(id);
+    CGenerateRectilinearDomain* genDomain = CGenerateRectilinearDomainGroup::get(context, "generate_rectilinear_domain_definition")->createChild(id);
     if (node) genDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(genDomain);
   }

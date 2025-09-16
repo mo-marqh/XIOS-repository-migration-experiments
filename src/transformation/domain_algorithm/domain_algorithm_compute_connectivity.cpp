@@ -47,7 +47,7 @@ CATCH
 
 CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(bool isSource, CDomain* domainDestination, CDomain* domainSource,
                                                                          CComputeConnectivityDomain* compute_connectivityDomain)
-: CAlgorithmTransformationNoDataModification(isSource)
+: CAlgorithmTransformationNoDataModification(compute_connectivityDomain->getContext(), isSource)
 TRY
 {
   compute_connectivityDomain->checkValid(domainDestination);

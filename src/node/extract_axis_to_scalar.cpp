@@ -9,20 +9,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CExtractAxisToScalar::CExtractAxisToScalar(void)
-    : CObjectTemplate<CExtractAxisToScalar>(), CExtractAxisToScalarAttributes(), CTransformation<CScalar>()
+  CExtractAxisToScalar::CExtractAxisToScalar(CContext* context)
+    : CObjectTemplate<CExtractAxisToScalar>(context), CExtractAxisToScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
-  CExtractAxisToScalar::CExtractAxisToScalar(const StdString & id)
-    : CObjectTemplate<CExtractAxisToScalar>(id), CExtractAxisToScalarAttributes(), CTransformation<CScalar>()
+  CExtractAxisToScalar::CExtractAxisToScalar(CContext* context, const StdString & id)
+    : CObjectTemplate<CExtractAxisToScalar>(context, id), CExtractAxisToScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
   CExtractAxisToScalar::~CExtractAxisToScalar(void)
   {}
 
-  CTransformation<CScalar>* CExtractAxisToScalar::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CScalar>* CExtractAxisToScalar::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CExtractAxisToScalar* extractAxis = CExtractAxisToScalarGroup::get("extract_axis_to_scalar_definition")->createChild(id);
+    CExtractAxisToScalar* extractAxis = CExtractAxisToScalarGroup::get(context, "extract_axis_to_scalar_definition")->createChild(id);
     if (node) extractAxis->parse(*node);
     return static_cast<CTransformation<CScalar>*>(extractAxis);
   }

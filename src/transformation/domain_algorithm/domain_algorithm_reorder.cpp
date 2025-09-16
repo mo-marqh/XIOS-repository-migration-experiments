@@ -40,7 +40,7 @@ TRY
 CATCH
 
 CDomainAlgorithmReorder::CDomainAlgorithmReorder(bool isSource, CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain)
-: CAlgorithmTransformationNoDataModification(isSource)
+: CAlgorithmTransformationNoDataModification(reorderDomain->getContext(), isSource)
 TRY
 {
    // Reset geometrical attributes to avoid incompatible (user/domainSource) attributs

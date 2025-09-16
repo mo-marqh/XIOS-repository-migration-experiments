@@ -3,6 +3,7 @@
 
 #include "garbage_collector.hpp"
 #include "input_pin.hpp"
+#include "pin.hpp"
 #include "graph_package.hpp"
 
 namespace xios
@@ -10,7 +11,7 @@ namespace xios
   /*!
    * An output pin handles the connections with downstream filters.
    */
-  class COutputPin : public InvalidableObject
+  class COutputPin : public InvalidableObject, public CPin
   {
     public:
       /*!

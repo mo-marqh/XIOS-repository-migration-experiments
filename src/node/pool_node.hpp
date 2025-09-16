@@ -19,6 +19,7 @@ namespace xios
   class CPoolNodeGroup;
   class CPoolNodeAttributes;
   class CPoolNode;
+  class CContext ;
   ///--------------------------------------------------------------
 
   // Declare/Define CVarAttribute
@@ -43,8 +44,8 @@ namespace xios
       typedef CPoolNodeGroup      RelGroup;
 
       /// Constructeurs ///
-      CPoolNode(void) ;
-      explicit CPoolNode(const StdString & id);
+      CPoolNode(CContext* context) ;
+      explicit CPoolNode(CContext* context, const StdString & id);
       CPoolNode(const CPoolNode & var);       // Not implemented yet.
       CPoolNode(const CPoolNode * const var); // Not implemented yet.
     

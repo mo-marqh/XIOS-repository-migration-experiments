@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CExtractDomain::CExtractDomain(void)
-    : CObjectTemplate<CExtractDomain>(), CExtractDomainAttributes(), CTransformation<CDomain>()
+  CExtractDomain::CExtractDomain(CContext* context)
+    : CObjectTemplate<CExtractDomain>(context), CExtractDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CExtractDomain::CExtractDomain(const StdString & id)
-    : CObjectTemplate<CExtractDomain>(id), CExtractDomainAttributes(), CTransformation<CDomain>()
+  CExtractDomain::CExtractDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CExtractDomain>(context, id), CExtractDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CExtractDomain::~CExtractDomain(void)
   {}
 
-  CTransformation<CDomain>* CExtractDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CExtractDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CExtractDomain* extractDomain = CExtractDomainGroup::get("extract_domain_definition")->createChild(id);
+    CExtractDomain* extractDomain = CExtractDomainGroup::get(context, "extract_domain_definition")->createChild(id);
     if (node) extractDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(extractDomain);
   }

@@ -31,10 +31,11 @@ namespace xios
   \class CGenericAlgorithmTransformation
   This class defines the interface for all other inherited algorithms class
   */
+class CContext ;
 class CGenericAlgorithmTransformation : public std::enable_shared_from_this<CGenericAlgorithmTransformation>
 {
   public : 
-    CGenericAlgorithmTransformation(bool isSource) ;
+    CGenericAlgorithmTransformation(CContext* context, bool isSource) ;
     virtual shared_ptr<CGridAlgorithm> createGridAlgorithm(CGrid* gridSrc, CGrid* newGrid, int pos) ;
     virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, shared_ptr<CGridAlgorithm> algo, bool detectMissingValues, double defaultValue) ;
     virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut) { abort() ;} //=0
@@ -52,6 +53,9 @@ class CGenericAlgorithmTransformation : public std::enable_shared_from_this<CGen
 
   public:
     shared_ptr<CLocalElement> getRecvElement(void) { return recvElement_ ;}
+    CContext* getContext(void) {return context_ ;}
+  private:
+    CContext* context_ ;
   
 };
 

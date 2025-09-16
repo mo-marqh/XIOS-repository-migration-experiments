@@ -14,6 +14,7 @@
 #include "timer.hpp"
 #include "interpolate_domain.hpp"
 #include "interpolate_axis.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -31,7 +32,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CInterpolateDomain::get(id);
+      *_ret = xios::CInterpolateDomain::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -44,7 +45,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CInterpolateDomain::has(id);
+      *_ret = xios::CInterpolateDomain::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -56,7 +57,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CInterpolateAxis::get(id);
+      *_ret = xios::CInterpolateAxis::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -69,7 +70,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CInterpolateAxis::has(id);
+      *_ret = xios::CInterpolateAxis::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

@@ -10,6 +10,7 @@ namespace xios
    * Interface implemented by all the nodes of a tree representing an expression
    * which can be reduced to a scalar value.
    */
+  class CContext ;
   struct IScalarExprNode 
   {
     /*!
@@ -17,7 +18,7 @@ namespace xios
      *
      * \return the output pin of the filter producing the result of the expression 
      */
-    virtual double reduce() const = 0;
+    virtual double reduce(CContext* context) const = 0;
     virtual ~IScalarExprNode() {};
   };
 
@@ -34,7 +35,7 @@ namespace xios
        */
       CScalarValExprNode(const std::string& strVal);
 
-      double reduce() const;
+      double reduce(CContext* context) const;
 
     private:
       std::string strVal; //!< The string representation of the scalar value
@@ -54,7 +55,7 @@ namespace xios
        */
       CScalarVarExprNode(const std::string& varId);
 
-      double reduce() const;
+      double reduce(CContext* context) const;
 
     private:
       std::string varId; //!< The identifier of the field
@@ -77,7 +78,7 @@ namespace xios
        */
       CScalarUnaryOpExprNode(const std::string& opId, IScalarExprNode* child);
 
-      double reduce() const;
+      double reduce(CContext* context) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -101,7 +102,7 @@ namespace xios
        */
       CScalarBinaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2);
 
-      double reduce() const;
+      double reduce(CContext* context) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -122,7 +123,7 @@ namespace xios
        */
       CScalarTernaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2, IScalarExprNode* child3);
 
-      double reduce() const;
+      double reduce(CContext* context) const;
 
     private:
       std::string opId; //!< The identifier of the field

@@ -21,6 +21,7 @@ namespace xios {
   class CScalar;
   class CGenericAlgorithmTransformation ;
   class CGrid;
+  class CContext ;
 
   ///--------------------------------------------------------------
 
@@ -47,8 +48,8 @@ namespace xios {
 
     public :
       /// Constructeurs ///
-      CDuplicateScalarToAxis(void);
-      explicit CDuplicateScalarToAxis(const StdString& id);
+      CDuplicateScalarToAxis(CContext* context);
+      explicit CDuplicateScalarToAxis(CContext* context, const StdString& id);
 
       /// Destructeur ///
       virtual ~CDuplicateScalarToAxis(void);
@@ -61,8 +62,8 @@ namespace xios {
       static ENodeType GetType(void);
       const string& getId(void) { return this->SuperClass::getId();}
       ETranformationType getTransformationType(void) { return TRANS_DUPLICATE_SCALAR_TO_AXIS ;}
-      static CTransformation<CAxis>* getTransformation(const StdString& id) { return SuperClass::get(id);}
-      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
+      static CTransformation<CAxis>* getTransformation(CContext* context, const StdString& id) { return SuperClass::get(context, id);}
+      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get(context_, (MyClass*)srcTransform)) ;}
       virtual shared_ptr<CGenericAlgorithmTransformation> createAlgorithm(bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                int elementPositionInGrid,
@@ -74,7 +75,7 @@ namespace xios {
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition)  ;
     private:
       static bool registerTrans();
-      static CTransformation<CAxis>* create(const StdString& id, xml::CXMLNode* node);
+      static CTransformation<CAxis>* create(CContext* context, const StdString& id, xml::CXMLNode* node);
       static bool _dummyRegistered;
   }; // class CReduceAxisToAxis
 

@@ -24,13 +24,15 @@ namespace xios
   /*!
    * A basic garbage collector which ensures no old packets linger in the filter graph.
    */
+  class CContext ;
+  
   class CGarbageCollector
   {
     public:
       /*!
        * Constructs a garbage collector.
        */
-      CGarbageCollector()
+      CGarbageCollector(CContext* context) : context_(context)
       { /* Nothing to do */ };
 
       /*!
@@ -55,10 +57,11 @@ namespace xios
        * \param timestamp the timestamp used for invalidation
        */
       void invalidate(Time timestamp);
-
+      CContext* getContext(void) { return context_; }
     private:
       CGarbageCollector(const CGarbageCollector&);
       CGarbageCollector& operator=(const CGarbageCollector&);
+      CContext* context_ ;
 
       std::map<Time, std::set<InvalidableObject*> > registeredObjects; //!< Currently registered objects
   }; // class CGarbageCollector

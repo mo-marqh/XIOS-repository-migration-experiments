@@ -43,11 +43,11 @@ namespace xios
   CATCH
 
   CScalarAlgorithmRedistribute::CScalarAlgorithmRedistribute(bool isSource, CScalar* scalarDestination, CScalar* scalarSource, CRedistributeScalar* redistributeScalar)
-  : CAlgorithmTransformationTransfer(isSource)
+  : CAlgorithmTransformationTransfer(redistributeScalar->getContext(), isSource)
   TRY
   {
 
-    CContext* context = CContext::getCurrent(); 
+    CContext* context = getContext(); 
 
     scalarDestination->n.reset();
     scalarDestination->mask.reset();

@@ -74,7 +74,7 @@ namespace xios
   }
 
   CAxisAlgorithmInterpolateCoordinate::CAxisAlgorithmInterpolateCoordinate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
-  : CAlgorithmTransformationTransfer(isSource), axisSrc_(axisSource), axisDest_(axisDestination)
+  : CAlgorithmTransformationTransfer(interpAxis->getContext(), isSource), axisSrc_(axisSource), axisDest_(axisDestination)
   TRY 
   {
     interpAxis->checkValid(axisSource);
@@ -126,7 +126,7 @@ namespace xios
     }
     
 
-    shared_ptr<CLocalElement> axisSourceGlo = make_shared<CLocalElement>(CContext::getCurrent()->getIntraCommRank(), ngloSrc_, globalIndex) ;
+    shared_ptr<CLocalElement> axisSourceGlo = make_shared<CLocalElement>(getContext()->getIntraCommRank(), ngloSrc_, globalIndex) ;
     axisSourceGlo->addFullView() ; 
 
     this->computeAlgorithm(axisSource->getLocalView(CElementView::WORKFLOW), axisSourceGlo->getView(CElementView::FULL)) ;

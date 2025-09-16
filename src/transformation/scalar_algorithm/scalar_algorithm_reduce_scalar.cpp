@@ -45,7 +45,7 @@ TRY
 CATCH
 
 CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(bool isSource, CScalar* scalarDestination, CScalar* scalarSource, CReduceScalarToScalar* algo)
- : CAlgorithmTransformationReduce(isSource)
+ : CAlgorithmTransformationReduce(algo->getContext(), isSource)
 TRY
 {
   scalarDestination->checkAttributes() ;

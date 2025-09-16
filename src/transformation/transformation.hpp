@@ -15,6 +15,7 @@ namespace xios {
   */
   class CGenericAlgorithmTransformation;
    class CGrid;
+   class CContext;
 
   template<typename T>
   class CTransformation
@@ -29,8 +30,8 @@ namespace xios {
       virtual void checkValid(T* dest) {}
 
       std::vector<StdString> checkAuxInputs() { return checkAuxInputs_(); }
-      static CTransformation<T>* createTransformation(ETranformationType transType, const StdString& id, xml::CXMLNode* node=0);
-      static CTransformation<T>* getTransformation(ETranformationType transType, const StdString& id);
+      static CTransformation<T>* createTransformation(ETranformationType transType, CContext* context, const StdString& id, xml::CXMLNode* node=0);
+      static CTransformation<T>* getTransformation(ETranformationType transType, CContext* context, const StdString& id);
 
       virtual const string& getId(void) = 0 ;
       virtual ETranformationType getTransformationType(void)=0;
@@ -54,8 +55,8 @@ namespace xios {
       virtual ~CTransformation(void) {}
       static void unregisterAllTransformations();
     protected:
-      typedef CTransformation<T>* (*createTransformationCallBack)(const StdString&, xml::CXMLNode*);
-      typedef CTransformation<T>* (*getIdTransformationCallBack)(const StdString&);
+      typedef CTransformation<T>* (*createTransformationCallBack)(CContext* context, const StdString&, xml::CXMLNode*);
+      typedef CTransformation<T>* (*getIdTransformationCallBack)(CContext* context, const StdString&);
       typedef std::map<ETranformationType, tuple<createTransformationCallBack,getIdTransformationCallBack>> callBackMap;
       static callBackMap* callBacks_;
 
@@ -73,7 +74,7 @@ namespace xios {
   typename CTransformation<T>::callBackMap* CTransformation<T>::callBacks_ = 0; //CTransformation<T>::CallBackMap();
 
   template<typename T>
-  CTransformation<T>* CTransformation<T>::createTransformation(ETranformationType transType, const StdString& id, xml::CXMLNode* node)
+  CTransformation<T>* CTransformation<T>::createTransformation(ETranformationType transType, CContext* context, const StdString& id, xml::CXMLNode* node)
   {
     int transTypeInt = transType;
     typename callBackMap::const_iterator it = (*callBacks_).find(transType);
@@ -83,11 +84,11 @@ namespace xios {
              << "Transformation type " << transType
              << "doesn't exist. Please define.");
     }
-    return (get<0>(it->second))(id,node);
+    return (get<0>(it->second))(context ,id, node);
   }
 
   template<typename T>
-  CTransformation<T>* CTransformation<T>::getTransformation(ETranformationType transType, const StdString& id)
+  CTransformation<T>* CTransformation<T>::getTransformation(ETranformationType transType, CContext* context, const StdString& id)
   {
     int transTypeInt = transType;
     typename callBackMap::const_iterator it = (*callBacks_).find(transType);
@@ -97,7 +98,7 @@ namespace xios {
              << "Transformation type " << transType
              << "doesn't exist. Please define.");
     }
-    return (get<1>(it->second))(id);
+    return (get<1>(it->second))(context, id);
   }
 
   template<typename T>

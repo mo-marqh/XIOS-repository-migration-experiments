@@ -266,7 +266,6 @@ namespace xios
     int rank;
     list<CEventServer::SSubEvent>::iterator it;
     StdString ctxId = context_->getId();
-    CContext::setCurrent(ctxId);
     StdSize totalBuf = 0;
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
@@ -290,26 +289,26 @@ namespace xios
       report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
       CTimer::get("Context finalize").suspend();
     }
-    else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
-    else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);
-    else if (event.classId==CCalendarWrapper::GetType()) CCalendarWrapper::dispatchEvent(event);
-    else if (event.classId==CDomain::GetType()) CDomain::dispatchEvent(event);
-    else if (event.classId==CDomainGroup::GetType()) CDomainGroup::dispatchEvent(event);
-    else if (event.classId==CAxis::GetType()) CAxis::dispatchEvent(event);
-    else if (event.classId==CAxisGroup::GetType()) CAxisGroup::dispatchEvent(event);
-    else if (event.classId==CScalar::GetType()) CScalar::dispatchEvent(event);
-    else if (event.classId==CScalarGroup::GetType()) CScalarGroup::dispatchEvent(event);
-    else if (event.classId==CGrid::GetType()) CGrid::dispatchEvent(event);
-    else if (event.classId==CGridGroup::GetType()) CGridGroup::dispatchEvent(event);
+    else if (event.classId==CContext::GetType()) CContext::dispatchEvent(context_, event);
+    else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(context_, event);
+    else if (event.classId==CCalendarWrapper::GetType()) CCalendarWrapper::dispatchEvent(context_, event);
+    else if (event.classId==CDomain::GetType()) CDomain::dispatchEvent(context_, event);
+    else if (event.classId==CDomainGroup::GetType()) CDomainGroup::dispatchEvent(context_, event);
+    else if (event.classId==CAxis::GetType()) CAxis::dispatchEvent(context_, event);
+    else if (event.classId==CAxisGroup::GetType()) CAxisGroup::dispatchEvent(context_, event);
+    else if (event.classId==CScalar::GetType()) CScalar::dispatchEvent(context_, event);
+    else if (event.classId==CScalarGroup::GetType()) CScalarGroup::dispatchEvent(context_, event);
+    else if (event.classId==CGrid::GetType()) CGrid::dispatchEvent(context_, event);
+    else if (event.classId==CGridGroup::GetType()) CGridGroup::dispatchEvent(context_, event);
     else if (event.classId==CField::GetType()) 
     {
-      if (event.type==CField::EVENT_ID_UPDATE_DATA) CField::dispatchEvent(event);
-      else CField::dispatchEvent(event);
+      if (event.type==CField::EVENT_ID_UPDATE_DATA) CField::dispatchEvent(context_, event);
+      else CField::dispatchEvent(context_, event);
     }
-    else if (event.classId==CFieldGroup::GetType()) CFieldGroup::dispatchEvent(event);
-    else if (event.classId==CFile::GetType()) CFile::dispatchEvent(event);
-    else if (event.classId==CFileGroup::GetType()) CFileGroup::dispatchEvent(event);
-    else if (event.classId==CVariable::GetType()) CVariable::dispatchEvent(event);
+    else if (event.classId==CFieldGroup::GetType()) CFieldGroup::dispatchEvent(context_, event);
+    else if (event.classId==CFile::GetType()) CFile::dispatchEvent(context_, event);
+    else if (event.classId==CFileGroup::GetType()) CFileGroup::dispatchEvent(context_, event);
+    else if (event.classId==CVariable::GetType()) CVariable::dispatchEvent(context_, event);
     else
     {
       ERROR("void CP2pContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl);

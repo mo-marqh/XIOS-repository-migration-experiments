@@ -8,12 +8,12 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CCalendarWrapper::CCalendarWrapper(void)
-    : CObjectTemplate<CCalendarWrapper>(), CCalendarWrapperAttributes()
+  CCalendarWrapper::CCalendarWrapper(CContext* context)
+    : CObjectTemplate<CCalendarWrapper>(context), CCalendarWrapperAttributes()
   { /* Ne rien faire de plus */ }
 
-  CCalendarWrapper::CCalendarWrapper(const StdString & id)
-    : CObjectTemplate<CCalendarWrapper>(id), CCalendarWrapperAttributes()
+  CCalendarWrapper::CCalendarWrapper(CContext* context, const StdString & id)
+    : CObjectTemplate<CCalendarWrapper>(context, id), CCalendarWrapperAttributes()
   { /* Ne rien faire de plus */ }
 
   CCalendarWrapper::~CCalendarWrapper(void)
@@ -156,7 +156,7 @@ namespace xios {
         calendar->setTimeOrigin(CDate::FromString(time_origin.getValue(), *calendar));
 
       // Notify the context about the calendar
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       if (!context)
         ERROR("CCalendarWrapper::createCalendar(void)", << "Impossible to set the calendar: no current context available.");
       context->setCalendar(calendar);

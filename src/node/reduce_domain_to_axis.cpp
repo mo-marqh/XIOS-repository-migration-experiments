@@ -8,20 +8,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CReduceDomainToAxis::CReduceDomainToAxis(void)
-    : CObjectTemplate<CReduceDomainToAxis>(), CReduceDomainToAxisAttributes(), CTransformation<CAxis>()
+  CReduceDomainToAxis::CReduceDomainToAxis(CContext* context)
+    : CObjectTemplate<CReduceDomainToAxis>(context), CReduceDomainToAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CReduceDomainToAxis::CReduceDomainToAxis(const StdString & id)
-    : CObjectTemplate<CReduceDomainToAxis>(id), CReduceDomainToAxisAttributes(), CTransformation<CAxis>()
+  CReduceDomainToAxis::CReduceDomainToAxis(CContext* context, const StdString & id)
+    : CObjectTemplate<CReduceDomainToAxis>(context, id), CReduceDomainToAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CReduceDomainToAxis::~CReduceDomainToAxis(void)
   {}
 
-  CTransformation<CAxis>* CReduceDomainToAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CReduceDomainToAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CReduceDomainToAxis* reduceDomain = CReduceDomainToAxisGroup::get("reduce_domain_to_axis_definition")->createChild(id);
+    CReduceDomainToAxis* reduceDomain = CReduceDomainToAxisGroup::get(context, "reduce_domain_to_axis_definition")->createChild(id);
     if (node) reduceDomain->parse(*node);
     return static_cast<CTransformation<CAxis>*>(reduceDomain);
   }

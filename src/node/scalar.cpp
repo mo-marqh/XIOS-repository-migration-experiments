@@ -16,14 +16,14 @@ namespace xios
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CScalar::CScalar(void)
-     : CObjectTemplate<CScalar>()
+  CScalar::CScalar(CContext* context)
+     : CObjectTemplate<CScalar>(context)
      , CScalarAttributes()
      , relFiles()
   { /* Ne rien faire de plus */ }
 
-  CScalar::CScalar(const StdString & id)
-     : CObjectTemplate<CScalar>(id)
+  CScalar::CScalar(CContext* context, const StdString & id)
+     : CObjectTemplate<CScalar>(context, id)
      , CScalarAttributes()
      , relFiles()
   { /* Ne rien faire de plus */ }
@@ -54,54 +54,54 @@ namespace xios
   StdString CScalar::GetDefName(void){ return (CScalar::GetName()); }
   ENodeType CScalar::GetType(void)   { return (eScalar); }
 
-  CScalar* CScalar::createScalar()
+  CScalar* CScalar::createScalar(CContext* context)
   {
-    CScalar* scalar = CScalarGroup::get("scalar_definition")->createChild();
+    CScalar* scalar = CScalarGroup::get(context, "scalar_definition")->createChild();
     return scalar;
   }
 
-  CScalar* CScalar::get(const string& id, bool noError)
+  CScalar* CScalar::get(CContext* context, const string& id, bool noError)
   {
     const regex r("::");
     smatch m;
     if (regex_search(id, m, r))
     {
-      if (m.size()!=1) ERROR("CScalar* CScalar::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+      if (m.size()!=1) ERROR("CScalar* CScalar::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
       string fieldId=m.prefix() ;
-      if (fieldId.empty()) ERROR("CScalar* CScalar::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+      if (fieldId.empty()) ERROR("CScalar* CScalar::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, field name is empty");
       string suffix=m.suffix() ;
-      if (!CField::has(fieldId)) 
+      if (!CField::has(context, fieldId)) 
       {
           if (noError)  return nullptr ;
-          else ERROR("CScalar* CScalar::get(const string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+          else ERROR("CScalar* CScalar::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
       }
-      CField* field=CField::get(fieldId) ;
+      CField* field=CField::get(context, fieldId) ;
       return field->getAssociatedScalar(suffix, noError) ;
     }
     else
     {
-       if (noError) if(!CObjectFactory::HasObject<CScalar>(id)) return nullptr ;
-       return CObjectFactory::GetObject<CScalar>(id).get();
+       if (noError) if(!CObjectFactory::HasObject<CScalar>(context->getId(), id)) return nullptr ;
+       return CObjectFactory::GetObject<CScalar>(context->getId(), id).get();
      }
    }
 
-   bool CScalar::has(const string& id)
+   bool CScalar::has(CContext* context, const string& id)
    {
-     if (CScalar::get(id,true)==nullptr) return false ;
+     if (CScalar::get(context, id,true)==nullptr) return false ;
      else return true ;
    }
    
-   CField* CScalar::getFieldFromId(const string& id)
+   CField* CScalar::getFieldFromId(CContext* context, const string& id)
    {
      const regex r("::");
      smatch m;
      if (regex_search(id, m, r))
      {
-        if (m.size()!=1) ERROR("CField* CScalar::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        if (m.size()!=1) ERROR("CField* CScalar::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
         string fieldId=m.prefix() ;
-        if (fieldId.empty()) ERROR("CField* CScalar::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        if (fieldId.empty()) ERROR("CField* CScalar::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
-        CField* field=CField::get(fieldId) ;
+        CField* field=CField::get(context, fieldId) ;
         return field ;
      }
      else return nullptr;
@@ -169,7 +169,7 @@ namespace xios
 
   CTransformation<CScalar>* CScalar::addTransformation(ETranformationType transType, const StdString& id)
   {
-    transformationMap_.push_back(std::make_pair(transType, CTransformation<CScalar>::createTransformation(transType,id)));
+    transformationMap_.push_back(std::make_pair(transType, CTransformation<CScalar>::createTransformation(transType, context_, id)));
     return transformationMap_.back().second;
   }
 
@@ -260,7 +260,7 @@ namespace xios
   {
     if (!scalar_ref.isEmpty())
     {
-      CField* field=getFieldFromId(scalar_ref) ;
+      CField* field=getFieldFromId(context_, scalar_ref) ;
       if (field!=nullptr)
       {
         bool ret = field->buildWorkflowGraph(gc) ;
@@ -268,7 +268,7 @@ namespace xios
       }
       else 
       {
-        CScalar* scalar = get(scalar_ref) ;
+        CScalar* scalar = get(context_, scalar_ref) ;
         bool ret = scalar->activateFieldWorkflow(gc) ;
         if (!ret) return false ; // cannot build workflow graph at this state
         scalar_ref=scalar->getId() ; // replace domain_ref by solved reference
@@ -334,9 +334,8 @@ namespace xios
         it = transformationMapList_.find(nodeElementName);
         if (ite != it)
         {
-          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CScalar>::createTransformation(it->second,
-                                                                                                                 nodeId,
-                                                                                                                 &node)));
+          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CScalar>::createTransformation(it->second, context_, 
+                                                                                                                 nodeId, &node)));
         }
         else
         {
@@ -355,7 +354,7 @@ namespace xios
    void CScalar::initializeLocalElement(void)
    {
       // after checkAttribute index of size n
-      int rank = CContext::getCurrent()->getIntraCommRank() ;
+      int rank = context_->getIntraCommRank() ;
       
       
       CArray<size_t,1> index(n) ;
@@ -400,7 +399,7 @@ namespace xios
 
   void CScalar::computeRemoteElement(CContextClient* client, EDistributionType type)
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     map<int, CArray<size_t,1>> globalIndex ;
     size_t nglo=1 ;
 
@@ -431,7 +430,7 @@ namespace xios
                                    shared_ptr<CScattererConnector> &scattererConnector, const string& scalarId)
   {
     string serverScalarId = scalarId.empty() ? this->getId() : scalarId ;
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
 
     this->sendAllAttributesToServer(client, serverScalarId)  ;
 
@@ -519,20 +518,20 @@ namespace xios
     }
   }
   
-  void CScalar::recvScalarDistribution(CEventServer& event)
+  void CScalar::recvScalarDistribution(CContext* context, CEventServer& event)
   TRY
   {
     string scalarId;
     int phasis ;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> scalarId >> phasis ;
-    get(scalarId)->receivedScalarDistribution(event, phasis);
+    CScalar::get(context, scalarId)->receivedScalarDistribution(event, phasis);
   }
   CATCH
   
   void CScalar::receivedScalarDistribution(CEventServer& event, int phasis)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     if (phasis==0) // receive the remote element to construct the full view
     {
       localElement_ = make_shared<CLocalElement>(context->getIntraCommRank(),event) ;
@@ -544,7 +543,7 @@ namespace xios
     }
     else if (phasis==1) // receive the sent view from client to construct the full distributed full view on server
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       shared_ptr<CDistributedElement> elementFrom = make_shared<CDistributedElement>(event) ;
       elementFrom->addFullView() ;
       gathererConnector_ = make_shared<CGathererConnector>(elementFrom->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
@@ -569,7 +568,7 @@ namespace xios
   void CScalar::setServerMask(CArray<bool,1>& serverMask, CContextClient* client)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     localElement_->addView(CElementView::WORKFLOW, serverMask) ;
     if (serverMask.numElements()==1) mask = serverMask(0) ;
  
@@ -590,18 +589,18 @@ namespace xios
   void CScalar::sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scattererConnector, const string& scalarId)
   {
     string serverScalarId = scalarId.empty() ? this->getId() : scalarId ;
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
 
     // nothing for now
   }
 
-  void CScalar::recvDistributedAttributes(CEventServer& event)
+  void CScalar::recvDistributedAttributes(CContext* context, CEventServer& event)
   TRY
   {
     string scalarId;
     string type ;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> scalarId >> type ;
-    get(scalarId)->recvDistributedAttributes(event, type);
+    CScalar::get(context, scalarId)->recvDistributedAttributes(event, type);
   }
   CATCH
 
@@ -612,20 +611,20 @@ namespace xios
   }
   CATCH  
 
-  bool CScalar::dispatchEvent(CEventServer& event)
+  bool CScalar::dispatchEvent(CContext* context, CEventServer& event)
   TRY
   {
-     if (SuperClass::dispatchEvent(event)) return true;
+     if (SuperClass::dispatchEvent(context, event)) return true;
      else
      {
        switch(event.type)
        {
           case EVENT_ID_SCALAR_DISTRIBUTION:
-            recvScalarDistribution(event);
+            recvScalarDistribution(context, event);
             return true;
             break;
           case EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE:
-            recvDistributedAttributes(event);
+            recvDistributedAttributes(context, event);
             return true;
             break;
           default :

@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CInverseAxis::CInverseAxis(void)
-    : CObjectTemplate<CInverseAxis>(), CInverseAxisAttributes(), CTransformation<CAxis>()
+  CInverseAxis::CInverseAxis(CContext* context)
+    : CObjectTemplate<CInverseAxis>(context), CInverseAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CInverseAxis::CInverseAxis(const StdString & id)
-    : CObjectTemplate<CInverseAxis>(id), CInverseAxisAttributes(), CTransformation<CAxis>()
+  CInverseAxis::CInverseAxis(CContext* context, const StdString & id)
+    : CObjectTemplate<CInverseAxis>(context, id), CInverseAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CInverseAxis::~CInverseAxis(void)
   {}
 
-  CTransformation<CAxis>* CInverseAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CInverseAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CInverseAxis* invAxis = CInverseAxisGroup::get("inverse_axis_definition")->createChild(id);
+    CInverseAxis* invAxis = CInverseAxisGroup::get(context, "inverse_axis_definition")->createChild(id);
     if (node) invAxis->parse(*node);
     return static_cast<CTransformation<CAxis>*>(invAxis);
   }

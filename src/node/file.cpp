@@ -23,22 +23,22 @@ namespace xios {
    extern CLogType logProfile ;
    /// ////////////////////// Dfinitions ////////////////////// ///
 
-   CFile::CFile(void)
-      : CObjectTemplate<CFile>(), CFileAttributes()
+   CFile::CFile(CContext* context)
+      : CObjectTemplate<CFile>(context), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
       , isOpen(false),  checkRead(false), allZoneEmpty(false)
    {
-     setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
-     setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
+     setVirtualFieldGroup(CFieldGroup::create(context_, getId() + "_virtual_field_group"));
+     setVirtualVariableGroup(CVariableGroup::create(context_, getId() + "_virtual_variable_group"));
    }
 
-   CFile::CFile(const StdString & id)
-      : CObjectTemplate<CFile>(id), CFileAttributes()
+   CFile::CFile(CContext* context, const StdString & id)
+      : CObjectTemplate<CFile>(context, id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
       , isOpen(false), checkRead(false), allZoneEmpty(false)
     {
-      setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
-      setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
+      setVirtualFieldGroup(CFieldGroup::create(context_, getId() + "_virtual_field_group"));
+      setVirtualVariableGroup(CVariableGroup::create(context_, getId() + "_virtual_variable_group"));
     }
 
    CFile::~CFile(void)
@@ -209,7 +209,7 @@ namespace xios {
    bool CFile::isSyncTime(void)
    TRY
    {
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      const CDate& currentDate = context->calendar->getCurrentDate();
      if (!sync_freq.isEmpty())
      {
@@ -227,7 +227,7 @@ namespace xios {
    void CFile::initWrite(void)
    TRY
    {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       const CDate& currentDate = context->calendar->getCurrentDate();
 
       lastSync  = currentDate;
@@ -283,7 +283,7 @@ namespace xios {
     void CFile::initRead(void)
     TRY
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       if (checkRead) return;
       //createSubComFile();
       allZoneEmpty = false; 
@@ -299,7 +299,7 @@ namespace xios {
     void CFile::createSubComFile()
     TRY
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
 
       // create sub communicator for file
       allZoneEmpty = true;      
@@ -325,7 +325,7 @@ namespace xios {
     void CFile::checkWriteFile(void)
     TRY
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
 
       if (mode.isEmpty() || mode.getValue() == mode_attr::write)
       {
@@ -347,7 +347,7 @@ namespace xios {
     void CFile::checkReadFile(void)
     TRY
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       // Done by classical server or secondary server
       // TODO: This condition should be changed soon. It only works with maximum number of level as 2
 
@@ -388,7 +388,7 @@ namespace xios {
    bool CFile::checkSync(void)
    TRY
    {
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      const CDate& currentDate = context->calendar->getCurrentDate();
      if (!sync_freq.isEmpty())
      {
@@ -412,7 +412,7 @@ namespace xios {
     bool CFile::checkSplit(void)
     TRY
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       const CDate& currentDate = context->calendar->getCurrentDate();
       if (!split_freq.isEmpty())
       {
@@ -444,7 +444,7 @@ namespace xios {
    void CFile::createHeader(void)
    TRY
    {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       
       if (!allZoneEmpty)
       {
@@ -503,7 +503,7 @@ namespace xios {
            splitEnd = lastSplit + split_freq ;
            if (!split_last_date.isEmpty())
            {
-             CDate splitLastDate=CDate::FromString(split_last_date,*CContext::getCurrent()->getCalendar()) ;
+             CDate splitLastDate=CDate::FromString(split_last_date,*context_->getCalendar()) ;
              if( splitLastDate < splitEnd)  splitEnd=splitLastDate ;
            }
             
@@ -514,7 +514,7 @@ namespace xios {
            if (split_freq_format.isEmpty())
            {
              CDuration splitFreq = split_freq.getValue();
-             splitFreq.solveTimeStep(*CContext::getCurrent()->getCalendar());
+             splitFreq.solveTimeStep(*context_->getCalendar());
              if (splitFreq.second != 0) splitFormat = "%y%mo%d%h%mi%s";
              else if (splitFreq.minute != 0) splitFormat = "%y%mo%d%h%mi";
              else if (splitFreq.hour != 0) splitFormat = "%y%mo%d%h";
@@ -586,7 +586,7 @@ namespace xios {
                                                               fileComm, multifile, isCollective, time_counter_name));
         isOpen = true;
 
-        data_out->writeFile(CFile::get(this));
+        data_out->writeFile(CFile::get(context_, this));
 
         if (!useCFConvention) sortEnabledFieldsForUgrid();
 
@@ -639,7 +639,7 @@ namespace xios {
   void CFile::openInReadMode()
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     MPI_Comm readComm = this->fileComm;
 
     if (!allZoneEmpty)
@@ -654,7 +654,7 @@ namespace xios {
         if (split_freq_format.isEmpty())
         {
           CDuration splitFreq = split_freq.getValue();
-          splitFreq.solveTimeStep(*CContext::getCurrent()->getCalendar());
+          splitFreq.solveTimeStep(*context_->getCalendar());
           if (splitFreq.second != 0) splitFormat = "%y%mo%d%h%mi%s";
           else if (splitFreq.minute != 0) splitFormat = "%y%mo%d%h%mi";
           else if (splitFreq.hour != 0) splitFormat = "%y%mo%d%h";
@@ -677,10 +677,7 @@ namespace xios {
       if (!multifile)
       {
         info(0) << "!!! Warning -> Using non parallel version of netcdf, switching in multiple_file mode for file : " << filename << " ..." << endl;
-        int size = 1;
-        CContext* context = CContext::getCurrent();
-        MPI_Comm_size(context->intraComm_, &size );
-        if (size!=1) multifile = true;
+        multifile = true;
       }
   #endif
       if (multifile)
@@ -969,9 +966,9 @@ namespace xios {
              }
          }
          domain->assignMesh(domainName, domain->nvertex);
-         //CContextServer* server=CContext::getCurrent()->server ;
+         //CContextServer* server=context_->server ;
          //domain->mesh->createMeshEpsilon(server->intraComm, writtenLon, writtenLat, writtenBndsLon, writtenBndsLat);
-         MPI_Comm intraComm =CContext::getCurrent()->getIntraComm() ;
+         MPI_Comm intraComm =context_->getIntraComm() ;
          domain->mesh->createMeshEpsilon(intraComm, writtenLon, writtenLat, writtenBndsLon, writtenBndsLat);
        }
 
@@ -1002,7 +999,7 @@ namespace xios {
 
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
-       this->enabledFields[i]->sendReadDataRequest(CContext::getCurrent()->getCalendar()->getCurrentDate());
+       this->enabledFields[i]->sendReadDataRequest(context_->getCalendar()->getCurrentDate());
    }
    CATCH_DUMP_ATTR
 
@@ -1124,7 +1121,7 @@ namespace xios {
    void CFile::setContextClient(const string& defaultPoolId, const string& defaultServiceId, int partitionId)
    TRY
    {
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      vector<CContextClient*> clients = context->getContextClient(defaultPoolId, defaultServiceId) ;
      setContextClient(clients[partitionId]) ;
    }
@@ -1177,14 +1174,14 @@ namespace xios {
    \brief Receive a message annoucing the creation of a field on server side
    \param[in] event Received event
    */
-   void CFile::recvAddField(CEventServer& event)
+   void CFile::recvAddField(CContext* context, CEventServer& event)
    TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
-      get(id)->recvAddField(*buffer);
+      get(context, id)->recvAddField(*buffer);
    }
    CATCH
 
@@ -1205,14 +1202,14 @@ namespace xios {
    \brief Receive a message annoucing the creation of a field group on server side
    \param[in] event Received event
    */
-   void CFile::recvAddFieldGroup(CEventServer& event)
+   void CFile::recvAddFieldGroup(CContext* context, CEventServer& event)
    TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
-      get(id)->recvAddFieldGroup(*buffer);
+      get(context, id)->recvAddFieldGroup(*buffer);
    }
    CATCH
 
@@ -1279,13 +1276,13 @@ namespace xios {
    \brief Receive a message annoucing the creation of a variable on server side
    \param[in] event Received event
    */
-   void CFile::recvAddVariable(CEventServer& event)
+   void CFile::recvAddVariable(CContext* context, CEventServer& event)
    TRY
    {
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
-      get(id)->recvAddVariable(*buffer);
+      get(context, id)->recvAddVariable(*buffer);
    }
    CATCH
 
@@ -1306,14 +1303,14 @@ namespace xios {
    \brief Receive a message annoucing the creation of a variable group on server side
    \param[in] event Received event
    */
-   void CFile::recvAddVariableGroup(CEventServer& event)
+   void CFile::recvAddVariableGroup(CContext* context, CEventServer& event)
    TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
-      get(id)->recvAddVariableGroup(*buffer);
+      get(context, id)->recvAddVariableGroup(*buffer);
    }
    CATCH
 
@@ -1365,7 +1362,7 @@ namespace xios {
      else sendFileToFileServer_done_.insert(client) ;
      
      StdString fileDefRoot("file_definition");
-     CFileGroup* cfgrpPtr = CFileGroup::get(fileDefRoot);
+     CFileGroup* cfgrpPtr = CFileGroup::get(context_, fileDefRoot);
      cfgrpPtr->sendCreateChild(this->getId(), client);
      this->sendAllAttributesToServer(client);
      this->sendAddAllVariables(client);
@@ -1379,35 +1376,35 @@ namespace xios {
    it processed on server side.
    \param [in] event: Received message
    */
-   bool CFile::dispatchEvent(CEventServer& event)
+   bool CFile::dispatchEvent(CContext* context, CEventServer& event)
    TRY
    {
-      if (SuperClass::dispatchEvent(event)) return true;
+      if (SuperClass::dispatchEvent(context, event)) return true;
       else
       {
         switch(event.type)
         {
            case EVENT_ID_ADD_FIELD :
-             recvAddField(event);
+             recvAddField(context, event);
              return true;
              break;
 
            case EVENT_ID_ADD_FIELD_GROUP :
-             recvAddFieldGroup(event);
+             recvAddFieldGroup(context, event);
              return true;
              break;
 
             case EVENT_ID_ADD_VARIABLE :
-             recvAddVariable(event);
+             recvAddVariable(context, event);
              return true;
              break;
 
            case EVENT_ID_ADD_VARIABLE_GROUP :
-             recvAddVariableGroup(event);
+             recvAddVariableGroup(context, event);
              return true;
              break;
            default :
-              ERROR("bool CFile::dispatchEvent(CEventServer& event)", << "Unknown Event");
+              ERROR("bool CFile::dispatchEvent(CContext* context, CEventServer& event)", << "Unknown Event");
            return false;
         }
       }
@@ -1420,7 +1417,7 @@ namespace xios {
    StdString CFile::dumpClassAttributes(void)
    {
      StdString str;
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      str.append("context=\"");
      str.append(context->getId());
      str.append("\"");

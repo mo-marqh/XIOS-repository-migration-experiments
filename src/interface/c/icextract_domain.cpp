@@ -15,6 +15,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "extract_domain.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -31,7 +32,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CExtractDomain::get(id);
+      *_ret = xios::CExtractDomain::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -44,7 +45,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CExtractDomain::has(id);
+      *_ret = xios::CExtractDomain::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

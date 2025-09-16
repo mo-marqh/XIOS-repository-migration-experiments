@@ -46,18 +46,20 @@ namespace xios
    /// ////////////////////// Définitions ////////////////////// ///
 
    CContext::CContext(void)
-      : CObjectTemplate<CContext>(), CContextAttributes()
+      : CObjectTemplate<CContext>(this), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
       , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
+      , garbageCollector(this)      
 
    { /* Ne rien faire de plus */  }
 
    CContext::CContext(const StdString & id)
-      : CObjectTemplate<CContext>(id), CContextAttributes()
+      : CObjectTemplate<CContext>(this, id), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
       , isPostProcessed(false), finalized(false)
       , allProcessed(false), countChildContextFinalized_(0), isProcessingEvent_(false)
+      , garbageCollector(this)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
@@ -189,12 +191,12 @@ namespace xios
 
 #define DECLARE_NODE(Name_, name_)    \
    if (name.compare(C##Name_##Definition::GetDefName()) == 0) \
-   { C##Name_##Definition::create(C##Name_##Definition::GetDefName()) -> parse(node); continue; }
+   { C##Name_##Definition::create(this, C##Name_##Definition::GetDefName()) -> parse(node); continue; }
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 
             DEBUG(<< "The element \'"     << name
-                  << "\' in the context \'" << CContext::getCurrent()->getId()
+                  << "\' in the context \'" << getId()
                   << "\' is not a definition !");
 
          } while (node.goToNextElement());
@@ -245,7 +247,6 @@ namespace xios
             {  
               if (parseContextList.empty() || parseContextList.count(attributes["id"]) > 0)
               {
-                CContext::setCurrent(attributes["id"]) ;
                 CContext* context = CContext::create(attributes["id"]);
                 context->parse(node);
                 attributes.clear();
@@ -254,7 +255,7 @@ namespace xios
             }
           }
 
-          DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
+          DEBUG(<< "Dans le contexte \'" << getId()
                 << "\', un objet de type \'" << CContextGroup::GetName()
                 << "\' ne peut contenir qu'un objet de type \'" << CContextGroup::GetName()
                 << "\' ou de type \'" << CContext::GetName()
@@ -268,10 +269,10 @@ namespace xios
 
    //----------------------------------------------------------------
    //! Show tree structure of context
-   void CContext::ShowTree(StdOStream & out)
+   void CContext::ShowTree(CContext* context, StdOStream & out)
    TRY
    {
-      StdString currentContextId = CContext::getCurrent() -> getId();
+      StdString currentContextId = context -> getId();
       std::map<StdString,CContext*> def_map =
          CContext::getRoot()->getChildMap();
       std::map<StdString,CContext*>::iterator
@@ -283,12 +284,10 @@ namespace xios
       for (; it != end; it++)
       {
          CContext* context = it->second;
-         CContext::setCurrent(context->getId());
          out << *context << std::endl;
       }
 
       out << "</" << xml::CXMLNode::GetRootName() << " >" << std::endl;
-      CContext::setCurrent(currentContextId);
    }
    CATCH
 
@@ -310,8 +309,8 @@ namespace xios
       {
 
 #define DECLARE_NODE(Name_, name_)    \
-   if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \
-   oss << * C##Name_##Definition::get(C##Name_##Definition::GetDefName()) << std::endl;
+   if (C##Name_##Definition::has(getId(), C##Name_##Definition::GetDefName())) \
+   oss << * C##Name_##Definition::get(getId(), C##Name_##Definition::GetDefName()) << std::endl;
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 
@@ -333,8 +332,8 @@ namespace xios
    TRY
    {
 #define DECLARE_NODE(Name_, name_)    \
-   if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \
-     C##Name_##Definition::get(C##Name_##Definition::GetDefName())->solveDescInheritance(apply);
+   if (C##Name_##Definition::has(getId(), C##Name_##Definition::GetDefName())) \
+     C##Name_##Definition::get(getId(), C##Name_##Definition::GetDefName())->solveDescInheritance(apply);
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
@@ -348,7 +347,7 @@ namespace xios
    {
       return (
 #define DECLARE_NODE(Name_, name_)    \
-   C##Name_##Definition::has(C##Name_##Definition::GetDefName())   ||
+   C##Name_##Definition::has(getId(), C##Name_##Definition::GetDefName())   ||
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
       false);
@@ -360,7 +359,7 @@ namespace xios
    void CContext::CleanTree(void)
    TRY
    {
-#define DECLARE_NODE(Name_, name_) C##Name_##Definition::ClearAllAttributes();
+#define DECLARE_NODE(Name_, name_) C##Name_##Definition::ClearAllAttributes(context_);
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
@@ -470,8 +469,8 @@ void CContext::removeAllContexts(void)
    TRY
    {
    // As calendar attributes are sent even if there are no active files or fields, maps are initialized according the size of calendar attributes
-     std::map<int, StdSize> attributesSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
-     maxEventSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
+     std::map<int, StdSize> attributesSize = CCalendarWrapper::get(this, CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
+     maxEventSize = CCalendarWrapper::get(this, CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
 
      std::vector<CFile*>& fileList = this->enabledFiles;
      size_t numEnabledFiles = fileList.size();
@@ -631,7 +630,6 @@ void CContext::removeAllContexts(void)
         while (!CXios::getContextsManager()->createServerContext(poolId, serverId, i, getContextId())) yield() ;
     }
     synchronize() ;
-    setCurrent(getId()) ; // getCurrent/setCurrent may be supress, it can cause a lot of trouble 
     MPI_Bcast(&nbPartitions, 1, MPI_INT, 0, intraComm_) ;
       
     MPI_Comm interComm ;
@@ -660,7 +658,6 @@ void CContext::removeAllContexts(void)
       clientsId_[client] = fullServerId ;
       serversId_[server] = fullServerId ;
     }
-    setCurrent(getId()) ; // Back on main context
   }
   CATCH_DUMP_ATTR
   
@@ -751,7 +748,6 @@ void CContext::removeAllContexts(void)
       lockContext() ;
       CXios::getDaemonsManager()->eventLoop() ;
       unlockContext() ;
-      setCurrent(getId()) ;
     }
   }
 
@@ -760,14 +756,12 @@ void CContext::removeAllContexts(void)
     if (CThreadManager::isUsingThreads()) 
     {
       CThreadManager::yield();
-      setCurrent(getId()) ;
     }
     else
     {
       lockContext() ;
       CXios::getDaemonsManager()->eventLoop() ;
       unlockContext() ;
-      setCurrent(getId()) ;
     }
   }
 
@@ -820,7 +814,6 @@ void CContext::removeAllContexts(void)
     if (isLockedContext()) enableEventsProcessing=false;
     else if (info.isActive(logProfile)) CTimer::get("Context event loop").resume();
     
-    setCurrent(getId()) ;
 
     if (!finalized)
     {
@@ -839,7 +832,6 @@ void CContext::removeAllContexts(void)
       for(auto couplerOut : couplerOutServer_) couplerOut.second->eventLoop();
       for(auto couplerIn : couplerInServer_) couplerIn.second->eventLoop();
     }
-    setCurrent(getId()) ;
     if (!isLockedContext()) if (info.isActive(logProfile)) CTimer::get("Context event loop").suspend();
     return finalized && finished ;
   }
@@ -1129,7 +1121,7 @@ void CContext::removeAllContexts(void)
 
     
     // Make sure the calendar was correctly created
-    if (serviceType_!=CServicesManager::CLIENT) CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
+    if (serviceType_!=CServicesManager::CLIENT) CCalendarWrapper::get(this, CCalendarWrapper::GetDefName())->createCalendar();
     if (!calendar)
       ERROR("CContext::postProcessing()", << "A calendar must be defined for the context \"" << getId() << "!\"")
     else if (calendar->getTimeStep() == NoneDu)
@@ -1155,7 +1147,7 @@ void CContext::removeAllContexts(void)
     findEnabledFiles();
 
     // Solve inheritance for field to know if enabled or not.
-    for (auto field : CField::getAll()) field->solveRefInheritance();
+    for (auto field : CField::getAll(context_)) field->solveRefInheritance();
 
     findEnabledWriteModeFiles();
     findEnabledReadModeFiles();
@@ -1244,7 +1236,7 @@ void CContext::removeAllContexts(void)
     for( auto field : couplerInField) couplerInFields_.push_back(field) ;
 
     // get all field coming potentially from model
-    for (auto field : CField::getAll() ) if (field->getModelIn()) fieldModelIn.push_back(field) ;
+    for (auto field : CField::getAll(context_) ) if (field->getModelIn()) fieldModelIn.push_back(field) ;
 
     // Distribute files between secondary servers according to the data size => assign a context to a file and then to fields
 
@@ -1483,7 +1475,7 @@ void CContext::removeAllContexts(void)
     else sendToFileServer_done_.insert(client) ;
     
     this->sendAllAttributesToServer(client); // Send all attributes of current context to server
-    CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current cale
+    CCalendarWrapper::get(this, CCalendarWrapper::GetDefName())->sendAllAttributesToServer(client); // Send all attributes of current cale
   }
 
  
@@ -1521,7 +1513,7 @@ void CContext::removeAllContexts(void)
   TRY
   {
     fieldsWithReadAccess_.clear();
-    const vector<CField*> allFields = CField::getAll();
+    const vector<CField*> allFields = CField::getAll(context_);
     for (size_t i = 0; i < allFields.size(); ++i)
     {
       CField* field = allFields[i];
@@ -1543,10 +1535,10 @@ void CContext::removeAllContexts(void)
       solveDescInheritance(apply);
 
      // Résolution des héritages par référence au niveau des fichiers.
-      const vector<CFile*> allFiles=CFile::getAll();
-      const vector<CCouplerIn*> allCouplerIn=CCouplerIn::getAll();
-      const vector<CCouplerOut*> allCouplerOut=CCouplerOut::getAll();
-      const vector<CGrid*> allGrids= CGrid::getAll();
+      const vector<CFile*> allFiles=CFile::getAll(context_);
+      const vector<CCouplerIn*> allCouplerIn=CCouplerIn::getAll(context_);
+      const vector<CCouplerOut*> allCouplerOut=CCouplerOut::getAll(context_);
+      const vector<CGrid*> allGrids= CGrid::getAll(context_);
 
       if (serviceType_==CServicesManager::CLIENT)
       {
@@ -1571,7 +1563,7 @@ void CContext::removeAllContexts(void)
    void CContext::findEnabledFiles(void)
    TRY
    {
-      const std::vector<CFile*> allFiles = CFile::getAll();
+      const std::vector<CFile*> allFiles = CFile::getAll(context_);
       const CDate& initDate = calendar->getInitDate();
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
@@ -1629,7 +1621,7 @@ void CContext::removeAllContexts(void)
    void CContext::findEnabledCouplerIn(void)
    TRY
    {
-      const std::vector<CCouplerIn*> allCouplerIn = CCouplerIn::getAll();
+      const std::vector<CCouplerIn*> allCouplerIn = CCouplerIn::getAll(context_);
       bool enabled ;
       for (size_t i = 0; i < allCouplerIn.size(); i++)
       {
@@ -1643,7 +1635,7 @@ void CContext::removeAllContexts(void)
    void CContext::findEnabledCouplerOut(void)
    TRY
    {
-      const std::vector<CCouplerOut*> allCouplerOut = CCouplerOut::getAll();
+      const std::vector<CCouplerOut*> allCouplerOut = CCouplerOut::getAll(context_);
       bool enabled ;
       for (size_t i = 0; i < allCouplerOut.size(); i++)
       {
@@ -1911,33 +1903,33 @@ void CContext::removeAllContexts(void)
    it processed on server side.
    \param [in] event: Received message
    */
-   bool CContext::dispatchEvent(CEventServer& event)
+   bool CContext::dispatchEvent(CContext* context, CEventServer& event)
    TRY
    {
 
-      if (SuperClass::dispatchEvent(event)) return true;
+      if (SuperClass::dispatchEvent(context, event)) return true;
       else
       {
         switch(event.type)
         {
            case EVENT_ID_CLOSE_DEFINITION :
-             recvCloseDefinition(event);
+             recvCloseDefinition(context, event);
              return true;
              break;
            case EVENT_ID_UPDATE_CALENDAR:
-             recvUpdateCalendar(event);
+             recvUpdateCalendar(context, event);
              return true;
              break;
            case EVENT_ID_COUPLER_IN_READY:
-             recvCouplerInReady(event);
+             recvCouplerInReady(context, event);
              return true;
              break;
            case EVENT_ID_COUPLER_IN_CLOSE_DEFINITION:
-             recvCouplerInCloseDefinition(event);
+             recvCouplerInCloseDefinition(context, event);
              return true;
              break;
            case EVENT_ID_COUPLER_IN_CONTEXT_FINALIZED:
-             recvCouplerInContextFinalized(event);
+             recvCouplerInContextFinalized(context, event);
              return true;
              break;  
            default :
@@ -1968,11 +1960,11 @@ void CContext::removeAllContexts(void)
    CATCH_DUMP_ATTR
 
    //! Server side: Receive a message of client announcing a context close
-   void CContext::recvCloseDefinition(CEventServer& event)
+   void CContext::recvCloseDefinition(CContext* context, CEventServer& event)
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      getCurrent()->closeDefinition();
+      context->closeDefinition();
    }
    CATCH
 
@@ -1996,11 +1988,11 @@ void CContext::removeAllContexts(void)
    CATCH_DUMP_ATTR
 
    //! Server side: Receive a message of client annoucing calendar update
-   void CContext::recvUpdateCalendar(CEventServer& event)
+   void CContext::recvUpdateCalendar(CContext* context, CEventServer& event)
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      getCurrent()->recvUpdateCalendar(*buffer);
+      context->recvUpdateCalendar(*buffer);
    }
    CATCH
 
@@ -2080,7 +2072,7 @@ void CContext::removeAllContexts(void)
      // Every object must be a child of one of these root definition. In this case
      // all new file objects created on server must be children of the root "file_definition"
      StdString fileDefRoot("file_definition");
-     CFileGroup* cfgrpPtr = CFileGroup::get(fileDefRoot);
+     CFileGroup* cfgrpPtr = CFileGroup::get(this, fileDefRoot);
 
      for (int i = 0; i < size; ++i)
      {
@@ -2109,7 +2101,7 @@ void CContext::removeAllContexts(void)
    void CContext::prepareTimeseries()
    TRY
    {
-     const std::vector<CFile*> allFiles = CFile::getAll();
+     const std::vector<CFile*> allFiles = CFile::getAll(context_);
      for (size_t i = 0; i < allFiles.size(); i++)
      {
        CFile* file = allFiles[i];
@@ -2148,7 +2140,7 @@ void CContext::removeAllContexts(void)
 
            if (!field->ts_enabled.isEmpty() && field->ts_enabled)
            {
-             CFile* tsFile = CFile::create();
+             CFile* tsFile = CFile::create(this);
              tsFile->duplicateAttributes(file);
 
              // Add variables originating from file and targeted to timeserie file
@@ -2161,7 +2153,7 @@ void CContext::removeAllContexts(void)
                tsFile->name.get() += field->name;
              else if (field->hasDirectFieldReference()) // We cannot use getBaseFieldReference() just yet
              {
-               CField* fieldRef = CField::get(field->field_ref);
+               CField* fieldRef = CField::get(this, field->field_ref);
                if (!fieldRef->name.isEmpty())
                {
                  tsFile->name.get() += fieldRef->name;
@@ -2242,38 +2234,38 @@ void CContext::removeAllContexts(void)
      std::set<StdString>::const_iterator itE;
 
      StdString scalarDefRoot("scalar_definition");
-     CScalarGroup* scalarPtr = CScalarGroup::get(scalarDefRoot);
+     CScalarGroup* scalarPtr = CScalarGroup::get(this, scalarDefRoot);
      
      for (auto itScalar = scalarIds.begin(); itScalar != scalarIds.end(); ++itScalar)
      {
        if (!itScalar->first.empty())
        {
          scalarPtr->sendCreateChild(itScalar->first,itScalar->second);
-         CScalar::get(itScalar->first)->sendAllAttributesToServer(itScalar->second);
+         CScalar::get(this, itScalar->first)->sendAllAttributesToServer(itScalar->second);
        }
      }
 
      StdString axiDefRoot("axis_definition");
-     CAxisGroup* axisPtr = CAxisGroup::get(axiDefRoot);
+     CAxisGroup* axisPtr = CAxisGroup::get(this, axiDefRoot);
      
      for (auto itAxis = axisIds.begin(); itAxis != axisIds.end(); ++itAxis)
      {
        if (!itAxis->first.empty())
        {
          axisPtr->sendCreateChild(itAxis->first, itAxis->second);
-         CAxis::get(itAxis->first)->sendAllAttributesToServer(itAxis->second);
+         CAxis::get(this, itAxis->first)->sendAllAttributesToServer(itAxis->second);
        }
      }
 
      // Create all reference domains on server side
      StdString domDefRoot("domain_definition");
-     CDomainGroup* domPtr = CDomainGroup::get(domDefRoot);
+     CDomainGroup* domPtr = CDomainGroup::get(this, domDefRoot);
      
      for (auto itDom = domainIds.begin(); itDom != domainIds.end(); ++itDom)
      {
        if (!itDom->first.empty()) {
           domPtr->sendCreateChild(itDom->first, itDom->second);
-          CDomain::get(itDom->first)->sendAllAttributesToServer(itDom->second);
+          CDomain::get(this, itDom->first)->sendAllAttributesToServer(itDom->second);
        }
      }
    }
@@ -2347,7 +2339,7 @@ void CContext::removeAllContexts(void)
    CContext* CContext::getCurrent(void)
    TRY
    {
-     return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()).get();
+     return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId(), CObjectFactory::GetCurrentContextId()).get();
    }
    CATCH
 
@@ -2371,15 +2363,13 @@ void CContext::removeAllContexts(void)
   CContext* CContext::create(const StdString& id)
   TRY
   {
-    CContext::setCurrent(id);
-
-    bool hasctxt = CContext::has(id);
-    CContext* context = CObjectFactory::CreateObject<CContext>(id).get();
+    bool hasctxt = CContext::has(id, id);
+    CContext* context = CObjectFactory::CreateObject<CContext>(nullptr, id).get();
     getRoot();
     if (!hasctxt) CGroupFactory::AddChild(root, context->getShared());
 
 #define DECLARE_NODE(Name_, name_) \
-    C##Name_##Definition::create(C##Name_##Definition::GetDefName());
+    C##Name_##Definition::create(context, C##Name_##Definition::GetDefName());
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 
@@ -2406,13 +2396,13 @@ void CContext::removeAllContexts(void)
   CATCH_DUMP_ATTR
 
  
-  void CContext::recvFinalizeClient(CEventServer& event)
+  void CContext::recvFinalizeClient(CContext* context, CEventServer& event)
   TRY
   {
     CBufferIn* buffer=event.subEvents.begin()->buffer;
     string id;
     *buffer>>id;
-    get(id)->recvFinalizeClient(*buffer);
+    get(context, id)->recvFinalizeClient(*buffer);
   }
   CATCH
 
@@ -2447,11 +2437,11 @@ void CContext::removeAllContexts(void)
    CATCH_DUMP_ATTR
 
    //! Server side: Receive a message announcing that context can send grid definition for context coupling
-   void CContext::recvCouplerInReady(CEventServer& event)
+   void CContext::recvCouplerInReady(CContext* context, CEventServer& event)
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      getCurrent()->recvCouplerInReady(*buffer);
+      context->recvCouplerInReady(*buffer);
    }
    CATCH
 
@@ -2490,11 +2480,11 @@ void CContext::removeAllContexts(void)
    CATCH_DUMP_ATTR
 
    //! Server side: Receive a message announcing that a coupling context have done it closeDefinition, so data can be sent now.
-   void CContext::recvCouplerInCloseDefinition(CEventServer& event)
+   void CContext::recvCouplerInCloseDefinition(CContext* context, CEventServer& event)
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
-      getCurrent()->recvCouplerInCloseDefinition(*buffer);
+      context->recvCouplerInCloseDefinition(*buffer);
    }
    CATCH
 
@@ -2532,7 +2522,7 @@ void CContext::removeAllContexts(void)
    CATCH_DUMP_ATTR
 
    //! Server side: Receive a message announcing that a coupling context have done it contextFinalize, so it can also close it own context.
-   void CContext::recvCouplerInContextFinalized(CEventServer& event)
+   void CContext::recvCouplerInContextFinalized(CContext* context, CEventServer& event)
    TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;

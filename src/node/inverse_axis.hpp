@@ -20,6 +20,7 @@ namespace xios {
   class CAxis;
   class CGenericAlgorithmTransformation ;
   class CGrid;
+  class CContext ;
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
@@ -45,8 +46,8 @@ namespace xios {
 
     public :
       /// Constructeurs ///
-      CInverseAxis(void);
-      explicit CInverseAxis(const StdString& id);
+      CInverseAxis(CContext* context);
+      explicit CInverseAxis(CContext* context, const StdString& id);
 
       /// Destructeur ///
       virtual ~CInverseAxis(void);
@@ -59,8 +60,8 @@ namespace xios {
       static ENodeType GetType(void);
       const string& getId(void) { return this->SuperClass::getId();}
       ETranformationType getTransformationType(void) { return TRANS_INVERSE_AXIS ;}
-      static CTransformation<CAxis>* getTransformation(const StdString& id) { return SuperClass::get(id);}
-      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
+      static CTransformation<CAxis>* getTransformation(CContext* context, const StdString& id) { return SuperClass::get(context, id);}
+      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get(context_, (MyClass*)srcTransform)) ;}
       virtual shared_ptr<CGenericAlgorithmTransformation> createAlgorithm(bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                int elementPositionInGrid,
@@ -72,7 +73,7 @@ namespace xios {
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition)  ;
     private:
       static bool registerTrans();
-      static CTransformation<CAxis>* create(const StdString& id, xml::CXMLNode* node);
+      static CTransformation<CAxis>* create(CContext* context, const StdString& id, xml::CXMLNode* node);
       static bool _dummyRegistered;
 
   }; // class CInverseAxis

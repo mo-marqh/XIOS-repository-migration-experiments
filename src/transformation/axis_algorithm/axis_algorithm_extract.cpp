@@ -40,7 +40,7 @@ TRY
 CATCH
 
 CAxisAlgorithmExtract::CAxisAlgorithmExtract(bool isSource, CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis)
-: CAlgorithmTransformationTransfer(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
+: CAlgorithmTransformationTransfer(extractAxis->getContext(), isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
   axisDestination->axis_type.reset();

@@ -47,7 +47,7 @@ CATCH
 
 
 CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo)
- : CAlgorithmTransformationReduce(isSource), domainSrc_(domainSource), axisDest_(axisDestination)
+ : CAlgorithmTransformationReduce(algo->getContext(), isSource), domainSrc_(domainSource), axisDest_(axisDestination)
 TRY
 {
   switch (algo->operation)

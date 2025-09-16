@@ -20,7 +20,7 @@ namespace xios
    class CCouplerInGroup;
    class CCouplerInAttributes;
    class CCouplerIn;
-
+   class CContext ;
    class CGarbageCollector;
 
    ///--------------------------------------------------------------
@@ -60,8 +60,8 @@ namespace xios
          typedef CCouplerInGroup      RelGroup;
 
          /// Constructeurs ///
-         CCouplerIn(void);
-         explicit CCouplerIn(const StdString& id);
+         CCouplerIn(CContext* context);
+         explicit CCouplerIn(CContext* context, const StdString& id);
          CCouplerIn(const CCouplerIn& couplerIn);       // Not implemented yet.
          CCouplerIn(const CCouplerIn* const couplerIn); // Not implemented yet.
 

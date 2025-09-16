@@ -78,6 +78,8 @@ namespace xios
          /// Constructeurs ///
          CContext(void);
          explicit CContext(const StdString & id);
+         CContext(CContext* context) : CContext() {}
+         explicit CContext(CContext* context, const StdString & id) : CContext(id) {}
          CContext(const CContext & context);       // Not implemented yet.
          CContext(const CContext * const context); // Not implemented yet.
 
@@ -180,12 +182,12 @@ namespace xios
          std::string getContextId() {return contextId_;}
 
          // Client side: Receive and process messages
-         static void recvUpdateCalendar(CEventServer& event);
+         static void recvUpdateCalendar(CContext* context, CEventServer& event);
          void recvUpdateCalendar(CBufferIn& buffer);
-         static void recvCloseDefinition(CEventServer& event);
-         static void recvSolveInheritanceContext(CEventServer& event);
+         static void recvCloseDefinition(CContext* context, CEventServer& event);
+         static void recvSolveInheritanceContext(CContext* context, CEventServer& event);
          void recvSolveInheritanceContext(CBufferIn& buffer);
-         static void recvFinalizeClient(CEventServer& event) ;
+         static void recvFinalizeClient(CContext* context, CEventServer& event) ;
          void recvFinalizeClient(CBufferIn& buffer);
         
        public:
@@ -193,7 +195,7 @@ namespace xios
        private:
          set<CContextClient*> sendCouplerInReady_done_;
        public:
-         static void recvCouplerInReady(CEventServer& event) ;
+         static void recvCouplerInReady(CContext* context, CEventServer& event) ;
          void recvCouplerInReady(CBufferIn& buffer) ; //!< coupler is ready to receive grid definition.
          set<CContextClient*> couplerInReady_;
          bool isCouplerInReady(CContextClient* client) { return couplerInReady_.count(client)!=0 ;}
@@ -201,7 +203,7 @@ namespace xios
        public:
         void sendCouplerInCloseDefinition(CContextClient* client) ;
         set<CContextClient*> sendCouplerInCloseDefinition_done_;
-        static void recvCouplerInCloseDefinition(CEventServer& event) ;
+        static void recvCouplerInCloseDefinition(CContext* context, CEventServer& event) ;
         void recvCouplerInCloseDefinition(CBufferIn& buffer) ; //!< coupler has finished it defintion, data can be sent     
         set<CContextClient*> couplerInCloseDefinition_ ;
         bool isCouplerInCloseDefinition(CContextClient* client) { return couplerInCloseDefinition_.count(client)!=0 ;}
@@ -209,7 +211,7 @@ namespace xios
        public:
         void sendCouplerInContextFinalized(CContextClient* client) ;
         set<CContextClient*> sendCouplerInContextFinalized_done_;
-        static void recvCouplerInContextFinalized(CEventServer& event) ;
+        static void recvCouplerInContextFinalized(CContext* context, CEventServer& event) ;
         void recvCouplerInContextFinalized(CBufferIn& buffer) ; //!< coupler has finished it defintion, data can be sent     
         set<CContextClient*> couplerInContextFinalized_ ;
         bool isCouplerInContextFinalized(CContextClient* client) { return couplerInContextFinalized_.count(client)!=0 ;}
@@ -218,7 +220,7 @@ namespace xios
         void freeComms(void);                  //!< Free internally allcoated communicators
 
          // dispatch event
-         static bool dispatchEvent(CEventServer& event);
+         static bool dispatchEvent(CContext* context, CEventServer& event);
 
       public:
         // Get current context
@@ -241,8 +243,8 @@ namespace xios
         static CContextGroup* GetContextGroup(void);
 
         // Some functions to visualize structure of current context
-        static void ShowTree(StdOStream & out = std::clog);
-        static void CleanTree(void);
+        static void ShowTree(CContext* context, StdOStream & out = std::clog);
+        void CleanTree(void);
         static void removeContext(const std::string& contextId);
         static void removeAllContexts(void) ;
         int getServiceType(void) {return serviceType_;}
@@ -406,7 +408,7 @@ namespace xios
    ///--------------------------------------------------------------
 
    // Declare/Define CContextGroup and CContextDefinition
-   DECLARE_GROUP(CContext);
+   DECLARE_GROUP_CONTEXT(CContext);
 
    template <>
    void CGroupTemplate<CContext, CContextGroup, CContextAttributes>::parse(xml::CXMLNode & node, bool withAttr, const std::set<StdString>& parseContextList) ;

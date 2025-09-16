@@ -36,6 +36,7 @@ namespace xios
    class CDomain;
    class CFile;
    class CField ;
+   class CContext ;
 
    ///--------------------------------------------------------------
 
@@ -68,16 +69,16 @@ namespace xios
          typedef CDomainGroup      RelGroup;
          
          /// Constructeurs ///
-         CDomain(void);
-         explicit CDomain(const StdString & id);
+         CDomain(CContext* context);
+         explicit CDomain(CContext* context, const StdString & id);
          CDomain(const CDomain & domain);       // Not implemented yet.
          CDomain(const CDomain * const domain); // Not implemented yet.
          static void releaseStaticAllocation(void) ; // release static allocation on heap
 
-         static CDomain* createDomain();
-         static CDomain* get(const string& id, bool noError=false) ; //<! return domain pointer using id
-         static bool has(const string& id) ; //<! return domain pointer using id
-         static CField*  getFieldFromId(const string& id) ;
+         static CDomain* createDomain(CContext* context);
+         static CDomain* get(CContext* context, const string& id, bool noError=false) ; //<! return domain pointer using id
+         static bool has(CContext* context, const string& id) ; //<! return domain pointer using id
+         static CField*  getFieldFromId(CContext* context, const string& id) ;
 
          CMesh* mesh;
          void assignMesh(const StdString, const int);
@@ -161,7 +162,7 @@ namespace xios
       public :
          bool isEqual(CDomain* domain);
 
-         static bool dispatchEvent(CEventServer& event);
+         static bool dispatchEvent(CContext* context, CEventServer& event);
       
       private:
          /** define if the domain is completed or not ie all attributes have been received before in case 
@@ -323,11 +324,11 @@ namespace xios
          void distributeToServer(CContextClient* client, bool inOut, std::map<int, CArray<size_t,1>>& globalIndexOut, std::map<int, CArray<size_t,1>>& globalIndexIn, 
                                  shared_ptr<CScattererConnector> &scattererConnector, const string& domainId="") ;
 
-         static void recvDomainDistribution(CEventServer& event) ;
+         static void recvDomainDistribution(CContext* context, CEventServer& event) ;
          void receivedDomainDistribution(CEventServer& event, int phasis) ;
 
          void sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scaterrerConnector, const string& domainId) ;
-         static void recvDistributedAttributes(CEventServer& event) ;
+         static void recvDistributedAttributes(CContext* context, CEventServer& event) ;
          void recvDistributedAttributes(CEventServer& event, const string& type) ;
          void setServerMask(CArray<bool,1>& serverMask, CContextClient* client) ;
 

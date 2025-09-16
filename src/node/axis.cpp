@@ -20,8 +20,8 @@ namespace xios {
 
    /// ////////////////////// Definitions ////////////////////// ///
 
-   CAxis::CAxis(void)
-      : CObjectTemplate<CAxis>()
+   CAxis::CAxis(CContext* context)
+      : CObjectTemplate<CAxis>(context)
       , CAxisAttributes(), isChecked(false), relFiles()
       , hasBounds_(false), isCompressible_(false)
       , transformationMap_()
@@ -29,8 +29,8 @@ namespace xios {
    {
    }
 
-   CAxis::CAxis(const StdString & id)
-      : CObjectTemplate<CAxis>(id)
+   CAxis::CAxis(CContext* context, const StdString & id)
+      : CObjectTemplate<CAxis>(context, id)
       , CAxisAttributes(), isChecked(false), relFiles()
       , hasBounds_(false), isCompressible_(false)
       , transformationMap_()
@@ -98,7 +98,7 @@ namespace xios {
              (!this->n.isEmpty() && (this->n != this->n_glo));
       // A condition to make sure that if there is only one client, axis
       // should be considered to be distributed. This should be a temporary solution     
-      distributed |= (1 == CContext::getCurrent()->intraCommSize_);
+      distributed |= (1 == context_->intraCommSize_);
       return distributed;
    }
    CATCH
@@ -115,7 +115,7 @@ namespace xios {
      // mesh is compressible contains some masked or indexed value, ie if full view is different of workflow view.
      // But now assume that the size of the 2 view must be equal for everybody. True on server side
      int isSameView = getLocalView(CElementView::FULL)->getSize() ==  getLocalView(CElementView::WORKFLOW)->getSize();
-     MPI_Allreduce(MPI_IN_PLACE, &isSameView, 1, MPI_INT, MPI_LAND, CContext::getCurrent()->getIntraComm()) ;
+     MPI_Allreduce(MPI_IN_PLACE, &isSameView, 1, MPI_INT, MPI_LAND, context_->getIntraComm()) ;
      if (isSameView) isCompressible_ = false ;
      else isCompressible_ = true ;
      isCompressibleComputed_=true ;
@@ -221,45 +221,45 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   CAxis* CAxis::createAxis()
+   CAxis* CAxis::createAxis(CContext* context)
    TRY
    {
-     CAxis* axis = CAxisGroup::get("axis_definition")->createChild();
+     CAxis* axis = CAxisGroup::get(context, "axis_definition")->createChild();
      return axis;
    }
    CATCH
 
-   CAxis* CAxis::get(const string& id, bool noError)
+   CAxis* CAxis::get(CContext* context, const string& id, bool noError)
    {
      const regex r("::");
      smatch m;
      if (regex_search(id, m, r))
      {
-        if (m.size()!=1) ERROR("CAxis* CAxis::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        if (m.size()!=1) ERROR("CAxis* CAxis::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
         string fieldId=m.prefix() ;
-        if (fieldId.empty()) ERROR("CAxis* CAxis::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        if (fieldId.empty()) ERROR("CAxis* CAxis::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
-        if (!CField::has(fieldId)) 
+        if (!CField::has(context, fieldId)) 
 	{
           if (noError)  return nullptr ;
-          else ERROR("CAxis* CAxis::get(string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+          else ERROR("CAxis* CAxis::get(CContext* context, string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
 	}
-        CField* field=CField::get(fieldId) ;
+        CField* field=CField::get(context, fieldId) ;
         return field->getAssociatedAxis(suffix, noError) ;
      }
      {
-       if (noError) if(!CObjectFactory::HasObject<CAxis>(id)) return nullptr ;
-       return CObjectFactory::GetObject<CAxis>(id).get();
+       if (noError) if(!CObjectFactory::HasObject<CAxis>(context->getId(), id)) return nullptr ;
+       return CObjectFactory::GetObject<CAxis>(context->getId(), id).get();
      }
    }
    
-   bool CAxis::has(const string& id)
+   bool CAxis::has(CContext* context, const string& id)
    {
-     if (CAxis::get(id,true)==nullptr) return false ;
+     if (CAxis::get(context, id, true)==nullptr) return false ;
      else return true ;
    }
    
-   CField* CAxis::getFieldFromId(const string& id)
+   CField* CAxis::getFieldFromId(CContext* context, const string& id)
    {
      const regex r("::");
      smatch m;
@@ -269,7 +269,7 @@ namespace xios {
         string fieldId=m.prefix() ;
         if (fieldId.empty()) ERROR("CField* CAxis::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
-        CField* field=CField::get(fieldId) ;
+        CField* field=CField::get(context, fieldId) ;
         return field ;
      }
      else return nullptr;
@@ -423,12 +423,12 @@ namespace xios {
    bool CAxis::checkGeometricAttributes(bool generateError)
    TRY
    {
-     CContext* context=CContext::getCurrent();
+     CContext* context = context_;
 
      if (this->n_glo.isEmpty())
      {
         if (generateError) ERROR("CAxis::checkAttributes(void)",
-                                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                << "[ id = '" << getId() << "' , context = '" << context_->getId() << "' ] "
                                 << "The axis is wrongly defined, attribute 'n_glo' must be specified")
         else return false ; 
      }
@@ -453,7 +453,7 @@ namespace xios {
           if (begin < 0 || begin > size - 1)
 	  {
              if (generateError) ERROR("CAxis::checkAttributes(void)",
-                                      << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                      << "[ id = '" << getId() << "' , context = '" <<  context_->getId() << "' ] "
                                       << "The axis is wrongly defined, attribute 'begin' (" 
                                       << begin.getValue() << ") must be non-negative and smaller than size-1 (" << size - 1 << ").")
               else return false ; 
@@ -466,7 +466,7 @@ namespace xios {
           if (n < 0 || n > size)
 	  {
             if (generateError) ERROR("CAxis::checkAttributes(void)",
-                                      << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                      << "[ id = '" << getId() << "' , context = '" <<  context_->getId()<< "' ] "
                                       << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" 
                                       << size << ").")
             else return false ; 
@@ -486,7 +486,7 @@ namespace xios {
         if (this->n.getValue() != true_size)
 	{
           if (generateError) ERROR("CAxis::checkAttributes(void)",
-                                   << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                                   << "[ id = '" << getId() << "' , context = '" <<  context_->getId() << "' ] "
                                    << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
                                    << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").")
           else return false ; 
@@ -519,7 +519,7 @@ namespace xios {
       else if (data_n.getValue() < 0)
       {
         if (generateError) ERROR("CAxis::checkData(void)",
-                              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                              << "[ id = " << this->getId() << " , context = '" <<  context_->getId() << " ] "
                               << "The data size should be strictly positive ('data_n' = " << data_n.getValue() << ").")
         else return false ;
       }
@@ -545,7 +545,7 @@ namespace xios {
         if (data_index.numElements() != data_n)
         {
           if (generateError) ERROR("CAxis::checkData(void)",
-                               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                               << "[ id = " << this->getId() << " , context = '" <<  context_->getId() << " ] "
                                << "The size of data_index = "<< data_index.numElements() << "is not equal to the data size data_n = " 
                                << data_n.getValue() << ").")
           else return false ;
@@ -571,7 +571,7 @@ namespace xios {
         if (mask.extent(0) != n)
         {
           if (generateError) ERROR("CAxis::checkMask(void)",
-                                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                                  << "[ id = " << this->getId() << " , context = '" <<  context_->getId() << " ] "
                                   << "The mask does not have the same size as the local domain." << std::endl
                                   << "Local size is " << n.getValue() << "." << std::endl
                                   << "Mask size is " << mask.extent(0) << ".")
@@ -598,7 +598,7 @@ namespace xios {
        if (bounds.extent(0) != 2 || bounds.extent(1) != n)
        {
          if (generateError) ERROR("CAxis::checkAttributes(void)",
-                               << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
+                               << "The bounds array of the axis [ id = '" << getId() << "' , context = '" <<  context_->getId() << "' ] must be of dimension 2 x axis size." << std::endl
                                << "Axis size is " << n.getValue() << "." << std::endl
                                << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".")
          else return false ;
@@ -618,7 +618,7 @@ namespace xios {
       if (label.extent(0) != n)
       {
         if (generateError) ERROR("CAxis::checkLabel(void)",
-                              << "The label array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension of axis size." << std::endl
+                              << "The label array of the axis [ id = '" << getId() << "' , context = '" <<  context_->getId() << "' ] must be of dimension of axis size." << std::endl
                               << "Axis size is " << n.getValue() << "." << std::endl
                               << "label size is "<< label.extent(0)<<  " .")
         else return false ;
@@ -642,20 +642,20 @@ namespace xios {
   /*!
     Dispatch event from the lower communication layer then process event according to its type
   */
-  bool CAxis::dispatchEvent(CEventServer& event)
+  bool CAxis::dispatchEvent(CContext* context, CEventServer& event)
   TRY
   {
-     if (SuperClass::dispatchEvent(event)) return true;
+     if (SuperClass::dispatchEvent(context, event)) return true;
      else
      {
        switch(event.type)
        {
          case EVENT_ID_AXIS_DISTRIBUTION:
-           recvAxisDistribution(event);
+           recvAxisDistribution(context, event);
            return true;
            break;
          case EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE:
-           recvDistributedAttributes(event);
+           recvDistributedAttributes(context, event);
            return true;
            break;
           default :
@@ -731,7 +731,7 @@ namespace xios {
   CTransformation<CAxis>* CAxis::addTransformation(ETranformationType transType, const StdString& id)
   TRY
   {
-    transformationMap_.push_back(std::make_pair(transType, CTransformation<CAxis>::createTransformation(transType,id)));
+    transformationMap_.push_back(std::make_pair(transType, CTransformation<CAxis>::createTransformation(transType, context_, id)));
     return transformationMap_.back().second;
   }
   CATCH_DUMP_ATTR
@@ -847,7 +847,7 @@ namespace xios {
   {
     if (!axis_ref.isEmpty())
     {
-      CField* field=getFieldFromId(axis_ref) ;
+      CField* field=getFieldFromId(context_, axis_ref) ;
       if (field!=nullptr)
       {
         bool ret = field->buildWorkflowGraph(gc) ;
@@ -855,7 +855,7 @@ namespace xios {
       }
       else 
       {
-        CAxis* axis = get(axis_ref) ;
+        CAxis* axis = get(context_, axis_ref) ;
         bool ret = axis->activateFieldWorkflow(gc) ;
         if (!ret) return false ; // cannot build workflow graph at this state
         axis_ref=axis->getId() ; // replace domain_ref by solved reference
@@ -901,9 +901,8 @@ namespace xios {
           {
             info(0) << "WARNING : " << it->first << " is deprecated, replaced by extract_axis." << endl;
           }
-          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CAxis>::createTransformation(it->second,
-                                                                                                               nodeId,
-                                                                                                               &node)));
+          transformationMap_.push_back(
+            std::make_pair(it->second, CTransformation<CAxis>::createTransformation(it->second, context_, nodeId, &node)));
         }
         else
         {
@@ -924,7 +923,7 @@ namespace xios {
    void CAxis::initializeLocalElement(void)
    {
       // after checkAttribute index of size n
-      int rank = CContext::getCurrent()->getIntraCommRank() ;
+      int rank = context_->getIntraCommRank() ;
       
       CArray<size_t,1> ind(n) ;
       for (int i=0;i<n;i++) ind(i)=index(i) ;
@@ -974,7 +973,7 @@ namespace xios {
 
    void CAxis::computeRemoteElement(CContextClient* client, EDistributionType type)
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     map<int, CArray<size_t,1>> globalIndex ;
 
     if (type==EDistributionType::BANDS) // Bands distribution to send to file server
@@ -1024,7 +1023,7 @@ namespace xios {
                                  shared_ptr<CScattererConnector> &scattererConnector, const string& axisId)
   {
     string serverAxisId = axisId.empty() ? this->getId() : axisId ;
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
 
     this->sendAllAttributesToServer(client, serverAxisId)  ;
 
@@ -1116,13 +1115,13 @@ namespace xios {
 
   }
 
-  void CAxis::recvAxisDistribution(CEventServer& event)
+  void CAxis::recvAxisDistribution(CContext* context, CEventServer& event)
   TRY
   {
     string axisId;
     int phasis ;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> axisId >> phasis ;
-    get(axisId)->receivedAxisDistribution(event, phasis);
+    get(context, axisId)->receivedAxisDistribution(event, phasis);
   }
   CATCH
 
@@ -1130,7 +1129,7 @@ namespace xios {
   void CAxis::receivedAxisDistribution(CEventServer& event, int phasis)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     if (phasis==0) // receive the remote element to construct the full view
     {
       localElement_ = make_shared<CLocalElement>(context->getIntraCommRank(),event) ;
@@ -1153,7 +1152,7 @@ namespace xios {
     }
     else if (phasis==1) // receive the sent view from client to construct the full distributed full view on server
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       shared_ptr<CDistributedElement> elementFrom = make_shared<CDistributedElement>(event) ;
       elementFrom->addFullView() ;
       gathererConnector_ = make_shared<CGathererConnector>(elementFrom->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
@@ -1178,7 +1177,7 @@ namespace xios {
   void CAxis::setServerMask(CArray<bool,1>& serverMask, CContextClient* client)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     localElement_->addView(CElementView::WORKFLOW, serverMask) ;
     mask.reference(serverMask.copy()) ;
  
@@ -1199,7 +1198,7 @@ namespace xios {
   void CAxis::sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scattererConnector, const string& axisId)
   {
     string serverAxisId = axisId.empty() ? this->getId() : axisId ;
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
 
     if (hasValue_)
     {
@@ -1247,13 +1246,13 @@ namespace xios {
     }
   }
 
-  void CAxis::recvDistributedAttributes(CEventServer& event)
+  void CAxis::recvDistributedAttributes(CContext* context, CEventServer& event)
   TRY
   {
     string axisId;
     string type ;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> axisId >> type ;
-    get(axisId)->recvDistributedAttributes(event, type);
+    CAxis::get(context, axisId)->recvDistributedAttributes(event, type);
   }
   CATCH
 

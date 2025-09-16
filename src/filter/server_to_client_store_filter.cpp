@@ -30,7 +30,7 @@ namespace xios
 
     if(this->graphEnabled)
     {
-      CWorkflowGraph::addNode("Server to Client Store filter", 5, true, 1, packets[0]);
+      CWorkflowGraph::addNode(getContext(), "Server to Client Store filter", 5, true, 1, packets[0]);
     }
 
     //if (info.isActive(logProfile)) CTimer::get("Field : send data (read)").resume();

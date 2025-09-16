@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CInterpolateDomain::CInterpolateDomain(void)
-    : CObjectTemplate<CInterpolateDomain>(), CInterpolateDomainAttributes(), CTransformation<CDomain>()
+  CInterpolateDomain::CInterpolateDomain(CContext* context)
+    : CObjectTemplate<CInterpolateDomain>(context), CInterpolateDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CInterpolateDomain::CInterpolateDomain(const StdString & id)
-    : CObjectTemplate<CInterpolateDomain>(id), CInterpolateDomainAttributes(), CTransformation<CDomain>()
+  CInterpolateDomain::CInterpolateDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CInterpolateDomain>(context, id), CInterpolateDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CInterpolateDomain::~CInterpolateDomain(void)
   {}
 
-  CTransformation<CDomain>* CInterpolateDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CInterpolateDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CInterpolateDomain* interpDomain = CInterpolateDomainGroup::get("interpolate_domain_definition")->createChild(id);
+    CInterpolateDomain* interpDomain = CInterpolateDomainGroup::get(context, "interpolate_domain_definition")->createChild(id);
     if (node) interpDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(interpDomain);
   }

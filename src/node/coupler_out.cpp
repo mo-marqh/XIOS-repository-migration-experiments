@@ -13,16 +13,16 @@
 namespace xios
 {
 
-  CCouplerOut::CCouplerOut(void) : CObjectTemplate<CCouplerOut>(), CCouplerOutAttributes(),
+  CCouplerOut::CCouplerOut(CContext* context) : CObjectTemplate<CCouplerOut>(context), CCouplerOutAttributes(),
                                  virtualFieldGroup(), enabledFields() 
   {
-     setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
+     setVirtualFieldGroup(CFieldGroup::create(context_, getId() + "_virtual_field_group"));
   }
 
-  CCouplerOut::CCouplerOut(const StdString & id) : CObjectTemplate<CCouplerOut>(id), CCouplerOutAttributes(),
+  CCouplerOut::CCouplerOut(CContext* context,const StdString & id) : CObjectTemplate<CCouplerOut>(context,id), CCouplerOutAttributes(),
                                                     virtualFieldGroup(), enabledFields()
   {
-    setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
+    setVirtualFieldGroup(CFieldGroup::create(context_, getId() + "_virtual_field_group"));
   }
 
   CCouplerOut::~CCouplerOut(void)
@@ -94,7 +94,7 @@ namespace xios
     */
    void  CCouplerOut::assignContext(void)
    {
-     client_ = CContext::getCurrent()->getCouplerOutClient(getCouplingContextId());
+     client_ = context_->getCouplerOutClient(getCouplingContextId());
      for (auto& field : getEnabledFields()) field->setContextClient(client_) ; 
    }
 
@@ -155,7 +155,7 @@ namespace xios
         ERROR("void CCouplerOut::createInterCommunicator(void)",
                "The attribute <context> must be defined to specify the target coupling context");
      }
-     CContext* contextPtr = CContext::getCurrent();
+     CContext* contextPtr = context_;
      contextPtr->addCouplingChanel(getCouplingContextId(), true) ;
    }
    CATCH_DUMP_ATTR
@@ -187,7 +187,7 @@ namespace xios
    StdString CCouplerOut::dumpClassAttributes(void)
    {
      StdString str;
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      str.append("context=\"");
      str.append(context->getId());
      str.append("\"");

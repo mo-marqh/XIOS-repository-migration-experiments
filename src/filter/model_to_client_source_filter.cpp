@@ -69,7 +69,7 @@ namespace xios
       }
       packet->graphPackage->fromFilter = this->graphPackage->filterId;
       packet->graphPackage->currentField = this->graphPackage->inFields[0];
-      CWorkflowGraph::addNode("Model to Client Source filter", 1, false, 0, packet);
+      CWorkflowGraph::addNode(getContext(), "Model to Client Source filter", 1, false, 0, packet);
     }
   }
 

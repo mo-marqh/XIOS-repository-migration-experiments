@@ -44,9 +44,9 @@ namespace xios
         }  
       }
       
-      CWorkflowGraph::addNode("Pass through filter", 2, false, 1, data[0]);
+      CWorkflowGraph::addNode(getContext(), "Pass through filter", 2, false, 1, data[0]);
       if(CXios::isClient) (*CWorkflowGraph::vectorOfNodes_)[this->graphPackage->filterId].label_field_id = this->label_field_id;
-      CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
+      CWorkflowGraph::addEdge(getContext(), data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
       
       data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
       std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());

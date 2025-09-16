@@ -4,6 +4,12 @@
 namespace xios
 {
 
+  CGridAlgorithm::CGridAlgorithm(shared_ptr<CGenericAlgorithmTransformation> algorithm) 
+                                : algorithm_(algorithm), context_(algorithm->getContext())
+  {
+
+  } 
+
   CTransformFilter* CGridAlgorithm::createTransformFilter(CGarbageCollector& gc, bool detectMissingValues, double defaultValue)
   {  
     return algorithm_->createTransformFilter(gc, shared_from_this(), detectMissingValues, defaultValue) ;

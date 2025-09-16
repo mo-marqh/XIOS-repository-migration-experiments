@@ -22,7 +22,7 @@ namespace xios
     Time timeStamp ;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> timeStamp  ;
     CDataPacketPtr packet(new CDataPacket);
-    packet->date = CContext::getCurrent()->getCalendar()->getTimeOrigin() + timeStamp*Second; // very bad, better to pass directly the date
+    packet->date = getContext()->getCalendar()->getTimeOrigin() + timeStamp*Second; // very bad, better to pass directly the date
     packet->timestamp = timeStamp;
     packet->status = CDataPacket::NO_ERROR;
     if (info.isActive(logProfile)) CTimer::get("Server workflow data entry").resume();
@@ -35,7 +35,7 @@ namespace xios
       packet->graphPackage = new CGraphDataPackage;
       packet->graphPackage->fromFilter = this->graphPackage->filterId;
       packet->graphPackage->currentField = this->graphPackage->inFields[0];
-      CWorkflowGraph::addNode("Server from Client Source filter", 1, false, 0, packet);
+      CWorkflowGraph::addNode(getContext(), "Server from Client Source filter", 1, false, 0, packet);
     }
     if (info.isActive(logProfile)) CTimer::get("Server workflow").resume();
     onOutputReady(packet);

@@ -82,7 +82,7 @@ namespace xios
   }
   CATCH
   
-  void CWorkflowGraph::addEdge(int from, int to, CDataPacketPtr packet)
+  void CWorkflowGraph::addEdge(CContext* context, int from, int to, CDataPacketPtr packet)
   TRY
   {
     if(from<0) return;
@@ -92,7 +92,7 @@ namespace xios
       // if(vectorOfEdges_&&vectorOfNodes_) outputWorkflowGraph_client_stdout();
       // std::cout<<"Trying to add an edge from "<<from<<" to "<<to<<std::endl;
       if(!vectorOfEdges_) vectorOfEdges_ = new std::vector<graph_edge_object>;
-      std::string currentContextId = CContext::getCurrent()->getId();
+      std::string currentContextId = context->getId();
       
       graph_edge_object edge_obj;    
       edge_obj.from = from;
@@ -130,7 +130,7 @@ namespace xios
     else
     {
       if(!vectorOfEdges_srv_) vectorOfEdges_srv_ = new std::vector<graph_edge_object>;
-      std::string currentContextId = CContext::getCurrent()->getId();
+      std::string currentContextId = context->getId();
       
       graph_edge_object edge_obj;    
       edge_obj.from = from;
@@ -159,7 +159,7 @@ namespace xios
   CATCH
   
 
-  void CWorkflowGraph::addNode(StdString filterName, int filterClass, bool filterFilled, int entryNb, CDataPacketPtr packet)
+  void CWorkflowGraph::addNode(CContext* context, StdString filterName, int filterClass, bool filterFilled, int entryNb, CDataPacketPtr packet)
   TRY
   {
     if(CXios::isClient)
@@ -170,7 +170,7 @@ namespace xios
       if(!vectorOfContexts_) vectorOfContexts_ = new std::vector<StdString>;
       if(!mapHashFilterID_) mapHashFilterID_ = new std::unordered_map <size_t, int>;
 
-      std::string currentContextId = CContext::getCurrent()->getId();
+      std::string currentContextId = context->getId();
       if ( std::find(vectorOfContexts_->begin(), vectorOfContexts_->end(), currentContextId) == vectorOfContexts_->end() )
          vectorOfContexts_->push_back(currentContextId);
       
@@ -203,7 +203,7 @@ namespace xios
       if(!vectorOfContexts_srv_) vectorOfContexts_srv_ = new std::vector<StdString>;
       if(!mapHashFilterID_srv_) mapHashFilterID_srv_ = new std::unordered_map <size_t, int>;
 
-      std::string currentContextId = CContext::getCurrent()->getId();
+      std::string currentContextId = context->getId();
       if ( std::find(vectorOfContexts_srv_->begin(), vectorOfContexts_srv_->end(), currentContextId) == vectorOfContexts_srv_->end() )
          vectorOfContexts_srv_->push_back(currentContextId);
       

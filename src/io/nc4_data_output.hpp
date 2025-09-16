@@ -9,7 +9,7 @@
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
-
+      class CContext ;
       class CNc4DataOutput
          : protected CONetCDF4
          , public virtual CDataOutput
@@ -32,6 +32,7 @@ namespace xios
             CNc4DataOutput(const CNc4DataOutput & dataoutput);       // Not implemented.
             CNc4DataOutput(const CNc4DataOutput * const dataoutput); // Not implemented.
             
+            CContext* getContext(void) {return context_ ;}
             /// Accesseur ///
             const StdString & getFileName(void) const;
 
@@ -60,8 +61,7 @@ namespace xios
             virtual void writeFile_     (CFile* file);
             virtual void closeFile_     (void);
             virtual void syncFile_      (void);
-            virtual void writeTimeAxis_ (CField* field,
-                                         const std::shared_ptr<CCalendar> cal);
+            virtual void writeTimeAxis_ (CField* field);
 
          protected :
             void writeUnstructuredDomain (CDomain* domain);
@@ -131,6 +131,7 @@ namespace xios
 	
             std::multimap< StdString, pair<size_t,CAxis*> > relAxis_;
             std::multimap< StdString, pair<size_t,CDomain*> > relDomains_;
+            CContext* context_ ;
 
       }; // class CNc4DataOutput
 

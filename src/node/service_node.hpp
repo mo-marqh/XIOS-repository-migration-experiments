@@ -18,6 +18,7 @@ namespace xios
   class CServiceNodeGroup;
   class CServiceNodeAttributes;
   class CServiceNode;
+  class CContext ;
   ///--------------------------------------------------------------
 
   // Declare/Define CVarAttribute
@@ -42,8 +43,8 @@ namespace xios
       typedef CServiceNodeGroup      RelGroup;
 
       /// Constructeurs ///
-      CServiceNode(void) ;
-      explicit CServiceNode(const StdString & id);
+      CServiceNode(CContext* context) ;
+      explicit CServiceNode(CContext* context, const StdString & id);
       CServiceNode(const CServiceNode & var);       // Not implemented yet.
       CServiceNode(const CServiceNode * const var); // Not implemented yet.
    

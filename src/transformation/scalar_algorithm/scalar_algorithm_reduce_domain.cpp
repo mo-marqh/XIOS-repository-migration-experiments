@@ -45,7 +45,7 @@ TRY
 CATCH
 
 CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(bool isSource, CScalar* scalarDestination, CDomain* domainSource, CReduceDomainToScalar* algo)
- : CAlgorithmTransformationReduce(isSource), domainSrc_(domainSource)
+ : CAlgorithmTransformationReduce(algo->getContext(), isSource), domainSrc_(domainSource)
 TRY
 {
   algo->checkValid(scalarDestination, domainSource);

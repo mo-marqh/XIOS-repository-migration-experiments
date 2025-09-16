@@ -2,6 +2,7 @@
 #include "type.hpp"
 #include "variable.hpp"
 #include "operator_expr.hpp"
+#include "context.hpp"
 
 namespace xios
 {
@@ -9,7 +10,7 @@ namespace xios
     : strVal(strVal)
   { /* Nothing to do */ }
 
-  double CScalarValExprNode::reduce() const
+  double CScalarValExprNode::reduce(CContext* context) const
   {
     CType<double> val;
     val.fromString(strVal);
@@ -20,7 +21,7 @@ namespace xios
     : varId(varId)
   { /* Nothing to do */ }
 
-  double CScalarVarExprNode::reduce() const
+  double CScalarVarExprNode::reduce(CContext* context) const
   {
     // $missing_value will be replaced with NaN
     if (varId == "missing_value")
@@ -29,10 +30,10 @@ namespace xios
     }
     else
     {
-      if (!CVariable::has(varId)) 
+      if (!CVariable::has(context, varId)) 
         ERROR("double CScalarVarExprNode::reduce() const", << "The variable " << varId << " does not exist.");
 
-      return CVariable::get(varId)->getData<double>();
+      return CVariable::get(context, varId)->getData<double>();
     }
   }
 
@@ -45,10 +46,10 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  double CScalarUnaryOpExprNode::reduce() const
+  double CScalarUnaryOpExprNode::reduce(CContext* context) const
   {
     COperatorExpr::functionScalar op = operatorExpr.getOpScalar(opId);
-    return op(child->reduce());
+    return op(child->reduce(context));
   }
 
   CScalarBinaryOpExprNode::CScalarBinaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2)
@@ -61,10 +62,10 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  double CScalarBinaryOpExprNode::reduce() const
+  double CScalarBinaryOpExprNode::reduce(CContext* context) const
   {
     COperatorExpr::functionScalarScalar op = operatorExpr.getOpScalarScalar(opId);
-    return op(child1->reduce(), child2->reduce());
+    return op(child1->reduce(context), child2->reduce(context));
   }
 
 
@@ -79,9 +80,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  double CScalarTernaryOpExprNode::reduce() const
+  double CScalarTernaryOpExprNode::reduce(CContext* context) const
   {
     COperatorExpr::functionScalarScalarScalar op = operatorExpr.getOpScalarScalarScalar(opId);
-    return op(child1->reduce(), child2->reduce(), child3->reduce());
+    return op(child1->reduce(context), child2->reduce(context), child3->reduce(context));
   }
 }

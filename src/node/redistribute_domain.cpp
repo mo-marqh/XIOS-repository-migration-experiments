@@ -8,20 +8,20 @@ namespace xios
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CRedistributeDomain::CRedistributeDomain(void)
-    : CObjectTemplate<CRedistributeDomain>(), CRedistributeDomainAttributes(), CTransformation<CDomain>()
+  CRedistributeDomain::CRedistributeDomain(CContext* context)
+    : CObjectTemplate<CRedistributeDomain>(context), CRedistributeDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CRedistributeDomain::CRedistributeDomain(const StdString & id)
-    : CObjectTemplate<CRedistributeDomain>(id), CRedistributeDomainAttributes(), CTransformation<CDomain>()
+  CRedistributeDomain::CRedistributeDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CRedistributeDomain>(context, id), CRedistributeDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CRedistributeDomain::~CRedistributeDomain(void)
   {}
 
-  CTransformation<CDomain>* CRedistributeDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CRedistributeDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CRedistributeDomain* redistributeDomain = CRedistributeDomainGroup::get("redistribute_domain_definition")->createChild(id);
+    CRedistributeDomain* redistributeDomain = CRedistributeDomainGroup::get(context, "redistribute_domain_definition")->createChild(id);
     if (node) redistributeDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(redistributeDomain);
   }

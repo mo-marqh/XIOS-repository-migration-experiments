@@ -8,20 +8,20 @@ namespace xios
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CRedistributeScalar::CRedistributeScalar(void)
-    : CObjectTemplate<CRedistributeScalar>(), CRedistributeScalarAttributes(), CTransformation<CScalar>()
+  CRedistributeScalar::CRedistributeScalar(CContext* context)
+    : CObjectTemplate<CRedistributeScalar>(context), CRedistributeScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
-  CRedistributeScalar::CRedistributeScalar(const StdString & id)
-    : CObjectTemplate<CRedistributeScalar>(id), CRedistributeScalarAttributes(), CTransformation<CScalar>()
+  CRedistributeScalar::CRedistributeScalar(CContext* context, const StdString & id)
+    : CObjectTemplate<CRedistributeScalar>(context, id), CRedistributeScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
   CRedistributeScalar::~CRedistributeScalar(void)
   {}
 
-  CTransformation<CScalar>* CRedistributeScalar::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CScalar>* CRedistributeScalar::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CRedistributeScalar* redistributeScalar = CRedistributeScalarGroup::get("redistribute_scalar_definition")->createChild(id);
+    CRedistributeScalar* redistributeScalar = CRedistributeScalarGroup::get(context, "redistribute_scalar_definition")->createChild(id);
     if (node) redistributeScalar->parse(*node);
     return static_cast<CTransformation<CScalar>*>(redistributeScalar);
   }

@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CExpandDomain::CExpandDomain(void)
-    : CObjectTemplate<CExpandDomain>(), CExpandDomainAttributes(), CTransformation<CDomain>()
+  CExpandDomain::CExpandDomain(CContext* context)
+    : CObjectTemplate<CExpandDomain>(context), CExpandDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CExpandDomain::CExpandDomain(const StdString & id)
-    : CObjectTemplate<CExpandDomain>(id), CExpandDomainAttributes(), CTransformation<CDomain>()
+  CExpandDomain::CExpandDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CExpandDomain>(context, id), CExpandDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CExpandDomain::~CExpandDomain(void)
   {}
 
-  CTransformation<CDomain>* CExpandDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CExpandDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CExpandDomain* expandDomain = CExpandDomainGroup::get("expand_domain_definition")->createChild(id);
+    CExpandDomain* expandDomain = CExpandDomainGroup::get(context, "expand_domain_definition")->createChild(id);
     if (node) expandDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(expandDomain);
   }

@@ -35,8 +35,8 @@ namespace xios {
 
    /// ////////////////////// Définitions ////////////////////// ///
 
-   CDomain::CDomain(void)
-      : CObjectTemplate<CDomain>(), CDomainAttributes()
+   CDomain::CDomain(CContext* context)
+      : CObjectTemplate<CDomain>(context), CDomainAttributes()
       , isChecked(false), relFiles(),  indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isCompressible_(false), isUnstructed_(false)
       , hasLonLat(false)
@@ -46,8 +46,8 @@ namespace xios {
    {
    }
 
-   CDomain::CDomain(const StdString & id)
-      : CObjectTemplate<CDomain>(id), CDomainAttributes()
+   CDomain::CDomain(CContext* context, const StdString & id)
+      : CObjectTemplate<CDomain>(context, id), CDomainAttributes()
       , isChecked(false), relFiles(), indSrv_(), connectedServerRank_() 
       , hasBounds(false), hasArea(false), isCompressible_(false), isUnstructed_(false)
       , hasLonLat(false)
@@ -76,56 +76,56 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   CDomain* CDomain::createDomain()
+   CDomain* CDomain::createDomain(CContext* context)
    TRY
    {
-     CDomain* domain = CDomainGroup::get("domain_definition")->createChild();
+     CDomain* domain = CDomainGroup::get(context, "domain_definition")->createChild();
      return domain;
    }
    CATCH
 
-   CDomain* CDomain::get(const string& id, bool noError)
+   CDomain* CDomain::get(CContext* context, const string& id, bool noError)
    {
      const regex r("::");
      smatch m;
      if (regex_search(id, m, r))
      {
-        if (m.size()!=1) ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        if (m.size()!=1) ERROR("CDomain* CDomain::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
         string fieldId=m.prefix() ;
-        if (fieldId.empty()) ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        if (fieldId.empty()) ERROR("CDomain* CDomain::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
-        if (!CField::has(fieldId)) 
+        if (!CField::has(context, fieldId)) 
 	{
           if (noError)  return nullptr ;
-          else ERROR("CDomain* CDomain::get(string& id)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
+          else ERROR("CDomain* CDomain::get(CContext* context, const string& id, bool noError)", <<" id = "<<id<< "  -> field Id : < "<<fieldId<<" > doesn't exist");
 	}
-        CField* field=CField::get(fieldId) ;
+        CField* field=CField::get(context, fieldId) ;
         return field->getAssociatedDomain(suffix, noError) ;
      }
      else 
      {
-       if (noError) if(!CObjectFactory::HasObject<CDomain>(id)) return nullptr ;
-       return CObjectFactory::GetObject<CDomain>(id).get();
+       if (noError) if(!CObjectFactory::HasObject<CDomain>(context->getId(), id)) return nullptr ;
+       return CObjectFactory::GetObject<CDomain>(context->getId(), id).get();
      }
    }
 
-   bool CDomain::has(const string& id)
+   bool CDomain::has(CContext* context, const string& id)
    {
-     if (CDomain::get(id,true)==nullptr) return false ;
+     if (CDomain::get(context, id,true)==nullptr) return false ;
      else return true ;
    }
    
-   CField* CDomain::getFieldFromId(const string& id)
+   CField* CDomain::getFieldFromId(CContext* context, const string& id)
    {
      const regex r("::");
      smatch m;
      if (regex_search(id, m, r))
      {
-        if (m.size()!=1) ERROR("CField* CDomain::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
+        if (m.size()!=1) ERROR("CField* CDomain::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> bad format id, separator :: append more than one time");
         string fieldId=m.prefix() ;
-        if (fieldId.empty()) ERROR("CField* CDomain::getFieldFromId(const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
+        if (fieldId.empty()) ERROR("CField* CDomain::getFieldFromId(CContext* context, const string& id)", <<" id = "<<id<< "  -> bad format id, field name is empty");
         string suffix=m.suffix() ;
-        CField* field=CField::get(fieldId) ;
+        CField* field=CField::get(context, fieldId) ;
         return field ;
      }
      else return nullptr;
@@ -222,7 +222,7 @@ namespace xios {
       bool distributed =  !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
               (!i_index.isEmpty() && i_index.numElements() == ni_glo*nj_glo));
       bool distributed_glo ;
-      distributed |= (1 == CContext::getCurrent()->intraCommSize_);
+      distributed |= (1 == context_->intraCommSize_);
 
       return distributed;
    }
@@ -242,7 +242,7 @@ namespace xios {
      // mesh is compressible contains some masked or indexed value, ie if full view is different of workflow view.
      // But now assume that the size of the 2 view must be equal for everybody. True on server side
      int isSameView = getLocalView(CElementView::FULL)->getSize() ==  getLocalView(CElementView::WORKFLOW)->getSize();
-     MPI_Allreduce(MPI_IN_PLACE, &isSameView, 1, MPI_INT, MPI_LAND, CContext::getCurrent()->getIntraComm()) ;
+     MPI_Allreduce(MPI_IN_PLACE, &isSameView, 1, MPI_INT, MPI_LAND, context_->getIntraComm()) ;
      if (isSameView) isCompressible_ = false ;
      else isCompressible_ = true ;
      isCompressibleComputed_=true ;
@@ -302,7 +302,7 @@ namespace xios {
      if (this->isRedistributed_) return;
 
      this->isRedistributed_ = true;
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
      // For now the assumption is that secondary server pools consist of the same number of procs.
      // CHANGE the line below if the assumption changes.
 
@@ -680,7 +680,7 @@ namespace xios {
    void CDomain::AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat, CArray<double,1>& lon_g, CArray<double,1>& lat_g)
    TRY
    {
-     CContext* context = CContext::getCurrent();
+     CContext* context = context_;
     // For now the assumption is that secondary server pools consist of the same number of procs.
     // CHANGE the line below if the assumption changes.
      int clientSize = context->intraCommSize_ ;
@@ -825,7 +825,7 @@ namespace xios {
      if (type.isEmpty())
      {
        ERROR("CDomain::checkDomain(void)",
-             << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+             << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
              << "The domain type is mandatory, "
              << "please define the 'type' attribute.")
      }
@@ -842,14 +842,14 @@ namespace xios {
         if (ni_glo.isEmpty())
         {
           ERROR("CDomain::checkDomain(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                 << "The global domain is badly defined, "
                 << "the mandatory 'ni_glo' attribute is missing.")
         }
         else if (ni_glo <= 0)
         {
           ERROR("CDomain::checkDomain(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                 << "The global domain is badly defined, "
                 << "'ni_glo' attribute should be strictly positive so 'ni_glo = " << ni_glo.getValue() << "' is invalid.")
         }
@@ -871,14 +871,14 @@ namespace xios {
      if (ni_glo.isEmpty())
      {
        ERROR("CDomain::checkDomain(void)",
-             << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+             << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
              << "The global domain is badly defined, "
              << "the mandatory 'ni_glo' attribute is missing.")
      }
      else if (ni_glo <= 0)
      {
        ERROR("CDomain::checkDomain(void)",
-             << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+             << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
              << "The global domain is badly defined, "
              << "'ni_glo' attribute should be strictly positive so 'ni_glo = " << ni_glo.getValue() << "' is invalid.")
      }
@@ -886,14 +886,14 @@ namespace xios {
      if (nj_glo.isEmpty())
      {
        ERROR("CDomain::checkDomain(void)",
-             << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+             << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
              << "The global domain is badly defined, "
              << "the mandatory 'nj_glo' attribute is missing.")
      }
      else if (nj_glo <= 0)
      {
        ERROR("CDomain::checkDomain(void)",
-             << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+             << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
              << "The global domain is badly defined, "
              << "'nj_glo' attribute should be strictly positive so 'nj_glo = " << nj_glo.getValue() << "' is invalid.")
      }
@@ -966,7 +966,7 @@ namespace xios {
         if ((ni.getValue() < 0 || ibegin.getValue() < 0) || ((ibegin.getValue() + ni.getValue()) > ni_glo.getValue()))
         {
           ERROR("CDomain::checkLocalIDomain(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                 << "The local domain is wrongly defined,"
                 << " check the attributes 'ni_glo' (" << ni_glo.getValue() << "), 'ni' (" << ni.getValue() << ") and 'ibegin' (" << ibegin.getValue() << ")");
         }
@@ -1006,7 +1006,7 @@ namespace xios {
       else if ((!ibegin.isEmpty() && ni.isEmpty()) || (ibegin.isEmpty() && !ni.isEmpty()))
       {
         ERROR("CDomain::checkLocalIDomain(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
               << "The local domain is wrongly defined," << endl
               << "i_index is empty and either 'ni' or 'ibegin' is not defined. " 
               << "If 'ni' and 'ibegin' are used to define a domain, both of them must not be empty.");
@@ -1016,7 +1016,7 @@ namespace xios {
       if ((ni.getValue() < 0 || ibegin.getValue() < 0))
       {
         ERROR("CDomain::checkLocalIDomain(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
               << "The local domain is wrongly defined,"
               << " check the attributes 'ni_glo' (" << ni_glo.getValue() << "), 'ni' (" << ni.getValue() << ") and 'ibegin' (" << ibegin.getValue() << ")");
       }
@@ -1033,7 +1033,7 @@ namespace xios {
        if ((nj.getValue() < 0 || jbegin.getValue() < 0) || (jbegin.getValue() + nj.getValue()) > nj_glo.getValue())
        {
          ERROR("CDomain::checkLocalJDomain(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                 << "The local domain is wrongly defined,"
                 << " check the attributes 'nj_glo' (" << nj_glo.getValue() << "), 'nj' (" << nj.getValue() << ") and 'jbegin' (" << jbegin.getValue() << ")");
        }
@@ -1073,7 +1073,7 @@ namespace xios {
      if ((nj.getValue() < 0 || jbegin.getValue() < 0))
      {
        ERROR("CDomain::checkLocalJDomain(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
               << "The local domain is wrongly defined,"
               << " check the attributes 'nj_glo' (" << nj_glo.getValue() << "), 'nj' (" << nj.getValue() << ") and 'jbegin' (" << jbegin.getValue() << ")");
      }
@@ -1087,7 +1087,7 @@ namespace xios {
    {
       if (!mask_1d.isEmpty() && !mask_2d.isEmpty())
         ERROR("CDomain::checkMask(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
               << "Both mask_1d and mask_2d are defined but only one can be used at the same time." << std::endl
               << "Please define only one mask: 'mask_1d' or 'mask_2d'.");
 
@@ -1095,7 +1095,7 @@ namespace xios {
       {
         if (mask_1d.numElements() != i_index.numElements())
           ERROR("CDomain::checkMask(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                 << "'mask_1d' does not have the same size as the local domain." << std::endl
                 << "Local size is " << i_index.numElements() << "." << std::endl
                 << "Mask size is " << mask_1d.numElements() << ".");
@@ -1105,7 +1105,7 @@ namespace xios {
       {
         if (mask_2d.extent(0) != ni || mask_2d.extent(1) != nj)
           ERROR("CDomain::checkMask(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                 << "The mask does not have the same size as the local domain." << std::endl
                 << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
                 << "Mask size is " << mask_2d.extent(0) << " x " << mask_2d.extent(1) << ".");
@@ -1143,7 +1143,7 @@ namespace xios {
       else if (!(data_dim.getValue() == 1 || data_dim.getValue() == 2))
       {
         ERROR("CDomain::checkDomainData(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
               << "The data dimension is invalid, 'data_dim' must be 1 or 2 not << " << data_dim.getValue() << ".");
       }
 
@@ -1159,7 +1159,7 @@ namespace xios {
       else if (data_ni.getValue() < 0)
       {
         ERROR("CDomain::checkDomainData(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
               << "The data size cannot be negative ('data_ni' = " << data_ni.getValue() << ").");
       }
 
@@ -1170,7 +1170,7 @@ namespace xios {
       else if (data_nj.getValue() < 0)
       {
         ERROR("CDomain::checkDomainData(void)",
-              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
               << "The data size cannot be negative ('data_nj' = " << data_nj.getValue() << ").");
       }
    }
@@ -1188,7 +1188,7 @@ namespace xios {
             data_j_index.numElements() != data_i_index.numElements())
         {
            ERROR("CDomain::checkCompression(void)",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                  << "'data_i_index' and 'data_j_index' arrays must have the same size." << std::endl
                  << "'data_i_index' size = " << data_i_index.numElements() << std::endl
                  << "'data_j_index' size = " << data_j_index.numElements());
@@ -1199,7 +1199,7 @@ namespace xios {
           if (data_j_index.isEmpty())
           {
              ERROR("CDomain::checkCompression(void)",
-                   << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                   << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                    << "'data_j_index' must be defined when 'data_i_index' is set and 'data_dim' is 2.");
           }
           for (int k=0; k<data_i_index.numElements(); ++k)
@@ -1247,7 +1247,7 @@ namespace xios {
       {
         if (data_dim == 2 && !data_j_index.isEmpty())
           ERROR("CDomain::checkCompression(void)",
-                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                 << "'data_i_index' must be defined when 'data_j_index' is set and 'data_dim' is 2.");
 
         if (1 == data_dim)
@@ -1435,7 +1435,7 @@ namespace xios {
          }
          else
            ERROR("CDomain::completeLonClient(void)",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                  << "'lonvalue_1d' and 'latvalue_1d' does not have the same size as the local domain." << std::endl
                  << "'lonvalue_1d' size is " << lonvalue_1d.numElements() 
                  << " and 'latvalue_1d' size is " << latvalue_1d.numElements() << std::endl 
@@ -1554,7 +1554,7 @@ namespace xios {
          }
          else
            ERROR("CDomain::completeLonClient(void)",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                  << "'lonvalue_1d' and 'latvalue_1d' does not have the same size as the local domain." << std::endl
                  << "'lonvalue_1d' size is " << lonvalue_1d.numElements() 
                  << " and 'latvalue_1d' size is " << latvalue_1d.numElements() << std::endl 
@@ -1583,20 +1583,20 @@ namespace xios {
      {
        if (!bounds_lon_1d.isEmpty() && !bounds_lon_2d.isEmpty())
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Only one longitude boundary attribute can be used but both 'bounds_lon_1d' and 'bounds_lon_2d' are defined." << std::endl
                << "Define only one longitude boundary attribute: 'bounds_lon_1d' or 'bounds_lon_2d'.");
 
        if (!bounds_lat_1d.isEmpty() && !bounds_lat_2d.isEmpty())
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Only one latitude boundary attribute can be used but both 'bounds_lat_1d' and 'bounds_lat_2d' are defined." << std::endl
                << "Define only one latitude boundary attribute: 'bounds_lat_1d' or 'bounds_lat_2d'.");
 
        if ((!bounds_lon_1d.isEmpty() && bounds_lat_1d.isEmpty()) || (bounds_lon_1d.isEmpty() && !bounds_lat_1d.isEmpty()))
        {
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Only 'bounds_lon_1d' or 'bounds_lat_1d' is defined." << std::endl
                << "Please define either both attributes or none.");
        }
@@ -1604,52 +1604,52 @@ namespace xios {
        if ((!bounds_lon_2d.isEmpty() && bounds_lat_2d.isEmpty()) || (bounds_lon_2d.isEmpty() && !bounds_lat_2d.isEmpty()))
        {
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Only 'bounds_lon_2d' or 'bounds_lat_2d' is defined." << std::endl
                << "Please define either both attributes or none.");
        }
 
        if (!bounds_lon_1d.isEmpty() && nvertex.getValue() != bounds_lon_1d.extent(0))
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "'bounds_lon_1d' dimension is not compatible with 'nvertex'." << std::endl
                << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lon_2d.isEmpty() && nvertex.getValue() != bounds_lon_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId()<< " ] "
                << "'bounds_lon_2d' dimension is not compatible with 'nvertex'." << std::endl
                << "'bounds_lon_2d' dimension is " << bounds_lon_2d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lon_1d.isEmpty() && lonvalue_1d.isEmpty())
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Since 'bounds_lon_1d' is defined, 'lonvalue_1d' must be defined too." << std::endl);
 
        if (!bounds_lon_2d.isEmpty() && lonvalue_2d.isEmpty())
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Since 'bounds_lon_2d' is defined, 'lonvalue_2d' must be defined too." << std::endl);
 
        if (!bounds_lat_1d.isEmpty() && nvertex.getValue() != bounds_lat_1d.extent(0))
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "'bounds_lat_1d' dimension is not compatible with 'nvertex'." << std::endl
                << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lat_2d.isEmpty() && nvertex.getValue() != bounds_lat_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "'bounds_lat_2d' dimension is not compatible with 'nvertex'." << std::endl
                << "'bounds_lat_2d' dimension is " << bounds_lat_2d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lat_1d.isEmpty() && latvalue_1d.isEmpty())
          ERROR("CDomain::checkBounds(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Since 'bounds_lat_1d' is defined, 'latvalue_1d' must be defined too." << std::endl);
 
        if (!bounds_lat_2d.isEmpty() && latvalue_2d.isEmpty())
@@ -1680,7 +1680,7 @@ namespace xios {
        if (!area_2d.isEmpty() && (area_2d.extent(0) != ni || area_2d.extent(1) != nj))
        {
          ERROR("CDomain::checkArea(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "The area does not have the same size as the local domain." << std::endl
                << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
                << "Area size is " << area_2d.extent(0) << " x " << area_2d.extent(1) << ".");
@@ -1689,7 +1689,7 @@ namespace xios {
        if (!area_1d.isEmpty() && area_1d.extent(0) != ni*nj)
        {
          ERROR("CDomain::checkArea(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "The area does not have the same size as the local domain." << std::endl
                << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
                << "Area size is " << area_1d.extent(0) << " but must be ni*nj=" << ni*nj << " .");
@@ -1709,7 +1709,7 @@ namespace xios {
      {
        if (!lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
          ERROR("CDomain::checkLonLat()",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Only one longitude attribute can be used but both 'lonvalue_1d' and 'lonvalue_2d' are defined." << std::endl
                << "Define only one longitude attribute: 'lonvalue_1d' or 'lonvalue_2d'.");
 
@@ -1717,7 +1717,7 @@ namespace xios {
        {
          if ((type_attr::rectilinear != type) && (lonvalue_1d.numElements() != i_index.numElements()))
            ERROR("CDomain::checkLonLat()",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                  << "'lonvalue_1d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << i_index.numElements() << "." << std::endl
                  << "'lonvalue_1d' size is " << lonvalue_1d.numElements() << ".");
@@ -1727,7 +1727,7 @@ namespace xios {
        {
          if (lonvalue_2d.extent(0) != ni || lonvalue_2d.extent(1) != nj)
            ERROR("CDomain::checkLonLat()",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                  << "'lonvalue_2d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
                  << "'lonvalue_2d' size is " << lonvalue_2d.extent(0) << " x " << lonvalue_2d.extent(1) << ".");
@@ -1735,7 +1735,7 @@ namespace xios {
 
        if (!latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
          ERROR("CDomain::checkLonLat()",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                << "Only one latitude attribute can be used but both 'latvalue_1d' and 'latvalue_2d' are defined." << std::endl
                << "Define only one latitude attribute: 'latvalue_1d' or 'latvalue_2d'.");
 
@@ -1743,7 +1743,7 @@ namespace xios {
        {
          if ((type_attr::rectilinear != type) && (latvalue_1d.numElements() != i_index.numElements()))
            ERROR("CDomain::checkLonLat()",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                  << "'latvalue_1d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << i_index.numElements() << "." << std::endl
                  << "'latvalue_1d' size is " << latvalue_1d.numElements() << ".");
@@ -1753,7 +1753,7 @@ namespace xios {
        {
          if (latvalue_2d.extent(0) != ni || latvalue_2d.extent(1) != nj)
            ERROR("CDomain::checkLonLat()",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "[ id = " << this->getId() << " , context = '" << context_->getId() << " ] "
                  << "'latvalue_2d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
                  << "'latvalue_2d' size is " << latvalue_2d.extent(0) << " x " << latvalue_2d.extent(1) << ".");
@@ -1911,7 +1911,7 @@ namespace xios {
       int nij = ni*nj ;
       CArray<size_t, 1> ij_index(ni*nj) ;
       for(int ij=0; ij<nij ; ij++) ij_index(ij) = i_index(ij)+j_index(ij)*ni_glo ;
-      int rank = CContext::getCurrent()->getIntraCommRank() ;
+      int rank = context_->getIntraCommRank() ;
       localElement_ = make_shared<CLocalElement>(rank, ni_glo*nj_glo, ij_index) ;
    }
 
@@ -2012,7 +2012,7 @@ namespace xios {
   void CDomain::computeRemoteElement(CContextClient* client, EDistributionType distType)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     map<int, CArray<size_t,1>> globalIndex ;
 
     if (distType==EDistributionType::BANDS && isUnstructed_) distType=EDistributionType::COLUMNS ;
@@ -2167,7 +2167,7 @@ namespace xios {
   TRY
   {
     string serverDomainId = domainId.empty() ? this->getId() : domainId ;
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
 
     this->sendAllAttributesToServer(client, serverDomainId)  ;
 
@@ -2257,20 +2257,20 @@ namespace xios {
   }
   CATCH
  
-  void CDomain::recvDomainDistribution(CEventServer& event)
+  void CDomain::recvDomainDistribution(CContext* context, CEventServer& event)
   TRY
   {
     string domainId;
     int phasis ;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> domainId >> phasis ;
-    get(domainId)->receivedDomainDistribution(event, phasis);
+    get(context, domainId)->receivedDomainDistribution(event, phasis);
   }
   CATCH
 
   void CDomain::receivedDomainDistribution(CEventServer& event, int phasis)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     if (phasis==0) // receive the remote element to construct the full view
     {
       localElement_ = make_shared<CLocalElement>(context->getIntraCommRank(),event) ;
@@ -2298,7 +2298,7 @@ namespace xios {
     }
     else if (phasis==1) // receive the sent view from client to construct the full distributed full view on server
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = context_;
       shared_ptr<CDistributedElement> elementFrom = make_shared<CDistributedElement>(event) ;
       elementFrom->addFullView() ;
       gathererConnector_ = make_shared<CGathererConnector>(elementFrom->getView(CElementView::FULL), localElement_->getView(CElementView::FULL)) ;
@@ -2322,7 +2322,7 @@ namespace xios {
   {
     // nota : the client is needed to get the remote size for the scatterer connector. Maybe it is not the good place for this
     // Later, server to client connector can be computed on demand, with "client" as argument
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
     localElement_->addView(CElementView::WORKFLOW, serverMask) ;
     mask_1d.reference(serverMask.copy()) ;
  
@@ -2345,7 +2345,7 @@ namespace xios {
   void CDomain::sendDistributedAttributes(CContextClient* client, shared_ptr<CScattererConnector> scattererConnector,  const string& domainId)
   {
     string serverDomainId = domainId.empty() ? this->getId() : domainId ;
-    CContext* context = CContext::getCurrent();
+    CContext* context = context_;
 
     if (hasLonLat)
     {
@@ -2390,13 +2390,13 @@ namespace xios {
     }
   }
 
-  void CDomain::recvDistributedAttributes(CEventServer& event)
+  void CDomain::recvDistributedAttributes(CContext* context, CEventServer& event)
   TRY
   {
     string domainId;
     string type ;
     for (auto& subEvent : event.subEvents) (*subEvent.buffer) >> domainId >> type ;
-    get(domainId)->recvDistributedAttributes(event, type);
+    get(context, domainId)->recvDistributedAttributes(event, type);
   }
   CATCH
 
@@ -2441,20 +2441,20 @@ namespace xios {
   }
   CATCH
     
-  bool CDomain::dispatchEvent(CEventServer& event)
+  bool CDomain::dispatchEvent(CContext* context, CEventServer& event)
   TRY
   {
-    if (SuperClass::dispatchEvent(event)) return true;
+    if (SuperClass::dispatchEvent(context, event)) return true;
     else
     {
       switch(event.type)
       {
         case EVENT_ID_DOMAIN_DISTRIBUTION:
-          recvDomainDistribution(event);
+          recvDomainDistribution(context, event);
           return true;
           break;
         case EVENT_ID_SEND_DISTRIBUTED_ATTRIBUTE:
-          recvDistributedAttributes(event);
+          recvDistributedAttributes(context, event);
           return true;
           break;  
         default:
@@ -2526,7 +2526,7 @@ namespace xios {
   CTransformation<CDomain>* CDomain::addTransformation(ETranformationType transType, const StdString& id)
   TRY
   {
-    transformationMap_.push_back(std::make_pair(transType, CTransformation<CDomain>::createTransformation(transType,id)));
+    transformationMap_.push_back(std::make_pair(transType, CTransformation<CDomain>::createTransformation(transType,context_, id)));
     return transformationMap_.back().second;
   }
   CATCH_DUMP_ATTR
@@ -2649,7 +2649,7 @@ namespace xios {
   {
     if (!domain_ref.isEmpty())
     {
-      CField* field=getFieldFromId(domain_ref) ;
+      CField* field=CDomain::getFieldFromId(context_, domain_ref) ;
       if (field!=nullptr)
       {
         bool ret = field->buildWorkflowGraph(gc) ;
@@ -2657,7 +2657,7 @@ namespace xios {
       }
       else 
       {
-        CDomain* domain = get(domain_ref) ;
+        CDomain* domain = CDomain::get(context_, domain_ref) ;
         bool ret = domain->activateFieldWorkflow(gc) ;
         if (!ret) return false ; // cannot build workflow graph at this state
         domain_ref=domain->getId() ; // replace domain_ref by solved reference
@@ -2709,7 +2709,7 @@ namespace xios {
           {
             info(0) << "WARNING : " << it->first << " is deprecated, replaced by extract_domain." << endl;
           }
-          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CDomain>::createTransformation(it->second,
+          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CDomain>::createTransformation(it->second, context_,
                                                                                                                 nodeId,
                                                                                                                 &node)));
         }

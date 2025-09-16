@@ -41,13 +41,11 @@ namespace xios
 
    template <typename U>
       std::shared_ptr<U>
-         CGroupFactory::CreateGroup(std::shared_ptr<U> group, const StdString & id)
+         CGroupFactory::CreateGroup(CContext* context, std::shared_ptr<U> group, const StdString & id)
    {
-      CObjectFactory::SetCurrentContextId
-      (CGroupFactory::GetCurrentContextId());
       if (id.size() == 0)
       {
-         std::shared_ptr<U> value = CObjectFactory::CreateObject<U>(CObjectFactory::GenUId<U>());
+         std::shared_ptr<U> value = CObjectFactory::CreateObject<U>(context, CObjectFactory::GenUId<U>(context->getId()));
          group->groupList.insert(group->groupList.end(), value.get());
          group->groupMap.insert(std::make_pair(value->getId(), value.get()));
          return (value);
@@ -56,7 +54,7 @@ namespace xios
          return (CGroupFactory::GetGroup(group, id));
       else
       {
-         std::shared_ptr<U> value = CObjectFactory::CreateObject<U>(id);
+         std::shared_ptr<U> value = CObjectFactory::CreateObject<U>(context,id);
          group->groupList.insert(group->groupList.end(), value.get());
          group->groupMap.insert(std::make_pair(id, value.get()));
          return (value);
@@ -65,14 +63,13 @@ namespace xios
 
    template <typename U>
       std::shared_ptr<typename U::RelChild>
-         CGroupFactory::CreateChild(std::shared_ptr<U> group, const StdString & id)
+         CGroupFactory::CreateChild(CContext* context, std::shared_ptr<U> group, const StdString & id)
    {
-      CObjectFactory::SetCurrentContextId
-      (CGroupFactory::GetCurrentContextId());
-      if (id.size() == 0)
+     
+      if (id.empty())
       {
          std::shared_ptr<typename U::RelChild> value =
-               CObjectFactory::CreateObject<typename U::RelChild>();
+               CObjectFactory::CreateObject<typename U::RelChild>(context, id);
          group->childList.insert(group->childList.end(), value.get());
          group->childMap.insert(std::make_pair(value->getId(), value.get()));
          return (value);
@@ -82,7 +79,7 @@ namespace xios
       else
       {
          std::shared_ptr<typename U::RelChild> value =
-               CObjectFactory::CreateObject<typename U::RelChild>(id);
+               CObjectFactory::CreateObject<typename U::RelChild>(context, id);
          group->childList.insert(group->childList.end(), value.get());
          group->childMap.insert(std::make_pair(id, value.get()));
          return (value);

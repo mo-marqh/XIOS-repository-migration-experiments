@@ -8,20 +8,20 @@ namespace xios
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CRedistributeAxis::CRedistributeAxis(void)
-    : CObjectTemplate<CRedistributeAxis>(), CRedistributeAxisAttributes(), CTransformation<CAxis>()
+  CRedistributeAxis::CRedistributeAxis(CContext* context)
+    : CObjectTemplate<CRedistributeAxis>(context), CRedistributeAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CRedistributeAxis::CRedistributeAxis(const StdString & id)
-    : CObjectTemplate<CRedistributeAxis>(id), CRedistributeAxisAttributes(), CTransformation<CAxis>()
+  CRedistributeAxis::CRedistributeAxis(CContext* context, const StdString & id)
+    : CObjectTemplate<CRedistributeAxis>(context, id), CRedistributeAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CRedistributeAxis::~CRedistributeAxis(void)
   {}
 
-  CTransformation<CAxis>* CRedistributeAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CRedistributeAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CRedistributeAxis* redistributeAxis = CRedistributeAxisGroup::get("redistribute_axis_definition")->createChild(id);
+    CRedistributeAxis* redistributeAxis = CRedistributeAxisGroup::get(context, "redistribute_axis_definition")->createChild(id);
     if (node) redistributeAxis->parse(*node);
     return static_cast<CTransformation<CAxis>*>(redistributeAxis);
   }

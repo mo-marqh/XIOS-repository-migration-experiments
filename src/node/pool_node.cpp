@@ -6,14 +6,14 @@
 namespace xios
 {
   
-  CPoolNode::CPoolNode(void) : CObjectTemplate<CPoolNode>(), CPoolNodeAttributes()
+  CPoolNode::CPoolNode(CContext* context) : CObjectTemplate<CPoolNode>(context), CPoolNodeAttributes()
   { 
-    setVirtualServiceNodeGroup(CServiceNodeGroup::create(getId() + "_virtual_service_node_group"));
+    setVirtualServiceNodeGroup(CServiceNodeGroup::create(context_, getId() + "_virtual_service_node_group"));
   }
 
-  CPoolNode::CPoolNode(const StdString & id) : CObjectTemplate<CPoolNode>(id), CPoolNodeAttributes()
+  CPoolNode::CPoolNode(CContext* context, const StdString & id) : CObjectTemplate<CPoolNode>(context, id), CPoolNodeAttributes()
   { 
-    setVirtualServiceNodeGroup(CServiceNodeGroup::create(getId() + "_virtual_service_node_group"));
+    setVirtualServiceNodeGroup(CServiceNodeGroup::create(context_, getId() + "_virtual_service_node_group"));
   }
 
   CPoolNode::~CPoolNode(void)

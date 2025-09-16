@@ -43,7 +43,7 @@ TRY
 CATCH
 
 CAxisAlgorithmTemporalSplitting::CAxisAlgorithmTemporalSplitting(bool isSource, CAxis* axisDestination, CScalar* scalarSource, CTemporalSplitting* algo)
- : CAlgorithmTransformationNoDataModification(isSource)
+ : CAlgorithmTransformationNoDataModification(algo->getContext(), isSource)
 {
   nrecords_ = axisDestination->n_glo ; // also axis must not be distributed, make more test later
 }

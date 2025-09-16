@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CReduceDomainToScalar::CReduceDomainToScalar(void)
-    : CObjectTemplate<CReduceDomainToScalar>(), CReduceDomainToScalarAttributes(), CTransformation<CScalar>()
+  CReduceDomainToScalar::CReduceDomainToScalar(CContext* context)
+    : CObjectTemplate<CReduceDomainToScalar>(context), CReduceDomainToScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
-  CReduceDomainToScalar::CReduceDomainToScalar(const StdString & id)
-    : CObjectTemplate<CReduceDomainToScalar>(id), CReduceDomainToScalarAttributes(), CTransformation<CScalar>()
+  CReduceDomainToScalar::CReduceDomainToScalar(CContext* context, const StdString & id)
+    : CObjectTemplate<CReduceDomainToScalar>(context, id), CReduceDomainToScalarAttributes(), CTransformation<CScalar>()
   { /* Ne rien faire de plus */ }
 
   CReduceDomainToScalar::~CReduceDomainToScalar(void)
   {}
 
-  CTransformation<CScalar>* CReduceDomainToScalar::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CScalar>* CReduceDomainToScalar::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CReduceDomainToScalar* reduceDomain = CReduceDomainToScalarGroup::get("reduce_domain_to_scalar_definition")->createChild(id);
+    CReduceDomainToScalar* reduceDomain = CReduceDomainToScalarGroup::get(context, "reduce_domain_to_scalar_definition")->createChild(id);
     if (node) reduceDomain->parse(*node);
     return static_cast<CTransformation<CScalar>*>(reduceDomain);
   }

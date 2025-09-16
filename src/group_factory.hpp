@@ -57,11 +57,11 @@ namespace xios
          /// Instanciateur ///
          template <typename U>
             static std::shared_ptr<U>
-               CreateGroup(std::shared_ptr<U> group, const StdString & id = StdString(""));
+               CreateGroup(CContext* context, std::shared_ptr<U> group, const StdString & id = StdString(""));
 
          template <typename U>
             static std::shared_ptr<typename U::RelChild>
-               CreateChild(std::shared_ptr<U> group, const StdString & id = StdString(""));
+               CreateChild(CContext* context, std::shared_ptr<U> group, const StdString & id = StdString(""));
 
       private :
 
@@ -70,8 +70,5 @@ namespace xios
 
    }; // class CGroupFactory
 } // namespace xios
-
-//#include "group_factory_impl.hpp"
-//#include "group_parser.hpp"
 
 #endif // __XIOS_CGroupFactory__

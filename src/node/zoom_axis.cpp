@@ -1,25 +1,26 @@
 #include "zoom_axis.hpp"
 #include "axis_algorithm_zoom.hpp"
 #include "type.hpp"
+#include "context.hpp"
 
 namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CZoomAxis::CZoomAxis(void)
-    : CObjectTemplate<CZoomAxis>(), CZoomAxisAttributes(), CTransformation<CAxis>()
+  CZoomAxis::CZoomAxis(CContext* context)
+    : CObjectTemplate<CZoomAxis>(context), CZoomAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CZoomAxis::CZoomAxis(const StdString & id)
-    : CObjectTemplate<CZoomAxis>(id), CZoomAxisAttributes(), CTransformation<CAxis>()
+  CZoomAxis::CZoomAxis(CContext* context, const StdString & id)
+    : CObjectTemplate<CZoomAxis>(context, id), CZoomAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CZoomAxis::~CZoomAxis(void)
   {}
 
-  CTransformation<CAxis>* CZoomAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CZoomAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CZoomAxis* zoomAxis = CZoomAxisGroup::get("zoom_axis_definition")->createChild(id);
+    CZoomAxis* zoomAxis = CZoomAxisGroup::get(context, "zoom_axis_definition")->createChild(id);
     if (node) zoomAxis->parse(*node);
     return static_cast<CTransformation<CAxis>*>(zoomAxis);
   }
@@ -65,12 +66,12 @@ namespace xios {
         || n < 1 || n > axisGlobalSize || begin > end)
       ERROR("CZoomAxis::checkValid(CAxis* axisDest)",
             << "One or more attributes among 'begin' (" << begin << "), 'end' (" << end << "), 'n' (" << n << ") "
-            << "of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
+            << "of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << context_->getId() << "' ] are not well specified");
     
     if (zoomByIndex && (!this->begin.isEmpty() || !this->n.isEmpty()))
       ERROR("CZoomAxis::checkValid(CAxis* axisDest)",
             << "Only one type of zoom is accepted. Define zoom by index with global_zoom_index or define zoom with begin and n. "
-            << "Axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
+            << "Axis transformation [ id = '" << axisDest->getId() << "' , context = '" << context_->getId() << "' ] are not well specified");
 
     this->begin.setValue(begin);
     this->n.setValue(n);

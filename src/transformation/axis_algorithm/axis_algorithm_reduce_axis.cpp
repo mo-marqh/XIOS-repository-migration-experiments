@@ -47,7 +47,7 @@ CATCH
 
 
 CAxisAlgorithmReduceAxis::CAxisAlgorithmReduceAxis(bool isSource, CAxis* axisDestination, CAxis* axisSource, CReduceAxisToAxis* algo)
- : CAlgorithmTransformationReduce(isSource)
+ : CAlgorithmTransformationReduce(algo->getContext(), isSource)
 TRY
 {
   if (!axisDestination->checkGeometricAttributes(false))

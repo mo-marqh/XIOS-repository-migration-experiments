@@ -4,7 +4,7 @@
 namespace xios
 {
   COutputPin::COutputPin(CGarbageCollector& gc, bool manualTrigger /*= false*/)
-    : gc(gc)
+    : CPin(gc), gc(gc)
     , manualTrigger(manualTrigger), graphEnabled(false)
   { /* Nothing to do */ }
 

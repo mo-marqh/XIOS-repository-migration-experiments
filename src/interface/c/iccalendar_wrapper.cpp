@@ -16,6 +16,7 @@
 #include "icdate.hpp"
 #include "timer.hpp"
 #include "calendar_wrapper.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -33,7 +34,7 @@ extern "C"
     std::string id;
     if (!cstr2string(_id, _id_len, id)) return;
     CTimer::get("XIOS").resume();
-    *_ret = CCalendarWrapper::get(id);
+    *_ret = CCalendarWrapper::get(CContext::getCurrent(), id); 
     CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK
@@ -42,7 +43,7 @@ extern "C"
   TRY
   {
     CTimer::get("XIOS").resume();
-    *_ret = CCalendarWrapper::get(CCalendarWrapper::GetDefName());
+    *_ret = CCalendarWrapper::get(CContext::getCurrent(), CCalendarWrapper::GetDefName());
     CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK
@@ -55,7 +56,7 @@ extern "C"
     std::string id;
     if (!cstr2string(_id, _id_len, id)) return;
     CTimer::get("XIOS").resume();
-    *_ret = CCalendarWrapper::has(id);
+    *_ret = CCalendarWrapper::has(CContext::getCurrent(),id);
     CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK

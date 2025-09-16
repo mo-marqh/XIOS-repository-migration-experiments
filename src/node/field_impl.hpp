@@ -26,7 +26,7 @@ namespace xios {
 	  int numElements( _data.numElements() );
 	  checkSumLike( array, numElements, true );
 	}
-        modelToClientSourceFilter_->streamData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
+        modelToClientSourceFilter_->streamData(context_->getCalendar()->getCurrentDate(), _data);
       }
     }
     else if (instantDataFilter)
@@ -42,7 +42,7 @@ namespace xios {
   {
     if (clientToModelStoreFilter_)
     {
-      CDataPacket::StatusCode status = clientToModelStoreFilter_->getData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
+      CDataPacket::StatusCode status = clientToModelStoreFilter_->getData(context_->getCalendar()->getCurrentDate(), _data);
       if ( CXios::checkSumRecv )
       {
 	const double* array = _data.dataFirst();
@@ -64,9 +64,9 @@ namespace xios {
 
   void CField::checkSumLike( const double* array, int numElements, bool output ) const
   {
-    int rk = CContext::getCurrent()->getIntraCommRank();
-    int sz = CContext::getCurrent()->getIntraCommSize();
-    MPI_Comm comm = CContext::getCurrent()->getIntraComm();
+    int rk = context_->getIntraCommRank();
+    int sz = context_->getIntraCommSize();
+    MPI_Comm comm = context_->getIntraComm();
 
     double localSum( 0. );
     double error( 0. );

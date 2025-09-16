@@ -12,7 +12,7 @@ namespace xios
     CClientFromClientSourceFilter::CClientFromClientSourceFilter(CGarbageCollector& gc, CField* field)
      : COutputPin(gc, true)
     {
-      CContext* context = CContext::getCurrent();
+      CContext* context = getContext();
       field_=field ;
       grid_= field-> getGrid();
 
@@ -43,7 +43,7 @@ namespace xios
     if(this->graphEnabled)
     {
       this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
-      CWorkflowGraph::addNode("Client to Client Source filter", 1, false, 0, packet);
+      CWorkflowGraph::addNode(getContext(), "Client to Client Source filter", 1, false, 0, packet);
     }
     onOutputReady(packet);
   }
@@ -51,9 +51,9 @@ namespace xios
   bool CClientFromClientSourceFilter::isDataLate(void)
   {
     bool isDataLate ;
-    CDate currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate() ;
+    CDate currentDate = getContext()->getCalendar()->getCurrentDate() ;
     if (wasDataAlreadyReceived_) isDataLate = lastDateReceived_ + offset_ + freqOp_ <= currentDate ;
-    else isDataLate = CContext::getCurrent()->getCalendar()->getInitDate()+ offset_ <= currentDate ;
+    else isDataLate = getContext()->getCalendar()->getInitDate()+ offset_ <= currentDate ;
     return isDataLate ;
   }
 

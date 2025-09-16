@@ -52,10 +52,10 @@ TRY
 CATCH
 
 CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(bool isSource, CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
-: CAlgorithmTransformationWeight(isSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false), domainSrc_(domainSource), domainDest_(domainDestination)
+: CAlgorithmTransformationWeight(interpDomain->getContext(), isSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false), domainSrc_(domainSource), domainDest_(domainDestination)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   interpDomain_->checkValid(domainSource);
 
   detectMissingValue = interpDomain_->detect_missing_value ;
@@ -114,7 +114,7 @@ TRY
 {
   using namespace sphereRemap;
 
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int clientRank = context->intraCommRank_; 
   int i, j, k, idx;
   std::vector<double> srcPole(3,0), dstPole(3,0);
@@ -443,7 +443,7 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
                                               int nbGlobalPointOnPole)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   
   MPI_Comm poleComme(MPI_COMM_NULL);
   xios::MPI_Comm_split(context->intraComm_, interMapValuePole.empty() ? MPI_UNDEFINED : 1, 0, &poleComme);
@@ -530,7 +530,7 @@ CATCH
 void CDomainAlgorithmInterpolate::convertRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int clientRank = context->intraCommRank_;
 
   TransformationIndexMap& transMap = this->transformationMapping_;
@@ -571,7 +571,7 @@ CATCH
 void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int clientRank = context->intraCommRank_;
   int nbClient = context-> intraCommSize_;
 
@@ -854,7 +854,7 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
                                                          std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   
   size_t n_src = domainSrc_->ni_glo * domainSrc_->nj_glo;
   size_t n_dst = domainDest_->ni_glo * domainDest_->nj_glo;
@@ -948,7 +948,7 @@ TRY
   size_t nbWeightGlo ;
 
 
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int clientRank = context->intraCommRank_;
   int clientSize = context->intraCommSize_;
 

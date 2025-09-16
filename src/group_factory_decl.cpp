@@ -14,8 +14,8 @@ namespace xios
   template int CGroupFactory::GetChildIdNum<U>(std::shared_ptr<U> group); \
   template bool CGroupFactory::HasGroup<U>(std::shared_ptr<U> group, const StdString & id); \
   template bool CGroupFactory::HasChild<U>(std::shared_ptr<U> group, const StdString & id); \
-  template std::shared_ptr<U> CGroupFactory::CreateGroup<U>(std::shared_ptr<U> group, const StdString & id ); \
-  template std::shared_ptr<U::RelChild>  CGroupFactory::CreateChild<U>(std::shared_ptr<U> group, const StdString & id);
+  template std::shared_ptr<U> CGroupFactory::CreateGroup<U>(CContext* context, std::shared_ptr<U> group, const StdString & id ); \
+  template std::shared_ptr<U::RelChild>  CGroupFactory::CreateChild<U>(CContext* context, std::shared_ptr<U> group, const StdString & id);
 
   macro(CFieldGroup)
   macro(CFileGroup)

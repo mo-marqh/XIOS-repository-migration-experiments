@@ -64,20 +64,17 @@ namespace xios
          /// Traitements ///
          virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
          void solveRefInheritance(void);
-//         static bool has(const string & id); 
-//         static std::shared_ptr<V> get(const string& id) ;
-//         static std::shared_ptr<V> create(const string& id=string("")) ;
          U* createChild(const string& id="") ;
           
          void addChild(U* child) ; 
          V* createChildGroup(const string& id="") ; 
          void addChildGroup(V* childGroup) ; 
-         static bool dispatchEvent(CEventServer& event) ;
+         static bool dispatchEvent(CContext* context, CEventServer& event) ;
          void sendCreateChild(const string& id, CContextClient* client, const string& objectId="") ;
          void sendCreateChildGroup(const string& id, CContextClient* client, const string& objectId="") ;
-         static void recvCreateChild(CEventServer& event) ;
+         static void recvCreateChild(CContext* context, CEventServer& event) ;
          void recvCreateChild(CBufferIn& buffer) ;
-         static void recvCreateChildGroup(CEventServer& event) ;
+         static void recvCreateChildGroup(CContext* context, CEventServer& event) ;
          void recvCreateChildGroup(CBufferIn& buffer) ;
          
          /// Destructeur ///
@@ -86,8 +83,10 @@ namespace xios
       protected :
 
          /// Constructeurs ///
-         CGroupTemplate(void);
-         CGroupTemplate(const StdString & id);
+         CGroupTemplate(void) : CGroupTemplate((CContext*)nullptr) {}
+         CGroupTemplate(const StdString & id) : CGroupTemplate((CContext*) nullptr, id) {}
+         CGroupTemplate(CContext* context);
+         CGroupTemplate(CContext* context, const StdString & id);
          CGroupTemplate(const CGroupTemplate<U, V, W> & group,
                         bool withAttrList = true, bool withId = true); // Not implemented yet.
          CGroupTemplate(const CGroupTemplate<U, V, W> * const group);  // Not implemented yet.

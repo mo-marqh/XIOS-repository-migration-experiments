@@ -14,6 +14,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "axis.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -32,7 +33,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CAxis::get(id);
+      *_ret = xios::CAxis::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -43,7 +44,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CAxisGroup::get(id);
+      *_ret = xios::CAxisGroup::get(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
     }
    CATCH_DUMP_STACK
@@ -57,7 +58,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CAxis::has(id);
+      *_ret = xios::CAxis::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -69,7 +70,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CAxisGroup::has(id);
+      *_ret = xios::CAxisGroup::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
 
    }

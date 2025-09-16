@@ -3,18 +3,15 @@
 namespace xios
 {
  
-  CServiceNode::CServiceNode(void) : CObjectTemplate<CServiceNode>(), CServiceNodeAttributes()
+  CServiceNode::CServiceNode(CContext* context) : CObjectTemplate<CServiceNode>(context), CServiceNodeAttributes()
   { /* Ne rien faire de plus */ }
 
-  CServiceNode::CServiceNode(const StdString & id) : CObjectTemplate<CServiceNode>(id), CServiceNodeAttributes()
+  CServiceNode::CServiceNode(CContext* context, const StdString & id) : CObjectTemplate<CServiceNode>(context, id), CServiceNodeAttributes()
   { /* Ne rien faire de plus */ }
 
   CServiceNode::~CServiceNode(void)
   {
-    for(auto& serviceOnto : servicesOnto_)
-    {
-      delete serviceOnto;
-    }
+    
   }
 
 
@@ -25,7 +22,7 @@ namespace xios
     {
       do
       {
-        CServiceNode* serviceOnto = new CServiceNode();
+        CServiceNode* serviceOnto = CServiceNode::create(context_);
         serviceOnto->parse( node );
         if ( (serviceOnto->name.isEmpty()) || (serviceOnto->type.isEmpty()) )
         {

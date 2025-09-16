@@ -49,7 +49,7 @@ CATCH
 
 
 CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(bool isSource, CAxis* axisDestination, CDomain* domainSource, CExtractDomainToAxis* algo)
- : CAlgorithmTransformationTransfer(isSource), pos_(-1), axisDest_(axisDestination), domainSrc_(domainSource)
+ : CAlgorithmTransformationTransfer(algo->getContext(), isSource), pos_(-1), axisDest_(axisDestination), domainSrc_(domainSource)
 TRY
 {
   axisDestination->axis_type.reset();

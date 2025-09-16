@@ -86,7 +86,6 @@ namespace xios
 
     private:
       CGarbageCollector& gc_; //!< The garbage collector associated to the filter
-      CContext* context_; //!< The context to which the data belongs
       CGrid* grid_; //!< The grid attached to the data the filter can accept
       bool detectMissingValues_; //!< Whether missing values should be detected
       double missingValue_; //!< The value to use to replace missing values

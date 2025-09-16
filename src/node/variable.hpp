@@ -51,8 +51,8 @@ namespace xios
             typedef CVariableGroup      RelGroup;
 
             /// Constructeurs ///
-            CVariable(void);
-            explicit CVariable(const StdString & id);
+            CVariable(CContext* context);
+            explicit CVariable(CContext* context, const StdString & id);
             CVariable(const CVariable & var);       // Not implemented yet.
             CVariable(const CVariable * const var); // Not implemented yet.
 
@@ -77,12 +77,12 @@ namespace xios
             template <typename T, StdSize N>
             inline void getData(CArray<T, N>& _data_array) const;
 
-            static bool dispatchEvent(CEventServer& event) ;
+            static bool dispatchEvent(CContext* context, CEventServer& event) ;
 
             //! Sending a request to set up variable data
             void sendValue(CContextClient* client);
 
-            static void recvValue(CEventServer& event) ;
+            static void recvValue(CContext* context, CEventServer& event) ;
             void recvValue(CBufferIn& buffer) ;
 
          public :

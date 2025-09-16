@@ -43,10 +43,10 @@ namespace xios
   CATCH
 
   CAxisAlgorithmRedistribute::CAxisAlgorithmRedistribute(bool isSource, CAxis* axisDestination, CAxis* axisSource, CRedistributeAxis* redistributeAxis)
-  : CAlgorithmTransformationTransfer(isSource)
+  : CAlgorithmTransformationTransfer(redistributeAxis->getContext(), isSource)
   TRY
   {
-    CContext* context = CContext::getCurrent(); 
+    CContext* context = getContext(); 
 
     axisDestination->n_glo.reset();
     axisDestination->index.reset();

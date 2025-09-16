@@ -12,7 +12,7 @@ namespace xios
     , field_(field), graphEnabled(false)
 
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = getContext();
 
     if (!field) ERROR("CFileWriterStoreFilter::CFileWriterStoreFilter(CField* field)", "The field cannot be null.");
     file_ = field->getFileOut() ;
@@ -76,9 +76,9 @@ namespace xios
         data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
         std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
       
-        CWorkflowGraph::addNode("File Writer Store filter", 5, true, 1, data[0]);
+        CWorkflowGraph::addNode(getContext(), "File Writer Store filter", 5, true, 1, data[0]);
       
-        CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
+        CWorkflowGraph::addEdge(getContext(), data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
         data[0]->graphPackage->fromFilter = this->graphPackage->filterId;
 
 

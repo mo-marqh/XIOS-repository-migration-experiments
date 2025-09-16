@@ -17,7 +17,7 @@ namespace xios
   CClientOnlineReaderFilter::CClientOnlineReaderFilter(CGarbageCollector& gc, CField* fieldOut)
     : CFilter(gc, 1, this)
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = getContext();
  
     CField* fieldIn ;
     redistributeFilter_ = std::shared_ptr<CGridRedistributeFilterIn>(new CGridRedistributeFilterIn(gc, fieldOut, fieldIn));
@@ -44,7 +44,7 @@ namespace xios
 
   CDataPacketPtr CClientOnlineReaderFilter::apply(std::vector<CDataPacketPtr> data)
   {
-    const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
+    const CDate& currentDate = getContext()->getCalendar()->getCurrentDate();
     
     data[0]->date = currentDate ;
     data[0]->timestamp = currentDate ;
@@ -59,8 +59,8 @@ namespace xios
 
   bool CClientOnlineReaderFilter::sendReadDataRequest(const CDate& tsDataRequested)
   {
-    CContext* context = CContext::getCurrent();
-    const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
+    CContext* context = getContext();
+    const CDate& currentDate = getContext()->getCalendar()->getCurrentDate();
     CDate checkDate ;
     if (isFirstDataSent_) checkDate = lastDateReceived_ + freqOp_ ;
     else checkDate = context->getCalendar()->getInitDate() + offset_ ;
@@ -78,7 +78,7 @@ namespace xios
   bool CClientOnlineReaderFilter::sendReadDataRequestIfNeeded(void)
   TRY
   {
-    const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
+    const CDate& currentDate = getContext()->getCalendar()->getCurrentDate();
     return sendReadDataRequest(currentDate);
   }
   CATCH

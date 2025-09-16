@@ -33,9 +33,9 @@ namespace xios
       {
         this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
         unique_filter_id = this->graphPackage->filterId;
-        CWorkflowGraph::addNode("Arithmetic filter\\n ("+this->graphPackage->inFields[0]->content+")", 4, false, 0, data[0]);        
+        CWorkflowGraph::addNode(getContext(), "Arithmetic filter\\n ("+this->graphPackage->inFields[0]->content+")", 4, false, 0, data[0]);        
 
-        CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
+        CWorkflowGraph::addEdge(getContext(), data[0]->graphPackage->fromFilter, this->graphPackage->filterId, data[0]);
         data[0]->graphPackage->fromFilter = this->graphPackage->filterId;
         data[0]->graphPackage->currentField = this->graphPackage->inFields[0];
         std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());
@@ -50,7 +50,7 @@ namespace xios
         unique_filter_id = (*CWorkflowGraph::mapHashFilterID_)[filterhash];
         if(data[0]->graphPackage->fromFilter != unique_filter_id)
         {
-          CWorkflowGraph::addEdge(data[0]->graphPackage->fromFilter, unique_filter_id, data[0]);  
+          CWorkflowGraph::addEdge(getContext(), data[0]->graphPackage->fromFilter, unique_filter_id, data[0]);  
         }
       }  
     }

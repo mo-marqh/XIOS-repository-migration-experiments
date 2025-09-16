@@ -19,6 +19,7 @@ namespace xios
    class CCouplerOutGroup;
    class CCouplerOutAttributes;
    class CCouplerOut;
+   class CContext ;
 
    class CGarbageCollector;
 
@@ -55,8 +56,8 @@ namespace xios
          typedef CCouplerOutGroup      RelGroup;
 
          /// Constructeurs ///
-         CCouplerOut(void);
-         explicit CCouplerOut(const StdString& id);
+         CCouplerOut(CContext* context);
+         explicit CCouplerOut(CContext* context, const StdString& id);
          CCouplerOut(const CCouplerOut& couplerOut);       // Not implemented yet.
          CCouplerOut(const CCouplerOut* const couplerOut); // Not implemented yet.
 

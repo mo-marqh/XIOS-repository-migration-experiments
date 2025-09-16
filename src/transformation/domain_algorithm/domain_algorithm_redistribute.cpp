@@ -43,10 +43,10 @@ namespace xios
   CATCH
 
   CDomainAlgorithmRedistribute::CDomainAlgorithmRedistribute(bool isSource, CDomain* domainDestination, CDomain* domainSource, CRedistributeDomain* redistributeDomain)
-  : CAlgorithmTransformationTransfer(isSource)
+  : CAlgorithmTransformationTransfer(redistributeDomain->getContext(), isSource)
   TRY
   {
-     CContext* context = CContext::getCurrent(); 
+     CContext* context = getContext(); 
    // Reset geometrical attributes to avoid incompatible (user/domainSource) attributs
    //   attributs will be defined using domainSource and/or transformation attributs
     domainDestination->type.reset();

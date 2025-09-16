@@ -48,7 +48,7 @@ TRY
 CATCH
 
 CAxisAlgorithmInverse::CAxisAlgorithmInverse(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis)
- : CAlgorithmTransformationNoDataModification(isSource), axisDest_(axisDestination), axisSrc_(axisSource)
+ : CAlgorithmTransformationNoDataModification(inverseAxis->getContext(), isSource), axisDest_(axisDestination), axisSrc_(axisSource)
 TRY
 {
   

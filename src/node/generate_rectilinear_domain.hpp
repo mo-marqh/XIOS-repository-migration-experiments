@@ -21,6 +21,7 @@ namespace xios {
   class CDomain;
   class CGenericAlgorithmTransformation ;
   class CGrid;
+  class CContext ;
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
@@ -46,8 +47,8 @@ namespace xios {
 
     public :
       /// Constructeurs ///
-      CGenerateRectilinearDomain(void);
-      explicit CGenerateRectilinearDomain(const StdString& id);
+      CGenerateRectilinearDomain(CContext* context);
+      explicit CGenerateRectilinearDomain(CContext* context, const StdString& id);
 
       /// Destructeur ///
       virtual ~CGenerateRectilinearDomain(void);
@@ -60,8 +61,8 @@ namespace xios {
       static ENodeType GetType(void);
       const string& getId(void) { return this->SuperClass::getId();}
       ETranformationType getTransformationType(void) { return TRANS_GENERATE_RECTILINEAR_DOMAIN ;}
-      static CTransformation<CDomain>* getTransformation(const StdString& id) { return SuperClass::get(id);}
-      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get((MyClass*)srcTransform)) ;}
+      static CTransformation<CDomain>* getTransformation(CContext* context, const StdString& id) { return SuperClass::get(context, id);}
+      virtual void inheritFrom(SuperTransform* srcTransform) { solveDescInheritance(true, this->SuperClass::get(context_, (MyClass*)srcTransform)) ;}
       virtual shared_ptr<CGenericAlgorithmTransformation> createAlgorithm(bool isSource,
                                                                CGrid* gridDst, CGrid* gridSrc,
                                                                int elementPositionInGrid,
@@ -73,7 +74,7 @@ namespace xios {
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition)  ;
     private:
       static bool registerTrans();
-      static CTransformation<CDomain>* create(const StdString& id, xml::CXMLNode* node);
+      static CTransformation<CDomain>* create(CContext* context, const StdString& id, xml::CXMLNode* node);
       static bool _dummyRegistered;
   }; // class CGenerateRectilinearDomain
 

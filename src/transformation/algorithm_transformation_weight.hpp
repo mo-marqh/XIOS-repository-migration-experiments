@@ -10,11 +10,12 @@
 namespace xios
 {
 
+  class CContext ;
   class CAlgorithmTransformationWeight : public CGenericAlgorithmTransformation
   {
     public:
 
-      CAlgorithmTransformationWeight(bool isSource) : CGenericAlgorithmTransformation(isSource) {} 
+      CAlgorithmTransformationWeight(CContext* context, bool isSource) : CGenericAlgorithmTransformation(context, isSource) {} 
                                                                                                  
       virtual ~CAlgorithmTransformationWeight() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);

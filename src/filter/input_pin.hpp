@@ -5,6 +5,7 @@
 #include <map>
 
 #include "garbage_collector.hpp"
+#include "pin.hpp"
 #include "data_packet.hpp"
 
 namespace xios
@@ -14,7 +15,7 @@ namespace xios
   /*!
    * An input pin handles the data packets received by a filter.
    */
-  class CInputPin : public InvalidableObject
+  class CInputPin : public InvalidableObject, public CPin
   {
     public:
       /*!

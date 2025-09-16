@@ -37,7 +37,7 @@ TRY
 CATCH
 
 CDomainAlgorithmZoom::CDomainAlgorithmZoom(bool isSource, CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain)
-: CAlgorithmTransformationTransfer(isSource), domainSrc_(domainSource), domainDest_(domainDestination)
+: CAlgorithmTransformationTransfer(zoomDomain->getContext(), isSource), domainSrc_(domainSource), domainDest_(domainDestination)
 TRY
 {
   zoomDomain->checkValid(domainSource);

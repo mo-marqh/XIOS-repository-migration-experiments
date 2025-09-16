@@ -19,15 +19,15 @@ namespace xios
    /// ////////////////////// Définitions ////////////////////// ///
 
    template <class U, class V, class W>
-      CGroupTemplate<U, V, W>::CGroupTemplate(void)
-         : CObjectTemplate<V>() //, V()
+      CGroupTemplate<U, V, W>::CGroupTemplate(CContext* context)
+         : CObjectTemplate<V>(context) //, V()
          , childMap(), childList()
          , groupMap(), groupList()
    { /* Ne rien faire de plus */ }
 
    template <class U, class V, class W>
-      CGroupTemplate<U, V, W>::CGroupTemplate(const StdString & id)
-         : CObjectTemplate<V>(id) //, V()
+      CGroupTemplate<U, V, W>::CGroupTemplate(CContext* context, const StdString & id)
+         : CObjectTemplate<V>(context, id) //, V()
          , childMap(), childList()
          , groupMap(), groupList()
    { /* Ne rien faire de plus */ }
@@ -190,7 +190,7 @@ namespace xios
    template <class U, class V, class W>
    U* CGroupTemplate<U, V, W>::createChild(const string& id) 
   {
-    return CGroupFactory::CreateChild<V>(this->getShared(), id).get() ;
+    return CGroupFactory::CreateChild<V>(CGroupTemplate<U, V, W>::SuperClass::context_, this->getShared(), id).get() ;
   }
 
    template <class U, class V, class W>
@@ -202,7 +202,7 @@ namespace xios
    template <class U, class V, class W>
    V* CGroupTemplate<U, V, W>::createChildGroup(const string& id) 
   {
-    return CGroupFactory::CreateGroup<V>(this->getShared(), id).get() ;
+    return CGroupFactory::CreateGroup<V>(CGroupTemplate<U, V, W>::SuperClass::context_, this->getShared(), id).get() ;
   }
 
    template <class U, class V, class W>
@@ -250,12 +250,12 @@ namespace xios
 
 
    template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::recvCreateChild(CEventServer& event)
+   void CGroupTemplate<U, V, W>::recvCreateChild(CContext* context, CEventServer& event)
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
-      V::get(id)->recvCreateChild(*buffer) ;
+      V::get(context, id)->recvCreateChild(*buffer) ;
    }
    
    
@@ -268,13 +268,13 @@ namespace xios
    }
 
    template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::recvCreateChildGroup(CEventServer& event)
+   void CGroupTemplate<U, V, W>::recvCreateChildGroup(CContext* context, CEventServer& event)
    {
       
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
-      V::get(id)->recvCreateChildGroup(*buffer) ;
+      V::get(context,id)->recvCreateChildGroup(*buffer) ;
    }
    
    
@@ -288,20 +288,20 @@ namespace xios
    
 
    template <class U, class V, class W>
-   bool CGroupTemplate<U, V, W>::dispatchEvent(CEventServer& event)
+   bool CGroupTemplate<U, V, W>::dispatchEvent(CContext* context, CEventServer& event)
    {
-      if (CObjectTemplate<V>::dispatchEvent(event)) return true ;
+      if (CObjectTemplate<V>::dispatchEvent(context, event)) return true ;
       else
       {
         switch(event.type)
         {
            case EVENT_ID_CREATE_CHILD :
-             recvCreateChild(event) ;
+             recvCreateChild(context, event) ;
              return true ;
              break ;
          
            case EVENT_ID_CREATE_CHILD_GROUP :
-             recvCreateChildGroup(event) ;
+             recvCreateChildGroup(context, event) ;
              return true ;
              break ;       
          
@@ -337,9 +337,7 @@ namespace xios
       }
 
       // PARSING POUR GESTION DES ENFANTS
-           V* group_ptr = (this->hasId()) 
-         ? V::get(this->getId())
-         : xios_polymorphic_downcast<V*>(this);
+           V* group_ptr = (this->hasId()) ? V::get(SuperClass::context_, this->getId()) : xios_polymorphic_downcast<V*>(this);
 
       if (!(node.goToChildElement()))
       {
@@ -361,22 +359,22 @@ namespace xios
             if (name.compare(V::GetName()) == 0)
             {
                if (attributes.end() == attributes.find("id"))
-                  CGroupFactory::CreateGroup(group_ptr->getShared())->parse(node);
+                  CGroupFactory::CreateGroup(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared())->parse(node);
                else
-                  CGroupFactory::CreateGroup(group_ptr->getShared(), attributes["id"])->parse(node);
+                  CGroupFactory::CreateGroup(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared(), attributes["id"])->parse(node);
                continue;
             }
 
             if (name.compare(U::GetName()) == 0)
             {
                if (attributes.end() == attributes.find("id"))
-                  CGroupFactory::CreateChild(group_ptr->getShared())->parse(node);
+                  CGroupFactory::CreateChild(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared())->parse(node);
                else
-                  CGroupFactory::CreateChild(group_ptr->getShared(), attributes["id"])->parse(node);
+                  CGroupFactory::CreateChild(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared(), attributes["id"])->parse(node);
                continue;
             }
 
-            DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
+            DEBUG(<< "Dans le contexte \'" << getContext()->getId()
                   << "\', un objet de type \'" << V::GetName()
                   << "\' ne peut contenir qu'un objet de type \'" << V::GetName()
                   << "\' ou de type \'" << U::GetName()
@@ -394,7 +392,7 @@ namespace xios
 
       // PARSING POUR GESTION DES ENFANTS
            V* group_ptr = (this->hasId()) 
-         ? V::get(this->getId())
+         ? V::get(SuperClass::context_, this->getId())
          : xios_polymorphic_downcast<V*>(this);
 
           StdString name = node.getElementName();
@@ -403,21 +401,21 @@ namespace xios
           if (name.compare(V::GetName()) == 0)
           {
              if (attributes.end() == attributes.find("id"))
-                CGroupFactory::CreateGroup(group_ptr->getShared())->parse(node);
+                CGroupFactory::CreateGroup(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared())->parse(node);
              else
-                CGroupFactory::CreateGroup(group_ptr->getShared(), attributes["id"])->parse(node);
+                CGroupFactory::CreateGroup(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared(), attributes["id"])->parse(node);
              return ;
           }
           else if (name.compare(U::GetName()) == 0)
           {
              if (attributes.end() == attributes.find("id"))
-                CGroupFactory::CreateChild(group_ptr->getShared())->parse(node);
+                CGroupFactory::CreateChild(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared())->parse(node);
              else
-                CGroupFactory::CreateChild(group_ptr->getShared(), attributes["id"])->parse(node);
+                CGroupFactory::CreateChild(CGroupTemplate<U, V, W>::SuperClass::context_, group_ptr->getShared(), attributes["id"])->parse(node);
              return ;
           }
 
-          DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
+          DEBUG(<< "Dans le contexte \'" << getContext()->getId()
                 << "\', un objet de type \'" << V::GetName()
                 << "\' ne peut contenir qu'un objet de type \'" << V::GetName()
                 << "\' ou de type \'" << U::GetName()

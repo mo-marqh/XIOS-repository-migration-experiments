@@ -7,7 +7,7 @@ namespace xios
                                     : CFilter(gc, 1, this)
   {
     CGrid* redistributedGrid = fieldIn->getGrid()->redistributeGridToWriter() ;
-    fieldOut = CField::create() ;
+    fieldOut = CField::create(fieldIn->getContext()) ;
     fieldOut->field_ref=fieldIn->getId();
     fieldOut->solveRefInheritance() ;
     fieldOut->grid_ref=redistributedGrid->getId();
@@ -62,8 +62,8 @@ namespace xios
       if(this->graphPackage->show)
       {
         packet->graphPackage->currentField = this->graphPackage->inFields[0];
-        CWorkflowGraph::addNode("Spatial transform filter "+algorithm->getAlgoName(), 4, false, 1, packet);
-        CWorkflowGraph::addEdge(packet->graphPackage->fromFilter, this->graphPackage->filterId, packet);
+        CWorkflowGraph::addNode(getContext(), "Spatial transform filter "+algorithm->getAlgoName(), 4, false, 1, packet);
+        CWorkflowGraph::addEdge(getContext(), packet->graphPackage->fromFilter, this->graphPackage->filterId, packet);
         packet->graphPackage->fromFilter = this->graphPackage->filterId;
         packet->graphPackage->currentField = this->graphPackage->inFields[0];
         std::rotate(this->graphPackage->inFields.begin(), this->graphPackage->inFields.begin() + 1, this->graphPackage->inFields.end());

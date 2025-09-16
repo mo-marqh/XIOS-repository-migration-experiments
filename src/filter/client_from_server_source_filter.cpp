@@ -16,7 +16,7 @@ namespace xios
   CClientFromServerSourceFilter::CClientFromServerSourceFilter(CGarbageCollector& gc, CField* field)
     : COutputPin(gc, true)
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = getContext();
     field_ = field ;
     grid_= field->getSentGrid();
     freqOp_ = field->getRelFile()->output_freq ;
@@ -61,7 +61,7 @@ namespace xios
     if(this->graphEnabled)
     {
       this->graphPackage->filterId = CWorkflowGraph::getNodeSize();
-      CWorkflowGraph::addNode("Client from Server Source filter", 1, false, 0, packet);
+      CWorkflowGraph::addNode(getContext(), "Client from Server Source filter", 1, false, 0, packet);
     }
     onOutputReady(packet);
 
@@ -69,7 +69,7 @@ namespace xios
  
   int CClientFromServerSourceFilter::sendReadDataRequest(const CDate& tsDataRequested)
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = getContext();
     lastDataRequestedFromServer_ = tsDataRequested;
 
     // No need to send the request if we are sure that we are already at EOF
@@ -102,7 +102,7 @@ namespace xios
   bool CClientFromServerSourceFilter::sendReadDataRequestIfNeeded(void)
   TRY
   {
-    const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
+    const CDate& currentDate = getContext()->getCalendar()->getCurrentDate();
 
     bool dataRequested = false;
 
@@ -124,7 +124,7 @@ namespace xios
   void CClientFromServerSourceFilter::checkForLateData(void)
   TRY
   {
-    CContext* context = CContext::getCurrent();
+    CContext* context = getContext();
     // Check if data previously requested has been received as expected
     if (wasDataRequestedFromServer_ && ! isEOF_)
     {
@@ -162,9 +162,9 @@ namespace xios
   bool CClientFromServerSourceFilter::isDataLate(void)
   {
     bool isDataLate ;
-    CDate currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate() ;
+    CDate currentDate = getContext()->getCalendar()->getCurrentDate() ;
 
-    const CDate nextDataDue = wasDataAlreadyReceived_ ? (lastDateReceived_ + freqOp_) : CContext::getCurrent()->getCalendar()->getInitDate();
+    const CDate nextDataDue = wasDataAlreadyReceived_ ? (lastDateReceived_ + freqOp_) : getContext()->getCalendar()->getInitDate();
     isDataLate = (nextDataDue <= currentDate);
     
     return isDataLate ; 

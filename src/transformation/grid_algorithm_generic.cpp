@@ -23,9 +23,9 @@ namespace xios
     
     shared_ptr<CGridLocalView> srcView = gridSrcElements->getView(CElementView::WORKFLOW) ;
     shared_ptr<CGridLocalView> dstView = gridDstElements->getView(CElementView::WORKFLOW) ;
-    MPI_Comm comm = CContext::getCurrent()->getIntraComm() ;
-    int commSize = CContext::getCurrent()->getIntraCommSize() ;
-    int commRank = CContext::getCurrent()->getIntraCommRank() ;
+    MPI_Comm comm = getContext()->getIntraComm() ;
+    int commSize =  getContext()->getIntraCommSize() ;
+    int commRank =  getContext()->getIntraCommRank() ;
     
     auto& elements =  gridSrcElements->getElements() ;
     int nElements = elements.size() ;

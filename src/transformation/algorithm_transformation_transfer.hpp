@@ -8,11 +8,12 @@
 namespace xios
 {
 
+  class CContext ;
   class CAlgorithmTransformationTransfer : public CGenericAlgorithmTransformation
   {
     public:
 
-      CAlgorithmTransformationTransfer(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
+      CAlgorithmTransformationTransfer(CContext* context, bool isSource) : CGenericAlgorithmTransformation(context, isSource) {}
       virtual ~CAlgorithmTransformationTransfer() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
       virtual void computeRecvElement(shared_ptr<CLocalView> srcView, shared_ptr<CLocalView> dstView) ;

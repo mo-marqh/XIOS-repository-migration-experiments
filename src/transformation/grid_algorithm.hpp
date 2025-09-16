@@ -17,20 +17,25 @@ namespace xios
   */
 class CTransformFilter ;
 class CGarbageCollector ;
+class CContext ;
 
 class CGridAlgorithm : public std::enable_shared_from_this<CGridAlgorithm>
 {
   public:
-    CGridAlgorithm(shared_ptr<CGenericAlgorithmTransformation> algorithm) : algorithm_(algorithm)  {} ;
+    CGridAlgorithm(shared_ptr<CGenericAlgorithmTransformation> algorithm) ;
     virtual ~CGridAlgorithm() {} ;
     virtual void apply(const CArray<double,1>& dataIn, CArray<double,1>& dataOut) { abort(); } //=0
     virtual void apply(const CArray<double,1>& dataIn, const vector<CArray<double,1>>& auxData, CArray<double,1>& dataOut) { abort(); } //=0
     virtual CTransformFilter* createTransformFilter(CGarbageCollector& gc, bool detectMissingValues, double defaultValue) ;
     virtual bool isGenerateTranformation(void) ;
     virtual StdString getAlgoName() ;
+
+    CContext* getContext() { return context_;}
    
     protected:
       shared_ptr<CGenericAlgorithmTransformation> algorithm_=nullptr ;
+    private:
+      CContext* context_ ;
 };
 
 }

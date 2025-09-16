@@ -31,9 +31,9 @@ namespace xios
       }
       else id= fieldId ;
        
-      if (CField::has(id))
+      if (CField::has(thisField.getContext(), id))
       {
-        CField* field = CField::get(id);
+        CField* field = CField::get(thisField.getContext(), id);
         if (field == &thisField)
           ERROR("shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
                 << "The field " << id << " has an invalid reference to itself. "
@@ -77,9 +77,9 @@ namespace xios
       }
       else id = fieldId ;
 
-      if (CField::has(id))
+      if (CField::has(thisField.getContext(), id))
       {
-        CField* field = CField::get(id);
+        CField* field = CField::get(thisField.getContext(), id);
         if (field == &thisField)
           ERROR("shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
                 << "The field " << fieldId << " has an invalid reference to itself. "
@@ -135,7 +135,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CScalarFieldArithmeticFilter> filter(new CScalarFieldArithmeticFilter(gc, opId, child1->reduce()));
+    std::shared_ptr<CScalarFieldArithmeticFilter> filter(new CScalarFieldArithmeticFilter(gc, opId, child1->reduce(thisField.getContext())));
     
     auto ret=child2->reduce(gc, thisField) ;
     if (ret) ret->connectOutput(filter, 0);
@@ -164,7 +164,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CFieldScalarArithmeticFilter> filter(new CFieldScalarArithmeticFilter(gc, opId, child2->reduce()));
+    std::shared_ptr<CFieldScalarArithmeticFilter> filter(new CFieldScalarArithmeticFilter(gc, opId, child2->reduce(thisField.getContext())));
     auto ret=child1->reduce(gc, thisField) ;
     if (ret) ret->connectOutput(filter, 0);
     else filter.reset() ;
@@ -228,7 +228,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterScalarScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CScalarScalarFieldArithmeticFilter> filter(new CScalarScalarFieldArithmeticFilter(gc, opId, child1->reduce(),child2->reduce()));
+    std::shared_ptr<CScalarScalarFieldArithmeticFilter> filter(new CScalarScalarFieldArithmeticFilter(gc, opId, child1->reduce(thisField.getContext()),child2->reduce(thisField.getContext())));
     auto ret=child3->reduce(gc, thisField) ;
     if (ret) ret->connectOutput(filter, 0);
     else filter.reset() ;
@@ -249,7 +249,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterScalarFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CScalarFieldScalarArithmeticFilter> filter(new CScalarFieldScalarArithmeticFilter(gc, opId, child1->reduce(),child3->reduce()));
+    std::shared_ptr<CScalarFieldScalarArithmeticFilter> filter(new CScalarFieldScalarArithmeticFilter(gc, opId, child1->reduce(thisField.getContext()),child3->reduce(thisField.getContext())));
     auto ret=child2->reduce(gc, thisField);
     if (ret) ret->connectOutput(filter, 0);
     else filter.reset() ;
@@ -270,7 +270,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterScalarFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CScalarFieldFieldArithmeticFilter> filter(new CScalarFieldFieldArithmeticFilter(gc, opId, child1->reduce()));
+    std::shared_ptr<CScalarFieldFieldArithmeticFilter> filter(new CScalarFieldFieldArithmeticFilter(gc, opId, child1->reduce(thisField.getContext())));
     auto ret1=child2->reduce(gc, thisField);
     auto ret2=child3->reduce(gc, thisField);
     if (ret1 && ret2)
@@ -297,7 +297,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterFieldScalarScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CFieldScalarScalarArithmeticFilter> filter(new CFieldScalarScalarArithmeticFilter(gc, opId, child2->reduce(),child3->reduce()));
+    std::shared_ptr<CFieldScalarScalarArithmeticFilter> filter(new CFieldScalarScalarArithmeticFilter(gc, opId, child2->reduce(thisField.getContext()),child3->reduce(thisField.getContext())));
     auto ret = child1->reduce(gc, thisField) ;
     if (ret) ret->connectOutput(filter, 0);
     else filter.reset() ;
@@ -319,7 +319,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterFieldScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CFieldScalarFieldArithmeticFilter> filter(new CFieldScalarFieldArithmeticFilter(gc, opId, child2->reduce()));
+    std::shared_ptr<CFieldScalarFieldArithmeticFilter> filter(new CFieldScalarFieldArithmeticFilter(gc, opId, child2->reduce(thisField.getContext())));
     auto ret1 = child1->reduce(gc, thisField);
     auto ret2 = child3->reduce(gc, thisField);
     if (ret1 && ret2)
@@ -346,7 +346,7 @@ namespace xios
 
   std::shared_ptr<COutputPin> CFilterFieldFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    std::shared_ptr<CFieldFieldScalarArithmeticFilter> filter(new CFieldFieldScalarArithmeticFilter(gc, opId, child3->reduce()));
+    std::shared_ptr<CFieldFieldScalarArithmeticFilter> filter(new CFieldFieldScalarArithmeticFilter(gc, opId, child3->reduce(thisField.getContext())));
     auto ret1 = child1->reduce(gc, thisField);
     auto ret2 = child2->reduce(gc, thisField);
     if (ret1 && ret2)

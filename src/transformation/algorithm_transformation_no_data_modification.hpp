@@ -7,11 +7,12 @@
 namespace xios
 {
 
+  class CContext ;
   class CAlgorithmTransformationNoDataModification : public CGenericAlgorithmTransformation
   {
     public:
 
-      CAlgorithmTransformationNoDataModification(bool isSource) : CGenericAlgorithmTransformation(isSource) {}
+      CAlgorithmTransformationNoDataModification(CContext* context, bool isSource) : CGenericAlgorithmTransformation(context, isSource) {}
       virtual ~CAlgorithmTransformationNoDataModification() {};
       virtual void apply(int dimBefore, int dimAfter, const CArray<double,1>& dataIn, CArray<double,1>& dataOut);
       virtual shared_ptr<CGridAlgorithm> createGridAlgorithm(CGrid* gridSrc, CGrid* newGrid, int pos) ;

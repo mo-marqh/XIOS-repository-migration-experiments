@@ -38,6 +38,7 @@ namespace xios {
    class CDistributionServer;
    class CServerDistributionDescription;
    class CClientServerMapping;
+   class CContext ;
   
    ///--------------------------------------------------------------
 
@@ -84,8 +85,8 @@ namespace xios {
          };
 
          /// Constructeurs ///
-         CGrid(void);
-         explicit CGrid(const StdString& id);
+         CGrid(CContext* context);
+         explicit CGrid(CContext* context, const StdString& id);
          CGrid(const CGrid& grid);       // Not implemented yet.
          CGrid(const CGrid* const grid); // Not implemented yet.
 
@@ -135,17 +136,17 @@ namespace xios {
          static ENodeType GetType(void);
 
          /// Instanciateurs Statiques ///
-         static CGrid* createGrid(CDomain* domain);
-         static CGrid* createGrid(CDomain* domain, CAxis* axis);
-         static CGrid* createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+         static CGrid* createGrid(CContext* context, CDomain* domain);
+         static CGrid* createGrid(CContext* context, CDomain* domain, CAxis* axis);
+         static CGrid* createGrid(CContext* context, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                   const CArray<int,1>& axisDomainOrder = CArray<int,1>());
-         static CGrid* createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+         static CGrid* createGrid(CContext* context, StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                   const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
-         static CGrid* createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+         static CGrid* createGrid(CContext* context, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                   const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder);
-         static CGrid* get(const string& id, bool noError=false) ; //<! return grid pointer using id
-         static bool has(const string& id) ; //<! return if grid exist using id
-         static CField* getFieldFromId(const string& id) ; //<! return field id if used in grid reference
+         static CGrid* get(CContext* context, const string& id, bool noError=false) ; //<! return grid pointer using id
+         static bool has(CContext* context, const string& id) ; //<! return if grid exist using id
+         static CField* getFieldFromId(CContext* context, const string& id) ; //<! return field id if used in grid reference
          static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                      const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);
@@ -189,14 +190,14 @@ namespace xios {
          void sendAddAxis(const std::string& id,CContextClient* contextClient);
          void sendAddScalar(const std::string& id,CContextClient* contextClient);
         
-         static void recvAddDomain(CEventServer& event);
+         static void recvAddDomain(CContext* context, CEventServer& event);
          void recvAddDomain(CBufferIn& buffer);
-         static void recvAddAxis(CEventServer& event);
+         static void recvAddAxis(CContext* context, CEventServer& event);
          void recvAddAxis(CBufferIn& buffer);
-         static void recvAddScalar(CEventServer& event);
+         static void recvAddScalar(CContext* context, CEventServer& event);
          void recvAddScalar(CBufferIn& buffer);
 
-         static bool dispatchEvent(CEventServer& event);
+         static bool dispatchEvent(CContext* context, CEventServer& event);
        
        public:
          void setContextClient(CContextClient* contextClient);
@@ -325,7 +326,7 @@ namespace xios {
       public:
        CGrid* duplicateSentGrid(void) ;
       private:
-       static void recvMask(CEventServer& event) ;
+       static void recvMask(CContext* context, CEventServer& event) ;
        void receiveMask(CEventServer& event) ;
 
       private:  

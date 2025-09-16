@@ -13,6 +13,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "compute_connectivity_domain.hpp"
+#include "context.hpp"
 
 extern "C"
 {
@@ -29,7 +30,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CComputeConnectivityDomain::get(id);
+      *_ret = xios::CComputeConnectivityDomain::get(CContext::getCurrent(), id); 
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK
@@ -42,7 +43,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CComputeConnectivityDomain::has(id);
+      *_ret = xios::CComputeConnectivityDomain::has(CContext::getCurrent(), id);
       CTimer::get("XIOS").suspend() ;
    }
    CATCH_DUMP_STACK

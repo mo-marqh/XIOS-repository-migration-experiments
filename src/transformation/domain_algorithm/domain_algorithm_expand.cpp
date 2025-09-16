@@ -49,7 +49,7 @@ CATCH
 CDomainAlgorithmExpand::CDomainAlgorithmExpand(bool isSource, CDomain* domainDestination,
                                                CDomain* domainSource,
                                                CExpandDomain* expandDomain)
-: CAlgorithmTransformationTransfer(isSource), isXPeriodic_(false), isYPeriodic_(false)
+: CAlgorithmTransformationTransfer(expandDomain->getContext(), isSource), isXPeriodic_(false), isYPeriodic_(false)
 TRY
 {
   if (domainDestination == domainSource)
@@ -93,7 +93,7 @@ void CDomainAlgorithmExpand::expandDomainEdgeConnectivity(CDomain* domainDestina
                                                           CDomain* domainSource)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
  
   int type = 1; // For edge
   CMesh mesh;
@@ -121,7 +121,7 @@ void CDomainAlgorithmExpand::expandDomainNodeConnectivity(CDomain* domainDestina
                                                           CDomain* domainSource)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
 
   int type = 1; // For edge
   CMesh mesh;
@@ -155,7 +155,7 @@ TRY
   int index, globalIndex, idx;
   int iindexDst, jindexDst, globIndexDst;
   int iindexSrc, jindexSrc, globIndexSrc;
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
 
   // First of all, "copy" all attributes of domain source to domain destination
   StdString domainDstRef = (!domainDestination->domain_ref.isEmpty()) ? domainDestination->domain_ref.getValue()
@@ -482,7 +482,7 @@ void CDomainAlgorithmExpand::updateUnstructuredDomainAttributes(CDomain* domainD
 TRY
 {
 
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
 
   // First of all, "copy" all attributes of domain source to domain destination
   StdString domainDstRef = (!domainDestination->domain_ref.isEmpty()) ? domainDestination->domain_ref.getValue()

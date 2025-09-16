@@ -8,20 +8,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CInterpolateAxis::CInterpolateAxis(void)
-    : CObjectTemplate<CInterpolateAxis>(), CInterpolateAxisAttributes(), CTransformation<CAxis>()
+  CInterpolateAxis::CInterpolateAxis(CContext* context)
+    : CObjectTemplate<CInterpolateAxis>(context), CInterpolateAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
-  CInterpolateAxis::CInterpolateAxis(const StdString & id)
-    : CObjectTemplate<CInterpolateAxis>(id), CInterpolateAxisAttributes(), CTransformation<CAxis>()
+  CInterpolateAxis::CInterpolateAxis(CContext* context, const StdString & id)
+    : CObjectTemplate<CInterpolateAxis>(context, id), CInterpolateAxisAttributes(), CTransformation<CAxis>()
   { /* Ne rien faire de plus */ }
 
   CInterpolateAxis::~CInterpolateAxis(void)
   {}
 
-  CTransformation<CAxis>* CInterpolateAxis::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CAxis>* CInterpolateAxis::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CInterpolateAxis* interpAxis = CInterpolateAxisGroup::get("interpolate_axis_definition")->createChild(id);
+    CInterpolateAxis* interpAxis = CInterpolateAxisGroup::get(context, "interpolate_axis_definition")->createChild(id);
     if (node) interpAxis->parse(*node);
     return static_cast<CTransformation<CAxis>*>(interpAxis);
   }
@@ -68,7 +68,7 @@ namespace xios {
 
     if (!this->coordinate.isEmpty())
     {
-      if (!CField::has(coordinate))
+      if (!CField::has(context_, coordinate))
         ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
                << "Coordinate field whose id " << coordinate << "does not exist "
                << "Please define one");
@@ -76,7 +76,7 @@ namespace xios {
 
     if (!this->coordinate_src.isEmpty())
     {
-      if (!CField::has(coordinate_src))
+      if (!CField::has(context_, coordinate_src))
         ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
                << "Coordinate field whose id " << coordinate_src << "does not exist "
                << "Please define one");
@@ -84,7 +84,7 @@ namespace xios {
 
     if (!this->coordinate_dst.isEmpty())
     {
-      if (!CField::has(coordinate_dst))
+      if (!CField::has(context_, coordinate_dst))
         ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
                << "Coordinate field whose id " << coordinate_dst << "does not exist "
                << "Please define one");
@@ -105,7 +105,7 @@ namespace xios {
     if (!this->coordinate.isEmpty())
     {
       StdString coordinate = this->coordinate.getValue();
-      if (!CField::has(coordinate))
+      if (!CField::has(context_, coordinate))
         ERROR("std::vector<StdString> CInterpolateAxis::checkAuxInputs_()",
                << "Coordinate field whose id " << coordinate << "does not exist "
                << "Please define one");
@@ -115,7 +115,7 @@ namespace xios {
     if (!this->coordinate_src.isEmpty())
     {
       StdString coordinate = this->coordinate_src.getValue();
-      if (!CField::has(coordinate))
+      if (!CField::has(context_, coordinate))
         ERROR("std::vector<StdString> CInterpolateAxis::checkAuxInputs_()",
                << "Coordinate field whose id " << coordinate << "does not exist "
                << "Please define one");
@@ -125,7 +125,7 @@ namespace xios {
     if (!this->coordinate_dst.isEmpty())
     {
       StdString coordinate = this->coordinate_dst.getValue();
-      if (!CField::has(coordinate))
+      if (!CField::has(context_, coordinate))
         ERROR("std::vector<StdString> CInterpolateAxis::checkAuxInputs_()",
                << "Coordinate field whose id " << coordinate << "does not exist "
                << "Please define one");

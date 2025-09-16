@@ -12,6 +12,7 @@
 namespace xios
 {
   class CField;
+  class CContext;
 
   struct graph_node_object
   {
@@ -90,8 +91,8 @@ namespace xios
       static void drawWorkFlowGraph_server();
 
 
-      static void addNode(StdString filterName, int filter_class, bool filter_filled, int entry_nb, CDataPacketPtr packet);
-      static void addEdge(int from, int to, CDataPacketPtr packet);
+      static void addNode(CContext* context, StdString filterName, int filter_class, bool filter_filled, int entry_nb, CDataPacketPtr packet);
+      static void addEdge(CContext* context, int from, int to, CDataPacketPtr packet);
       
       // write to file the graph info
       static void outputWorkflowGraph_client();

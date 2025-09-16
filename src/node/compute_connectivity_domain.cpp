@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CComputeConnectivityDomain::CComputeConnectivityDomain(void)
-    : CObjectTemplate<CComputeConnectivityDomain>(), CComputeConnectivityDomainAttributes(), CTransformation<CDomain>()
+  CComputeConnectivityDomain::CComputeConnectivityDomain(CContext* context)
+    : CObjectTemplate<CComputeConnectivityDomain>(context), CComputeConnectivityDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CComputeConnectivityDomain::CComputeConnectivityDomain(const StdString & id)
-    : CObjectTemplate<CComputeConnectivityDomain>(id), CComputeConnectivityDomainAttributes(), CTransformation<CDomain>()
+  CComputeConnectivityDomain::CComputeConnectivityDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CComputeConnectivityDomain>(context, id), CComputeConnectivityDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CComputeConnectivityDomain::~CComputeConnectivityDomain(void)
   {}
 
-  CTransformation<CDomain>* CComputeConnectivityDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CComputeConnectivityDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CComputeConnectivityDomain* compute_connectivityDomain = CComputeConnectivityDomainGroup::get("compute_connectivity_domain_definition")->createChild(id);
+    CComputeConnectivityDomain* compute_connectivityDomain = CComputeConnectivityDomainGroup::get(context, "compute_connectivity_domain_definition")->createChild(id);
     if (node) compute_connectivityDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(compute_connectivityDomain);
   }

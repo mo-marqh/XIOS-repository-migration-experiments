@@ -6,20 +6,20 @@ namespace xios {
 
   /// ////////////////////// Définitions ////////////////////// ///
 
-  CReorderDomain::CReorderDomain(void)
-    : CObjectTemplate<CReorderDomain>(), CReorderDomainAttributes(), CTransformation<CDomain>()
+  CReorderDomain::CReorderDomain(CContext* context)
+    : CObjectTemplate<CReorderDomain>(context), CReorderDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
-  CReorderDomain::CReorderDomain(const StdString & id)
-    : CObjectTemplate<CReorderDomain>(id), CReorderDomainAttributes(), CTransformation<CDomain>()
+  CReorderDomain::CReorderDomain(CContext* context, const StdString & id)
+    : CObjectTemplate<CReorderDomain>(context, id), CReorderDomainAttributes(), CTransformation<CDomain>()
   { /* Ne rien faire de plus */ }
 
   CReorderDomain::~CReorderDomain(void)
   {}
 
-  CTransformation<CDomain>* CReorderDomain::create(const StdString& id, xml::CXMLNode* node)
+  CTransformation<CDomain>* CReorderDomain::create(CContext* context, const StdString& id, xml::CXMLNode* node)
   {
-    CReorderDomain* reorderDomain = CReorderDomainGroup::get("reorder_domain_definition")->createChild(id);
+    CReorderDomain* reorderDomain = CReorderDomainGroup::get(context, "reorder_domain_definition")->createChild(id);
     if (node) reorderDomain->parse(*node);
     return static_cast<CTransformation<CDomain>*>(reorderDomain);
   }

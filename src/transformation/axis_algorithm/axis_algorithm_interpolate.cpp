@@ -52,7 +52,7 @@ TRY
 CATCH
 
 CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(bool isSource, CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
-: CAlgorithmTransformationWeight(isSource), coordinate_(), transPosition_(), axisSrc_(axisSource), axisDest_(axisDestination)
+: CAlgorithmTransformationWeight(interpAxis->getContext(), isSource), coordinate_(), transPosition_(), axisSrc_(axisSource), axisDest_(axisDestination)
 TRY
 {
   interpAxis->checkValid(axisSource);
@@ -78,7 +78,7 @@ void CAxisAlgorithmInterpolate::computeRemap(const std::vector<CArray<double,1>*
 TRY
 {
   CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").resume() ;
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int nbClient = context->intraCommSize_;
   CArray<bool,1>& axisMask = axisSrc_->mask;
   int srcSize  = axisSrc_->n_glo.getValue();
@@ -235,7 +235,7 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(const CArray<double,1>& axi
                                                      std::vector<double>& recvBuff, std::vector<int>& indexVec)
 TRY
 {
-  CContext* context = CContext::getCurrent();
+  CContext* context = getContext();
   int nbClient = context->intraCommSize_;
 
   int srcSize  = axisSrc_->n_glo.getValue();

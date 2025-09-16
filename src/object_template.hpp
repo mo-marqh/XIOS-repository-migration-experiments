@@ -13,6 +13,8 @@
 namespace xios
 {
    /// ////////////////////// Déclarations ////////////////////// ///
+   class CContext ;
+
    template <class T>
       class CObjectTemplate
          : public CObject
@@ -53,14 +55,14 @@ namespace xios
          virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
  
          /// Traitement statique ///
-         static void ClearAllAttributes(void);
+         static void ClearAllAttributes(CContext* context);
          std::map<int, size_t> getMinimumBufferSizeForAttributes(CContextClient* client);
          void sendAttributToServer(const string& id, CContextClient* client, const string& objectId="");
          void sendAttributToServer(CAttribute& attr, CContextClient* client, const string& objectId="") ;
          void sendAllAttributesToServer(CContextClient* client, const string& objectId="");
          void sendAddItem(const string& id, int itemType, CContextClient* client, const string& objectId="");
-         static void recvAttributFromClient(CEventServer& event) ;
-         static bool dispatchEvent(CEventServer& event) ;
+         static void recvAttributFromClient(CContext* context, CEventServer& event) ;
+         static bool dispatchEvent(CContext* context, CEventServer& event) ;
 
          bool isEqual(const string& id, const vector<StdString>& excludedAttrs);
          bool isEqual(T* obj, const vector<StdString>& excludedAttrs);
@@ -74,21 +76,21 @@ namespace xios
          
          static void cleanStaticDataStructure(void);     
 
-         static bool has(const string& id) ;
+         static bool has(CContext* context, const string& id) ;
          static bool has(const string& contextId, const string& id) ;
-         static T* get(const string& id) ;
-         static T* get(const T* ptr) ;
+         static T* get(CContext* context, const string& id) ;
+         static T* get(CContext* context, const T* ptr) ;
          static T* get(const string& contextId, const string& id) ;
          T* get(void) ;
          std::shared_ptr<T> getShared(void) ;
-         static std::shared_ptr<T> getShared(const T* ptr) ;
+         static std::shared_ptr<T> getShared(CContext* context, const T* ptr) ;
 
-         static T* create(const string& id=string("")) ;
-         static T* createAlias(const string& id, const string& alias) ;
+         static T* create(CContext* context, const string& id=string("")) ;
+         static T* createAlias(CContext* context, const string& id, const string& alias) ;
          void createAlias(const string& alias) ;
 
-         static const vector<T*> getAll() ;
          static const vector<T*> getAll(const string& contextId) ;
+         static const vector<T*> getAll(CContext* context) ;
 
          void generateCInterface(ostream& oss) ;
          void generateFortran2003Interface(ostream& oss) ;
@@ -118,11 +120,20 @@ namespace xios
          std::string templateId_ ;    //<! the id of the object that served as template 
          bool hasTemplateId_ = false; //<! true if templateId is set
       
+      protected:   
+         CContext* context_ = nullptr; //<! the associated context
+      public:
+         CContext* getContext(void) { return context_; }   
+      
       protected :
 
          /// Constructeurs ///
-         CObjectTemplate(void);
-         explicit CObjectTemplate(const StdString & id);
+         CObjectTemplate() : CObjectTemplate((CContext*)nullptr) {}
+         explicit CObjectTemplate(const StdString & id) : CObjectTemplate((CContext*) nullptr, id) {}
+         
+         CObjectTemplate(CContext* context );
+         explicit CObjectTemplate(CContext* context, const StdString & id);
+
          CObjectTemplate(const CObjectTemplate<T> & object, bool withAttrList = true, bool withId = true);
          CObjectTemplate(const CObjectTemplate<T> * const object); // Not implemented.
 
