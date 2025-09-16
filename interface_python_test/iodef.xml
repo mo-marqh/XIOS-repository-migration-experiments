@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<simulation>
+
+<context id="context">
+   <calendar type="Gregorian" time_origin="2021-01-01" start_date="2021-03" />
+
+   <axis_definition>
+     <axis_group id="axis_g">
+        <axis id="axis" n_glo="10" value="(0,9)[100 200 300 400 500 600 700 800 900 1000]" begin="0" unit="some unit">
+        </axis>
+     </axis_group>
+   </axis_definition>
+
+   <domain_definition>
+     <domain id="domain" type="rectilinear" ni_glo="60" nj_glo="20" >
+        <generate_rectilinear_domain id="gen"/>   
+      </domain>
+   </domain_definition>
+
+   <scalar_definition>
+     <scalar id="scalar"/>
+   </scalar_definition>
+
+   <grid_definition>
+     <grid id="grid">
+       <domain domain_ref="domain"/>
+       <axis axis_ref="axis"/>
+     </grid>
+   </grid_definition>
+   
+   <field_definition>
+     <field id="field" name="field" operation="instant" grid_ref="grid"/>
+   </field_definition>
+
+   <file_definition>
+     <file id="file" name="output" output_freq="1ts" type="one_file">
+       <field id="field"/>
+     </file>
+   </file_definition>
+
+ </context>
+
+ <context id="context2">
+   <calendar/>
+
+   <axis_definition>
+     <axis_group id="axis_g2">
+        <axis id="axis2" n_glo="10" value="(0,9)[100 200 300 400 500 600 700 800 900 1000]" begin="0" unit="some unit">
+        </axis>
+     </axis_group>
+   </axis_definition>
+
+   <domain_definition>
+     <domain id="domain2" type="rectilinear" ni_glo="60" nj_glo="20" >
+        <generate_rectilinear_domain id="gen"/>   
+      </domain>
+   </domain_definition>
+
+   <scalar_definition>
+     <scalar id="scalar2"/>
+   </scalar_definition>
+
+   <grid_definition>
+     <grid id="grid2">
+       <domain domain_ref="domain2"/>
+       <axis axis_ref="axis2"/>
+     </grid>
+   </grid_definition>
+   
+   <field_definition>
+     <field id="field2" name="field2" operation="instant" grid_ref="grid2"/>
+   </field_definition>
+
+   <file_definition>
+     <file id="file2" name="output2" output_freq="1ts" type="one_file">
+       <field id="field2"/>
+     </file>
+   </file_definition>
+
+ </context>
+
+
+  <context id="xios">
+     <variable_definition>
+        <variable_group id="parameters" >
+          <variable id="print_file" type="bool">true</variable>
+        </variable_group>
+     </variable_definition>
+  </context>
+
+</simulation>
