@@ -11,6 +11,7 @@ use_memtrack="false"
 job="1"
 netcdf_lib="netcdf4_par"
 compil_mode="prod"
+lib_mode="static"
 arch_path=$PWD/"arch"
 arch_default_path=$PWD/"arch"
 arch_defined="FALSE"
@@ -47,6 +48,8 @@ while (($# > 0))
          "--prod")  compil_mode="prod"  ; shift ;;
          "--dev")   compil_mode="dev"   ; shift ;;
          "--debug") compil_mode="debug" ; shift ;;
+         "--static")  lib_mode="static"  ;  shift ;;
+         "--dynamic") lib_mode="dynamic" ;  shift ;;
          "--arch")  arch=$2     ; arch_defined="TRUE"; shift ; shift ;;
          "--arch_path")  arch_path=$2     ; arch_path_defined="TRUE"; shift ; shift ;;
          "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
@@ -167,6 +170,17 @@ elif [[ "$compil_mode" == "debug" ]]
       COMPIL_FFLAGS="%DEBUG_FFLAGS"
 fi
 
+## COMPILATION STATIC OU DYNAMIC
+if [[ "$lib_mode" == "static" ]]
+then
+      rm -f bld_link.cfg
+      ln -s bld_static.cfg bld_link.cfg
+elif [[ "$lib_mode" == "dynamic" ]]
+   then 
+      rm -f bld_link.cfg
+      ln -s bld_dynamic.cfg bld_link.cfg
+fi
+     
 rm -r $PWD/extern/netcdf4
 
 if [[ "$netcdf_lib" == "netcdf4_par" ]]
