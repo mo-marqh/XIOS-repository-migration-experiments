@@ -77,6 +77,19 @@ namespace xios {
   }
 
   /*!
+  \brief Check calendar creation
+  */
+  bool CCalendarWrapper::isCreatedCalendar(void)
+  {
+    if (calendar)
+    {
+     return true;
+    }else{
+      return false;
+    }
+  }
+
+  /*!
   \brief Try to create the calendar from the parsed attributes
   */
   void CCalendarWrapper::createCalendar(void)

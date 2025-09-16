@@ -31,6 +31,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_redistribute_axis_index_shape(redistribute_axis_Ptr redistribute_axis_hdl, int* shape)
+  {
+    const CArray<int, 1> data = redistribute_axis_hdl->index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_redistribute_axis_index(redistribute_axis_Ptr redistribute_axis_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -54,6 +61,13 @@ extern "C"
     CArray<bool,1> tmp(mask, shape(extent[0]), neverDeleteData);
     tmp=redistribute_axis_hdl->mask.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_redistribute_axis_mask_shape(redistribute_axis_Ptr redistribute_axis_hdl, int* shape)
+  {
+    const CArray<bool, 1> data = redistribute_axis_hdl->mask.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_redistribute_axis_mask(redistribute_axis_Ptr redistribute_axis_hdl)

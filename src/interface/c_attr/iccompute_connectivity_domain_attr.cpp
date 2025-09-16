@@ -31,6 +31,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_compute_connectivity_domain_local_neighbor_shape(compute_connectivity_domain_Ptr compute_connectivity_domain_hdl, int* shape)
+  {
+    const CArray<int, 2> data = compute_connectivity_domain_hdl->local_neighbor.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
+  }
+
   bool cxios_is_defined_compute_connectivity_domain_local_neighbor(compute_connectivity_domain_Ptr compute_connectivity_domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -54,6 +62,13 @@ extern "C"
     CArray<int,1> tmp(n_neighbor, shape(extent[0]), neverDeleteData);
     tmp=compute_connectivity_domain_hdl->n_neighbor.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_compute_connectivity_domain_n_neighbor_shape(compute_connectivity_domain_Ptr compute_connectivity_domain_hdl, int* shape)
+  {
+    const CArray<int, 1> data = compute_connectivity_domain_hdl->n_neighbor.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_compute_connectivity_domain_n_neighbor(compute_connectivity_domain_Ptr compute_connectivity_domain_hdl)

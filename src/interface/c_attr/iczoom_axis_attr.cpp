@@ -54,6 +54,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_zoom_axis_index_shape(zoom_axis_Ptr zoom_axis_hdl, int* shape)
+  {
+    const CArray<int, 1> data = zoom_axis_hdl->index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_zoom_axis_index(zoom_axis_Ptr zoom_axis_hdl)
   {
      CTimer::get("XIOS").resume();

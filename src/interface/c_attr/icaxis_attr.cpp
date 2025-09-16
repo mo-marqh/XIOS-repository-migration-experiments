@@ -106,6 +106,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_axis_bounds_shape(axis_Ptr axis_hdl, int* shape)
+  {
+    const CArray<double, 2> data = axis_hdl->bounds.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
+  }
+
   bool cxios_is_defined_axis_bounds(axis_Ptr axis_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -250,6 +258,13 @@ extern "C"
     CArray<int,1> tmp(data_index, shape(extent[0]), neverDeleteData);
     tmp=axis_hdl->data_index.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_axis_data_index_shape(axis_Ptr axis_hdl, int* shape)
+  {
+    const CArray<int, 1> data = axis_hdl->data_index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_axis_data_index(axis_Ptr axis_hdl)
@@ -430,6 +445,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_axis_index_shape(axis_Ptr axis_hdl, int* shape)
+  {
+    const CArray<int, 1> data = axis_hdl->index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_axis_index(axis_Ptr axis_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -507,6 +529,13 @@ extern "C"
     CArray<bool,1> tmp(mask, shape(extent[0]), neverDeleteData);
     tmp=axis_hdl->mask.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_axis_mask_shape(axis_Ptr axis_hdl, int* shape)
+  {
+    const CArray<bool, 1> data = axis_hdl->mask.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_axis_mask(axis_Ptr axis_hdl)
@@ -728,6 +757,13 @@ extern "C"
     CArray<double,1> tmp(value, shape(extent[0]), neverDeleteData);
     tmp=axis_hdl->value.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_axis_value_shape(axis_Ptr axis_hdl, int* shape)
+  {
+    const CArray<double, 1> data = axis_hdl->value.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_axis_value(axis_Ptr axis_hdl)

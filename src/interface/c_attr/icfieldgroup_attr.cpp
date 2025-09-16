@@ -250,6 +250,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_fieldgroup_compression_params_shape(fieldgroup_Ptr fieldgroup_hdl, int* shape)
+  {
+    const CArray<double, 1> data = fieldgroup_hdl->compression_params.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_fieldgroup_compression_params(fieldgroup_Ptr fieldgroup_hdl)
   {
      CTimer::get("XIOS").resume();

@@ -31,6 +31,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_area_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 2> data = domain_hdl->area.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
+  }
+
   bool cxios_is_defined_domain_area(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -54,6 +62,13 @@ extern "C"
     CArray<double,1> tmp(area_1d, shape(extent[0]), neverDeleteData);
     tmp=domain_hdl->area_1d.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_area_1d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 1> data = domain_hdl->area_1d.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_domain_area_1d(domain_Ptr domain_hdl)
@@ -81,6 +96,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_area_2d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 2> data = domain_hdl->area_2d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
+  }
+
   bool cxios_is_defined_domain_area_2d(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -106,6 +129,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_bounds_lat_1d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 2> data = domain_hdl->bounds_lat_1d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
+  }
+
   bool cxios_is_defined_domain_bounds_lat_1d(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -129,6 +160,15 @@ extern "C"
     CArray<double,3> tmp(bounds_lat_2d, shape(extent[0], extent[1], extent[2]), neverDeleteData);
     tmp=domain_hdl->bounds_lat_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_bounds_lat_2d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 3> data = domain_hdl->bounds_lat_2d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    shape[2] = data.extent(2);
+    
   }
 
   bool cxios_is_defined_domain_bounds_lat_2d(domain_Ptr domain_hdl)
@@ -182,6 +222,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_bounds_lon_1d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 2> data = domain_hdl->bounds_lon_1d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
+  }
+
   bool cxios_is_defined_domain_bounds_lon_1d(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -205,6 +253,15 @@ extern "C"
     CArray<double,3> tmp(bounds_lon_2d, shape(extent[0], extent[1], extent[2]), neverDeleteData);
     tmp=domain_hdl->bounds_lon_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_bounds_lon_2d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 3> data = domain_hdl->bounds_lon_2d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    shape[2] = data.extent(2);
+    
   }
 
   bool cxios_is_defined_domain_bounds_lon_2d(domain_Ptr domain_hdl)
@@ -353,6 +410,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_data_i_index_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<int, 1> data = domain_hdl->data_i_index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_domain_data_i_index(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -399,6 +463,13 @@ extern "C"
     CArray<int,1> tmp(data_j_index, shape(extent[0]), neverDeleteData);
     tmp=domain_hdl->data_j_index.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_data_j_index_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<int, 1> data = domain_hdl->data_j_index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_domain_data_j_index(domain_Ptr domain_hdl)
@@ -573,6 +644,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_i_index_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<int, 1> data = domain_hdl->i_index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_domain_i_index(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -619,6 +697,13 @@ extern "C"
     CArray<int,1> tmp(j_index, shape(extent[0]), neverDeleteData);
     tmp=domain_hdl->j_index.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_j_index_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<int, 1> data = domain_hdl->j_index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_domain_j_index(domain_Ptr domain_hdl)
@@ -695,6 +780,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_latvalue_1d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 1> data = domain_hdl->latvalue_1d.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_domain_latvalue_1d(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -718,6 +810,14 @@ extern "C"
     CArray<double,2> tmp(latvalue_2d, shape(extent[0], extent[1]), neverDeleteData);
     tmp=domain_hdl->latvalue_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_latvalue_2d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 2> data = domain_hdl->latvalue_2d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
   }
 
   bool cxios_is_defined_domain_latvalue_2d(domain_Ptr domain_hdl)
@@ -797,6 +897,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_lonvalue_1d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 1> data = domain_hdl->lonvalue_1d.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_domain_lonvalue_1d(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -820,6 +927,14 @@ extern "C"
     CArray<double,2> tmp(lonvalue_2d, shape(extent[0], extent[1]), neverDeleteData);
     tmp=domain_hdl->lonvalue_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_lonvalue_2d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<double, 2> data = domain_hdl->lonvalue_2d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
   }
 
   bool cxios_is_defined_domain_lonvalue_2d(domain_Ptr domain_hdl)
@@ -847,6 +962,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_domain_mask_1d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<bool, 1> data = domain_hdl->mask_1d.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_domain_mask_1d(domain_Ptr domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -870,6 +992,14 @@ extern "C"
     CArray<bool,2> tmp(mask_2d, shape(extent[0], extent[1]), neverDeleteData);
     tmp=domain_hdl->mask_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_domain_mask_2d_shape(domain_Ptr domain_hdl, int* shape)
+  {
+    const CArray<bool, 2> data = domain_hdl->mask_2d.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
   }
 
   bool cxios_is_defined_domain_mask_2d(domain_Ptr domain_hdl)

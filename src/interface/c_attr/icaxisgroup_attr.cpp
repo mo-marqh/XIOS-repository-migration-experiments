@@ -106,6 +106,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_axisgroup_bounds_shape(axisgroup_Ptr axisgroup_hdl, int* shape)
+  {
+    const CArray<double, 2> data = axisgroup_hdl->bounds.getInheritedValue();
+    shape[0] = data.extent(0);
+    shape[1] = data.extent(1);
+    
+  }
+
   bool cxios_is_defined_axisgroup_bounds(axisgroup_Ptr axisgroup_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -250,6 +258,13 @@ extern "C"
     CArray<int,1> tmp(data_index, shape(extent[0]), neverDeleteData);
     tmp=axisgroup_hdl->data_index.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_axisgroup_data_index_shape(axisgroup_Ptr axisgroup_hdl, int* shape)
+  {
+    const CArray<int, 1> data = axisgroup_hdl->data_index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_axisgroup_data_index(axisgroup_Ptr axisgroup_hdl)
@@ -456,6 +471,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_axisgroup_index_shape(axisgroup_Ptr axisgroup_hdl, int* shape)
+  {
+    const CArray<int, 1> data = axisgroup_hdl->index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_axisgroup_index(axisgroup_Ptr axisgroup_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -533,6 +555,13 @@ extern "C"
     CArray<bool,1> tmp(mask, shape(extent[0]), neverDeleteData);
     tmp=axisgroup_hdl->mask.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_axisgroup_mask_shape(axisgroup_Ptr axisgroup_hdl, int* shape)
+  {
+    const CArray<bool, 1> data = axisgroup_hdl->mask.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_axisgroup_mask(axisgroup_Ptr axisgroup_hdl)
@@ -754,6 +783,13 @@ extern "C"
     CArray<double,1> tmp(value, shape(extent[0]), neverDeleteData);
     tmp=axisgroup_hdl->value.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_axisgroup_value_shape(axisgroup_Ptr axisgroup_hdl, int* shape)
+  {
+    const CArray<double, 1> data = axisgroup_hdl->value.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_axisgroup_value(axisgroup_Ptr axisgroup_hdl)

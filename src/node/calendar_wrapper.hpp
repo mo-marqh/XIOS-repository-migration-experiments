@@ -63,6 +63,8 @@ namespace xios {
       virtual void parse(xml::CXMLNode& node);
       // Try to create the calendar from the current attributes
       void createCalendar(void);
+      //check calendar creation
+      bool isCreatedCalendar(void);
       // Try to update the timestep of the calendar with the corresponding attribute
       void updateTimestep(void);
 

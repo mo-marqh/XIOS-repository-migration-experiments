@@ -31,6 +31,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_redistribute_domain_index_shape(redistribute_domain_Ptr redistribute_domain_hdl, int* shape)
+  {
+    const CArray<int, 1> data = redistribute_domain_hdl->index.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_redistribute_domain_index(redistribute_domain_Ptr redistribute_domain_hdl)
   {
      CTimer::get("XIOS").resume();
@@ -54,6 +61,13 @@ extern "C"
     CArray<bool,1> tmp(mask, shape(extent[0]), neverDeleteData);
     tmp=redistribute_domain_hdl->mask.getInheritedValue();
      CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_redistribute_domain_mask_shape(redistribute_domain_Ptr redistribute_domain_hdl, int* shape)
+  {
+    const CArray<bool, 1> data = redistribute_domain_hdl->mask.getInheritedValue();
+    shape[0] = data.extent(0);
+    
   }
 
   bool cxios_is_defined_redistribute_domain_mask(redistribute_domain_Ptr redistribute_domain_hdl)

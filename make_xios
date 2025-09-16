@@ -322,6 +322,7 @@ echo "%CPP_KEY       $XIOS_CPPKEY"   >> ${install_dir}/config.fcm
 echo "%CBASE_INC     $XIOS_CINCDIR" >> ${install_dir}/config.fcm     
 echo "%FBASE_INC     $XIOS_FINCDIR" >> ${install_dir}/config.fcm
 echo "%ARCH_LD       $XIOS_LIB"     >> ${install_dir}/config.fcm 
+echo "%ARFLAGS       $XIOS_LIB"     >> ${install_dir}/config.fcm 
 
 echo "=> Using "$compil_mode" mode for compiling under architecture \""$arch"\" !"
 

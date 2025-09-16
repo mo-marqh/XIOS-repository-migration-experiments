@@ -149,6 +149,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_calendar_wrapper_month_lengths_shape(calendar_wrapper_Ptr calendar_wrapper_hdl, int* shape)
+  {
+    const CArray<int, 1> data = calendar_wrapper_hdl->month_lengths.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl)
   {
      CTimer::get("XIOS").resume();

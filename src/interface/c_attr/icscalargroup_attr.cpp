@@ -57,6 +57,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
 
+  void cxios_scalargroup_bounds_shape(scalargroup_Ptr scalargroup_hdl, int* shape)
+  {
+    const CArray<double, 1> data = scalargroup_hdl->bounds.getInheritedValue();
+    shape[0] = data.extent(0);
+    
+  }
+
   bool cxios_is_defined_scalargroup_bounds(scalargroup_Ptr scalargroup_hdl)
   {
      CTimer::get("XIOS").resume();

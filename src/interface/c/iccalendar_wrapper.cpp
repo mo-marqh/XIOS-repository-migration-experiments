@@ -135,6 +135,16 @@ extern "C"
     CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK
+  
+  bool cxios_is_created_calendar(XCalendarWrapperPtr calendarWrapper_hdl)
+  TRY
+  {
+    CTimer::get("XIOS").resume();
+    bool is_created = calendarWrapper_hdl->isCreatedCalendar();
+    CTimer::get("XIOS").suspend();
+    return is_created;
+  }
+  CATCH_DUMP_STACK
 
   void cxios_update_calendar_timestep(XCalendarWrapperPtr calendarWrapper_hdl)
   TRY
