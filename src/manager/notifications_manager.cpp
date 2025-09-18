@@ -33,8 +33,8 @@ namespace xios
     MPI_Comm_rank(communicator_, &commRank) ;
     if (!isMaster_) commRank=0 ;
     MPI_Allreduce(&commRank, &masterRank_, 1, MPI_INTEGER, MPI_SUM, communicator_ ) ;
-    
-    numPrefetchedRequest_ = defaultNumPrefectedRequest_ ;
+
+    numPrefetchedRequest_ = CXios::getin<int>("number_prefetched_requests", defaultNumPrefectedRequest_);
     
     // launch prefetched asynchronous MPI_Ibcast requests
     if (!isMaster_) for(int i=0;i<numPrefetchedRequest_ ; i++)  postPendingBcastRequest() ;

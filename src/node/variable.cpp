@@ -81,6 +81,7 @@ namespace xios {
                                     "memtrack_size",
                                     "min_buffer_size",
                                     "number_pools_server2",
+                                    "number_prefetched_requests",
                                     "optimal_buffer_size",
                                     "print_file",
                                     "pure_one_sided",
