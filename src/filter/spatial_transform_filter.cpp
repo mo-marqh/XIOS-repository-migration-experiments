@@ -321,8 +321,11 @@ namespace xios
           currentBuff += countSize;
         }
       }
-      std::vector<MPI_Status> status(sendRecvRequest.size());
-      MPI_Waitall(sendRecvRequest.size(), &sendRecvRequest[0], &status[0]);
+      if ( sendRecvRequest.size() > 0 )
+      {
+        std::vector<MPI_Status> status(sendRecvRequest.size());
+        MPI_Waitall(sendRecvRequest.size(), &sendRecvRequest[0], &status[0]);
+      }
 
       dataCurrentDest.resize(*itNbListRecv);
       dataCurrentDest = 0.0;
