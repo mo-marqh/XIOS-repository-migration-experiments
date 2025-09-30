@@ -6,8 +6,8 @@ PROGRAM test_basic_2D
 
   TYPE(xios_duration)  :: dtime
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=100
-  INTEGER,PARAMETER :: nj_glo=100
+  INTEGER,PARAMETER :: ni_glo=10
+  INTEGER,PARAMETER :: nj_glo=10
 
   INTEGER :: i,j,n,ts
   INTEGER :: ibegin,jbegin,ni,nj,nbi,nbj,iend,jend
@@ -17,11 +17,7 @@ PROGRAM test_basic_2D
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_glo(ni_glo,nj_glo)
   DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_domain(:,:), field_axis(:,:)
-
-  ! Initialize MPI
-  CALL MPI_INIT(ierr)
-
-  CALL init_wait
+  CHARACTER(len=60) :: expression
 
   ! Initialize XIOS
   CALL xios_initialize('client', return_comm=comm)
@@ -73,12 +69,12 @@ PROGRAM test_basic_2D
 
   ! Test 2-dimension domain
   ! Initialize the context
-  CALL xios_context_initialize('test_domain', comm)
-  CALL xios_get_handle('test_domain', ctx_hdl)
+  CALL xios_context_initialize('test', comm)
+  CALL xios_get_handle('test', ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
 
   CALL xios_define_calendar(type="Gregorian", &
-                            start_date=xios_date(2000, 01, 01, 00, 00, 00), &
+                            start_date=xios_date(2002, 05, 02, 00, 00, 00), &
                             time_origin=xios_date(1999, 01, 01, 15, 00, 00))
 
   CALL xios_set_domain_attr("domain",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj, type='curvilinear')
@@ -91,18 +87,9 @@ PROGRAM test_basic_2D
   dtime%second=3600
   CALL xios_set_timestep(timestep=dtime)
   ! Close domain context
-  CALL xios_close_context_definition()
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! Test 2-dimension grid composed of 2 distributed axis
-  ! Initialize the context
-  CALL xios_context_initialize('test_axis', comm)
-  CALL xios_get_handle('test_axis', ctx_hdl)
-  CALL xios_set_current_context(ctx_hdl)
-
-  CALL xios_define_calendar(type="Gregorian", &
-                            start_date=xios_date(2000, 01, 01, 00, 00, 00), &
-                            time_origin=xios_date(1999, 01, 01, 15, 00, 00))
+  ! Test 2-dimension grid composed of 2 distributed axisZ
 
   CALL xios_set_axis_attr("x", n_glo=ni_glo, n=ni, begin=ibegin, value=(/(real(i,kind=8), i=ibegin,ibegin+ni-1)/))
   CALL xios_set_axis_attr("y", n_glo=nj_glo, n=nj, begin=jbegin, value=(/(real(i,kind=8), i=jbegin,jbegin+nj-1)/))
@@ -113,17 +100,15 @@ PROGRAM test_basic_2D
   ! Close axis context
   CALL xios_close_context_definition()
 
-  DO ts=1,24*10
+
+  DO ts=1,8
     ! Domain context
-    CALL xios_get_handle("test_domain",ctx_hdl)
-    CALL xios_set_current_context(ctx_hdl)
+
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_domain_1",field_domain)
     CALL xios_send_field("field_domain_2",field_domain)
 
-    ! Switch to axis context
-    CALL xios_get_handle("test_axis",ctx_hdl)
-    CALL xios_set_current_context(ctx_hdl)
+
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_axis",field_axis)
 
@@ -131,18 +116,14 @@ PROGRAM test_basic_2D
   ENDDO
 
   ! Clean-ups
-  CALL xios_get_handle("test_domain",ctx_hdl)
-  CALL xios_set_current_context(ctx_hdl)
-  CALL xios_context_finalize()
-  CALL xios_get_handle("test_axis",ctx_hdl)
-  CALL xios_set_current_context(ctx_hdl)
-  CALL xios_context_finalize()
 
-  DEALLOCATE(lon, lat, field_domain, field_axis)
 
-  CALL MPI_COMM_FREE(comm, ierr)
+  CALL MPI_BARRIER(comm, ierr)
+  CALL xios_context_finalize()
+  CALL MPI_BARRIER(comm, ierr)
+
   CALL xios_finalize()
-  CALL MPI_FINALIZE(ierr)
+
 
 END PROGRAM test_basic_2D
 

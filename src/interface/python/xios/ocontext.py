@@ -5,7 +5,7 @@ from xios.ocalendar import Calendar
 from xios.obj import swipswap_ctx
 from xios.config import String
 from xios.ocontext_attr import Context_
-from xios.icontext import set_current_context
+from xios.icontext import set_current_context, set_current_context_id
 
 from xios.oscalar_attr import Scalar
 from xios.oscalargroup_attr import ScalarGroup
@@ -96,7 +96,7 @@ class Context(Context_):
         context_finalize()
         self._finalized = True
         if current_context_id.value != self._id.value:
-            swipswap_ctx(current_context_id)
+            set_current_context_id(String(current_context_id))
         
 
 
